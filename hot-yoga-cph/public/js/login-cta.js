@@ -1156,12 +1156,81 @@
 
 
   // ═══════════════════════════════════════════════════════════════════
-  // CROSS-IFRAME AUTH SYNC (polling)
+  // CROSS-IFRAME AUTH SYNC (via shared auth-sync.html bridge)
   // ═══════════════════════════════════════════════════════════════════
-  // login-cta and checkout-embed run in separate Framer iframes with
-  // separate Firebase instances.  We poll the shared auth token in
-  // localStorage every 2 s so that a login in one iframe is picked up
-  // by the other.
+  // login-cta and checkout-embed run in separate Framer srcdoc iframes
+  // with null origin — localStorage is sandboxed per iframe.
+  // We load a hidden iframe from profile.hotyogacph.dk/auth-sync.html
+  // which has real localStorage and relays auth events between siblings.
+
+  var _syncFrame = null;
+  var _syncReady = false;
+  var _syncQueue = [];
+
+  function initAuthSyncBridge() {
+    try {
+      var f = document.createElement('iframe');
+      f.src = 'https://profile.hotyogacph.dk/auth-sync.html';
+      f.style.cssText = 'display:none;width:0;height:0;border:0';
+      f.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(f);
+      _syncFrame = f;
+      f.addEventListener('load', function () {
+        _syncReady = true;
+        // Flush queued messages
+        for (var i = 0; i < _syncQueue.length; i++) {
+          try { f.contentWindow.postMessage(_syncQueue[i], '*'); } catch (x) {}
+        }
+        _syncQueue = [];
+        // Ask bridge if anyone is already logged in
+        try { f.contentWindow.postMessage({ type: 'hyc-auth-sync', action: 'query' }, '*'); } catch (x) {}
+      });
+    } catch (e) { /* iframe blocked */ }
+  }
+
+  function sendToSyncBridge(msg) {
+    if (_syncReady && _syncFrame && _syncFrame.contentWindow) {
+      try { _syncFrame.contentWindow.postMessage(msg, '*'); } catch (e) {}
+    } else {
+      _syncQueue.push(msg);
+    }
+  }
+
+  function broadcastAuthChange(user) {
+    if (!user) {
+      sendToSyncBridge({ type: 'hyc-auth-sync', action: 'logout' });
+      return;
+    }
+    user.getIdToken().then(function (token) {
+      sendToSyncBridge({ type: 'hyc-auth-sync', action: 'login', idToken: token });
+    }).catch(function () {});
+  }
+
+  function listenForAuthSync() {
+    window.addEventListener('message', function (e) {
+      try {
+        if (!e.data || e.data.type !== 'hyc-auth-sync') return;
+        if (!firebaseReady) return;
+
+        if (e.data.action === 'login' && e.data.idToken && !currentUser && !_restoring) {
+          _restoring = true;
+          fetch(API_BASE + '/auth-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: e.data.idToken })
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.customToken) return firebase.auth().signInWithCustomToken(data.customToken);
+              _restoring = false;
+            })
+            .catch(function () { _restoring = false; });
+        } else if (e.data.action === 'logout' && currentUser) {
+          firebase.auth().signOut();
+        }
+      } catch (x) {}
+    });
+  }
 
   function startAuthPolling() {
     setInterval(function () {
@@ -1170,11 +1239,9 @@
       var hasToken = s && s.getItem(SESSION_KEY);
 
       if (hasToken && !currentUser && !_restoring) {
-        // Another iframe logged in — restore session from shared token
         _restoring = true;
         restoreSession();
       } else if (!hasToken && currentUser) {
-        // Another iframe logged out — sign out here too
         firebase.auth().signOut();
       }
     }, 2000);
@@ -1210,11 +1277,16 @@
       } catch (e) { /* auth() threw */ }
 
       try {
+        // Set up cross-iframe auth sync via hidden bridge iframe
+        initAuthSyncBridge();
+        listenForAuthSync();
+
         firebase.auth().onAuthStateChanged(function (user) {
           currentUser = user;
           if (user) {
             _restoring = false;
             persistAuthToken(user);
+            broadcastAuthChange(user);
             resolveMbClient(user);
             renderLoggedIn(user);
             // If auth modal is open, close it — user just logged in
@@ -1227,6 +1299,7 @@
             // but always render the logged-out state so the button is never invisible
             if (!_restoring) {
               clearAuthToken();
+              broadcastAuthChange(null);
             }
             renderLoggedOut();
             // Close user area modal if open
@@ -1241,7 +1314,7 @@
           restoreSession();
         }
 
-        // Start polling for auth changes from other iframes
+        // Start polling for auth changes from other iframes (fallback)
         startAuthPolling();
       } catch (e) {
         console.warn('[login-cta] Firebase auth error:', e.message);

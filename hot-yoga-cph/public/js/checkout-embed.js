@@ -2329,15 +2329,91 @@
     }, 2000);
   }
 
+  // ── Cross-iframe auth sync via shared bridge iframe ─────────────────
+  // Storage-based sync (_parentStorage) is unreliable in cross-origin
+  // srcdoc iframes (Safari, Chrome 115+). We load a hidden iframe from
+  // profile.hotyogacph.dk/auth-sync.html which has real localStorage
+  // and relays auth events between sibling embeds.
+  var _ceSyncFrame = null;
+  var _ceSyncReady = false;
+  var _ceSyncQueue = [];
+
+  function initAuthSyncBridge() {
+    try {
+      var f = document.createElement('iframe');
+      f.src = 'https://profile.hotyogacph.dk/auth-sync.html';
+      f.style.cssText = 'display:none;width:0;height:0;border:0';
+      f.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(f);
+      _ceSyncFrame = f;
+      f.addEventListener('load', function () {
+        _ceSyncReady = true;
+        for (var i = 0; i < _ceSyncQueue.length; i++) {
+          try { f.contentWindow.postMessage(_ceSyncQueue[i], '*'); } catch (x) {}
+        }
+        _ceSyncQueue = [];
+        // Ask bridge if anyone is already logged in
+        try { f.contentWindow.postMessage({ type: 'hyc-auth-sync', action: 'query' }, '*'); } catch (x) {}
+      });
+    } catch (e) { /* iframe blocked */ }
+  }
+
+  function sendToSyncBridge(msg) {
+    if (_ceSyncReady && _ceSyncFrame && _ceSyncFrame.contentWindow) {
+      try { _ceSyncFrame.contentWindow.postMessage(msg, '*'); } catch (e) {}
+    } else {
+      _ceSyncQueue.push(msg);
+    }
+  }
+
+  function broadcastAuthChange(user) {
+    if (!user) {
+      sendToSyncBridge({ type: 'hyc-auth-sync', action: 'logout' });
+      return;
+    }
+    user.getIdToken().then(function (token) {
+      sendToSyncBridge({ type: 'hyc-auth-sync', action: 'login', idToken: token });
+    }).catch(function () {});
+  }
+
+  var _ceSyncListening = false;
+  function listenForAuthSync() {
+    if (_ceSyncListening) return;
+    _ceSyncListening = true;
+    window.addEventListener('message', function (e) {
+      try {
+        if (!e.data || e.data.type !== 'hyc-auth-sync') return;
+        if (e.data.action === 'login' && e.data.idToken && !firebase.auth().currentUser) {
+          fetch(API_BASE + '/auth-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: e.data.idToken })
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.customToken) return firebase.auth().signInWithCustomToken(data.customToken);
+            })
+            .catch(function () {});
+        } else if (e.data.action === 'logout' && firebase.auth().currentUser) {
+          firebase.auth().signOut();
+        }
+      } catch (x) {}
+    });
+  }
+
   function initAuthListener() {
     // Poll for Firebase availability then listen for auth state
     var checkInterval = setInterval(function () {
       if (typeof firebase !== 'undefined' && firebase.auth) {
         clearInterval(checkInterval);
+        initAuthSyncBridge();
+        listenForAuthSync();
         firebase.auth().onAuthStateChanged(function (user) {
           // Persist / clear token so login survives page reloads
           if (user) persistAuthToken(user);
           else clearAuthToken();
+          // Broadcast to sibling iframes via bridge
+          broadcastAuthChange(user);
 
           if (!user) return;
 
