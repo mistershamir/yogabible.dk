@@ -30,7 +30,7 @@ const { sendWelcomeEmail } = require('./shared/lead-emails');
 const { sendLeadEvent } = require('./shared/meta-events');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 
-const GRAPH_API_VERSION = 'v21.0';
+const GRAPH_API_VERSION = 'v25.0';
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
 exports.handler = async (event) => {

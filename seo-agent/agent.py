@@ -33,6 +33,7 @@ from checks import (
     check_keyword_rankings,
     check_price_consistency,
 )
+from api_health import check_api_health
 from telegram_notify import send_report
 
 
@@ -53,6 +54,7 @@ def run_all_checks():
         ('PageSpeed', check_pagespeed),
         ('Search Console', check_search_console),
         ('Keyword Rankings', check_keyword_rankings),
+        ('API Health', check_api_health),
     ]
 
     for name, check_fn in checks:
