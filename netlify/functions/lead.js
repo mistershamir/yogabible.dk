@@ -8,7 +8,7 @@
 
 const crypto = require('crypto');
 const { getDb } = require('./shared/firestore');
-const { CONFIG } = require('./shared/config');
+const { CONFIG, getDisplayProgram } = require('./shared/config');
 const {
   jsonResponse, optionsResponse, formatDate, normalizeYesNo,
   detectAction
@@ -149,7 +149,8 @@ function processLead(payload, action) {
     last_contact: null,
     followup_date: null,
     multi_format: payload.multiFormat || '',
-    all_formats: payload.allFormats || ''
+    all_formats: payload.allFormats || '',
+    lang: payload.lang || ''
   };
 
   switch (action) {
@@ -169,7 +170,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_18w-aug':
@@ -187,7 +188,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_4w':
@@ -206,7 +207,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_4w-jul':
@@ -224,7 +225,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_8w':
@@ -242,21 +243,20 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_multi': {
       // User selected multiple 200h formats (e.g. 4w,8w,18w)
       const allFmts = (payload.allFormats || '').split(',').filter(f => f);
-      const fmtMap = { '4w': '4-week', '8w': '8-week', '18w': '18-week' };
-      const labelMap = { '4w': '4-ugers intensiv', '8w': '8-ugers semi-intensiv', '18w': '18-ugers fleksibel' };
+      const fmtMap = { '4w': '4-week', '8w': '8-week', '18w': '18-week', '4w-apr': '4-week', '4w-jul': '4-week-jul', '18w-aug': '18-week-aug' };
       const programTypes = allFmts.map(f => fmtMap[f] || f);
-      const programLabels = allFmts.map(f => labelMap[f] || f);
+      // Store raw program types; getDisplayProgram() handles display names per language
       return {
         ...base,
         type: 'ytt',
         ytt_program_type: programTypes.join(','),
-        program: programLabels.join(' + ') + ' yogalæreruddannelse',
+        program: programTypes.join(' + ') + ' Yoga Teacher Training',
         course_id: '',
         cohort_label: '',
         preferred_month: '',
@@ -266,7 +266,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT',
+        source: 'Website',
         all_formats: payload.allFormats || ''
       };
     }
@@ -286,7 +286,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: payload.message || '',
-        source: '300h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_50h':
@@ -304,7 +304,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: payload.specialty || '',
         message: payload.message || '',
-        source: '50h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_30h':
@@ -322,7 +322,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: payload.module || '',
         message: payload.message || '',
-        source: '30h YTT'
+        source: 'Website'
       };
 
     case 'lead_courses': {
@@ -342,7 +342,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: 'Courses'
+        source: 'Website'
       };
     }
 
@@ -363,7 +363,7 @@ function processLead(payload, action) {
         service: payload.service || '',
         subcategories,
         message: payload.message || '',
-        source: 'Mentorship'
+        source: 'Website'
       };
     }
 
