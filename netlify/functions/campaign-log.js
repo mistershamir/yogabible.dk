@@ -53,7 +53,9 @@ async function handleCreate(db, event) {
     sentAt: payload.sentAt || new Date().toISOString(),
     createdAt: new Date().toISOString(),
     sentBy: event.headers['x-user-email'] || 'unknown',
-    // New fields for list + tracking support
+    // Tracking campaign ID — the cmp_xxx ID embedded in tracking pixels/links
+    trackingCampaignId: payload.trackingCampaignId || null,
+    // List support
     listIds: payload.listIds || [],
     includesListContacts: payload.includesListContacts || false,
     listContactCount: payload.listContactCount || 0
@@ -78,9 +80,11 @@ async function handleGet(db, event) {
 
     const campaign = { id: doc.id, ...doc.data() };
 
-    // Fetch tracking stats
+    // Fetch tracking stats — use trackingCampaignId (the cmp_xxx embedded in emails)
+    // Fall back to Firestore doc ID for backwards compatibility
+    const trackingId = campaign.trackingCampaignId || params.id;
     const trackSnap = await db.collection('email_tracking')
-      .where('campaign_id', '==', params.id)
+      .where('campaign_id', '==', trackingId)
       .get();
 
     const uniqueOpens = new Set();
@@ -155,25 +159,33 @@ async function handleGet(db, event) {
 
   // Fetch basic tracking stats for each campaign (for list view)
   if (params.tracking === '1' && campaigns.length > 0) {
-    // Batch-fetch all tracking events for these campaign IDs
-    const campaignIds = campaigns.map(c => c.id);
+    // Build mapping: trackingCampaignId → Firestore doc id
+    // The cmp_xxx IDs are what's stored in email_tracking, not the Firestore doc IDs
+    const trackingIdToDocId = {};
+    const trackingIds = campaigns.map(c => {
+      const tid = c.trackingCampaignId || c.id;
+      trackingIdToDocId[tid] = c.id;
+      return tid;
+    });
     // Firestore 'in' queries support max 30 values
     const trackingMap = {};
-    for (let i = 0; i < campaignIds.length; i += 30) {
-      const chunk = campaignIds.slice(i, i + 30);
+    for (let i = 0; i < trackingIds.length; i += 30) {
+      const chunk = trackingIds.slice(i, i + 30);
       const trackSnap = await db.collection('email_tracking')
         .where('campaign_id', 'in', chunk)
         .get();
       trackSnap.forEach(tdoc => {
         const data = tdoc.data();
         const cid = data.campaign_id;
-        if (!trackingMap[cid]) trackingMap[cid] = { opens: new Set(), clicks: new Set(), totalOpens: 0, totalClicks: 0 };
+        // Map back to Firestore doc ID for the campaign
+        const docId = trackingIdToDocId[cid] || cid;
+        if (!trackingMap[docId]) trackingMap[docId] = { opens: new Set(), clicks: new Set(), totalOpens: 0, totalClicks: 0 };
         if (data.type === 'open') {
-          trackingMap[cid].totalOpens++;
-          trackingMap[cid].opens.add(data.email_hash);
+          trackingMap[docId].totalOpens++;
+          trackingMap[docId].opens.add(data.email_hash);
         } else if (data.type === 'click') {
-          trackingMap[cid].totalClicks++;
-          trackingMap[cid].clicks.add(data.email_hash);
+          trackingMap[docId].totalClicks++;
+          trackingMap[docId].clicks.add(data.email_hash);
         }
       });
     }

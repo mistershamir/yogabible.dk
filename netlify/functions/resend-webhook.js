@@ -91,15 +91,59 @@ exports.handler = async function (event) {
     return jsonResponse(400, { error: 'Invalid JSON' });
   }
 
+  var db = getDb();
   var eventType = data.type;
+  var eventData = data.data || {};
 
-  // Only handle bounce and complaint events
+  // ── Handle delivery events (email.delivered, email.opened, email.clicked) ──
+  // These are tracked alongside the pixel-based system for better accuracy.
+  // Resend open/click tracking works even when pixels are blocked.
+  if (eventType === 'email.delivered' || eventType === 'email.opened' ||
+      eventType === 'email.clicked') {
+    // Only log if we can identify the campaign (via tags)
+    // Resend sends tags as { name: value } in the webhook payload
+    var tags = eventData.tags || {};
+    var campaignId = tags.campaign_id || null;
+    // Also check tags array format [{ name: 'campaign_id', value: 'xxx' }]
+    if (!campaignId && Array.isArray(eventData.tags)) {
+      var found = eventData.tags.find(function (t) { return t.name === 'campaign_id'; });
+      if (found) campaignId = found.value;
+    }
+    var emailHash = null;
+
+    if (eventData.to && eventData.to.length > 0) {
+      var trackEmail = (eventData.to[0] || '').toLowerCase().trim();
+      emailHash = crypto.createHash('sha256').update(trackEmail).digest('hex').slice(0, 12);
+    }
+
+    if (campaignId && emailHash) {
+      var trackType = eventType === 'email.opened' ? 'open'
+        : eventType === 'email.clicked' ? 'click'
+        : 'delivered';
+
+      try {
+        await db.collection('email_tracking').add({
+          campaign_id: campaignId,
+          email_hash: emailHash,
+          type: trackType,
+          url: eventData.click && eventData.click.link ? eventData.click.link : null,
+          timestamp: new Date().toISOString(),
+          source: 'resend_webhook'
+        });
+      } catch (err) {
+        console.error('[resend-webhook] Tracking log error:', err.message);
+      }
+    }
+
+    return jsonResponse(200, { ok: true, tracked: eventType });
+  }
+
+  // ── Handle bounce and complaint events ──────────────────────────────────────
   if (eventType !== 'email.bounced' && eventType !== 'email.complained') {
     // Acknowledge other events silently
     return jsonResponse(200, { ok: true, ignored: true });
   }
 
-  var eventData = data.data || {};
   var recipients = [];
 
   // Resend sends `to` as array of emails
@@ -114,7 +158,6 @@ exports.handler = async function (event) {
     return jsonResponse(200, { ok: true, no_recipients: true });
   }
 
-  var db = getDb();
   var now = new Date();
   var bounceType = eventType === 'email.complained' ? 'complaint' : 'hard';
   var processed = 0;

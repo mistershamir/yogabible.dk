@@ -79,7 +79,7 @@ function resendPost(path, body) {
 
 // ─── Build a single Resend message payload ───────────────────────────────────
 
-function buildResendMessage({ to, subject, html, text, fromEmail }) {
+function buildResendMessage({ to, subject, html, text, fromEmail, campaignId }) {
   var senderEmail = fromEmail || process.env.GMAIL_USER || CONFIG.EMAIL_FROM;
   var senderName = fromEmail && fromEmail.includes('hotyogacph') ? 'Hot Yoga CPH' : CONFIG.FROM_NAME;
   const from = fromEmail
@@ -91,7 +91,7 @@ function buildResendMessage({ to, subject, html, text, fromEmail }) {
 
   const unsubUrl = buildUnsubscribeUrl(to);
 
-  return {
+  var message = {
     from,
     to: [to],
     subject,
@@ -103,6 +103,13 @@ function buildResendMessage({ to, subject, html, text, fromEmail }) {
       'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
     }
   };
+
+  // Attach campaign ID as tag so Resend webhooks can link events back
+  if (campaignId) {
+    message.tags = [{ name: 'campaign_id', value: campaignId }];
+  }
+
+  return message;
 }
 
 // ─── Tracking injection helpers ──────────────────────────────────────────────
@@ -155,7 +162,7 @@ async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, c
   const html = wrapHtml(bodyHtml, to, campaignId);
   const text = wrapText(bodyPlain || '', to);
 
-  const message = buildResendMessage({ to, subject, html, text, fromEmail });
+  const message = buildResendMessage({ to, subject, html, text, fromEmail, campaignId });
   const result = await resendPost('/emails', message);
 
   await logResendEmail({ to, subject, leadId, messageId: result.id, campaignId });
@@ -199,7 +206,8 @@ async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate
         subject,
         html: wrapHtml(bodyHtml, record.email, campaignId),
         text: wrapText(bodyPlain, record.email),
-        fromEmail
+        fromEmail,
+        campaignId
       }));
 
       meta.push({ id, isApp, email: record.email, subject });
