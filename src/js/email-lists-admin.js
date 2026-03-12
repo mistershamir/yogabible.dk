@@ -761,8 +761,10 @@
 
     var listsSec = $('yb-el-sec-lists');
     var campSec = $('yb-el-sec-campaigns');
+    var seqSec = $('yb-el-sec-sequences');
     if (listsSec) listsSec.hidden = (target !== 'lists');
     if (campSec) campSec.hidden = (target !== 'campaigns');
+    if (seqSec) seqSec.hidden = (target !== 'sequences');
 
     if (target === 'campaigns' && !campaignsLoaded) {
       loadCampaigns();

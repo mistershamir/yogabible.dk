@@ -1,263 +1,301 @@
 /**
- * Sequence Auto-Enrollment Triggers — Yoga Bible
- * Shared module for automatically enrolling leads into sequences
- * based on trigger conditions (new_lead, status_change).
+ * Sequence Trigger — Auto-enroll leads into sequences
  *
- * Used by: lead.js (new lead capture), leads.js (status updates)
+ * Shared utility for enrolling leads into automated sequences based on triggers.
+ * Called by lead.js (new lead capture) and leads.js (status changes).
+ *
+ * Collections:
+ *   sequences             — Sequence definitions (trigger, steps, exit_conditions)
+ *   sequence_enrollments  — Per-lead enrollment state (current_step, status, history)
  */
 
 const { getDb } = require('./firestore');
 
-const SEQ_COLLECTION = 'sequences';
-const ENROLL_COLLECTION = 'sequence_enrollments';
+// =========================================================================
+// Condition Matching
+// =========================================================================
 
 /**
- * Check for sequences with new_lead trigger that match this lead,
- * and auto-enroll if conditions match.
+ * Check if a lead matches all trigger conditions.
+ * @param {Object} conditions - Trigger conditions from the sequence definition
+ * @param {Object} leadData - The lead document data
+ * @param {string} [skipKey] - A condition key to skip (e.g. 'new_status' handled separately)
+ * @returns {boolean}
+ */
+function matchesTriggerConditions(conditions, leadData, skipKey) {
+  if (!conditions || Object.keys(conditions).length === 0) return true;
+
+  for (const [key, value] of Object.entries(conditions)) {
+    if (skipKey && key === skipKey) continue;
+    if (!value) continue;
+
+    switch (key) {
+      case 'lead_type':
+        if (leadData.type !== value) return false;
+        break;
+
+      case 'source_contains':
+        if (!leadData.source || !leadData.source.toLowerCase().includes(value.toLowerCase())) {
+          return false;
+        }
+        break;
+
+      case 'program':
+      case 'ytt_program_type':
+        if ((leadData.ytt_program_type || leadData.program) !== value) return false;
+        break;
+
+      case 'status':
+        if (leadData.status !== value) return false;
+        break;
+
+      default:
+        // Unknown condition key — skip silently
+        break;
+    }
+  }
+
+  return true;
+}
+
+// =========================================================================
+// Trigger: New Lead
+// =========================================================================
+
+/**
+ * Enroll a newly captured lead into matching sequences.
+ * Called after a new lead is saved by lead.js and facebook-leads-webhook.js.
  *
- * @param {string} leadId - Firestore lead document ID
- * @param {object} leadData - Lead data (type, ytt_program_type, source, etc.)
+ * @param {string} leadId - Firestore document ID of the lead
+ * @param {Object} leadData - The lead document data
+ * @returns {Promise<{enrolled: number, sequences: string[]}>}
  */
 async function triggerNewLeadSequences(leadId, leadData) {
   try {
     const db = getDb();
 
     // Find active sequences with new_lead trigger
-    const seqSnap = await db.collection(SEQ_COLLECTION)
+    const sequencesSnap = await db.collection('sequences')
       .where('active', '==', true)
+      .where('trigger.type', '==', 'new_lead')
       .get();
 
-    const matchingSequences = [];
-    seqSnap.forEach(doc => {
-      const seq = { id: doc.id, ...doc.data() };
-      if (seq.trigger && seq.trigger.type === 'new_lead') {
-        if (matchesTriggerConditions(seq.trigger.conditions, leadData)) {
-          matchingSequences.push(seq);
-        }
+    if (sequencesSnap.empty) {
+      return { enrolled: 0, sequences: [] };
+    }
+
+    const enrolledNames = [];
+
+    for (const seqDoc of sequencesSnap.docs) {
+      const sequence = { id: seqDoc.id, ...seqDoc.data() };
+
+      // Check trigger conditions against lead data
+      if (!matchesTriggerConditions(sequence.trigger?.conditions, leadData)) {
+        continue;
       }
-    });
 
-    if (matchingSequences.length === 0) return { enrolled: 0 };
+      // Check for existing active/paused enrollment in this sequence
+      const existingSnap = await db.collection('sequence_enrollments')
+        .where('sequence_id', '==', sequence.id)
+        .where('lead_id', '==', leadId)
+        .where('status', 'in', ['active', 'paused'])
+        .get();
 
-    // Check existing enrollments to avoid duplicates
-    const existingSnap = await db.collection(ENROLL_COLLECTION)
-      .where('lead_id', '==', leadId)
-      .where('status', 'in', ['active', 'paused'])
-      .get();
+      if (!existingSnap.empty) {
+        console.log(`[sequence-trigger] Lead ${leadId} already enrolled in "${sequence.name}", skipping`);
+        continue;
+      }
 
-    const existingSeqIds = new Set();
-    existingSnap.forEach(doc => {
-      existingSeqIds.add(doc.data().sequence_id);
-    });
+      // Calculate first step delay
+      const firstStepDelay = sequence.steps?.[0]?.delay_minutes || 0;
+      const now = new Date();
+      const nextSendAt = new Date(now.getTime() + firstStepDelay * 60 * 1000);
 
-    // Enroll in matching sequences
-    let enrolled = 0;
-    for (const seq of matchingSequences) {
-      if (existingSeqIds.has(seq.id)) continue; // Already enrolled
-      if (!seq.steps || seq.steps.length === 0) continue; // No steps
-
-      const firstStep = seq.steps[0];
-      const delayMs = ((firstStep.delay_days || 0) * 86400000) + ((firstStep.delay_hours || 0) * 3600000);
-      const nextSend = new Date(Date.now() + delayMs);
-
-      await db.collection(ENROLL_COLLECTION).add({
-        sequence_id: seq.id,
-        sequence_name: seq.name || '',
+      // Create enrollment
+      await db.collection('sequence_enrollments').add({
+        sequence_id: sequence.id,
+        sequence_name: sequence.name || '',
         lead_id: leadId,
         lead_email: leadData.email || '',
-        lead_name: `${leadData.first_name || ''} ${leadData.last_name || ''}`.trim(),
+        lead_name: leadData.name || leadData.first_name || '',
         current_step: 1,
         status: 'active',
         exit_reason: null,
-        next_send_at: nextSend.toISOString(),
-        started_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        next_send_at: nextSendAt,
+        started_at: now,
+        updated_at: now,
         step_history: [],
         trigger: 'new_lead'
       });
 
-      enrolled++;
-      console.log(`[sequence-trigger] Auto-enrolled lead ${leadId} in sequence "${seq.name}" (${seq.id})`);
+      enrolledNames.push(sequence.name || sequence.id);
+      console.log(`[sequence-trigger] Enrolled lead ${leadId} into "${sequence.name}"`);
     }
 
-    return { enrolled, sequences: matchingSequences.map(s => s.name) };
+    return { enrolled: enrolledNames.length, sequences: enrolledNames };
   } catch (err) {
-    console.error('[sequence-trigger] New lead trigger error:', err.message);
-    return { enrolled: 0, error: err.message };
+    console.error(`[sequence-trigger] Error in triggerNewLeadSequences for lead ${leadId}:`, err);
+    return { enrolled: 0, sequences: [] };
   }
 }
 
+// =========================================================================
+// Trigger: Status Change
+// =========================================================================
+
 /**
- * Check for sequences with status_change trigger that match this lead's
- * new status, and auto-enroll if conditions match.
+ * Enroll a lead into sequences triggered by status changes, and check exit conditions.
+ * Called when a lead's status is updated by leads.js.
  *
- * @param {string} leadId - Firestore lead document ID
- * @param {object} leadData - Full lead data after update
- * @param {string} oldStatus - Previous status before the update
- * @param {string} newStatus - New status after the update
+ * @param {string} leadId - Firestore document ID of the lead
+ * @param {Object} leadData - The lead document data (with new status)
+ * @param {string} oldStatus - Previous status value
+ * @param {string} newStatus - New status value
+ * @returns {Promise<{enrolled: number, sequences: string[]}>}
  */
 async function triggerStatusChangeSequences(leadId, leadData, oldStatus, newStatus) {
   try {
-    if (!newStatus || newStatus === oldStatus) return { enrolled: 0 };
+    if (newStatus === oldStatus) {
+      return { enrolled: 0, sequences: [] };
+    }
 
     const db = getDb();
 
     // Find active sequences with status_change trigger
-    const seqSnap = await db.collection(SEQ_COLLECTION)
+    const sequencesSnap = await db.collection('sequences')
       .where('active', '==', true)
+      .where('trigger.type', '==', 'status_change')
       .get();
 
-    const matchingSequences = [];
-    seqSnap.forEach(doc => {
-      const seq = { id: doc.id, ...doc.data() };
-      if (seq.trigger && seq.trigger.type === 'status_change') {
-        const conditions = seq.trigger.conditions || {};
-        // Check if the new status matches the trigger's target status
-        if (conditions.new_status && conditions.new_status.toLowerCase() !== newStatus.toLowerCase()) {
-          return;
-        }
-        // Check other conditions
-        if (matchesTriggerConditions(conditions, leadData, 'new_status')) {
-          matchingSequences.push(seq);
-        }
+    const enrolledNames = [];
+
+    for (const seqDoc of sequencesSnap.docs) {
+      const sequence = { id: seqDoc.id, ...seqDoc.data() };
+      const conditions = sequence.trigger?.conditions || {};
+
+      // Check that new_status condition matches
+      if (conditions.new_status && conditions.new_status !== newStatus) {
+        continue;
       }
-    });
 
-    if (matchingSequences.length === 0) return { enrolled: 0 };
+      // Check remaining conditions (skip new_status since we handled it)
+      if (!matchesTriggerConditions(conditions, leadData, 'new_status')) {
+        continue;
+      }
 
-    // Check existing enrollments
-    const existingSnap = await db.collection(ENROLL_COLLECTION)
-      .where('lead_id', '==', leadId)
-      .where('status', 'in', ['active', 'paused'])
-      .get();
+      // Check for existing active/paused enrollment in this sequence
+      const existingSnap = await db.collection('sequence_enrollments')
+        .where('sequence_id', '==', sequence.id)
+        .where('lead_id', '==', leadId)
+        .where('status', 'in', ['active', 'paused'])
+        .get();
 
-    const existingSeqIds = new Set();
-    existingSnap.forEach(doc => {
-      existingSeqIds.add(doc.data().sequence_id);
-    });
+      if (!existingSnap.empty) {
+        console.log(`[sequence-trigger] Lead ${leadId} already enrolled in "${sequence.name}", skipping`);
+        continue;
+      }
 
-    // Enroll
-    let enrolled = 0;
-    for (const seq of matchingSequences) {
-      if (existingSeqIds.has(seq.id)) continue;
-      if (!seq.steps || seq.steps.length === 0) continue;
+      // Calculate first step delay
+      const firstStepDelay = sequence.steps?.[0]?.delay_minutes || 0;
+      const now = new Date();
+      const nextSendAt = new Date(now.getTime() + firstStepDelay * 60 * 1000);
 
-      const firstStep = seq.steps[0];
-      const delayMs = ((firstStep.delay_days || 0) * 86400000) + ((firstStep.delay_hours || 0) * 3600000);
-      const nextSend = new Date(Date.now() + delayMs);
-
-      await db.collection(ENROLL_COLLECTION).add({
-        sequence_id: seq.id,
-        sequence_name: seq.name || '',
+      // Create enrollment
+      await db.collection('sequence_enrollments').add({
+        sequence_id: sequence.id,
+        sequence_name: sequence.name || '',
         lead_id: leadId,
         lead_email: leadData.email || '',
-        lead_name: `${leadData.first_name || ''} ${leadData.last_name || ''}`.trim(),
+        lead_name: leadData.name || leadData.first_name || '',
         current_step: 1,
         status: 'active',
         exit_reason: null,
-        next_send_at: nextSend.toISOString(),
-        started_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        next_send_at: nextSendAt,
+        started_at: now,
+        updated_at: now,
         step_history: [],
         trigger: 'status_change',
         trigger_from: oldStatus,
         trigger_to: newStatus
       });
 
-      enrolled++;
-      console.log(`[sequence-trigger] Auto-enrolled lead ${leadId} in sequence "${seq.name}" (status: ${oldStatus} → ${newStatus})`);
+      enrolledNames.push(sequence.name || sequence.id);
+      console.log(`[sequence-trigger] Enrolled lead ${leadId} into "${sequence.name}" (status: ${oldStatus} → ${newStatus})`);
     }
 
-    // Also check exit conditions on existing enrollments
-    // If the new status matches an exit condition, exit those enrollments
+    // Check exit conditions for any currently active enrollments
     await checkExitConditions(db, leadId, newStatus);
 
-    return { enrolled, sequences: matchingSequences.map(s => s.name) };
+    return { enrolled: enrolledNames.length, sequences: enrolledNames };
   } catch (err) {
-    console.error('[sequence-trigger] Status change trigger error:', err.message);
-    return { enrolled: 0, error: err.message };
+    console.error(`[sequence-trigger] Error in triggerStatusChangeSequences for lead ${leadId}:`, err);
+    return { enrolled: 0, sequences: [] };
   }
 }
 
+// =========================================================================
+// Exit Conditions
+// =========================================================================
+
 /**
- * Check if a lead's new status triggers exit conditions on active enrollments.
+ * Check if any active enrollments for this lead should be exited based on the new status.
+ * Loads the sequence definition for each enrollment and checks exit_conditions.
+ *
+ * @param {Object} db - Firestore database instance
+ * @param {string} leadId - Firestore document ID of the lead
+ * @param {string} newStatus - The lead's new status
  */
 async function checkExitConditions(db, leadId, newStatus) {
   try {
-    const enrollSnap = await db.collection(ENROLL_COLLECTION)
+    // If db is a string, treat it as leadId (called externally without db)
+    if (typeof db === 'string') {
+      newStatus = leadId;
+      leadId = db;
+      db = getDb();
+    }
+
+    // Find all active enrollments for this lead
+    const enrollmentsSnap = await db.collection('sequence_enrollments')
       .where('lead_id', '==', leadId)
       .where('status', '==', 'active')
       .get();
 
-    if (enrollSnap.empty) return;
+    if (enrollmentsSnap.empty) return;
 
-    const statusLower = (newStatus || '').toLowerCase();
-    const exitStatuses = ['converted', 'unsubscribed', 'not interested', 'lost', 'closed'];
+    for (const enrollDoc of enrollmentsSnap.docs) {
+      const enrollment = enrollDoc.data();
 
-    // If the status is an exit-worthy status, check each enrollment's exit conditions
-    if (!exitStatuses.some(s => statusLower.includes(s))) return;
-
-    for (const doc of enrollSnap.docs) {
-      const enrollment = doc.data();
-      const seqDoc = await db.collection(SEQ_COLLECTION).doc(enrollment.sequence_id).get();
+      // Load the sequence definition to get exit_conditions
+      const seqDoc = await db.collection('sequences').doc(enrollment.sequence_id).get();
       if (!seqDoc.exists) continue;
 
-      const seq = seqDoc.data();
-      const exitConditions = seq.exit_conditions || [];
+      const sequence = seqDoc.data();
+      const exitConditions = sequence.exit_conditions || [];
 
-      const shouldExit = exitConditions.some(cond => {
-        const condLower = cond.toLowerCase();
-        return statusLower.includes(condLower) || condLower.includes(statusLower);
+      // Check if the new status matches any exit condition (case-insensitive partial match)
+      const statusLower = newStatus.toLowerCase();
+      const shouldExit = exitConditions.some(condition => {
+        if (typeof condition === 'string') {
+          return statusLower.includes(condition.toLowerCase());
+        }
+        if (condition.status) {
+          return statusLower.includes(condition.status.toLowerCase());
+        }
+        return false;
       });
 
       if (shouldExit) {
-        await doc.ref.update({
+        await enrollDoc.ref.update({
           status: 'exited',
           exit_reason: `Lead status changed to "${newStatus}"`,
-          updated_at: new Date().toISOString()
+          updated_at: new Date()
         });
-        console.log(`[sequence-trigger] Exited lead ${leadId} from sequence "${enrollment.sequence_name}" (status: ${newStatus})`);
+        console.log(`[sequence-trigger] Exited lead ${leadId} from "${enrollment.sequence_name}" — status changed to "${newStatus}"`);
       }
     }
   } catch (err) {
-    console.error('[sequence-trigger] Exit condition check error:', err.message);
+    console.error(`[sequence-trigger] Error in checkExitConditions for lead ${leadId}:`, err);
   }
-}
-
-/**
- * Check if a lead matches trigger conditions.
- * @param {object} conditions - Trigger conditions from the sequence definition
- * @param {object} leadData - Lead data to check against
- * @param {string} skipKey - Optional key to skip (e.g., 'new_status' which is checked separately)
- */
-function matchesTriggerConditions(conditions, leadData, skipKey) {
-  if (!conditions) return true;
-
-  for (const [key, value] of Object.entries(conditions)) {
-    if (skipKey && key === skipKey) continue;
-    if (!value) continue;
-
-    const valueLower = String(value).toLowerCase();
-
-    switch (key) {
-      case 'lead_type':
-        if (String(leadData.type || '').toLowerCase() !== valueLower) return false;
-        break;
-      case 'source_contains':
-        if (!String(leadData.source || '').toLowerCase().includes(valueLower)) return false;
-        break;
-      case 'program':
-      case 'ytt_program_type':
-        if (!String(leadData.ytt_program_type || leadData.program || '').toLowerCase().includes(valueLower)) return false;
-        break;
-      case 'status':
-        if (String(leadData.status || 'New').toLowerCase() !== valueLower) return false;
-        break;
-      // Add more condition types as needed
-    }
-  }
-
-  return true;
 }
 
 module.exports = {
