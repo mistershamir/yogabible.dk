@@ -1,0 +1,155 @@
+{# ── Sequence Automation Admin Panel ── #}
+
+{# Toolbar #}
+<div class="yb-admin__view-head yb-seq__toolbar">
+  <h2>{{ t.seq_title or "Email & SMS Sequences" }}</h2>
+  <div>
+    <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="seq-create">+ {{ t.seq_create or "Create New Sequence" }}</button>
+    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="seq-refresh">&#8635; {{ t.leads_refresh or "Refresh" }}</button>
+  </div>
+</div>
+
+{# ── List View ── #}
+<div id="yb-seq-v-list">
+  <div id="yb-seq-list" class="yb-seq__list">
+    <p class="yb-admin__empty">{{ t.loading or "Loading..." }}</p>
+  </div>
+</div>
+
+{# ── Builder View (create/edit) ── #}
+<div id="yb-seq-v-builder" hidden>
+  <div class="yb-seq__builder-header">
+    <button type="button" class="yb-admin__back-btn" data-action="seq-back">&larr; {{ t.seq_back or "Back to overview" }}</button>
+    <h3 id="yb-seq-builder-title">{{ t.seq_create or "Create New Sequence" }}</h3>
+  </div>
+
+  <form id="yb-seq-form" class="yb-admin__form">
+    <input type="hidden" id="yb-seq-id">
+
+    {# Name + Description #}
+    <div class="yb-admin__form-row">
+      <div class="yb-admin__field">
+        <label for="yb-seq-name">{{ t.seq_name or "Name" }}</label>
+        <input type="text" id="yb-seq-name" placeholder="YTT Nurture Sequence" required>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-seq-desc">{{ t.seq_description or "Description" }}</label>
+        <input type="text" id="yb-seq-desc" placeholder="5-step nurture for new YTT leads">
+      </div>
+    </div>
+
+    {# Trigger #}
+    <fieldset class="yb-seq__fieldset">
+      <legend>{{ t.seq_trigger or "Trigger" }}</legend>
+      <div class="yb-seq__trigger-row">
+        <label class="yb-seq__radio-label">
+          <input type="radio" name="seq-trigger" value="manual" checked> {{ t.seq_trigger_manual or "Manual" }}
+        </label>
+        <label class="yb-seq__radio-label">
+          <input type="radio" name="seq-trigger" value="new_lead"> {{ t.seq_trigger_new_lead or "New Lead" }}
+        </label>
+        <label class="yb-seq__radio-label">
+          <input type="radio" name="seq-trigger" value="status_change"> {{ t.seq_trigger_status_change or "Status Change" }}
+        </label>
+      </div>
+
+      {# Trigger conditions (shown for auto triggers) #}
+      <div id="yb-seq-trigger-conditions" class="yb-seq__trigger-conditions" hidden>
+        <div class="yb-admin__form-row">
+          <div class="yb-admin__field">
+            <label for="yb-seq-cond-type">Lead Type</label>
+            <select id="yb-seq-cond-type" class="yb-admin__select">
+              <option value="">Any</option>
+              <option value="ytt">YTT</option>
+              <option value="course">Course</option>
+              <option value="mentorship">Mentorship</option>
+            </select>
+          </div>
+          <div class="yb-admin__field">
+            <label for="yb-seq-cond-source">Source contains</label>
+            <input type="text" id="yb-seq-cond-source" placeholder="e.g. meta, facebook">
+          </div>
+          <div class="yb-admin__field">
+            <label for="yb-seq-cond-program">Program type</label>
+            <select id="yb-seq-cond-program" class="yb-admin__select">
+              <option value="">Any</option>
+              <option value="4-week">4-Week</option>
+              <option value="8-week">8-Week</option>
+              <option value="18-week">18-Week</option>
+              <option value="300h">300h</option>
+            </select>
+          </div>
+        </div>
+        <div id="yb-seq-status-change-field" class="yb-admin__field" hidden>
+          <label for="yb-seq-cond-new-status">New status</label>
+          <input type="text" id="yb-seq-cond-new-status" placeholder="e.g. Engaged">
+        </div>
+      </div>
+    </fieldset>
+
+    {# Exit conditions #}
+    <fieldset class="yb-seq__fieldset">
+      <legend>{{ t.seq_exit_conditions or "Exit Conditions" }}</legend>
+      <div class="yb-seq__exit-checks">
+        <label class="yb-admin__checkbox-label">
+          <input type="checkbox" name="seq-exit" value="converted" checked> {{ t.seq_exit_converted or "Converted" }}
+        </label>
+        <label class="yb-admin__checkbox-label">
+          <input type="checkbox" name="seq-exit" value="unsubscribed" checked> {{ t.seq_exit_unsubscribed or "Unsubscribed" }}
+        </label>
+        <label class="yb-admin__checkbox-label">
+          <input type="checkbox" name="seq-exit" value="not_interested"> {{ t.seq_exit_not_interested or "Not Interested" }}
+        </label>
+        <label class="yb-admin__checkbox-label">
+          <input type="checkbox" name="seq-exit" value="lost"> {{ t.seq_exit_lost or "Lost" }}
+        </label>
+      </div>
+    </fieldset>
+
+    {# Steps builder #}
+    <fieldset class="yb-seq__fieldset">
+      <legend>{{ t.seq_steps or "Steps" }}</legend>
+      <div id="yb-seq-steps" class="yb-seq__steps"></div>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-seq__add-step-btn" data-action="seq-add-step">+ {{ t.seq_add_step or "Add Step" }}</button>
+    </fieldset>
+
+    {# Save #}
+    <div class="yb-seq__builder-actions">
+      <button type="submit" class="yb-btn yb-btn--primary">{{ t.seq_save or "Save Sequence" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline" data-action="seq-back">{{ t.cancel or "Cancel" }}</button>
+      <button type="button" class="yb-btn yb-btn--ghost yb-seq__delete-btn" data-action="seq-delete" id="yb-seq-delete-btn" hidden>{{ t.delete or "Delete" }}</button>
+    </div>
+  </form>
+</div>
+
+{# ── Enrollments View ── #}
+<div id="yb-seq-v-enrollments" hidden>
+  <div class="yb-seq__builder-header">
+    <button type="button" class="yb-admin__back-btn" data-action="seq-back">&larr; {{ t.seq_back or "Back to overview" }}</button>
+    <h3 id="yb-seq-enrollments-title">{{ t.seq_enrollments or "Enrolled" }}</h3>
+  </div>
+
+  {# Enroll leads #}
+  <div class="yb-seq__enroll-bar">
+    <input type="text" id="yb-seq-enroll-search" placeholder="Search leads by name or email..." class="yb-seq__enroll-input">
+    <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="seq-search-leads">{{ t.seq_enroll_leads or "Enroll Leads" }}</button>
+  </div>
+  <div id="yb-seq-lead-results" class="yb-seq__lead-results" hidden></div>
+
+  {# Enrollment list #}
+  <div class="yb-admin__table-wrap">
+    <table class="yb-admin__table" id="yb-seq-enrollment-table">
+      <thead>
+        <tr>
+          <th>Lead</th>
+          <th>{{ t.seq_step_n or "Step" }}</th>
+          <th>Status</th>
+          <th>Next send</th>
+          <th>Started</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="yb-seq-enrollment-body"></tbody>
+    </table>
+  </div>
+</div>
