@@ -1808,13 +1808,19 @@
                     });
                     return;
                   }
-                  // Account exists in Firebase — wrong password
+                  // Account exists in Firebase — wrong password. Auto-send reset email.
                   if (data.hasFirebaseAccount) {
+                    var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
+                    fetch(apiBase + '/send-password-reset', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+                    }).catch(function() {});
                     var el = $('ycf-login-error');
                     if (el) {
                       el.innerHTML = t(
-                        'Forkert adgangskode. <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
-                        'Incorrect password. <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                        'Forkert adgangskode. Vi har sendt en email til <strong>' + email + '</strong> s\u00e5 du kan nulstille din adgangskode. Tjek din indbakke (og spam).',
+                        'Incorrect password. We\u2019ve sent an email to <strong>' + email + '</strong> to reset your password. Check your inbox (and spam).'
                       );
                       el.hidden = false;
                     }

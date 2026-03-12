@@ -653,15 +653,19 @@
                   });
                   return;
                 }
-                // Account exists in Firebase — wrong password
+                // Account exists in Firebase — wrong password. Auto-send reset email.
                 if (data.hasFirebaseAccount) {
+                  var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
+                  fetch(apiBase + '/send-password-reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+                  }).catch(function() {});
                   errorEl.innerHTML = t(
-                    'Forkert adgangskode. <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
-                    'Incorrect password. <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                    'Forkert adgangskode. Vi har sendt en email til <strong>' + email + '</strong> s\u00e5 du kan nulstille din adgangskode. Tjek din indbakke (og spam).',
+                    'Incorrect password. We\u2019ve sent an email to <strong>' + email + '</strong> to reset your password. Check your inbox (and spam).'
                   );
                   errorEl.classList.add('is-visible');
-                  var forgotLinkPw = targetDoc.getElementById('hyc-err-forgot');
-                  if (forgotLinkPw) forgotLinkPw.addEventListener('click', function () { openModal('auth-forgot'); });
                   return;
                 }
                 // Not in MB — show generic error

@@ -673,18 +673,7 @@
                     });
                     return;
                   }
-                  // Account exists in Firebase — wrong password
-                  if (data.hasFirebaseAccount) {
-                    var elPw = $('ycf-login-error');
-                    if (elPw) {
-                      elPw.innerHTML = isDa
-                        ? 'Forkert adgangskode. <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
-                        : 'Incorrect password. <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
-                      elPw.hidden = false;
-                    }
-                    return;
-                  }
-                  // Not in MB — show generic error
+                  // Not in MB or already has Firebase account — show error
                   var el = $('ycf-login-error');
                   if (el) {
                     el.innerHTML = isDa
