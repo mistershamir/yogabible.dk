@@ -20,6 +20,7 @@ const nodemailer = require('nodemailer');
 const { getDb, serverTimestamp } = require('./shared/firestore');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse, buildUnsubscribeUrl } = require('./shared/utils');
+const { getSignatureHtml, getEnglishNoteHtml, getUnsubscribeFooterHtml } = require('./shared/email-service');
 
 const SEQUENCES_COL = 'sequences';
 const ENROLLMENTS_COL = 'sequence_enrollments';
@@ -682,11 +683,27 @@ async function sendSequenceEmail(to, subject, bodyHtml) {
     var transport = getTransporter();
     var from = process.env.GMAIL_USER;
 
+    // Wrap body with English note, signature, and unsubscribe footer
+    // This ensures every sequence email has an unsubscribe link,
+    // even if the admin-authored HTML doesn't include one.
+    var wrappedHtml = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#1a1a1a;">' +
+      bodyHtml +
+      getEnglishNoteHtml() +
+      getSignatureHtml() +
+      getUnsubscribeFooterHtml(to) +
+      '</div>';
+
+    var unsubUrl = buildUnsubscribeUrl(to);
+
     await transport.sendMail({
       from: '"Yoga Bible" <' + from + '>',
       to: to,
       subject: subject,
-      html: bodyHtml
+      html: wrappedHtml,
+      headers: {
+        'List-Unsubscribe': '<' + unsubUrl + '>',
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+      }
     });
 
     return { success: true };
