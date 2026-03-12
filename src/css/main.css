@@ -3683,6 +3683,823 @@ section {
 
 
 /* ═══════════════════════════════════════════════════════════════
+   YOGA BIBLE HISTORIE PAGE — (.ybh-)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 2. Philosophy — Split Dark/Light ── */
+.ybh-philosophy {
+  position: relative;
+  overflow: hidden;
+}
+
+.ybh-philosophy__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 500px;
+}
+
+.ybh-philosophy__left {
+  background: #0F0F0F;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(48px, 8vw, 80px) clamp(24px, 4vw, 48px);
+}
+
+.ybh-philosophy__number {
+  font-size: clamp(5rem, 12vw, 9rem);
+  font-weight: 700;
+  line-height: 1;
+  background: linear-gradient(135deg, #FDFBF7 0%, #ff9966 50%, var(--yb-brand) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ybh-philosophy__label {
+  font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 8px;
+}
+
+.ybh-philosophy__right {
+  background: #F5F3F0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(48px, 8vw, 80px) clamp(24px, 4vw, 56px);
+}
+
+.ybh-philosophy__logo {
+  width: 140px;
+  height: auto;
+  margin-bottom: 28px;
+  opacity: 0.9;
+}
+
+.ybh-philosophy__text {
+  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+  line-height: 1.8;
+  color: #3a3a3a;
+  margin: 0 0 24px;
+}
+
+.ybh-philosophy__quote {
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  font-style: italic;
+  color: #0F0F0F;
+  border-left: 3px solid var(--yb-brand);
+  padding: 12px 0 12px 20px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Vine SVG between sections */
+.ybh-vine {
+  display: block;
+  width: 60px;
+  height: 120px;
+  margin: -20px auto -20px;
+  position: relative;
+  z-index: 2;
+}
+
+.ybh-vine__path {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  transition: stroke-dashoffset 1.5s ease;
+}
+
+.ybh-vine--drawn .ybh-vine__path {
+  stroke-dashoffset: 0;
+}
+
+/* ── 3. Essence — Three-Step Timeline ── */
+.ybh-essence {
+  padding: clamp(60px, 10vw, 120px) 20px;
+  background: #FFFCF9;
+}
+
+.ybh-essence__eyebrow {
+  text-align: center;
+  font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--yb-brand);
+  margin: 0 0 12px;
+}
+
+.ybh-essence__title {
+  text-align: center;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 clamp(40px, 6vw, 72px);
+}
+
+.ybh-essence__timeline {
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-left: 48px;
+}
+
+.ybh-essence__line {
+  position: absolute;
+  left: 12px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--yb-brand), rgba(247, 92, 3, 0.15));
+}
+
+.ybh-essence__step {
+  position: relative;
+  padding: 0 0 48px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.ybh-essence__step.ybh-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ybh-essence__step:last-child {
+  padding-bottom: 0;
+}
+
+.ybh-essence__dot {
+  position: absolute;
+  left: -48px;
+  top: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFCF9;
+  z-index: 1;
+}
+
+.ybh-essence__step-label {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--yb-brand);
+  margin-bottom: 6px;
+}
+
+.ybh-essence__content h3 {
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 8px;
+}
+
+.ybh-essence__content p {
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  line-height: 1.7;
+  color: #6F6A66;
+  margin: 0;
+}
+
+.ybh-essence__closing {
+  text-align: center;
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  font-style: italic;
+  color: #0F0F0F;
+  margin: clamp(40px, 6vw, 64px) 0 0;
+  opacity: 0.85;
+}
+
+/* ── 4. Origin — Full-Width Cinematic ── */
+.ybh-origin {
+  position: relative;
+  padding: clamp(80px, 12vw, 140px) 20px;
+  overflow: hidden;
+}
+
+.ybh-origin__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.ybh-origin__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ybh-origin__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 15, 15, 0.82) 0%, rgba(15, 15, 15, 0.9) 100%);
+  z-index: 1;
+}
+
+.ybh-origin__inner {
+  position: relative;
+  z-index: 2;
+}
+
+.ybh-origin__eyebrow {
+  text-align: center;
+  font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--yb-brand);
+  margin: 0 0 12px;
+}
+
+.ybh-origin__title {
+  text-align: center;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 clamp(40px, 6vw, 64px);
+}
+
+.ybh-origin__cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 3vw, 32px);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.ybh-origin__card {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: clamp(24px, 4vw, 36px);
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.ybh-origin__card.ybh-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ybh-origin__card--current {
+  border-color: rgba(247, 92, 3, 0.4);
+}
+
+.ybh-origin__year {
+  display: inline-block;
+  font-size: clamp(2.4rem, 5vw, 3.2rem);
+  font-weight: 700;
+  background: linear-gradient(135deg, #FDFBF7 0%, #ff9966 60%, var(--yb-brand) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.ybh-origin__name {
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 12px;
+}
+
+.ybh-origin__card p {
+  font-size: clamp(0.85rem, 1.4vw, 0.95rem);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.ybh-origin__badge {
+  display: block;
+  width: 80px;
+  height: auto;
+  margin-top: 16px;
+  opacity: 0.8;
+  border-radius: 4px;
+}
+
+.ybh-origin__connector {
+  flex-shrink: 0;
+  color: var(--yb-brand);
+}
+
+.ybh-origin__note {
+  text-align: center;
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.6);
+  margin: clamp(32px, 5vw, 48px) 0 0;
+}
+
+/* ── 5. Stats — Animated Counters ── */
+.ybh-stats {
+  padding: clamp(60px, 10vw, 100px) 20px;
+  background: #F5F3F0;
+}
+
+.ybh-stats__eyebrow {
+  text-align: center;
+  font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--yb-brand);
+  margin: 0 0 clamp(32px, 5vw, 48px);
+}
+
+.ybh-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(16px, 3vw, 32px);
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.ybh-stats__item {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.ybh-stats__item.ybh-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.ybh-stats__value {
+  font-size: clamp(2.4rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: #0F0F0F;
+  line-height: 1;
+}
+
+.ybh-stats__plus,
+.ybh-stats__star {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 700;
+  color: var(--yb-brand);
+}
+
+.ybh-stats__label {
+  display: block;
+  font-size: clamp(0.7rem, 1.3vw, 0.85rem);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6F6A66;
+  margin-top: 8px;
+}
+
+/* ── 6. Concepts — Three Cards ── */
+.ybh-concepts {
+  padding: clamp(60px, 10vw, 120px) 20px;
+  background: #FFFCF9;
+}
+
+.ybh-concepts__eyebrow {
+  text-align: center;
+  font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--yb-brand);
+  margin: 0 0 12px;
+}
+
+.ybh-concepts__title {
+  text-align: center;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 12px;
+}
+
+.ybh-concepts__subtitle {
+  text-align: center;
+  font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+  color: #6F6A66;
+  max-width: 650px;
+  margin: 0 auto clamp(40px, 6vw, 64px);
+  line-height: 1.7;
+}
+
+.ybh-concepts__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 3vw, 28px);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.ybh-concepts__card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid #E8E4E0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.ybh-concepts__card.ybh-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease, box-shadow 0.3s ease;
+}
+
+.ybh-concepts__card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
+}
+
+.ybh-concepts__img {
+  overflow: hidden;
+  aspect-ratio: 3/2;
+}
+
+.ybh-concepts__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.ybh-concepts__card:hover .ybh-concepts__img img {
+  transform: scale(1.05);
+}
+
+.ybh-concepts__info {
+  padding: clamp(16px, 3vw, 24px);
+}
+
+.ybh-concepts__info h3 {
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 6px;
+}
+
+.ybh-concepts__tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--yb-brand);
+  margin-bottom: 10px;
+}
+
+.ybh-concepts__card--hyc .ybh-concepts__tag {
+  color: #3f99a5;
+}
+
+.ybh-concepts__info p {
+  font-size: clamp(0.85rem, 1.3vw, 0.92rem);
+  line-height: 1.6;
+  color: #6F6A66;
+  margin: 0;
+}
+
+/* ── 7. Copenhagen — Horizontal Scroll Gallery ── */
+.ybh-copenhagen {
+  padding: clamp(60px, 10vw, 100px) 0;
+  background: #F5F3F0;
+  overflow: hidden;
+}
+
+.ybh-copenhagen .container {
+  padding: 0 20px;
+}
+
+.ybh-copenhagen__eyebrow {
+  text-align: center;
+  font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--yb-brand);
+  margin: 0 0 12px;
+}
+
+.ybh-copenhagen__title {
+  text-align: center;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 12px;
+}
+
+.ybh-copenhagen__text {
+  text-align: center;
+  font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+  color: #6F6A66;
+  max-width: 600px;
+  margin: 0 auto clamp(32px, 5vw, 48px);
+  line-height: 1.7;
+}
+
+.ybh-copenhagen__gallery {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0 20px 8px;
+}
+
+.ybh-copenhagen__gallery::-webkit-scrollbar {
+  display: none;
+}
+
+.ybh-copenhagen__track {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+}
+
+.ybh-copenhagen__track img {
+  width: clamp(260px, 35vw, 380px);
+  height: clamp(180px, 25vw, 260px);
+  object-fit: cover;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+/* ── 8. Testimonial — Dark Cinematic Quote ── */
+.ybh-testimonial {
+  background: #0F0F0F;
+  padding: clamp(60px, 10vw, 100px) 20px;
+}
+
+.ybh-testimonial__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(24px, 5vw, 56px);
+  max-width: 1000px;
+  margin: 0 auto;
+  align-items: center;
+}
+
+.ybh-testimonial__media {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 1/1;
+  max-width: 400px;
+}
+
+.ybh-testimonial__media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ybh-testimonial__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s ease, opacity 0.3s ease;
+  padding: 0;
+}
+
+.ybh-testimonial__play:hover {
+  background: rgba(247, 92, 3, 0.6);
+}
+
+.ybh-testimonial__play.ybh-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ybh-testimonial__eyebrow {
+  font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--yb-brand);
+  margin: 0 0 20px;
+}
+
+.ybh-testimonial__quote {
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  font-style: italic;
+  color: #fff;
+  line-height: 1.6;
+  margin: 0 0 20px;
+  border: none;
+  padding: 0;
+}
+
+.ybh-testimonial__author {
+  display: block;
+  font-size: clamp(0.8rem, 1.3vw, 0.9rem);
+  color: rgba(255, 255, 255, 0.5);
+  font-style: normal;
+  margin-bottom: 16px;
+}
+
+.ybh-testimonial__stars {
+  display: flex;
+  gap: 4px;
+}
+
+/* ── 9. FAQ — Two-Column ── */
+.ybh-faq {
+  padding: clamp(60px, 10vw, 100px) 20px;
+  background: #FFFCF9;
+}
+
+.ybh-faq__title {
+  text-align: center;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 12px;
+}
+
+.ybh-faq__subtitle {
+  text-align: center;
+  font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+  color: #6F6A66;
+  max-width: 600px;
+  margin: 0 auto clamp(32px, 5vw, 48px);
+  line-height: 1.7;
+}
+
+.ybh-faq__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.ybh-faq__col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── 10. CTA — Dark with Glow ── */
+.ybh-cta {
+  position: relative;
+  background: #0F0F0F;
+  padding: clamp(80px, 12vw, 140px) 20px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.ybh-cta__glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(247, 92, 3, 0.12) 0%, transparent 60%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: yb-hero-breathe 10s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.ybh-cta__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.ybh-cta__title {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+.ybh-cta__text {
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  color: rgba(255, 255, 255, 0.75);
+  max-width: 550px;
+  margin: 0 auto clamp(28px, 4vw, 40px);
+  line-height: 1.7;
+}
+
+.ybh-cta__buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(24px, 4vw, 36px);
+}
+
+.ybh-cta__trust {
+  font-size: clamp(0.65rem, 1.3vw, 0.78rem);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+/* ── Historie responsive: tablet ── */
+@media (max-width: 768px) {
+  .ybh-philosophy__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .ybh-philosophy__left {
+    padding: clamp(40px, 8vw, 60px) 24px;
+  }
+
+  .ybh-philosophy__right {
+    padding: clamp(32px, 6vw, 48px) 24px;
+  }
+
+  .ybh-origin__cards {
+    flex-direction: column;
+  }
+
+  .ybh-origin__connector {
+    transform: rotate(90deg);
+  }
+
+  .ybh-stats__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px 16px;
+  }
+
+  .ybh-concepts__grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  .ybh-testimonial__inner {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .ybh-testimonial__media {
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  .ybh-testimonial__stars {
+    justify-content: center;
+  }
+
+  .ybh-faq__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .ybh-philosophy__number {
+    font-size: 4.5rem;
+  }
+
+  .ybh-stats__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ybh-cta__buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .ybh-cta__buttons .btn {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
    COURSE PAGES — Unified Styles (.ybc-)
    Covers: inversions, splits, backbends
    ═══════════════════════════════════════════════════════════════ */
