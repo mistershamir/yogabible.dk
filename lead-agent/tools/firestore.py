@@ -260,6 +260,80 @@ def listen_new_leads(callback):
 
 
 # ═══════════════════════════════════════════════════════════════════
+# COMMUNICATION HISTORY TOOLS
+# ═══════════════════════════════════════════════════════════════════
+
+def get_lead_communication_history(lead_id, limit=20):
+    """Get full communication history for a lead: emails, SMS, campaigns, drip steps."""
+    db = get_db()
+    history = []
+
+    # Email log
+    emails = (db.collection('email_log')
+              .where('lead_id', '==', lead_id)
+              .order_by('sent_at', direction=firestore.Query.DESCENDING)
+              .limit(limit)
+              .stream())
+    for doc in emails:
+        d = doc.to_dict()
+        d['type'] = 'email'
+        d['id'] = doc.id
+        history.append(d)
+
+    # SMS log (from lead document's notes or sms_campaign_log)
+    lead_doc = db.collection('leads').document(lead_id).get()
+    if lead_doc.exists:
+        lead = lead_doc.to_dict()
+        if lead.get('last_sms_campaign'):
+            sms = lead['last_sms_campaign']
+            sms['type'] = 'sms_campaign'
+            history.append(sms)
+
+    # Sort by date
+    history.sort(key=lambda x: str(x.get('sent_at', x.get('sentAt', ''))), reverse=True)
+    return history[:limit]
+
+
+def get_lead_full_context(lead_id):
+    """Get complete lead context: profile, drip status, communication history, sequence enrollments."""
+    db = get_db()
+
+    # Lead profile
+    lead_doc = db.collection('leads').document(lead_id).get()
+    if not lead_doc.exists:
+        return None
+    lead = lead_doc.to_dict()
+    lead['id'] = lead_id
+
+    # Drip status
+    drip = get_drip_status(lead_id)
+
+    # Communication history
+    comms = get_lead_communication_history(lead_id, limit=10)
+
+    # Sequence enrollments
+    enrollments = []
+    try:
+        seq_docs = (db.collection('sequence_enrollments')
+                    .where('lead_id', '==', lead_id)
+                    .stream())
+        for doc in seq_docs:
+            d = doc.to_dict()
+            d['id'] = doc.id
+            enrollments.append(d)
+    except Exception:
+        pass  # Collection may not exist yet
+
+    return {
+        'lead': lead,
+        'drip': drip,
+        'recent_communications': comms,
+        'sequences': enrollments,
+        'communication_count': len(comms)
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════
 # APPOINTMENT TOOLS
 # ═══════════════════════════════════════════════════════════════════
 

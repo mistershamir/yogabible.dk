@@ -1027,7 +1027,13 @@
     html += '<div class="yb-lead__campaign-archive-bar">' +
       '<button type="button" class="yb-lead__campaign-archive-btn" data-action="campaign-archive-save">\ud83d\udcbe ' + esc(t('campaign_compose_email_archive_save')) + '</button>' +
       '<button type="button" class="yb-lead__campaign-archive-btn" data-action="campaign-archive-load">\ud83d\udcc2 ' + esc(t('campaign_compose_email_archive_load')) + '</button>' +
-      '</div>';
+      '</div>' +
+      '<div id="yb-campaign-newsletter-save-form" class="yb-lead__campaign-newsletter-save-form" style="display:none;">' +
+        '<input type="text" class="yb-lead__campaign-newsletter-name-input" id="yb-campaign-newsletter-name" placeholder="' + esc(t('campaign_newsletter_name_placeholder')) + '">' +
+        '<button type="button" class="yb-lead__campaign-archive-btn yb-lead__campaign-newsletter-save-btn" data-action="campaign-newsletter-do-save">' + esc(t('campaign_newsletter_save')) + '</button>' +
+        '<button type="button" class="yb-lead__campaign-newsletter-cancel-btn" data-action="campaign-newsletter-cancel-save">&times;</button>' +
+      '</div>' +
+      '<div id="yb-campaign-newsletter-picker" class="yb-lead__campaign-newsletter-picker" style="display:none;"></div>';
 
     html += '</div>'; // email-main
     html += '</div>'; // email-compose
@@ -2376,11 +2382,27 @@
 
       // Archive save/load
       if (action === 'campaign-archive-save') {
-        saveToArchive();
+        showNewsletterSaveForm();
+        return;
+      }
+      if (action === 'campaign-newsletter-do-save') {
+        doSaveNewsletter();
+        return;
+      }
+      if (action === 'campaign-newsletter-cancel-save') {
+        hideNewsletterSaveForm();
         return;
       }
       if (action === 'campaign-archive-load') {
-        loadFromArchive();
+        toggleNewsletterPicker();
+        return;
+      }
+      if (action === 'campaign-newsletter-load-item') {
+        loadNewsletterItem(btn.getAttribute('data-newsletter-id'));
+        return;
+      }
+      if (action === 'campaign-newsletter-delete-item') {
+        deleteNewsletterItem(btn.getAttribute('data-newsletter-id'));
         return;
       }
 
@@ -2560,49 +2582,196 @@
   }
 
   /* ══════════════════════════════════════════
-     EMAIL ARCHIVE
+     EMAIL ARCHIVE / NEWSLETTER SAVE & LOAD
      ══════════════════════════════════════════ */
-  function saveToArchive() {
-    if (!bridge || !bridge.getDb()) return;
+
+  function showNewsletterSaveForm() {
+    var form = document.getElementById('yb-campaign-newsletter-save-form');
+    if (!form) return;
+    form.style.display = 'flex';
+    var input = document.getElementById('yb-campaign-newsletter-name');
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  function hideNewsletterSaveForm() {
+    var form = document.getElementById('yb-campaign-newsletter-save-form');
+    if (form) form.style.display = 'none';
+  }
+
+  function doSaveNewsletter() {
+    if (!bridge) return;
+    var nameInput = document.getElementById('yb-campaign-newsletter-name');
+    var name = nameInput ? nameInput.value.trim() : '';
+    if (!name) {
+      if (nameInput) nameInput.focus();
+      return;
+    }
     if (!campaignState.emailSubject && !campaignState.emailBodyHtml) return;
 
-    bridge.getDb().collection('email_archive').add({
-      subject: campaignState.emailSubject,
-      bodyHtml: campaignState.emailBodyHtml,
-      createdAt: new Date().toISOString(),
-      useCount: 0
-    }).then(function () {
-      if (bridge) bridge.toast(t('campaign_compose_email_archived'));
+    bridge.getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/email-templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({
+          name: name,
+          subject: campaignState.emailSubject,
+          preheader: campaignState.emailPreheader,
+          body_html: campaignState.emailBodyHtml,
+          category: 'newsletter'
+        })
+      });
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (data.ok) {
+        hideNewsletterSaveForm();
+        if (bridge) bridge.toast(t('campaign_newsletter_saved'));
+      } else {
+        console.error('Newsletter save error:', data.error);
+      }
     }).catch(function (err) {
-      console.error('Archive save error:', err);
+      console.error('Newsletter save error:', err);
     });
   }
 
-  function loadFromArchive() {
-    if (!bridge || !bridge.getDb()) return;
+  function toggleNewsletterPicker() {
+    var picker = document.getElementById('yb-campaign-newsletter-picker');
+    if (!picker) return;
+    if (picker.style.display === 'block') {
+      picker.style.display = 'none';
+      return;
+    }
+    picker.style.display = 'block';
+    picker.innerHTML = '<div class="yb-lead__campaign-newsletter-loading">Loading...</div>';
+    fetchNewsletters(picker);
+  }
 
-    bridge.getDb().collection('email_archive').orderBy('createdAt', 'desc').limit(20).get().then(function (snap) {
-      if (snap.empty) {
-        if (bridge) bridge.toast('No archived emails found.');
+  function fetchNewsletters(picker, searchTerm) {
+    if (!bridge) return;
+    bridge.getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/email-templates?category=newsletter', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (!data.ok || !data.templates) {
+        picker.innerHTML = '<div class="yb-lead__campaign-newsletter-empty">' + esc(t('campaign_newsletter_no_saved')) + '</div>';
         return;
       }
-      // Show a simple selection dialog
-      var items = [];
-      snap.forEach(function (doc) {
-        var d = doc.data();
-        items.push({ id: doc.id, subject: d.subject, bodyHtml: d.bodyHtml });
+      renderNewsletterPicker(picker, data.templates, searchTerm);
+    }).catch(function (err) {
+      console.error('Newsletter fetch error:', err);
+      picker.innerHTML = '<div class="yb-lead__campaign-newsletter-empty">Error loading newsletters</div>';
+    });
+  }
+
+  function renderNewsletterPicker(picker, templates, searchTerm) {
+    // Sort by created_at descending
+    templates.sort(function (a, b) {
+      return (b.created_at || '').localeCompare(a.created_at || '');
+    });
+
+    // Filter by search term
+    if (searchTerm) {
+      var q = searchTerm.toLowerCase();
+      templates = templates.filter(function (tpl) {
+        return (tpl.name || '').toLowerCase().indexOf(q) !== -1 ||
+          (tpl.subject || '').toLowerCase().indexOf(q) !== -1;
       });
-      // For now, load the most recent one
-      var latest = items[0];
-      campaignState.emailSubject = latest.subject;
-      campaignState.emailBodyHtml = latest.bodyHtml;
+    }
+
+    var html = '<div class="yb-lead__campaign-newsletter-header">' +
+      '<span class="yb-lead__campaign-newsletter-title">' + esc(t('campaign_newsletter_load_title')) + '</span>' +
+      '<button type="button" class="yb-lead__campaign-newsletter-close" data-action="campaign-archive-load">&times;</button>' +
+      '</div>' +
+      '<input type="text" class="yb-lead__campaign-newsletter-search" id="yb-campaign-newsletter-search" placeholder="' + esc(t('campaign_newsletter_search')) + '"' +
+      (searchTerm ? ' value="' + esc(searchTerm) + '"' : '') + '>';
+
+    if (templates.length === 0) {
+      html += '<div class="yb-lead__campaign-newsletter-empty">' + esc(t('campaign_newsletter_no_saved')) + '</div>';
+    } else {
+      html += '<div class="yb-lead__campaign-newsletter-list">';
+      templates.forEach(function (tpl) {
+        var date = tpl.created_at ? new Date(tpl.created_at).toLocaleDateString() : '';
+        var useCount = tpl.use_count || 0;
+        html += '<div class="yb-lead__campaign-newsletter-item">' +
+          '<div class="yb-lead__campaign-newsletter-item-main" data-action="campaign-newsletter-load-item" data-newsletter-id="' + esc(tpl.id) + '">' +
+            '<div class="yb-lead__campaign-newsletter-item-name">' + esc(tpl.name || 'Untitled') + '</div>' +
+            '<div class="yb-lead__campaign-newsletter-item-meta">' +
+              '<span class="yb-lead__campaign-newsletter-item-subject">' + esc(tpl.subject || '') + '</span>' +
+              '<span class="yb-lead__campaign-newsletter-item-date">' + esc(date) + '</span>' +
+              (useCount > 0 ? '<span class="yb-lead__campaign-newsletter-item-uses">' + useCount + 'x ' + esc(t('campaign_newsletter_used')) + '</span>' : '') +
+            '</div>' +
+          '</div>' +
+          '<button type="button" class="yb-lead__campaign-newsletter-item-delete" data-action="campaign-newsletter-delete-item" data-newsletter-id="' + esc(tpl.id) + '" title="Delete">&times;</button>' +
+          '</div>';
+      });
+      html += '</div>';
+    }
+
+    picker.innerHTML = html;
+
+    // Bind search input
+    var searchInput = document.getElementById('yb-campaign-newsletter-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        var term = searchInput.value.trim();
+        renderNewsletterPicker(picker, cachedNewsletters || [], term);
+      });
+      searchInput.focus();
+      // Cache templates for client-side filtering
+      cachedNewsletters = templates;
+    }
+  }
+
+  var cachedNewsletters = null;
+
+  function loadNewsletterItem(id) {
+    if (!bridge || !id) return;
+    bridge.getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/email-templates?id=' + encodeURIComponent(id), {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (!data.ok || !data.template) return;
+      var tpl = data.template;
+      campaignState.emailSubject = tpl.subject || '';
+      campaignState.emailPreheader = tpl.preheader || '';
+      campaignState.emailBodyHtml = tpl.body_html || '';
       campaignState.emailTemplateId = '';
+
+      // Hide picker
+      var picker = document.getElementById('yb-campaign-newsletter-picker');
+      if (picker) picker.style.display = 'none';
 
       // Re-render compose
       var composePanel = document.querySelector('#yb-campaign-email-compose');
       if (composePanel) renderEmailComposeTab(composePanel);
     }).catch(function (err) {
-      console.error('Archive load error:', err);
+      console.error('Newsletter load error:', err);
+    });
+  }
+
+  function deleteNewsletterItem(id) {
+    if (!bridge || !id) return;
+    if (!confirm(t('campaign_newsletter_delete_confirm'))) return;
+
+    bridge.getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/email-templates?id=' + encodeURIComponent(id), {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (data.ok) {
+        if (bridge) bridge.toast(t('campaign_newsletter_deleted'));
+        // Refresh picker
+        var picker = document.getElementById('yb-campaign-newsletter-picker');
+        if (picker && picker.style.display === 'block') {
+          fetchNewsletters(picker);
+        }
+      }
+    }).catch(function (err) {
+      console.error('Newsletter delete error:', err);
     });
   }
 
