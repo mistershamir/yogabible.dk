@@ -21354,6 +21354,21 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
 }
 
 /* ── Delivery provider selector ── */
+.yb-lead__campaign-sender-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: #fff;
+  margin-top: 0.4rem;
+  cursor: pointer;
+}
+.yb-lead__campaign-sender-select:focus {
+  outline: none;
+  border-color: #f75c03;
+}
 .yb-lead__campaign-provider-section { margin-bottom: 1.5rem; }
 .yb-lead__campaign-provider-cards {
   display: flex;

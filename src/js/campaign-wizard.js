@@ -66,6 +66,7 @@
     attachment: null,          // { name, type, data (base64) }
 
     // Send state
+    fromEmail: 'info@yogabible.dk', // sender email — default Yoga Bible
     provider: 'resend',  // 'gmail' | 'resend' — auto-set when wizard opens
     schedule: 'now',
     customSchedule: '',
@@ -1280,6 +1281,22 @@
         '</div>'; // .provider-section
     }
 
+    // ── Sender email selector ────────────────────────────────────────────────
+    if (!isSMS) {
+      var senderOptions = [
+        { value: 'info@yogabible.dk', label: 'Yoga Bible — info@yogabible.dk' },
+        { value: 'info@yogabible.com', label: 'Yoga Bible — info@yogabible.com' },
+        { value: 'info@hotyogacph.dk', label: 'Hot Yoga CPH — info@hotyogacph.dk' }
+      ];
+      html += '<div class="yb-lead__campaign-filter-section">' +
+        '<span class="yb-lead__campaign-filter-label">Afsender e-mail</span>' +
+        '<select class="yb-lead__campaign-sender-select" data-action="campaign-set-sender">';
+      senderOptions.forEach(function (opt) {
+        html += '<option value="' + opt.value + '"' + (campaignState.fromEmail === opt.value ? ' selected' : '') + '>' + esc(opt.label) + '</option>';
+      });
+      html += '</select></div>';
+    }
+
     // Schedule options
     html += '<div class="yb-lead__campaign-filter-section">' +
       '<span class="yb-lead__campaign-filter-label">' + esc(t('campaign_send_schedule')) + '</span></div>';
@@ -1553,7 +1570,7 @@
         requests.push(fetch('/.netlify/functions/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ leadIds: leadIds, subject: campaignState.emailSubject, bodyHtml: campaignState.emailBodyHtml, bodyPlain: '', provider: 'resend', campaignId: campaignId })
+          body: JSON.stringify({ leadIds: leadIds, subject: campaignState.emailSubject, bodyHtml: campaignState.emailBodyHtml, bodyPlain: '', provider: 'resend', campaignId: campaignId, fromEmail: campaignState.fromEmail })
         }).then(function (r) { return r.json(); }));
       }
 
@@ -1562,7 +1579,7 @@
         requests.push(fetch('/.netlify/functions/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ applicationIds: appIds, subject: campaignState.emailSubject, bodyHtml: campaignState.emailBodyHtml, bodyPlain: '', provider: 'resend', campaignId: campaignId })
+          body: JSON.stringify({ applicationIds: appIds, subject: campaignState.emailSubject, bodyHtml: campaignState.emailBodyHtml, bodyPlain: '', provider: 'resend', campaignId: campaignId, fromEmail: campaignState.fromEmail })
         }).then(function (r) { return r.json(); }));
       }
 
@@ -1571,7 +1588,7 @@
         requests.push(fetch('/.netlify/functions/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ listIds: listIds, leadIds: leadIds, applicationIds: appIds, subject: campaignState.emailSubject, bodyHtml: campaignState.emailBodyHtml, bodyPlain: '', provider: 'resend', campaignId: campaignId })
+          body: JSON.stringify({ listIds: listIds, leadIds: leadIds, applicationIds: appIds, subject: campaignState.emailSubject, bodyHtml: campaignState.emailBodyHtml, bodyPlain: '', provider: 'resend', campaignId: campaignId, fromEmail: campaignState.fromEmail })
         }).then(function (r) { return r.json(); }));
       }
 
@@ -2076,6 +2093,7 @@
     campaignState.emailEditorMode = 'visual';
     campaignState.attachment = null;
     campaignState.provider = 'resend'; // always default Resend for new campaigns
+    campaignState.fromEmail = 'info@yogabible.dk'; // default sender
     campaignState.schedule = 'now';
     campaignState.customSchedule = '';
     campaignState.sending = false;
@@ -2426,6 +2444,10 @@
           var radio = card.querySelector('input[type="radio"]');
           card.classList.toggle('is-selected', radio && radio.checked);
         });
+      }
+      // Sender email selector
+      if (e.target && e.target.getAttribute('data-action') === 'campaign-set-sender') {
+        campaignState.fromEmail = e.target.value || 'info@yogabible.dk';
       }
     });
 
