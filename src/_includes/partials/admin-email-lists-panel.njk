@@ -1,9 +1,10 @@
 {# ── Campaign Management Panel (formerly Email Lists) ── #}
 
-{# Sub-navigation: Lists | Campaign Reports #}
+{# Sub-navigation: Lists | Campaign Reports | Sequences #}
 <div class="yb-el__subnav" id="yb-el-subnav">
   <button type="button" class="yb-el__subnav-btn is-active" data-action="el-subnav" data-subnav="lists">{{ t.el_subnav_lists or "Email Lists" }}</button>
   <button type="button" class="yb-el__subnav-btn" data-action="el-subnav" data-subnav="campaigns">{{ t.el_subnav_campaigns or "Campaign Reports" }}</button>
+  <button type="button" class="yb-el__subnav-btn" data-action="el-subnav" data-subnav="sequences">{{ t.seq_subnav or "Sequences" }}</button>
 </div>
 
 {# ═══════════════════════════════════
@@ -190,6 +191,196 @@
   </div>
 
 </div>{# end yb-el-sec-campaigns #}
+
+{# ═══════════════════════════════════
+   SECTION: Sequences (Automation)
+   ═══════════════════════════════════ #}
+<div class="yb-el__section" id="yb-el-sec-sequences" hidden>
+
+  {# VIEW: Sequence List (default) #}
+  <div id="yb-seq-v-list">
+    <div class="yb-admin__view-head yb-el__toolbar">
+      <h2>{{ t.seq_title or "Sequences" }}</h2>
+      <div>
+        <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="seq-new">+ {{ t.seq_new or "New Sequence" }}</button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="seq-refresh">&#8635; {{ t.el_refresh or "Refresh" }}</button>
+      </div>
+    </div>
+
+    {# Stats bar #}
+    <div class="yb-admin__stats-grid" id="yb-seq-stats">
+      <div class="yb-admin__stat-card">
+        <span class="yb-admin__stat-value" id="yb-seq-stat-total">&mdash;</span>
+        <span class="yb-admin__stat-label">{{ t.seq_stat_total or "Total Sequences" }}</span>
+      </div>
+      <div class="yb-admin__stat-card">
+        <span class="yb-admin__stat-value" id="yb-seq-stat-active">&mdash;</span>
+        <span class="yb-admin__stat-label">{{ t.seq_stat_active or "Active" }}</span>
+      </div>
+      <div class="yb-admin__stat-card">
+        <span class="yb-admin__stat-value" id="yb-seq-stat-enrollments">&mdash;</span>
+        <span class="yb-admin__stat-label">{{ t.seq_stat_enrollments or "Active Enrollments" }}</span>
+      </div>
+      <div class="yb-admin__stat-card">
+        <span class="yb-admin__stat-value" id="yb-seq-stat-completed">&mdash;</span>
+        <span class="yb-admin__stat-label">{{ t.seq_stat_completed or "Completed" }}</span>
+      </div>
+    </div>
+
+    {# Sequence cards rendered by JS #}
+    <div id="yb-seq-card-list" class="yb-seq__card-grid"></div>
+  </div>
+
+  {# VIEW: Sequence Builder (hidden until edit/new) #}
+  <div id="yb-seq-v-builder" hidden>
+    <div class="yb-admin__view-head">
+      <button type="button" class="yb-admin__back-btn" data-action="seq-back-list">&larr; {{ t.back or "Back" }}</button>
+      <h2 id="yb-seq-builder-title">{{ t.seq_new or "New Sequence" }}</h2>
+    </div>
+
+    <form id="yb-seq-form" class="yb-admin__form">
+      <input type="hidden" id="yb-seq-id">
+
+      {# Basic info #}
+      <div class="yb-admin__form-row">
+        <div class="yb-admin__field" style="flex:2">
+          <label for="yb-seq-name">{{ t.seq_name or "Sequence Name" }} *</label>
+          <input type="text" id="yb-seq-name" required placeholder="e.g. Welcome Drip, Qualification Nurture">
+        </div>
+        <div class="yb-admin__field" style="flex:0 0 auto">
+          <label>{{ t.seq_active or "Active" }}</label>
+          <label class="yb-seq__toggle">
+            <input type="checkbox" id="yb-seq-active" checked>
+            <span class="yb-seq__toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-seq-desc">{{ t.seq_description or "Description" }}</label>
+        <textarea id="yb-seq-desc" rows="2" placeholder="What does this sequence do?"></textarea>
+      </div>
+
+      {# Trigger Configuration #}
+      <fieldset class="yb-seq__fieldset">
+        <legend>{{ t.seq_trigger or "Trigger" }}</legend>
+        <div class="yb-admin__field">
+          <label for="yb-seq-trigger-type">{{ t.seq_trigger_type or "When to start" }}</label>
+          <select id="yb-seq-trigger-type" class="yb-admin__select">
+            <option value="manual">{{ t.seq_trigger_manual or "Manual enrollment only" }}</option>
+            <option value="new_lead">{{ t.seq_trigger_new_lead or "When a new lead is captured" }}</option>
+            <option value="status_change">{{ t.seq_trigger_status_change or "When lead status changes" }}</option>
+          </select>
+        </div>
+
+        {# Conditions panel — shown for new_lead and status_change #}
+        <div id="yb-seq-conditions-panel" hidden>
+          <p class="yb-seq__conditions-hint">{{ t.seq_conditions_hint or "Only trigger for leads matching these conditions (leave blank for all):" }}</p>
+          <div class="yb-admin__form-row">
+            <div class="yb-admin__field">
+              <label for="yb-seq-cond-type">{{ t.seq_cond_type or "Lead Type" }}</label>
+              <select id="yb-seq-cond-type" class="yb-admin__select">
+                <option value="">{{ t.seq_all_types or "All Types" }}</option>
+                {# Populated dynamically by JS from system data #}
+              </select>
+            </div>
+            <div class="yb-admin__field">
+              <label for="yb-seq-cond-source">{{ t.seq_cond_source or "Source Contains" }}</label>
+              <select id="yb-seq-cond-source" class="yb-admin__select">
+                <option value="">{{ t.seq_all_sources or "All Sources" }}</option>
+                {# Populated dynamically by JS from system data #}
+              </select>
+            </div>
+          </div>
+          <div class="yb-admin__form-row">
+            <div class="yb-admin__field">
+              <label for="yb-seq-cond-program">{{ t.seq_cond_program or "Program" }}</label>
+              <select id="yb-seq-cond-program" class="yb-admin__select">
+                <option value="">{{ t.seq_all_programs or "All Programs" }}</option>
+                {# Populated dynamically by JS from system data #}
+              </select>
+            </div>
+            <div class="yb-admin__field" id="yb-seq-cond-status-field" hidden>
+              <label for="yb-seq-cond-status">{{ t.seq_cond_new_status or "Changes To Status" }}</label>
+              <select id="yb-seq-cond-status" class="yb-admin__select">
+                <option value="">{{ t.seq_any_status or "Any Status" }}</option>
+                {# Populated dynamically by JS from STATUSES #}
+              </select>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      {# Exit Conditions #}
+      <fieldset class="yb-seq__fieldset">
+        <legend>{{ t.seq_exit_conditions or "Exit Conditions" }}</legend>
+        <p class="yb-seq__conditions-hint">{{ t.seq_exit_hint or "Automatically remove leads from this sequence when:" }}</p>
+        <div class="yb-seq__exit-checks" id="yb-seq-exit-checks">
+          <label><input type="checkbox" value="converted" checked> {{ t.seq_exit_converted or "Lead is converted" }}</label>
+          <label><input type="checkbox" value="unsubscribed" checked> {{ t.seq_exit_unsubscribed or "Lead unsubscribes" }}</label>
+          <label><input type="checkbox" value="lost"> {{ t.seq_exit_lost or "Lead is lost" }}</label>
+          <label><input type="checkbox" value="closed"> {{ t.seq_exit_closed or "Lead is closed" }}</label>
+          <label><input type="checkbox" value="not too keen"> {{ t.seq_exit_not_keen or "Lead marked 'Not too keen'" }}</label>
+          <label><input type="checkbox" value="archived"> {{ t.seq_exit_archived or "Lead is archived" }}</label>
+        </div>
+      </fieldset>
+
+      {# Steps Builder #}
+      <fieldset class="yb-seq__fieldset">
+        <legend>{{ t.seq_steps or "Steps" }}</legend>
+        <div class="yb-seq__steps-timeline" id="yb-seq-steps-container">
+          {# Steps rendered dynamically by JS #}
+        </div>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="seq-add-step" style="margin-top:12px;">
+          + {{ t.seq_add_step or "Add Step" }}
+        </button>
+      </fieldset>
+
+      {# Save #}
+      <div class="yb-admin__form-actions">
+        <button type="button" class="yb-btn yb-btn--outline" data-action="seq-back-list">{{ t.cancel or "Cancel" }}</button>
+        <button type="button" class="yb-btn yb-btn--primary" data-action="seq-save">{{ t.save or "Save" }}</button>
+      </div>
+    </form>
+  </div>
+
+  {# VIEW: Enrollment Management (hidden until clicked) #}
+  <div id="yb-seq-v-enrollments" hidden>
+    <div class="yb-admin__view-head">
+      <button type="button" class="yb-admin__back-btn" data-action="seq-back-list">&larr; {{ t.back or "Back" }}</button>
+      <h2 id="yb-seq-enroll-title">{{ t.seq_enrollments or "Enrollments" }}</h2>
+    </div>
+
+    {# Lead search to enroll #}
+    <div class="yb-seq__enroll-search">
+      <label>{{ t.seq_enroll_lead or "Enroll a lead:" }}</label>
+      <div class="yb-seq__lead-search-wrap">
+        <input type="text" id="yb-seq-lead-search" placeholder="{{ t.seq_search_leads or 'Search by name or email...' }}" class="yb-admin__search">
+        <div id="yb-seq-lead-results" class="yb-seq__lead-results" hidden></div>
+      </div>
+    </div>
+
+    {# Enrollments table #}
+    <div class="yb-admin__table-wrap">
+      <table class="yb-admin__table" id="yb-seq-enroll-table">
+        <thead>
+          <tr>
+            <th>{{ t.seq_col_lead or "Lead" }}</th>
+            <th>{{ t.seq_col_email or "Email" }}</th>
+            <th>{{ t.seq_col_step or "Step" }}</th>
+            <th>{{ t.seq_col_status or "Status" }}</th>
+            <th>{{ t.seq_col_next_send or "Next Send" }}</th>
+            <th>{{ t.seq_col_started or "Started" }}</th>
+            <th>{{ t.seq_col_actions or "Actions" }}</th>
+          </tr>
+        </thead>
+        <tbody id="yb-seq-enroll-tbody">
+          <tr><td colspan="7" class="yb-admin__empty">{{ t.loading or "Loading..." }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>{# end yb-el-sec-sequences #}
 
 {# CSV Import modal #}
 <div id="yb-el-import-modal" class="yb-lead__modal" hidden>

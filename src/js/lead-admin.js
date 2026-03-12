@@ -4734,6 +4734,34 @@
         .catch(function (err) { callback(err, null); });
     },
 
+    // Expose system enums for sequences admin
+    statuses: STATUSES,
+    subStatuses: SUB_STATUSES,
+    types: [
+      { value: 'ytt', label: 'YTT' },
+      { value: 'course', label: 'Course' },
+      { value: 'bundle', label: 'Bundle' },
+      { value: 'mentorship', label: 'Mentorship' },
+      { value: 'careers', label: 'Careers' },
+      { value: 'contact', label: 'Contact' }
+    ],
+    sources: [
+      '200h YTT', '300h YTT', '50h YTT', '30h YTT',
+      'Courses', 'Mentorship',
+      'Facebook Ad', 'Apply page', 'Contact page', 'Careers page', 'Manual entry'
+    ],
+    programs: [
+      { value: '4-week', label: '4-Week Intensive' },
+      { value: '4-week-jul', label: '4-Week Vinyasa Plus (Jul)' },
+      { value: '8-week', label: '8-Week Semi-Intensive' },
+      { value: '18-week', label: '18-Week Flexible (Spring)' },
+      { value: '18-week-aug', label: '18-Week Flexible (Autumn)' },
+      { value: '300h', label: '300h Advanced' },
+      { value: '50h', label: '50h Specialty' },
+      { value: '30h', label: '30h Module' }
+    ],
+    subTypeOptions: SUB_TYPE_OPTIONS,
+
     // Called by campaign wizard when a campaign send completes
     onCampaignSent: function (type, results) {
       selectedIds.clear();
