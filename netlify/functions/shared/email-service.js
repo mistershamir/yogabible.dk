@@ -137,11 +137,15 @@ function substituteVars(text, vars) {
 /**
  * Send a raw email (lowest level)
  */
-async function sendRawEmail({ to, subject, html, text, attachments, replyTo }) {
+async function sendRawEmail({ to, subject, html, text, attachments, replyTo, fromEmail }) {
   const transport = getTransporter();
 
+  // Allow sender override for multi-brand campaigns
+  const senderEmail = fromEmail || process.env.GMAIL_USER || CONFIG.EMAIL_FROM;
+  const senderName = fromEmail && fromEmail.includes('hotyogacph') ? 'Hot Yoga CPH' : CONFIG.FROM_NAME;
+
   const mailOptions = {
-    from: `"${CONFIG.FROM_NAME}" <${process.env.GMAIL_USER || CONFIG.EMAIL_FROM}>`,
+    from: `"${senderName}" <${senderEmail}>`,
     to,
     subject,
     text: text || '',
@@ -195,7 +199,7 @@ async function sendTemplateEmail({ to, templateId, vars, leadId }) {
 /**
  * Send a custom email (admin-composed, not from template)
  */
-async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, includeSignature = true, includeUnsubscribe = true, campaignId }) {
+async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, includeSignature = true, includeUnsubscribe = true, campaignId, fromEmail }) {
   let html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">';
   html += bodyHtml;
   if (includeSignature) {
@@ -217,7 +221,7 @@ async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, inclu
   if (includeSignature) text += getEnglishNotePlain() + getSignaturePlain();
   if (includeUnsubscribe) text += getUnsubscribeFooterPlain(to);
 
-  const result = await sendRawEmail({ to, subject, html, text });
+  const result = await sendRawEmail({ to, subject, html, text, fromEmail });
   await logEmail({ to, subject, templateId: null, leadId, messageId: result.messageId, campaignId });
   return result;
 }

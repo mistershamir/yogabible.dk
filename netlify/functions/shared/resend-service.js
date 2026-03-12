@@ -79,9 +79,12 @@ function resendPost(path, body) {
 
 // ─── Build a single Resend message payload ───────────────────────────────────
 
-function buildResendMessage({ to, subject, html, text }) {
-  const from = process.env.RESEND_FROM ||
-    ('"' + CONFIG.FROM_NAME + '" <' + (process.env.GMAIL_USER || CONFIG.EMAIL_FROM) + '>');
+function buildResendMessage({ to, subject, html, text, fromEmail }) {
+  var senderEmail = fromEmail || process.env.GMAIL_USER || CONFIG.EMAIL_FROM;
+  var senderName = fromEmail && fromEmail.includes('hotyogacph') ? 'Hot Yoga CPH' : CONFIG.FROM_NAME;
+  const from = fromEmail
+    ? ('"' + senderName + '" <' + fromEmail + '>')
+    : (process.env.RESEND_FROM || ('"' + CONFIG.FROM_NAME + '" <' + (process.env.GMAIL_USER || CONFIG.EMAIL_FROM) + '>'));
 
   // reply_to = the Gmail inbox so replies land there, not in Resend
   const replyTo = process.env.GMAIL_USER || CONFIG.EMAIL_FROM;
@@ -148,11 +151,11 @@ function wrapText(bodyPlain, recipientEmail) {
 
 // ─── Send a single email via Resend ──────────────────────────────────────────
 
-async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, campaignId }) {
+async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, campaignId, fromEmail }) {
   const html = wrapHtml(bodyHtml, to, campaignId);
   const text = wrapText(bodyPlain || '', to);
 
-  const message = buildResendMessage({ to, subject, html, text });
+  const message = buildResendMessage({ to, subject, html, text, fromEmail });
   const result = await resendPost('/emails', message);
 
   await logResendEmail({ to, subject, leadId, messageId: result.id, campaignId });
@@ -163,7 +166,7 @@ async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, c
 // Sends up to 100 messages per Resend batch call.
 // leads = array of { id, collection, record } objects where record is the Firestore doc data.
 
-async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate, bodyPlainTemplate, campaignId }) {
+async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate, bodyPlainTemplate, campaignId, fromEmail }) {
   const db = getDb();
   const results = { sent: 0, failed: 0, skipped: 0, errors: [] };
 
@@ -177,6 +180,7 @@ async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate
     for (const { id, record, isApp } of chunk) {
       if (!record.email) { results.skipped++; continue; }
       if (!isApp && record.unsubscribed) { results.skipped++; continue; }
+      if (!isApp && record.email_bounced) { results.skipped++; continue; }
 
       const vars = {
         first_name: record.first_name || '',
@@ -194,7 +198,8 @@ async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate
         to: record.email,
         subject,
         html: wrapHtml(bodyHtml, record.email, campaignId),
-        text: wrapText(bodyPlain, record.email)
+        text: wrapText(bodyPlain, record.email),
+        fromEmail
       }));
 
       meta.push({ id, isApp, email: record.email, subject });

@@ -750,7 +750,9 @@
           unreadBadge +
         '</td>' +
         '<td class="yb-lead__cell-contact">' +
-          '<div class="yb-lead__cell-email-text">' + esc(l.email || '') + '</div>' +
+          '<div class="yb-lead__cell-email-text">' + esc(l.email || '') +
+          (l.email_bounced ? ' <span class="yb-lead__bounce-badge" title="Email bounced ' + (l.bounce_count || '') + ' time(s)">BOUNCED</span>' : '') +
+          '</div>' +
           (l.phone ? '<a href="tel:' + esc(l.phone) + '" class="yb-lead__cell-phone-link" onclick="event.stopPropagation()">' + esc(l.phone) + '</a>' : '') +
         '</td>' +
         '<td><span class="yb-lead__type-badge">' + typeBadge(l.type) + '</span></td>' +

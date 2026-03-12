@@ -19685,6 +19685,21 @@ button.yb-btn--outline-white:hover {
   color: #f75c03;
 }
 
+/* Bounce badge */
+.yb-lead__bounce-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: #FFEBEE;
+  color: #D32F2F;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
 /* Follow-up date highlighting */
 .yb-lead__followup-date { font-weight: 600; }
 .yb-lead__followup-date.yb-lead__row--overdue { color: #EF5350; }
@@ -21345,6 +21360,21 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
 }
 
 /* ── Delivery provider selector ── */
+.yb-lead__campaign-sender-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: #fff;
+  margin-top: 0.4rem;
+  cursor: pointer;
+}
+.yb-lead__campaign-sender-select:focus {
+  outline: none;
+  border-color: #f75c03;
+}
 .yb-lead__campaign-provider-section { margin-bottom: 1.5rem; }
 .yb-lead__campaign-provider-cards {
   display: flex;

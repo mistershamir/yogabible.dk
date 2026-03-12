@@ -29,6 +29,7 @@ exports.handler = async (event) => {
     const payload = JSON.parse(event.body || '{}');
     const provider = payload.provider || 'gmail'; // default: gmail for backwards-compat
     const campaignId = payload.campaignId || null;
+    const fromEmail = payload.fromEmail || null; // optional sender override (e.g. info@hotyogacph.dk)
 
     // ── Test mode — always uses Gmail (no Resend logging) ──────────────────
     if (payload.test && payload.testEmail) {
@@ -72,6 +73,7 @@ exports.handler = async (event) => {
     const record = doc.data();
     if (!record.email) return jsonResponse(400, { ok: false, error: (isApp ? 'Application' : 'Lead') + ' has no email' });
     if (!isApp && record.unsubscribed) return jsonResponse(400, { ok: false, error: 'Lead is unsubscribed' });
+    if (!isApp && record.email_bounced) return jsonResponse(400, { ok: false, error: 'Lead email has bounced — skipping to protect sender reputation' });
 
     const vars = {
       first_name: record.first_name || '',
@@ -93,12 +95,13 @@ exports.handler = async (event) => {
         bodyHtml: substituteVars(payload.bodyHtml, vars),
         bodyPlain: payload.bodyPlain || '',
         leadId: isApp ? null : docId,
-        campaignId
+        campaignId,
+        fromEmail
       });
     } else if (payload.templateId) {
       result = await sendTemplateEmail({ to: record.email, templateId: payload.templateId, vars, leadId: isApp ? null : docId });
     } else if (payload.subject && payload.bodyHtml) {
-      result = await sendCustomEmail({ to: record.email, subject: payload.subject, bodyHtml: payload.bodyHtml, bodyPlain: payload.bodyPlain || '', leadId: isApp ? null : docId, campaignId });
+      result = await sendCustomEmail({ to: record.email, subject: payload.subject, bodyHtml: payload.bodyHtml, bodyPlain: payload.bodyPlain || '', leadId: isApp ? null : docId, campaignId, fromEmail });
     } else {
       return jsonResponse(400, { ok: false, error: 'Provide templateId or (subject + bodyHtml)' });
     }
@@ -210,7 +213,8 @@ async function handleBulkList(payload, campaignId) {
     subjectTemplate: payload.subject,
     bodyHtmlTemplate: payload.bodyHtml,
     bodyPlainTemplate: payload.bodyPlain || '',
-    campaignId
+    campaignId,
+    fromEmail: payload.fromEmail || null
   });
 
   // Update engagement stats on contacts (fire-and-forget)
@@ -260,7 +264,8 @@ async function handleBulkResend(payload, source, campaignId) {
     subjectTemplate: payload.subject,
     bodyHtmlTemplate: payload.bodyHtml,
     bodyPlainTemplate: payload.bodyPlain || '',
-    campaignId
+    campaignId,
+    fromEmail: payload.fromEmail || null
   });
 
   return jsonResponse(200, { ok: true, results, provider: 'resend' });
@@ -283,6 +288,7 @@ async function handleBulkGmail(payload, source, campaignId) {
       const record = doc.data();
       if (!record.email) { results.skipped++; continue; }
       if (!isApp && record.unsubscribed) { results.skipped++; continue; }
+      if (!isApp && record.email_bounced) { results.skipped++; continue; }
 
       const vars = {
         first_name: record.first_name || '',
@@ -295,7 +301,7 @@ async function handleBulkGmail(payload, source, campaignId) {
       if (payload.templateId) {
         await sendTemplateEmail({ to: record.email, templateId: payload.templateId, vars, leadId: isApp ? null : id });
       } else if (payload.subject && payload.bodyHtml) {
-        await sendCustomEmail({ to: record.email, subject: payload.subject, bodyHtml: payload.bodyHtml, bodyPlain: payload.bodyPlain || '', leadId: isApp ? null : id, campaignId });
+        await sendCustomEmail({ to: record.email, subject: payload.subject, bodyHtml: payload.bodyHtml, bodyPlain: payload.bodyPlain || '', leadId: isApp ? null : id, campaignId, fromEmail: payload.fromEmail || null });
       }
 
       const updateFields = { updated_at: new Date() };
