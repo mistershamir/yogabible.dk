@@ -177,6 +177,7 @@ async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate
     for (const { id, record, isApp } of chunk) {
       if (!record.email) { results.skipped++; continue; }
       if (!isApp && record.unsubscribed) { results.skipped++; continue; }
+      if (!isApp && record.email_bounced) { results.skipped++; continue; }
 
       const vars = {
         first_name: record.first_name || '',

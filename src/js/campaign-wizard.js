@@ -413,6 +413,9 @@
           var st4 = String(lead.status || '').toLowerCase();
           if (st4 === 'unsubscribed' || st4.includes('afmeld')) return false;
         }
+        if (f.excludeBounced) {
+          if (lead.email_bounced === true) return false;
+        }
         if (f.excludeRecent) {
           var lastContact = lead.last_contact || lead.last_contact_at || lead.last_sms_at;
           if (lastContact) {
@@ -675,7 +678,8 @@
       { key: 'excludeRecent', label: t('campaign_filter_exclude_recent') },
       { key: 'excludeNotInterested', label: t('campaign_filter_exclude_notinterested') },
       { key: 'excludeBadLeads', label: t('campaign_filter_exclude_bad') },
-      { key: 'excludeUnsubscribed', label: t('campaign_filter_exclude_unsub') }
+      { key: 'excludeUnsubscribed', label: t('campaign_filter_exclude_unsub') },
+      { key: 'excludeBounced', label: t('campaign_filter_exclude_bounced') || 'Bounced emails' }
     ];
     excludes.forEach(function (ex) {
       html += '<label class="yb-lead__campaign-exclude-item">' +
@@ -2052,7 +2056,7 @@
       countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],
       recency: null, housing: false, meta: false,
       excludeConverted: true, excludeRecent: false,
-      excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true
+      excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true, excludeBounced: true
     };
     campaignState.allRecipients = [];
     campaignState.selectedIds = new Set();
@@ -2357,7 +2361,7 @@
           countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],
           recency: null, housing: false, meta: false,
           excludeConverted: true, excludeRecent: false,
-          excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true
+          excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true, excludeBounced: true
         };
         campaignState.searchTerm = '';
         if (campaignState.pinnedIds.size === 0) campaignState.selectedIds.clear();

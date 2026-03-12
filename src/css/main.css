@@ -19679,6 +19679,21 @@ button.yb-btn--outline-white:hover {
   color: #f75c03;
 }
 
+/* Bounce badge */
+.yb-lead__bounce-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: #FFEBEE;
+  color: #D32F2F;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
 /* Follow-up date highlighting */
 .yb-lead__followup-date { font-weight: 600; }
 .yb-lead__followup-date.yb-lead__row--overdue { color: #EF5350; }

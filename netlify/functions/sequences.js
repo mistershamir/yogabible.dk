@@ -469,6 +469,17 @@ async function handleProcess() {
 
         var lead = leadDoc.data();
 
+        // Skip bounced emails — exit enrollment to stop wasting sends
+        if (lead.email_bounced) {
+          await db.collection(ENROLLMENTS_COL).doc(enrollId).update({
+            status: 'exited',
+            exit_reason: 'Email bounced',
+            updated_at: now
+          });
+          console.log('[sequences] Skipping bounced lead ' + enrollment.lead_id);
+          continue;
+        }
+
         // Check exit conditions
         if (sequence.exit_conditions && Array.isArray(sequence.exit_conditions)) {
           var leadStatus = (lead.status || '').toLowerCase();
