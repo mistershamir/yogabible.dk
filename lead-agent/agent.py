@@ -319,6 +319,29 @@ TOOLS = [
             },
             "required": ["appointment_id", "message"]
         }
+    },
+    # ── Communication history tools ──────────────────
+    {
+        "name": "get_lead_history",
+        "description": "Get full communication history for a lead: all emails sent (drip, campaign, custom), SMS, and sequence enrollments. Use this to understand what communications a lead has already received before deciding next steps.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "lead_id": {"type": "string", "description": "The Firestore lead document ID"}
+            },
+            "required": ["lead_id"]
+        }
+    },
+    {
+        "name": "get_lead_full_context",
+        "description": "Get complete 360° context for a lead: profile data, drip status, communication history, and sequence enrollments. Use this when you need a comprehensive overview of a lead before making recommendations.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "lead_id": {"type": "string", "description": "The Firestore lead document ID"}
+            },
+            "required": ["lead_id"]
+        }
     }
 ]
 
@@ -533,6 +556,19 @@ def execute_tool(name, input_data):
             if result and result.get('success'):
                 _instant_feedback(f'💬 SMS sent to <b>{appt.get("client_name", "client")}</b> ({phone})')
             return result or {'error': 'SMS returned no result'}
+
+        # ── Communication history tools ──────────────
+        elif name == 'get_lead_history':
+            from tools.firestore import get_lead_communication_history
+            history = get_lead_communication_history(input_data['lead_id'])
+            return {'history': history, 'count': len(history)}
+
+        elif name == 'get_lead_full_context':
+            from tools.firestore import get_lead_full_context as _get_full_context
+            context = _get_full_context(input_data['lead_id'])
+            if context:
+                return context
+            return {'error': 'Lead not found'}
 
         return {'error': f'Unknown tool: {name}'}
 
@@ -749,6 +785,10 @@ def handle_button(action, lead_id):
         return chat(f"Pause drip for lead {lead_id} — I'll call them first. Remind me tomorrow at 10:00 if I haven't updated.")
     elif action == 'ack':
         return chat(f"Lead {lead_id} looks good, let the drip continue as planned. Just acknowledge.")
+    elif action == 'called':
+        update_lead(lead_id, {'status': 'Contacted'})
+        add_lead_note(lead_id, 'Marked as contacted via Telegram reminder button')
+        return "✅ Lead marked as Contacted."
     else:
         return f"Unknown action: {action}"
 
@@ -757,20 +797,78 @@ def handle_button(action, lead_id):
 # Will be set by the Telegram bot startup to enable async notifications
 _telegram_app = None
 
+def _call_reminder_job(lead_id, lead_data):
+    """15-min callback: remind Shamir to call if lead is still New."""
+    try:
+        from tools.firestore import get_db
+        db = get_db()
+        doc = db.collection('leads').document(lead_id).get()
+        if not doc.exists:
+            return
+        current = doc.to_dict()
+        status = current.get('status', 'New')
+        if status in ('New', '', None):
+            # Still not contacted — send reminder
+            name = f"{lead_data.get('first_name', '')} {lead_data.get('last_name', '')}".strip()
+            phone = lead_data.get('phone', 'No phone')
+            program = lead_data.get('ytt_program_type') or lead_data.get('program') or lead_data.get('type', 'Unknown')
+            source = lead_data.get('source', 'Website')
+
+            msg = (f"📞 <b>Reminder: Call {name}</b>\n"
+                   f"☎️ <b>{phone}</b>\n"
+                   f"📋 {program} lead from {source}\n"
+                   f"⏰ Lead arrived 15 min ago — time to call!")
+
+            if _telegram_app and _telegram_app_loop:
+                from tools.telegram import send_notification
+                buttons = [{'text': '✅ Already called', 'data': f'called:{lead_id}'}]
+                asyncio.run_coroutine_threadsafe(
+                    send_notification(_telegram_app, msg, buttons),
+                    _telegram_app_loop
+                )
+    except Exception as e:
+        logger.error(f'Call reminder error for {lead_id}: {e}')
+
+
 def on_new_lead(lead):
     """Called when a new lead appears in Firestore. Initializes drip + notifies Telegram."""
-    if lead.get('type') == 'ytt':
-        logger.info(f'New YTT lead: {lead.get("first_name")} {lead.get("last_name")} ({lead.get("email")})')
+    lead_type = lead.get('type', 'ytt')
+    logger.info(f'New {lead_type} lead: {lead.get("first_name")} {lead.get("last_name")} ({lead.get("email")})')
+
+    # Initialize drip for YTT leads
+    if lead_type == 'ytt':
         initialize_drip_for_lead(lead['id'], lead)
 
-        # Send Telegram notification
-        if _telegram_app:
-            from tools.telegram import format_new_lead_notification, send_notification
-            msg, buttons = format_new_lead_notification(lead)
-            asyncio.run_coroutine_threadsafe(
-                send_notification(_telegram_app, msg, buttons),
-                _telegram_app_loop
-            )
+    # Check if this is a returning lead (email seen before)
+    returning = False
+    if lead.get('email'):
+        from tools.firestore import get_lead_by_email
+        existing = get_lead_by_email(lead['email'])
+        if existing and existing.get('id') != lead.get('id'):
+            returning = True
+            lead['_returning'] = True
+            lead['_previous_status'] = existing.get('status', '')
+
+    # Send Telegram notification
+    if _telegram_app:
+        from tools.telegram import format_new_lead_notification, send_notification
+        msg, buttons = format_new_lead_notification(lead)
+        asyncio.run_coroutine_threadsafe(
+            send_notification(_telegram_app, msg, buttons),
+            _telegram_app_loop
+        )
+
+    # Schedule 15-minute call reminder
+    if _scheduler and lead.get('phone'):
+        job_id = f'call_reminder_{lead["id"]}'
+        _scheduler.add_job(
+            _call_reminder_job, 'date',
+            run_date=datetime.now(timezone.utc) + timedelta(minutes=15),
+            id=job_id,
+            kwargs={'lead_id': lead['id'], 'lead_data': lead},
+            replace_existing=True
+        )
+        logger.info(f'Call reminder scheduled for {lead["id"]} in 15 min')
 
 _telegram_app_loop = None
 
