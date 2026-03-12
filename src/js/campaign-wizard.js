@@ -1816,6 +1816,7 @@
     if (!bridge) return;
     var isEmail = campaignState.type === 'email';
     var sentAt = new Date().toISOString();
+    var trackingCampaignId = campaignState._lastCampaignId || null;
     var campaignSummary = {
       type: campaignState.type,
       subject: isEmail ? (campaignState.emailSubject || '') : '',
@@ -1836,6 +1837,7 @@
           results: results,
           schedule: campaignState.schedule,
           sentAt: sentAt,
+          trackingCampaignId: trackingCampaignId,
           listIds: getActiveListIds(),
           includesListContacts: getActiveListIds().length > 0,
           listContactCount: (function () {
@@ -1847,7 +1849,15 @@
             return c;
           })()
         })
-      }).catch(function () { /* silent */ });
+      }).then(function (r) { return r.json(); }).then(function (data) {
+        if (!data.ok) {
+          console.error('[campaign] Failed to log campaign:', data.error);
+          if (bridge) bridge.toast('Campaign log failed: ' + (data.error || 'Unknown'), true);
+        }
+      }).catch(function (err) {
+        console.error('[campaign] Campaign log error:', err);
+        if (bridge) bridge.toast('Campaign log error — check console', true);
+      });
 
       // 2. Write per-lead history back to Firestore (so badges show next time)
       if (window.firebase) {
