@@ -7,7 +7,7 @@
  *   SMS_SENDER        — Sender phone (default: +4553881209)
  */
 
-const { AUTO_SMS_CONFIG } = require('./config');
+const { AUTO_SMS_CONFIG, getDisplayProgram } = require('./config');
 const { getDb } = require('./firestore');
 const { formatDate } = require('./utils');
 
@@ -110,6 +110,10 @@ async function sendWelcomeSMS(leadData, leadDocId) {
     return { success: false, reason: 'no_phone' };
   }
 
+  // Determine language: use lang field (set by website modal or meta_lang from ads)
+  // Danish if lang === 'da' or meta_lang === 'da', otherwise English
+  const lang = (leadData.lang || leadData.meta_lang || 'en').toLowerCase().substring(0, 2);
+
   // Select template based on lead type
   const program = String(leadData.program || '').toLowerCase();
   let templateKey = 'default';
@@ -131,9 +135,12 @@ async function sendWelcomeSMS(leadData, leadDocId) {
     templateKey = 'mentorship';
   }
 
-  const template = AUTO_SMS_CONFIG.templates[templateKey] || AUTO_SMS_CONFIG.templates['default'];
-  const firstName = leadData.first_name || 'there';
-  const programName = leadData.program || 'yoga program';
+  // Select language-appropriate template
+  const langTemplates = AUTO_SMS_CONFIG.templates[lang] || AUTO_SMS_CONFIG.templates.en;
+  const template = langTemplates[templateKey] || langTemplates['default'];
+  const firstName = leadData.first_name || (lang === 'da' ? 'der' : 'there');
+  // Use getDisplayProgram for clean, human-readable program name
+  const programName = getDisplayProgram(leadData, lang);
 
   const message = template
     .replace(/\{\{first_name\}\}/gi, firstName)

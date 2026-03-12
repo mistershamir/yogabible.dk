@@ -205,6 +205,7 @@ async function processLeadgenChange(value) {
     meta_page_id: page_id || '',
     meta_platform: metaPlatform || '',
     meta_lang: metaLang || 'da',
+    lang: metaLang || 'da',
     // Status
     converted: false,
     converted_at: null,

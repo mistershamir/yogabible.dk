@@ -11,7 +11,7 @@
  * Schedule PDFs are now hosted on Cloudinary (not Google Drive).
  */
 
-const { CONFIG, COURSE_CONFIG, SCHEDULE_PDFS } = require('./config');
+const { CONFIG, COURSE_CONFIG, SCHEDULE_PDFS, getDisplayProgram } = require('./config');
 const {
   escapeHtml,
   getCoursePaymentUrl,
@@ -185,6 +185,26 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
   }
 
   try {
+    // Determine language: 'da' for Danish website/ads, otherwise English
+    const lang = (leadData.lang || leadData.meta_lang || '').toLowerCase().substring(0, 2);
+    const isEnglish = lang !== 'da';
+
+    // English leads get English email templates
+    if (isEnglish) {
+      let result;
+      const isYTT = leadData.type === 'ytt';
+      if (isYTT) {
+        result = await sendEmailYTTEnglish(leadData, tokenData);
+      } else {
+        result = await sendEmailGenericEnglish(leadData);
+      }
+      if (result && result.success) {
+        await logWelcomeEmail(leadData.email, result.subject || 'Welcome email (EN)');
+      }
+      return result;
+    }
+
+    // Danish leads get detailed Danish program-specific emails
     // Multi-format request: user selected 2+ formats in the modal
     if (leadData.multi_format === 'Yes' && leadData.all_formats) {
       const result = await sendEmailMultiYTT(leadData, tokenData);
@@ -1120,6 +1140,128 @@ async function sendEmailMentorship(leadData) {
 // =========================================================================
 // Generic / Contact Email
 // =========================================================================
+
+// =========================================================================
+// English YTT Welcome Email — used for English-language leads (all YTT types)
+// =========================================================================
+
+async function sendEmailYTTEnglish(leadData, tokenData = {}) {
+  const firstName = leadData.first_name || '';
+  const programName = getDisplayProgram(leadData, 'en');
+  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
+  const cityCountry = leadData.city_country || '';
+
+  const scheduleBase = tokenData.leadId && tokenData.token
+    ? '?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : '';
+
+  const subject = firstName + ', your YTT schedule is ready';
+
+  // ---- HTML ----
+  let bodyHtml = '<p>Hi ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>Thank you for your interest in our <strong>' + escapeHtml(programName) + '</strong>!</p>';
+
+  bodyHtml += '<p>We have sent your schedule and all program details to this email. Here is a quick overview:</p>';
+
+  // Program highlights
+  bodyHtml += '<div style="margin:16px 0;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
+  bodyHtml += '<strong>What makes Yoga Bible unique:</strong><br>';
+  bodyHtml += '<ul style="margin:8px 0;padding-left:18px;color:#555;">';
+  bodyHtml += '<li>200-hour Yoga Alliance certified (RYT-200)</li>';
+  bodyHtml += '<li>Max 12 students per cohort for personal attention</li>';
+  bodyHtml += '<li>5 yoga styles: Hatha, Vinyasa, Yin, Hot Yoga &amp; Meditation</li>';
+  bodyHtml += '<li>Real teaching practice from week 1</li>';
+  bodyHtml += '<li>500+ graduates since 2019</li>';
+  bodyHtml += '</ul></div>';
+
+  // Pricing
+  bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
+  bodyHtml += '<strong>Price:</strong> 23,750 DKK (no hidden fees)<br>';
+  bodyHtml += '<strong>Preparation Phase:</strong> 3,750 DKK secures your spot<br>';
+  bodyHtml += '<strong>Remaining:</strong> 20,000 DKK (flexible instalments available)';
+  bodyHtml += '</div>';
+
+  // Preparation Phase CTA
+  bodyHtml += '<div style="margin-top:20px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:4px;">';
+  bodyHtml += '<strong style="color:#166534;">\ud83d\udca1 Start your Preparation Phase now</strong><br><br>';
+  bodyHtml += 'Most students begin their Preparation Phase early \u2014 here is why:<br><br>';
+  bodyHtml += '\u2705 Immediate access to all yoga classes at the studio<br>';
+  bodyHtml += '\u2705 Build strength, flexibility and routine before training starts<br>';
+  bodyHtml += '\u2705 Meet your future classmates in a relaxed setting<br>';
+  bodyHtml += '\u2705 Your classes count towards your training hours<br><br>';
+  bodyHtml += '<a href="https://www.yogabible.dk/en/about-200-hour-yoga-teacher-training" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">Start Preparation Phase \u2014 3,750 DKK</a>';
+  bodyHtml += '</div>';
+
+  if (needsHousing) {
+    bodyHtml += '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-radius:6px;border-left:3px solid #4CAF50;">';
+    bodyHtml += '<strong style="color:#2E7D32;">\ud83c\udfe0 Accommodation:</strong> ';
+    bodyHtml += 'I can see that you' + (cityCountry ? ' are coming from ' + escapeHtml(cityCountry) + ' and' : '') + ' need accommodation in Copenhagen.<br><br>';
+    bodyHtml += 'We partner with local providers. ';
+    bodyHtml += '<strong><a href="https://yogabible.dk/en/accommodation" style="color:#f75c03;">See accommodation options here \u2192</a></strong><br>';
+    bodyHtml += '<span style="color:#666;">Questions about housing? Just reply to this email.</span>';
+    bodyHtml += '</div>';
+  }
+
+  // Meeting CTA
+  bodyHtml += '<p style="margin-top:20px;">Want to learn more or ask questions? Book a free info session:</p>';
+  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book a Free Info Session</a></p>';
+  bodyHtml += '<p>Looking forward to hearing from you!</p>';
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  // ---- Plain text ----
+  let bodyPlain = 'Hi ' + firstName + ',\n\n';
+  bodyPlain += 'Thank you for your interest in our ' + programName + '!\n\n';
+  bodyPlain += 'We have sent your schedule and all program details to this email.\n\n';
+  bodyPlain += 'What makes Yoga Bible unique:\n';
+  bodyPlain += '- 200-hour Yoga Alliance certified (RYT-200)\n';
+  bodyPlain += '- Max 12 students per cohort\n';
+  bodyPlain += '- 5 yoga styles: Hatha, Vinyasa, Yin, Hot Yoga & Meditation\n';
+  bodyPlain += '- 500+ graduates since 2019\n\n';
+  bodyPlain += 'Price: 23,750 DKK\n';
+  bodyPlain += 'Preparation Phase: 3,750 DKK secures your spot\n';
+  bodyPlain += 'Remaining: 20,000 DKK (flexible instalments)\n\n';
+  bodyPlain += 'Book a free info session: ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += 'Looking forward to hearing from you!';
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  const result = await sendRawEmail({
+    to: leadData.email,
+    subject,
+    html: wrapHtml(bodyHtml),
+    text: bodyPlain
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
+// English Generic Welcome Email — used for non-YTT English leads
+// =========================================================================
+
+async function sendEmailGenericEnglish(leadData) {
+  const firstName = leadData.first_name || '';
+  const subject = 'Thank you for reaching out \u2014 Yoga Bible';
+
+  let bodyHtml = '<p>Hi ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>Thank you for contacting <strong>Yoga Bible</strong>!</p>';
+  bodyHtml += '<p>We have received your enquiry and will get back to you shortly.</p>';
+  bodyHtml += '<p>In the meantime:</p>';
+  bodyHtml += '<ul style="margin:10px 0;padding-left:20px;">';
+  bodyHtml += '<li>Book a consultation: <a href="' + CONFIG.MEETING_LINK + '" style="color:#f75c03;">Click here</a></li>';
+  bodyHtml += '<li>Visit our website: <a href="https://www.yogabible.dk/en/" style="color:#f75c03;">yogabible.dk</a></li>';
+  bodyHtml += '</ul>';
+  bodyHtml += '<p>Feel free to reply to this email with any questions.</p>';
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  const bodyPlain = 'Hi ' + firstName + ',\n\nThank you for contacting Yoga Bible!\n\nWe will get back to you shortly.\n\nBook a consultation: ' + CONFIG.MEETING_LINK + '\nVisit: https://www.yogabible.dk/en/' + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  const result = await sendRawEmail({
+    to: leadData.email,
+    subject,
+    html: wrapHtml(bodyHtml),
+    text: bodyPlain
+  });
+  return { ...result, subject };
+}
 
 async function sendEmailGeneric(leadData) {
   const firstName = leadData.first_name || '';
