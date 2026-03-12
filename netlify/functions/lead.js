@@ -16,6 +16,7 @@ const {
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
+const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
@@ -71,6 +72,11 @@ exports.handler = async (event) => {
     // Must await — Netlify Functions terminate after response is sent
     await triggerNotifications(leadData, docRef.id, action).catch(err => {
       console.error('[lead] Notification error (non-blocking):', err.message);
+    });
+
+    // Auto-enroll in matching sequences (non-blocking)
+    triggerNewLeadSequences(docRef.id, leadData).catch(err => {
+      console.error('[lead] Sequence enrollment error (non-blocking):', err.message);
     });
 
     const response = jsonResponse(200, { ok: true, message: 'Request received successfully' });

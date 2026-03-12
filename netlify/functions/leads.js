@@ -13,6 +13,7 @@ const { getDb } = require('./shared/firestore');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 const { sendLeadStatusEvent } = require('./shared/meta-events');
+const { triggerStatusChangeSequences } = require('./shared/sequence-trigger');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -152,6 +153,9 @@ async function update(db, event, user) {
     }
   }
 
+  // Capture old status before update for trigger comparison
+  const oldStatus = doc.data().status || 'New';
+
   await docRef.update(updates);
   const updated = await docRef.get();
   const updatedLead = { id: updated.id, ...updated.data() };
@@ -160,6 +164,12 @@ async function update(db, event, user) {
   if (updates.status || updates.converted !== undefined) {
     sendLeadStatusEvent(updatedLead, data.id, updates)
       .catch(e => console.error('[leads] Meta CAPI status event failed:', e.message));
+  }
+
+  // Auto-enroll/exit sequences on status change (non-blocking)
+  if (updates.status && updates.status !== oldStatus) {
+    triggerStatusChangeSequences(data.id, updatedLead, oldStatus, updates.status)
+      .catch(e => console.error('[leads] Sequence trigger error (non-blocking):', e.message));
   }
 
   return jsonResponse(200, { ok: true, lead: updatedLead });

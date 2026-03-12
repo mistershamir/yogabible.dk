@@ -85,10 +85,17 @@ async function sendSMS(phone, message) {
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
 
-  const user = await requireAuth(event, ['admin']);
-  if (user.error) return user.error;
-
   const params = event.queryStringParameters || {};
+
+  // Allow internal secret auth for process action (called by AI agent scheduler)
+  const isInternalProcess = params.action === 'process' &&
+    event.headers['x-internal-secret'] === (process.env.AI_INTERNAL_SECRET || '');
+
+  if (!isInternalProcess) {
+    const user = await requireAuth(event, ['admin']);
+    if (user.error) return user.error;
+  }
+
   const db = getDb();
 
   try {

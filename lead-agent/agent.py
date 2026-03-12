@@ -1127,6 +1127,28 @@ def main_telegram():
     scheduler.add_job(process_due_drips, 'interval', minutes=interval,
                       id='drip_check', replace_existing=True)
 
+    # Process due sequence steps alongside drips
+    def _process_sequences():
+        """Call the sequences Netlify function to process due steps."""
+        try:
+            import urllib.request
+            site_url = os.getenv('SITE_URL', 'https://yogabible.dk')
+            secret = os.getenv('AI_INTERNAL_SECRET', '')
+            url = f'{site_url}/.netlify/functions/sequences?action=process'
+            req = urllib.request.Request(url, data=b'{}', method='POST',
+                                        headers={'Content-Type': 'application/json',
+                                                 'X-Internal-Secret': secret})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                result = json.loads(resp.read())
+                processed = result.get('processed', 0)
+                if processed > 0:
+                    logger.info(f'Sequences: processed {processed} due steps')
+        except Exception as e:
+            logger.debug(f'Sequence processing skipped: {e}')
+
+    scheduler.add_job(_process_sequences, 'interval', minutes=interval,
+                      id='sequence_check', replace_existing=True)
+
     # Auto-pull from main + knowledge refresh every 5 minutes
     def _auto_update():
         # 1. Check git hook flag (local trigger)
