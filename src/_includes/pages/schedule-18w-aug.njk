@@ -82,6 +82,47 @@
     <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:10px;font-style:italic;">{{ t.hoursTotal }}</p>
   </div>
 
+  {# ── TRACKS VIDEO ──────────────────────────────────────── #}
+  <div style="max-width:700px;margin:32px auto 0;padding:0 24px;">
+    <figure style="margin:0;border-radius:16px;overflow:hidden;position:relative;background:#0F0F0F;">
+      <div style="position:relative;width:100%;cursor:pointer;" id="s18wAugVideoWrap">
+        <video id="s18wAugVideo" preload="metadata" playsinline style="display:block;width:100%;border-radius:16px;"
+               poster="https://res.cloudinary.com/ddcynsa30/video/upload/so_0,w_1280,f_jpg,q_auto/yoga-bible-DK/programs/testimonial-weekday.jpg">
+          <source src="https://res.cloudinary.com/ddcynsa30/video/upload/f_auto,q_auto/yoga-bible-DK/programs/testimonial-weekday.mp4" type="video/mp4">
+        </video>
+        {# Play overlay — shown initially and when ended #}
+        <div id="s18wAugOverlay" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.35);border-radius:16px;transition:opacity .3s;">
+          <button id="s18wAugPlayBtn" style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.92);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s;box-shadow:0 4px 16px rgba(0,0,0,.2);" aria-label="Play">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#0F0F0F"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+          </button>
+          <span style="color:#fff;font-size:.82rem;font-weight:600;margin-top:10px;text-shadow:0 1px 4px rgba(0,0,0,.4);">{{ t.videoLabel }}</span>
+        </div>
+        {# Pause indicator — flashes briefly on pause #}
+        <div id="s18wAugPauseInd" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .2s;">
+          <div style="width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
+          </div>
+        </div>
+      </div>
+      <figcaption style="font-size:.72rem;color:#6F6A66;padding:8px 4px 0;text-align:left;">{{ t.videoCaption }}</figcaption>
+    </figure>
+  </div>
+  <script>
+  (function(){
+    var v=document.getElementById('s18wAugVideo'),o=document.getElementById('s18wAugOverlay'),
+        b=document.getElementById('s18wAugPlayBtn'),w=document.getElementById('s18wAugVideoWrap'),
+        pi=document.getElementById('s18wAugPauseInd');
+    if(!v||!o)return;
+    function play(){v.play().then(function(){o.style.opacity='0';o.style.pointerEvents='none';}).catch(function(){});}
+    function pause(){v.pause();pi.style.opacity='1';setTimeout(function(){pi.style.opacity='0';},600);}
+    b.addEventListener('click',function(e){e.stopPropagation();play();});
+    w.addEventListener('click',function(){if(v.paused&&o.style.opacity==='0'){play();}else if(!v.paused){pause();}});
+    v.addEventListener('ended',function(){o.style.opacity='1';o.style.pointerEvents='auto';});
+    b.addEventListener('mouseenter',function(){b.style.transform='scale(1.08)';});
+    b.addEventListener('mouseleave',function(){b.style.transform='scale(1)';});
+  })();
+  </script>
+
   {# ── CONFLICT FINDER ──────────────────────────────────── #}
   <div style="max-width:700px;margin:0 auto;padding:24px 24px 0;">
     <details id="s18w-conflict-finder" style="background:#fff;border:1.5px solid #E8E4E0;border-radius:16px;overflow:hidden;">
