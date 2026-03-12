@@ -1808,6 +1808,18 @@
                     });
                     return;
                   }
+                  // Account exists in Firebase — wrong password
+                  if (data.hasFirebaseAccount) {
+                    var el = $('ycf-login-error');
+                    if (el) {
+                      el.innerHTML = t(
+                        'Forkert adgangskode. <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
+                        'Incorrect password. <a href="#" data-ycf-action="forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
+                      );
+                      el.hidden = false;
+                    }
+                    return;
+                  }
                   var el = $('ycf-login-error');
                   if (el) {
                     el.innerHTML = t(

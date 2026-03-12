@@ -438,6 +438,18 @@
                   return auth.signInWithEmailAndPassword(email, password)
                     .then(function() { closeAuthModal(); });
                 }
+                // Account exists in Firebase — wrong password
+                if (data.hasFirebaseAccount) {
+                  if (errorEl) {
+                    var isDaLoc = detectLocale() === 'da';
+                    errorEl.innerHTML = isDaLoc
+                      ? 'Forkert adgangskode. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode &rarr;</a>'
+                      : 'Incorrect password. <a href="#" data-yb-auth-switch="reset" style="color:inherit;font-weight:700;text-decoration:underline">Reset password &rarr;</a>';
+                    errorEl.style.color = '';
+                    errorEl.hidden = false;
+                  }
+                  return;
+                }
                 showErrorWithReset(errorEl);
               })
               .catch(function() {
