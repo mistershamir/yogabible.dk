@@ -36,6 +36,8 @@ HEALTH_ENDPOINTS = [
     ('Netlify Functions', f'{SITE_URL}/.netlify/functions/health', 200, 10),
     ('Site Homepage', SITE_URL, 200, 15),
     ('Sitemap', f'{SITE_URL}/sitemap.xml', 200, 10),
+    ('FB Leads Webhook', f'{SITE_URL}/.netlify/functions/facebook-leads-webhook', 200, 10),
+    ('Meta CAPI', f'{SITE_URL}/.netlify/functions/meta-capi', 405, 10),
 ]
 
 
@@ -92,32 +94,33 @@ def _check_endpoints(result):
 
 
 def _check_meta_api(result):
-    """Check if our Meta Graph API version still responds."""
-    token = os.getenv('META_ACCESS_TOKEN', '')
-    if not token:
-        result['warnings'].append('Meta API: META_ACCESS_TOKEN not set — skipping')
-        return
+    """Check Meta Graph API version is still alive (no token needed).
 
+    Makes an unauthenticated request — expects a 400 (missing token) which proves
+    the version endpoint exists. A 404 or redirect means the version is deprecated.
+    Also checks that the FB Leads webhook and Meta CAPI endpoints are reachable
+    (handled by _check_endpoints via HEALTH_ENDPOINTS).
+    """
     version = KNOWN_VERSIONS['meta_graph']
-    url = f'https://graph.facebook.com/{version}/me?access_token={token}'
+    url = f'https://graph.facebook.com/{version}/me'
 
     try:
         req = urllib.request.Request(url, method='GET')
         ctx = ssl.create_default_context()
         with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
-            data = json.loads(resp.read())
-            if 'id' in data:
-                result['metrics']['meta_api_status'] = 'ok'
-            else:
-                result['warnings'].append(f'Meta API {version}: unexpected response')
+            result['metrics']['meta_api_status'] = 'ok'
     except urllib.error.HTTPError as e:
-        body = e.read().decode('utf-8', errors='replace')[:200]
-        if e.code == 190:
-            result['errors'].append(f'Meta API: token expired or invalid')
-        elif 'deprecated' in body.lower() or 'version' in body.lower():
-            result['errors'].append(f'Meta API {version}: version may be deprecated — HTTP {e.code}')
+        if e.code == 400:
+            # 400 = version exists, just needs auth. This is what we expect.
+            result['metrics']['meta_api_status'] = 'ok'
+        elif e.code == 404:
+            result['errors'].append(f'Meta Graph API {version}: version not found — may be deprecated')
         else:
-            result['warnings'].append(f'Meta API {version}: HTTP {e.code}')
+            body = e.read().decode('utf-8', errors='replace')[:200]
+            if 'deprecated' in body.lower():
+                result['errors'].append(f'Meta Graph API {version}: deprecated — upgrade needed')
+            else:
+                result['metrics']['meta_api_status'] = f'HTTP {e.code}'
     except Exception as e:
         result['warnings'].append(f'Meta API check failed: {str(e)[:80]}')
 
