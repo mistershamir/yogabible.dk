@@ -3,7 +3,8 @@ API Health & Version Monitor
 Checks all external integrations for availability and version freshness.
 Returns the same { errors, warnings, metrics } format as other SEO checks.
 
-Add to agent.py checks list to run weekly alongside SEO checks.
+Auto-discovers Netlify functions from the repo — no manual updates needed
+when new integrations are added.
 """
 
 import os
@@ -21,7 +22,6 @@ SITE_URL = os.getenv('SITE_URL', 'https://yogabible.dk')
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # ─── Known latest versions (update when upgrading) ────────────────────────────
-# These are checked against live API responses to detect version drift.
 KNOWN_VERSIONS = {
     'meta_graph': 'v25.0',
     'mindbody': 'v6',
@@ -30,32 +30,86 @@ KNOWN_VERSIONS = {
     'anthropic_header': '2023-06-01',
 }
 
-# ─── Endpoints to health-check ────────────────────────────────────────────────
-HEALTH_ENDPOINTS = [
-    # (name, url, expected_status, timeout)
-    ('Netlify Functions', f'{SITE_URL}/.netlify/functions/health', 200, 10),
-    ('Site Homepage', SITE_URL, 200, 15),
-    ('Sitemap', f'{SITE_URL}/sitemap.xml', 200, 10),
-    ('FB Leads Webhook', f'{SITE_URL}/.netlify/functions/facebook-leads-webhook', 403, 10),
-    ('Meta CAPI', f'{SITE_URL}/.netlify/functions/meta-capi', 405, 10),
-]
-
-# Actionable context for each endpoint — shown when something is DOWN
-ENDPOINT_CONTEXT = {
-    'Netlify Functions': 'Netlify Functions DOWN — serverless backend is unreachable. Check Netlify dashboard for deploy errors',
-    'Site Homepage': 'SITE DOWN — yogabible.dk is unreachable. Check Netlify status and DNS',
-    'Sitemap': 'Sitemap DOWN — Google cannot crawl your site properly. Check Netlify deploy',
-    'FB Leads Webhook': 'FB LEADS PIPELINE DOWN — you are NOT receiving Facebook ad leads. Check Netlify Functions logs',
-    'Meta CAPI': 'META CONVERSION TRACKING DOWN — Facebook cannot track conversions from your ads. Ad optimization will suffer. Check Netlify Functions logs',
+# ─── Critical functions that get actionable error messages ────────────────────
+# Any function not listed here still gets checked, just with a generic message.
+CRITICAL_FUNCTIONS = {
+    'facebook-leads-webhook': {
+        'context': 'FB LEADS PIPELINE DOWN — you are NOT receiving Facebook ad leads. Check Netlify Functions logs immediately',
+        'category': 'ads',
+    },
+    'meta-capi': {
+        'context': 'META CONVERSION TRACKING DOWN — Facebook cannot track conversions from your ads. Ad spend optimization will suffer. Check Netlify Functions logs',
+        'category': 'ads',
+    },
+    'lead': {
+        'context': 'LEAD CAPTURE DOWN — website lead forms are broken. New leads are being lost. Check Netlify Functions logs',
+        'category': 'leads',
+    },
+    'apply': {
+        'context': 'APPLICATION FORM DOWN — YTT applications cannot be submitted. Check Netlify Functions logs',
+        'category': 'leads',
+    },
+    'health': {
+        'context': 'NETLIFY FUNCTIONS DOWN — serverless backend is unreachable. All API features are likely broken. Check Netlify dashboard',
+        'category': 'infrastructure',
+    },
+    'mb-checkout': {
+        'context': 'PAYMENT CHECKOUT DOWN — customers cannot complete purchases. Revenue is being lost. Check Netlify Functions logs',
+        'category': 'payments',
+    },
+    'mb-book': {
+        'context': 'CLASS BOOKING DOWN — students cannot book classes. Check Netlify Functions logs',
+        'category': 'booking',
+    },
+    'mb-classes': {
+        'context': 'CLASS SCHEDULE DOWN — schedule page cannot load classes. Check Netlify Functions logs',
+        'category': 'booking',
+    },
+    'send-email': {
+        'context': 'EMAIL SENDING DOWN — system emails (confirmations, drip sequences) are not being sent. Check Netlify Functions logs',
+        'category': 'communications',
+    },
+    'send-sms': {
+        'context': 'SMS SENDING DOWN — SMS notifications and drip messages are not being sent. Check Netlify Functions logs',
+        'category': 'communications',
+    },
+    'instagram-webhook': {
+        'context': 'INSTAGRAM WEBHOOK DOWN — Instagram DM automation is broken. Check Netlify Functions logs',
+        'category': 'social',
+    },
+    'catalog': {
+        'context': 'COURSE CATALOG DOWN — course information cannot be loaded. Check Netlify Functions logs',
+        'category': 'content',
+    },
 }
+
+# Functions to skip (internal/utility, not worth health-checking)
+SKIP_FUNCTIONS = {
+    'shared',           # shared module directory, not a function
+    'migrate-applications',  # one-time migration
+    'catalog-seed',     # one-time seed
+    'careers-seed',     # one-time seed
+    'seed-trainee-materials',  # one-time seed
+    'facebook-leads-backfill',  # manual backfill
+    'ai-backfill',      # manual utility
+}
+
+# ─── Core endpoints (non-function) ───────────────────────────────────────────
+CORE_ENDPOINTS = [
+    ('Site Homepage', SITE_URL, 200, 15,
+     'SITE DOWN — yogabible.dk is unreachable. Check Netlify status and DNS'),
+    ('Sitemap', f'{SITE_URL}/sitemap.xml', 200, 10,
+     'Sitemap DOWN — Google cannot crawl your site. Check Netlify deploy'),
+]
 
 
 def check_api_health():
     """Run all API health checks. Returns { errors, warnings, metrics }."""
     result = {'errors': [], 'warnings': [], 'metrics': {}}
 
-    # 1. Endpoint liveness
-    _check_endpoints(result)
+    # 1. Core endpoints + auto-discovered Netlify functions
+    _check_core_endpoints(result)
+    _check_netlify_functions(result)
 
     # 2. Meta Graph API version (check if our version still works)
     _check_meta_api(result)
@@ -78,34 +132,77 @@ def check_api_health():
     return result
 
 
-def _check_endpoints(result):
-    """Ping health endpoints."""
-    ok = 0
-    fail = 0
+def _check_core_endpoints(result):
+    """Check core site endpoints (homepage, sitemap)."""
     ctx = ssl.create_default_context()
 
-    for name, url, expected, timeout in HEALTH_ENDPOINTS:
+    for name, url, expected, timeout, context_msg in CORE_ENDPOINTS:
         try:
             req = urllib.request.Request(url, method='GET')
             req.add_header('User-Agent', 'YogaBible-SEO-Agent/1.0')
             with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
-                if resp.status == expected:
-                    ok += 1
-                else:
-                    fail += 1
-                    result['errors'].append(f'{ENDPOINT_CONTEXT.get(name, name)}: HTTP {resp.status} (expected {expected})')
+                if resp.status != expected:
+                    result['errors'].append(f'{context_msg}: HTTP {resp.status}')
         except urllib.error.HTTPError as e:
-            if e.code == expected:
+            if e.code != expected:
+                result['errors'].append(f'{context_msg}: HTTP {e.code}')
+        except Exception as e:
+            result['errors'].append(f'{context_msg}: {str(e)[:80]}')
+
+
+def _check_netlify_functions(result):
+    """Auto-discover and health-check all Netlify functions."""
+    functions_dir = REPO_ROOT / 'netlify' / 'functions'
+    if not functions_dir.exists():
+        result['warnings'].append('Netlify functions directory not found')
+        return
+
+    # Discover all .js function files
+    function_names = set()
+    for f in functions_dir.iterdir():
+        if f.suffix == '.js' and f.stem not in SKIP_FUNCTIONS:
+            function_names.add(f.stem)
+
+    ok = 0
+    fail = 0
+    critical_down = []
+    ctx = ssl.create_default_context()
+
+    for name in sorted(function_names):
+        url = f'{SITE_URL}/.netlify/functions/{name}'
+        try:
+            req = urllib.request.Request(url, method='GET')
+            req.add_header('User-Agent', 'YogaBible-SEO-Agent/1.0')
+            with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
+                # Any response = function is deployed and reachable
+                ok += 1
+        except urllib.error.HTTPError as e:
+            # 400, 401, 403, 405 = function is alive, just rejects unauthenticated GET
+            if e.code < 500:
                 ok += 1
             else:
                 fail += 1
-                result['errors'].append(f'{ENDPOINT_CONTEXT.get(name, name)}: HTTP {e.code} (expected {expected})')
+                _report_function_down(result, name, e.code, critical_down)
         except Exception as e:
             fail += 1
-            result['errors'].append(f'{ENDPOINT_CONTEXT.get(name, name)}: {str(e)[:80]}')
+            _report_function_down(result, name, str(e)[:60], critical_down)
 
     result['metrics']['api_endpoints_ok'] = ok
     result['metrics']['api_endpoints_fail'] = fail
+    result['metrics']['api_endpoints_total'] = ok + fail
+
+    if critical_down:
+        result['metrics']['critical_services_down'] = critical_down
+
+
+def _report_function_down(result, name, status, critical_down):
+    """Report a function being down with appropriate severity."""
+    info = CRITICAL_FUNCTIONS.get(name)
+    if info:
+        result['errors'].append(f'{info["context"]} (HTTP {status})')
+        critical_down.append(name)
+    else:
+        result['warnings'].append(f'Netlify function "{name}" returned HTTP {status}')
 
 
 def _check_meta_api(result):
@@ -113,8 +210,6 @@ def _check_meta_api(result):
 
     Makes an unauthenticated request — expects a 400 (missing token) which proves
     the version endpoint exists. A 404 or redirect means the version is deprecated.
-    Also checks that the FB Leads webhook and Meta CAPI endpoints are reachable
-    (handled by _check_endpoints via HEALTH_ENDPOINTS).
     """
     version = KNOWN_VERSIONS['meta_graph']
     url = f'https://graph.facebook.com/{version}/me'
@@ -126,7 +221,6 @@ def _check_meta_api(result):
             result['metrics']['meta_api_status'] = 'ok'
     except urllib.error.HTTPError as e:
         if e.code == 400:
-            # 400 = version exists, just needs auth. This is what we expect.
             result['metrics']['meta_api_status'] = 'ok'
         elif e.code == 404:
             result['errors'].append(f'Meta Graph API {version}: version not found — may be deprecated')
@@ -170,7 +264,6 @@ def _check_gatewayapi(result):
         result['warnings'].append('GatewayAPI: GATEWAYAPI_TOKEN not set — skipping')
         return
 
-    # Check account balance as a liveness test
     url = 'https://gatewayapi.eu/rest/me'
     try:
         req = urllib.request.Request(url, method='GET')
@@ -199,7 +292,6 @@ def _check_npm_outdated(result):
             capture_output=True, text=True, timeout=30,
             cwd=str(REPO_ROOT)
         )
-        # npm outdated exits 1 when packages are outdated
         if proc.stdout.strip():
             outdated = json.loads(proc.stdout)
             major_updates = []
@@ -207,7 +299,6 @@ def _check_npm_outdated(result):
                 current = info.get('current', '?')
                 latest = info.get('latest', '?')
                 if current != latest:
-                    # Check if it's a major version bump
                     try:
                         curr_major = int(current.split('.')[0])
                         lat_major = int(latest.split('.')[0])
@@ -239,7 +330,6 @@ def _check_pip_outdated(result):
             )
             if proc.stdout.strip():
                 outdated = json.loads(proc.stdout)
-                # Filter to only packages in our requirements
                 with open(req_file) as f:
                     our_pkgs = {line.split('>=')[0].split('<')[0].strip().lower().replace('-', '_')
                                 for line in f if line.strip() and not line.startswith('#')}
@@ -257,7 +347,6 @@ def _check_pip_outdated(result):
 def _check_firebase_cdn(result):
     """Check if a newer Firebase CDN version is available."""
     our_version = KNOWN_VERSIONS['firebase_client']
-    # Try fetching the next minor version to see if we're behind
     parts = our_version.split('.')
     try:
         next_minor = f'{parts[0]}.{int(parts[1]) + 1}.0'
