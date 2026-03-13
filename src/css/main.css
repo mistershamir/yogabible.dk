@@ -25403,8 +25403,8 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
    Calendly replacement — 4-step booking flow
    ═══════════════════════════════════════════════════════════ */
 
-/* Modal overlay */
-.yb-book[aria-hidden="true"] { display: none; }
+/* Modal — hidden by default */
+.yb-book { display: none; }
 .yb-book[aria-hidden="false"] {
   display: flex;
   position: fixed;
@@ -25810,7 +25810,7 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
 /* ═══════════════════════════════════════════════════════════
    PHOTO SESSION REQUEST MODAL (yb-pbook__*)
    ═══════════════════════════════════════════════════════════ */
-.yb-pbook[aria-hidden="true"] { display: none; }
+.yb-pbook { display: none; }
 .yb-pbook[aria-hidden="false"] {
   display: flex;
   position: fixed;
