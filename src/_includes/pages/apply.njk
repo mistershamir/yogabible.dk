@@ -1,4 +1,5 @@
 {% set t = i18n.apply[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
 
 
 <!-- FAQPage Schema (AEO — featured snippets for AI search) -->
@@ -25,6 +26,50 @@
       }
     }{% if not loop.last %},{% endif %}
     {% endfor %}
+  ]
+}
+</script>
+
+<!-- HowTo Schema — "How to become a yoga teacher in Denmark/Copenhagen" -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": {{ t.howto_name | dump | safe }},
+  "description": {{ t.howto_desc | dump | safe }},
+  "totalTime": "PT30D",
+  "estimatedCost": {
+    "@type": "MonetaryCost",
+    "currency": "DKK",
+    "value": "3750"
+  },
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": {{ t.process_step1_title | dump | safe }},
+      "text": {{ t.process_step1_text | dump | safe }},
+      "url": "https://yogabible.dk{{ lp }}/apply/#yb-apply-form"
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": {{ t.process_step2_title | dump | safe }},
+      "text": {{ t.process_step2_text | dump | safe }},
+      "url": "https://yogabible.dk{{ lp }}/apply/#yb-apply-form"
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": {{ t.process_step3_title | dump | safe }},
+      "text": {{ t.process_step3_text | dump | safe }}
+    },
+    {
+      "@type": "HowToStep",
+      "position": 4,
+      "name": {{ t.process_step4_title | dump | safe }},
+      "text": {{ t.process_step4_text | dump | safe }}
+    }
   ]
 }
 </script>
