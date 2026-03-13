@@ -37,6 +37,7 @@ exports.handler = async function (event) {
     var sessionId = body.sessionId;
     var assetId = body.assetId;
     var playbackId = body.playbackId || null;
+    var transcriptOnly = body.transcriptOnly === true;
 
     if (!sessionId || !assetId) {
       return jsonResponse(400, { ok: false, error: 'sessionId and assetId required' });
@@ -96,6 +97,24 @@ exports.handler = async function (event) {
     if (!transcript || transcript.length < 50) {
       await updateDoc(COLLECTION, sessionId, { aiStatus: 'no_transcript' });
       return jsonResponse(200, { ok: true, status: 'no_transcript', chars: transcript.length });
+    }
+
+    // ── Transcript-only mode: save transcript and stop (skip Claude) ──
+    if (transcriptOnly) {
+      await updateDoc(COLLECTION, sessionId, {
+        aiStatus: 'transcript_ready',
+        aiTranscript: transcript.substring(0, 50000),
+        aiProcessedAt: new Date().toISOString(),
+        aiError: null
+      });
+      console.log('[ai-process] Transcript-only mode — saved', transcript.length, 'chars, stopping before Claude');
+      return jsonResponse(200, {
+        ok: true,
+        status: 'transcript_ready',
+        sessionId: sessionId,
+        transcriptChars: transcript.length,
+        transcriptPreview: transcript.substring(0, 500)
+      });
     }
 
     // ── Step 4: Send to Claude for summary + quiz ──
