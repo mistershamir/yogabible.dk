@@ -7,9 +7,9 @@
 <section class="yb-hero">
   <div class="yb-hero__bg">
     {# CLOUDINARY: yoga-bible-DK/homepage/yoga-bible-hero-loop — 1920x1080, dark cinematic studio practice #}
-    <video autoplay muted loop playsinline fetchpriority="high" preload="auto"
-      poster="{{ media.homepage.studioPanorama | cloudimg('w_1280,h_720,c_fill,q_auto') }}">
-      <source src="{{ media.homepage.heroVideo | cloudvid('w_640,q_auto') }}" type="video/mp4" media="(max-width: 768px)">
+    <video autoplay muted loop playsinline preload="none" width="1280" height="720"
+      poster="{{ media.homepage.studioPanorama | cloudimg('w_800,h_450,c_fill,q_auto') }}">
+      <source src="{{ media.homepage.heroVideo | cloudvid('w_480,q_auto') }}" type="video/mp4" media="(max-width: 768px)">
       <source src="{{ media.homepage.heroVideo | cloudvid('w_1280,q_auto') }}" type="video/mp4">
     </video>
   </div>
@@ -51,7 +51,9 @@
     <div class="yb-fork2__bg">
       {# CLOUDINARY: yoga-bible-DK/courses/200-hour-yoga-education-copenhagen — 1200x800, teacher + students #}
       <img
-        src="{{ media.courses.education200hr | cloudimg('w_1200,h_800,c_fill') }}"
+        src="{{ media.courses.education200hr | cloudimg('w_600,h_400,c_fill') }}"
+        srcset="{{ media.courses.education200hr | cloudimg('w_600,h_400,c_fill') }} 600w, {{ media.courses.education200hr | cloudimg('w_1200,h_800,c_fill') }} 1200w"
+        sizes="(max-width: 768px) 100vw, 50vw"
         alt="{{ t.fork_left_img_alt }}"
         loading="lazy"
         width="1200" height="800"
@@ -69,7 +71,9 @@
     <div class="yb-fork2__bg">
       {# CLOUDINARY: yoga-bible-DK/courses/inversions-course-copenhagen-promo — 1200x800, dynamic pose #}
       <img
-        src="{{ media.courses.inversionsPromo | cloudimg('w_1200,h_800,c_fill') }}"
+        src="{{ media.courses.inversionsPromo | cloudimg('w_600,h_400,c_fill') }}"
+        srcset="{{ media.courses.inversionsPromo | cloudimg('w_600,h_400,c_fill') }} 600w, {{ media.courses.inversionsPromo | cloudimg('w_1200,h_800,c_fill') }} 1200w"
+        sizes="(max-width: 768px) 100vw, 50vw"
         alt="{{ t.fork_right_img_alt }}"
         loading="lazy"
         width="1200" height="800"
@@ -212,7 +216,9 @@
     <!-- Inversions -->
     <a href="{{ lp }}/inversions" class="yb-triptych__panel">
       <img
-        src="{{ media.homepage.inversionsCard | cloudimg('w_800,h_900,c_fill') }}"
+        src="{{ media.homepage.inversionsCard | cloudimg('w_400,h_450,c_fill') }}"
+        srcset="{{ media.homepage.inversionsCard | cloudimg('w_400,h_450,c_fill') }} 400w, {{ media.homepage.inversionsCard | cloudimg('w_800,h_900,c_fill') }} 800w"
+        sizes="(max-width: 768px) 100vw, 33vw"
         alt="{{ t.inv_img_alt }}"
         loading="lazy"
         width="800" height="900"
@@ -229,7 +235,9 @@
     <!-- Splits -->
     <a href="{{ lp }}/splits" class="yb-triptych__panel">
       <img
-        src="{{ media.homepage.splitsCard | cloudimg('w_800,h_900,c_fill') }}"
+        src="{{ media.homepage.splitsCard | cloudimg('w_400,h_450,c_fill') }}"
+        srcset="{{ media.homepage.splitsCard | cloudimg('w_400,h_450,c_fill') }} 400w, {{ media.homepage.splitsCard | cloudimg('w_800,h_900,c_fill') }} 800w"
+        sizes="(max-width: 768px) 100vw, 33vw"
         alt="{{ t.splits_img_alt }}"
         loading="lazy"
         width="800" height="900"
@@ -246,7 +254,9 @@
     <!-- Backbends -->
     <a href="{{ lp }}/backbends" class="yb-triptych__panel">
       <img
-        src="{{ media.homepage.backbendsCard | cloudimg('w_800,h_900,c_fill') }}"
+        src="{{ media.homepage.backbendsCard | cloudimg('w_400,h_450,c_fill') }}"
+        srcset="{{ media.homepage.backbendsCard | cloudimg('w_400,h_450,c_fill') }} 400w, {{ media.homepage.backbendsCard | cloudimg('w_800,h_900,c_fill') }} 800w"
+        sizes="(max-width: 768px) 100vw, 33vw"
         alt="{{ t.back_img_alt }}"
         loading="lazy"
         width="800" height="900"
@@ -274,7 +284,8 @@
 <section class="yb-studio">
   <div class="yb-studio__bg">
     {# CLOUDINARY: yoga-bible-DK/homepage/practice-loop #}
-    <video autoplay muted loop playsinline preload="none" poster="{{ media.homepage.studioPanorama | cloudimg('w_1280,h_600,c_fill,q_auto') }}">
+    <video autoplay muted loop playsinline preload="none" width="1280" height="600" poster="{{ media.homepage.studioPanorama | cloudimg('w_800,h_375,c_fill,q_auto') }}">
+      <source src="{{ media.homepage.practiceLoop | cloudvid('w_640,q_auto') }}" type="video/mp4" media="(max-width: 768px)">
       <source src="{{ media.homepage.practiceLoop | cloudvid('w_1280,q_auto') }}" type="video/mp4">
     </video>
   </div>
@@ -389,7 +400,9 @@
   <div class="yb-cph-cinema__bg">
     {# CLOUDINARY: yoga-bible-DK/copenhagen/christianshavn-canal-panorama — 1920x1080, cinematic #}
     <img
-      src="{{ media.copenhagen.canalPanorama | cloudimg('w_1920,h_1080,c_fill') }}"
+      src="{{ media.copenhagen.canalPanorama | cloudimg('w_800,h_450,c_fill') }}"
+      srcset="{{ media.copenhagen.canalPanorama | cloudimg('w_800,h_450,c_fill') }} 800w, {{ media.copenhagen.canalPanorama | cloudimg('w_1920,h_1080,c_fill') }} 1920w"
+      sizes="100vw"
       alt="{{ t.cph_img_alt }}"
       loading="lazy"
       width="1920" height="1080"
