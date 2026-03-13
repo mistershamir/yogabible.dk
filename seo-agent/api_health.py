@@ -83,15 +83,22 @@ CRITICAL_FUNCTIONS = {
     },
 }
 
-# Functions to skip (internal/utility, not worth health-checking)
+# Functions to skip (internal/utility/scheduled, not worth health-checking via GET)
 SKIP_FUNCTIONS = {
-    'shared',           # shared module directory, not a function
-    'migrate-applications',  # one-time migration
-    'catalog-seed',     # one-time seed
-    'careers-seed',     # one-time seed
-    'seed-trainee-materials',  # one-time seed
+    'shared',                   # shared module directory, not a function
+    'migrate-applications',     # one-time migration
+    'migrate-mb-user',          # one-time migration
+    'catalog-seed',             # one-time seed
+    'catalog-clear',            # destructive utility
+    'careers-seed',             # one-time seed
+    'seed-trainee-materials',   # one-time seed
     'facebook-leads-backfill',  # manual backfill
-    'ai-backfill',      # manual utility
+    'ai-backfill',              # manual utility
+    'appointment-reminders',    # scheduled POST-only (triggered by cron)
+    'instagram-token-refresh',  # scheduled POST-only (triggered by cron)
+    'ai-process-recording-background',  # background worker (triggered by webhook)
+    'mux-webhook',              # POST-only (triggered by Mux)
+    'sms-webhook',              # POST-only (triggered by GatewayAPI)
 }
 
 # ─── Core endpoints (non-function) ───────────────────────────────────────────
