@@ -494,7 +494,7 @@
           card += '<div class="yb-ai-quiz" data-quiz-id="' + cardId + '"></div>';
           card += '</div></div>';
         }
-      } else if (item.aiStatus === 'processing') {
+      } else if (item.aiStatus === 'processing' || item.aiStatus === 'preparing_audio' || item.aiStatus === 'transcribing' || item.aiStatus === 'generating_summary') {
         card += '<div class="yb-ai-processing" style="margin-top:0.75rem">';
         card += '<span class="yb-ai-processing__dot"></span>';
         card += '<span>' + (isDa ? 'AI opsummering undervejs…' : 'AI summary in progress…') + '</span>';
