@@ -174,6 +174,7 @@ def get_pipeline_stats():
     stats = {
         'by_status': {},
         'by_temperature': {},
+        'by_channel': {},
         'total': 0,
         'converted_this_month': 0,
         'new_this_week': 0,
@@ -191,6 +192,10 @@ def get_pipeline_stats():
         temp = lead.get('temperature', '')
         if temp:
             stats['by_temperature'][temp] = stats['by_temperature'].get(temp, 0) + 1
+
+        channel = lead.get('channel', '')
+        if channel:
+            stats['by_channel'][channel] = stats['by_channel'].get(channel, 0) + 1
 
         created = lead.get('created_at')
         if created:

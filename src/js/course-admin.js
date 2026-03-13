@@ -86,6 +86,7 @@
         // Load analytics when analytics tab is clicked
         if (tabName === 'analytics') {
           loadAnalytics();
+          loadConversionAnalytics();
         }
       });
     });
@@ -1063,6 +1064,260 @@
       toast(t('error_load'), true);
     });
   }
+
+  /* ═══════════════════════════════════════
+     CONVERSION & AD TRACKING ANALYTICS
+     Queries: lead_funnel + ad_conversions
+     ═══════════════════════════════════════ */
+  var convPeriodDays = 30;
+
+  function loadConversionAnalytics() {
+    var purchasesEl = $('yb-conv-purchases');
+    var revenueEl = $('yb-conv-revenue');
+    var leadsEl = $('yb-conv-leads');
+    var rateEl = $('yb-conv-rate');
+    var funnelEl = $('yb-conv-funnel');
+    var productsEl = $('yb-conv-products');
+    var sourcesEl = $('yb-conv-sources');
+    var recentEl = $('yb-conv-recent');
+
+    if (!purchasesEl) return;
+
+    // Show loading
+    [purchasesEl, revenueEl, leadsEl, rateEl].forEach(function (el) {
+      if (el) el.textContent = '...';
+    });
+
+    var cutoff = null;
+    if (convPeriodDays > 0) {
+      cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - convPeriodDays);
+    }
+
+    var funnelDocs = [];
+    var conversionDocs = [];
+
+    // Fetch lead_funnel collection
+    var funnelQuery = db.collection('lead_funnel');
+    var funnelPromise = funnelQuery.get().then(function (snap) {
+      snap.forEach(function (doc) {
+        var d = doc.data();
+        d._id = doc.id;
+        funnelDocs.push(d);
+      });
+    });
+
+    // Fetch ad_conversions collection
+    var convQuery = db.collection('ad_conversions');
+    if (cutoff) {
+      convQuery = convQuery.where('created_at', '>=', cutoff.toISOString());
+    }
+    var convPromise = convQuery.get().then(function (snap) {
+      snap.forEach(function (doc) {
+        var d = doc.data();
+        d._id = doc.id;
+        conversionDocs.push(d);
+      });
+    }).catch(function () {
+      // ad_conversions collection might not exist yet — that's OK
+    });
+
+    Promise.all([funnelPromise, convPromise]).then(function () {
+      // Filter funnel docs by period
+      var filteredFunnel = funnelDocs;
+      if (cutoff) {
+        filteredFunnel = funnelDocs.filter(function (d) {
+          var ts = d.createdAt;
+          if (ts && ts.toDate) ts = ts.toDate();
+          else if (ts && typeof ts === 'string') ts = new Date(ts);
+          else if (d.cta_timestamp) ts = new Date(d.cta_timestamp);
+          else return true;
+          return ts >= cutoff;
+        });
+      }
+
+      // Count funnel stages
+      var stages = { cta_click: 0, auth_complete: 0, checkout_opened: 0, purchased: 0, checkout_abandoned: 0 };
+      var productPurchases = {};
+      var totalRevenue = 0;
+
+      filteredFunnel.forEach(function (d) {
+        // Count each stage the user reached
+        if (d.cta_click_at || d.history && d.history.some(function (h) { return h.stage === 'cta_click'; })) stages.cta_click++;
+        if (d.auth_complete_at) stages.auth_complete++;
+        if (d.checkout_opened_at) stages.checkout_opened++;
+        if (d.funnel_stage === 'purchased') {
+          stages.purchased++;
+          // Track by product
+          var pName = d.programName || d.programId || 'Unknown';
+          productPurchases[pName] = (productPurchases[pName] || 0) + 1;
+        }
+        if (d.funnel_stage === 'checkout_abandoned') stages.checkout_abandoned++;
+      });
+
+      // Count conversions from ad_conversions collection
+      var purchaseConversions = conversionDocs.filter(function (c) { return c.conversion_action === 'purchase'; });
+      var leadConversions = conversionDocs.filter(function (c) { return c.conversion_action === 'lead'; });
+
+      // Revenue from ad_conversions
+      purchaseConversions.forEach(function (c) { totalRevenue += (c.value || 0); });
+
+      // Source breakdown
+      var sources = { meta: 0, google: 0, organic: 0 };
+      conversionDocs.forEach(function (c) {
+        if (c.conversion_action !== 'purchase') return;
+        if (c.platform === 'meta') sources.meta++;
+        else if (c.platform === 'google') sources.google++;
+        else sources.organic++;
+      });
+
+      // If no ad_conversions yet, use funnel data
+      var totalPurchases = Math.max(stages.purchased, purchaseConversions.length);
+      var convRate = stages.cta_click > 0 ? Math.round((stages.purchased / stages.cta_click) * 100) : 0;
+
+      // Render stat cards
+      if (purchasesEl) purchasesEl.textContent = totalPurchases;
+      if (revenueEl) revenueEl.textContent = totalRevenue > 0 ? totalRevenue.toLocaleString('da-DK') + ' DKK' : '—';
+      if (leadsEl) leadsEl.textContent = Math.max(stages.cta_click, leadConversions.length);
+      if (rateEl) rateEl.textContent = convRate + '%';
+
+      // Render funnel
+      if (funnelEl) {
+        var funnelStages = [
+          { label: t('conv_funnel_cta'), count: stages.cta_click, color: '#E8E4E0' },
+          { label: t('conv_funnel_auth'), count: stages.auth_complete, color: '#ff9966' },
+          { label: t('conv_funnel_checkout'), count: stages.checkout_opened, color: '#f75c03' },
+          { label: t('conv_funnel_purchased'), count: stages.purchased, color: '#22c55e' },
+          { label: t('conv_funnel_abandoned'), count: stages.checkout_abandoned, color: '#dc2626' }
+        ];
+        var maxCount = Math.max.apply(null, funnelStages.map(function (s) { return s.count; })) || 1;
+
+        funnelEl.innerHTML = funnelStages.map(function (s) {
+          var pct = Math.max(Math.round((s.count / maxCount) * 100), 4);
+          var dropoff = '';
+          return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">' +
+            '<span style="min-width:120px;font-size:13px;color:#6F6A66;text-align:right">' + s.label + '</span>' +
+            '<div style="flex:1;background:#F5F3F0;border-radius:6px;height:28px;overflow:hidden">' +
+              '<div style="width:' + pct + '%;height:100%;background:' + s.color + ';border-radius:6px;display:flex;align-items:center;padding:0 8px;min-width:40px">' +
+                '<span style="font-size:12px;font-weight:700;color:' + (s.color === '#E8E4E0' ? '#0F0F0F' : '#fff') + '">' + s.count + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      }
+
+      // Render products breakdown
+      if (productsEl) {
+        var prodKeys = Object.keys(productPurchases).sort(function (a, b) { return productPurchases[b] - productPurchases[a]; });
+        if (!prodKeys.length) {
+          productsEl.innerHTML = '<p class="yb-admin__empty" style="font-size:13px">' + t('conv_no_data') + '</p>';
+        } else {
+          productsEl.innerHTML = prodKeys.map(function (name) {
+            return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E8E4E0;font-size:13px">' +
+              '<span style="color:#0F0F0F">' + esc(name) + '</span>' +
+              '<span style="font-weight:700;color:#f75c03">' + productPurchases[name] + '</span>' +
+            '</div>';
+          }).join('');
+        }
+      }
+
+      // Render source breakdown
+      if (sourcesEl) {
+        var totalSourced = sources.meta + sources.google + sources.organic;
+        if (!totalSourced) {
+          sourcesEl.innerHTML = '<p class="yb-admin__empty" style="font-size:13px">' + t('conv_no_data') + '</p>';
+        } else {
+          var sourceRows = [
+            { label: t('conv_platform_meta'), count: sources.meta, color: '#1877F2' },
+            { label: t('conv_platform_google'), count: sources.google, color: '#34A853' },
+            { label: t('conv_platform_organic'), count: sources.organic, color: '#6F6A66' }
+          ];
+          sourcesEl.innerHTML = sourceRows.map(function (s) {
+            var pct = Math.round((s.count / totalSourced) * 100);
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #E8E4E0;font-size:13px">' +
+              '<span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:' + s.color + ';display:inline-block"></span>' + s.label + '</span>' +
+              '<span style="font-weight:700">' + s.count + ' <span style="color:#6F6A66;font-weight:400">(' + pct + '%)</span></span>' +
+            '</div>';
+          }).join('');
+        }
+      }
+
+      // Render recent conversions
+      if (recentEl) {
+        // Combine funnel purchases + ad_conversions, sorted by time
+        var recentItems = [];
+
+        filteredFunnel.filter(function (d) { return d.funnel_stage === 'purchased'; }).forEach(function (d) {
+          var ts = d.purchased_at;
+          if (ts && ts.toDate) ts = ts.toDate();
+          else if (ts && typeof ts === 'string') ts = new Date(ts);
+          else ts = d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate() : new Date();
+          recentItems.push({
+            type: 'purchase',
+            name: d.programName || d.programId || '—',
+            email: d.email || '—',
+            time: ts,
+            source: 'funnel'
+          });
+        });
+
+        purchaseConversions.forEach(function (c) {
+          recentItems.push({
+            type: 'purchase',
+            name: c.content_name || c.conversion_action,
+            email: c.hashed_email ? '(hashed)' : '—',
+            time: new Date(c.created_at || c.conversion_time),
+            source: c.platform || '—'
+          });
+        });
+
+        // Sort newest first, limit 20
+        recentItems.sort(function (a, b) { return b.time - a.time; });
+        recentItems = recentItems.slice(0, 20);
+
+        if (!recentItems.length) {
+          recentEl.innerHTML = '<p class="yb-admin__empty">' + t('conv_no_data') + '</p>';
+        } else {
+          recentEl.innerHTML = '<table class="yb-admin__table" style="font-size:13px"><thead><tr>' +
+            '<th>Type</th><th>Product</th><th>Email</th><th>Source</th><th>Date</th>' +
+          '</tr></thead><tbody>' +
+          recentItems.map(function (item) {
+            var badge = item.type === 'purchase'
+              ? '<span style="background:#22c55e;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">Purchase</span>'
+              : '<span style="background:#3b82f6;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">Lead</span>';
+            var sourceBadge = item.source === 'meta'
+              ? '<span style="color:#1877F2;font-weight:600">Meta</span>'
+              : item.source === 'google'
+              ? '<span style="color:#34A853;font-weight:600">Google</span>'
+              : '<span style="color:#6F6A66">' + esc(item.source) + '</span>';
+            return '<tr>' +
+              '<td>' + badge + '</td>' +
+              '<td>' + esc(item.name) + '</td>' +
+              '<td style="color:#6F6A66">' + esc(item.email) + '</td>' +
+              '<td>' + sourceBadge + '</td>' +
+              '<td style="color:#6F6A66">' + item.time.toLocaleDateString('da-DK') + ' ' + item.time.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) + '</td>' +
+            '</tr>';
+          }).join('') +
+          '</tbody></table>';
+        }
+      }
+    }).catch(function (err) {
+      console.error('Conversion analytics error:', err);
+      if (funnelEl) funnelEl.innerHTML = '<p class="yb-admin__empty" style="color:#dc2626">' + t('error_load') + '</p>';
+    });
+  }
+
+  // Period filter buttons
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.yb-admin__conv-period');
+    if (!btn) return;
+    convPeriodDays = parseInt(btn.getAttribute('data-conv-days')) || 0;
+    document.querySelectorAll('.yb-admin__conv-period').forEach(function (b) {
+      b.classList.remove('yb-admin__btn--active');
+    });
+    btn.classList.add('yb-admin__btn--active');
+    loadConversionAnalytics();
+  });
 
   /* ═══════════════════════════════════════
      STUDENT PROGRESS (per course)

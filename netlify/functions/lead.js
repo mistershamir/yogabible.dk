@@ -150,7 +150,16 @@ function processLead(payload, action) {
     followup_date: null,
     multi_format: payload.multiFormat || '',
     all_formats: payload.allFormats || '',
-    lang: payload.lang || ''
+    lang: payload.lang || '',
+    // Attribution / channel tracking
+    channel: payload.channel || '',
+    utm_source: payload.utm_source || '',
+    utm_medium: payload.utm_medium || '',
+    utm_campaign: payload.utm_campaign || '',
+    gclid: payload.gclid || '',
+    fbclid: payload.fbclid || '',
+    referrer: payload.referrer || '',
+    landing_page: payload.landing_page || ''
   };
 
   switch (action) {
@@ -402,6 +411,7 @@ function processLead(payload, action) {
         subcategories: '',
         message: payload.message || '',
         source: 'Facebook Ad',
+        channel: payload.meta_platform === 'instagram' ? 'Instagram Ads' : 'Meta Ads',
         meta_form_id: payload.form_id || '',
         meta_ad_id: payload.ad_id || '',
         meta_campaign: payload.campaign_name || ''

@@ -4,9 +4,14 @@
  * Modes:
  *   ?debug=1    — Show status of all sessions (read-only)
  *   ?reconcile=1 — Find missing recordings from Mux and link them to Firestore sessions
- *   ?check=1    — Phase 2: find stuck sessions and re-trigger Deepgram transcription
- *   ?retranscribe=SESSION_ID — Reset and re-trigger full transcription pipeline (Deepgram + Claude)
+ *   ?enable-mp4=1 — Request MP4 static renditions on Mux assets
+ *   ?mp4-status=1 — Check if MP4 renditions are ready
+ *   ?generate-subtitles=1 — Request Mux auto-generated captions (fallback when MP4 unavailable)
+ *   ?subtitle-status=1 — Check if auto-generated subtitles are ready
+ *   ?check=1    — Find stuck sessions and re-trigger processing
+ *   ?retranscribe=SESSION_ID — Reset and re-trigger full pipeline (MP4→Deepgram→Claude, with subtitle fallback)
  *   ?retranscribe=all — Re-transcribe ALL sessions with recordings (batch mode)
+ *   ?reprocess=SESSION_ID — Re-run Claude on existing transcript (no re-transcription)
  *   (default)   — Phase 1: trigger caption requests for sessions with recordings but no AI data
  *
  * All modes require: ?secret=YOUR_AI_INTERNAL_SECRET
@@ -47,7 +52,8 @@ exports.handler = async function (event) {
             recordingAssetId: item.recordingAssetId || null,
             recordingPlaybackId: item.recordingPlaybackId || null,
             muxLiveStreamId: item.muxLiveStreamId || null,
-            aiStatus: item.aiStatus || null
+            aiStatus: item.aiStatus || null,
+            aiError: item.aiError || null
           };
         })
       });
@@ -251,7 +257,9 @@ exports.handler = async function (event) {
     // ── Retranscribe mode: reset and re-trigger Deepgram transcription ──
     // ?retranscribe=SESSION_ID  — single session
     // ?retranscribe=all         — all sessions with recordings
+    // &transcript-only=1        — stop after transcription, skip Claude summary/quiz
     if (params.retranscribe) {
+      var isTranscriptOnly = params['transcript-only'] === '1';
       var retranscribeTargets = [];
 
       if (params.retranscribe === 'all') {
@@ -308,8 +316,8 @@ exports.handler = async function (event) {
             aiCaptionTrackId: null
           });
 
-          // Step 3: Trigger the background function (MP4 + Deepgram + Claude)
-          await callAiProcess(target.id, target.recordingAssetId);
+          // Step 3: Trigger the background function
+          await callAiProcess(target.id, target.recordingAssetId, { transcriptOnly: isTranscriptOnly });
 
           retranscribeResults.push({
             id: target.id,
@@ -326,9 +334,171 @@ exports.handler = async function (event) {
 
       return jsonResponse(200, {
         ok: true,
-        message: retranscribeResults.length + ' session(s) triggered for re-transcription (old Mux subtitles cleaned). Each runs MP4 → Deepgram → Claude in background.',
+        message: retranscribeResults.length + ' session(s) triggered for re-transcription (old Mux subtitles cleaned).'
+          + (isTranscriptOnly ? ' TRANSCRIPT-ONLY mode — will stop after Deepgram, no Claude.' : ' Full pipeline: MP4 → Deepgram → Claude.'),
         results: retranscribeResults
       });
+    }
+
+    // ── MP4 status check: query Mux directly to see if MP4 renditions are ready ──
+    if (params['mp4-status'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var mp4Results = [];
+      for (var m = 0; m < withRecordings.length; m++) {
+        var sess = withRecordings[m];
+        try {
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var renditions = asset.data && asset.data.static_renditions;
+          var mp4Support = asset.data && asset.data.mp4_support;
+          var duration = asset.data && asset.data.duration;
+          mp4Results.push({
+            id: sess.id,
+            title: (sess.title_da || sess.title_en || '').substring(0, 60),
+            assetId: sess.recordingAssetId,
+            mp4Support: mp4Support || 'none',
+            renditionStatus: renditions ? renditions.status : 'none',
+            durationMinutes: duration ? Math.round(duration / 60) : null,
+            aiStatus: sess.aiStatus
+          });
+        } catch (err) {
+          mp4Results.push({ id: sess.id, title: sess.title_da || '', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, { ok: true, results: mp4Results });
+    }
+
+    // ── Enable MP4 only (no processing): request MP4 renditions without triggering pipeline ──
+    if (params['enable-mp4'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var enableResults = [];
+      for (var e2 = 0; e2 < withRecordings.length; e2++) {
+        var sess = withRecordings[e2];
+        try {
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var renditions = asset.data && asset.data.static_renditions;
+          if (renditions && renditions.status === 'ready') {
+            enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'already_ready' });
+          } else {
+            var patchResult = await muxRequest('PATCH', '/video/v1/assets/' + sess.recordingAssetId, { mp4_support: 'capped-1080p' });
+            var patchMp4 = patchResult.data && patchResult.data.mp4_support;
+            var patchRenditions = patchResult.data && patchResult.data.static_renditions;
+            enableResults.push({
+              id: sess.id,
+              title: (sess.title_da || '').substring(0, 60),
+              status: 'mp4_requested',
+              mp4Support: patchMp4 || 'none',
+              renditionStatus: patchRenditions ? patchRenditions.status : 'none'
+            });
+          }
+        } catch (err) {
+          enableResults.push({ id: sess.id, title: sess.title_da || '', status: 'error', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'MP4 renditions requested. Use ?mp4-status=1 to check when ready, then ?retranscribe=all to process.',
+        results: enableResults
+      });
+    }
+
+    // ── Generate subtitles mode: request Mux auto-generated captions (fallback when MP4 doesn't work) ──
+    if (params['generate-subtitles'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var subtitleResults = [];
+      for (var s2 = 0; s2 < withRecordings.length; s2++) {
+        var sess = withRecordings[s2];
+        try {
+          // Check existing tracks
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var tracks = (asset.data && asset.data.tracks) || [];
+          var hasAutoSubs = false;
+          for (var t = 0; t < tracks.length; t++) {
+            if (tracks[t].type === 'text' && tracks[t].text_type === 'subtitles' && tracks[t].status === 'ready') {
+              hasAutoSubs = true;
+              break;
+            }
+          }
+
+          if (hasAutoSubs) {
+            subtitleResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'already_has_subtitles' });
+          } else {
+            // Request auto-generated subtitles from Mux
+            var trackResult = await muxRequest('POST', '/video/v1/assets/' + sess.recordingAssetId + '/tracks', {
+              type: 'text',
+              text_type: 'subtitles',
+              language_code: 'en',
+              name: 'English CC',
+              closed_captions: true
+            });
+            var trackId = trackResult.data && trackResult.data.id;
+            subtitleResults.push({
+              id: sess.id,
+              title: (sess.title_da || '').substring(0, 60),
+              status: 'subtitles_requested',
+              trackId: trackId
+            });
+          }
+        } catch (err) {
+          subtitleResults.push({ id: sess.id, title: sess.title_da || '', status: 'error', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'Subtitle tracks requested. Use ?subtitle-status=1 to check when ready, then ?retranscribe=all to process.',
+        results: subtitleResults
+      });
+    }
+
+    // ── Subtitle status check: see if auto-generated subtitles are ready ──
+    if (params['subtitle-status'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var subStatusResults = [];
+      for (var ss = 0; ss < withRecordings.length; ss++) {
+        var sess = withRecordings[ss];
+        try {
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var tracks = (asset.data && asset.data.tracks) || [];
+          var subtitleTracks = [];
+          for (var st = 0; st < tracks.length; st++) {
+            if (tracks[st].type === 'text') {
+              subtitleTracks.push({
+                id: tracks[st].id,
+                status: tracks[st].status,
+                name: tracks[st].name || '',
+                language: tracks[st].language_code || ''
+              });
+            }
+          }
+          var duration = asset.data && asset.data.duration;
+          subStatusResults.push({
+            id: sess.id,
+            title: (sess.title_da || sess.title_en || '').substring(0, 60),
+            assetId: sess.recordingAssetId,
+            durationMinutes: duration ? Math.round(duration / 60) : null,
+            subtitleTracks: subtitleTracks,
+            aiStatus: sess.aiStatus
+          });
+        } catch (err) {
+          subStatusResults.push({ id: sess.id, title: sess.title_da || '', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, { ok: true, results: subStatusResults });
     }
 
     // ── Check mode (Phase 2): find stuck sessions and re-trigger processing ──
@@ -338,7 +508,7 @@ exports.handler = async function (event) {
           && item.recordingAssetId
           && (item.aiStatus === 'preparing_audio' || item.aiStatus === 'transcribing'
               || item.aiStatus === 'processing' || item.aiStatus === 'captions_requested'
-              || item.aiStatus === 'captions_pending');
+              || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending');
       });
 
       if (waiting.length === 0) {
@@ -425,7 +595,7 @@ exports.handler = async function (event) {
     var pending = all.filter(function (item) {
       return item.status === 'ended'
         && item.recordingAssetId
-        && (!item.aiStatus || item.aiStatus === 'error' || item.aiStatus === 'captions_pending');
+        && (!item.aiStatus || item.aiStatus === 'error' || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending');
     });
 
     console.log('[ai-backfill] Found', pending.length, 'recordings to process');
@@ -747,13 +917,16 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInte
 
 /* ── Call ai-process-recording (Phase 1 trigger) ── */
 
-function callAiProcess(sessionId, assetId) {
+function callAiProcess(sessionId, assetId, extraOpts) {
+  extraOpts = extraOpts || {};
+  var payload = {
+    sessionId: sessionId,
+    assetId: assetId,
+    secret: process.env.AI_INTERNAL_SECRET || ''
+  };
+  if (extraOpts.transcriptOnly) payload.transcriptOnly = true;
   return new Promise(function (resolve, reject) {
-    var body = JSON.stringify({
-      sessionId: sessionId,
-      assetId: assetId,
-      secret: process.env.AI_INTERNAL_SECRET || ''
-    });
+    var body = JSON.stringify(payload);
 
     var opts = {
       hostname: 'yogabible.dk',

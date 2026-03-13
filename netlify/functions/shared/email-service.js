@@ -236,10 +236,15 @@ async function sendAdminNotification(leadData) {
   html += '<h3 style="color:#f75c03;">Ny lead modtaget</h3>';
   html += '<table style="border-collapse:collapse;">';
 
-  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'ytt_program_type', 'program', 'meta_form_id', 'meta_form_name', 'source', 'accommodation', 'city_country'];
+  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'ytt_program_type', 'program', 'meta_form_id', 'meta_form_name', 'source', 'channel', 'utm_campaign', 'accommodation', 'city_country'];
   for (const field of fields) {
     if (leadData[field]) {
-      html += `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;color:#666;">${field}:</td><td style="padding:4px 0;">${escapeHtml(String(leadData[field]))}</td></tr>`;
+      const val = escapeHtml(String(leadData[field]));
+      // Highlight channel with a colored badge
+      const display = field === 'channel'
+        ? `<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:13px;font-weight:bold;background:${getChannelColor(leadData[field])};color:#fff;">${val}</span>`
+        : val;
+      html += `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;color:#666;">${field}:</td><td style="padding:4px 0;">${display}</td></tr>`;
     }
   }
   html += '</table></div>';
@@ -273,6 +278,22 @@ async function logEmail({ to, subject, templateId, leadId, messageId, campaignId
   } catch (err) {
     console.error('[email] Failed to log email:', err.message);
   }
+}
+
+/** Return a background color for channel badges in admin emails */
+function getChannelColor(channel) {
+  if (!channel) return '#999';
+  const ch = channel.toLowerCase();
+  if (ch.includes('google ads')) return '#4285F4';
+  if (ch.includes('google') && ch.includes('organic')) return '#34A853';
+  if (ch.includes('meta ads') || ch.includes('facebook') || ch.includes('instagram ads')) return '#1877F2';
+  if (ch.includes('ai referral')) return '#8B5CF6';
+  if (ch.includes('social')) return '#E4405F';
+  if (ch.includes('email')) return '#f75c03';
+  if (ch.includes('sms')) return '#22C55E';
+  if (ch === 'direct') return '#6B7280';
+  if (ch.includes('referral')) return '#F59E0B';
+  return '#999';
 }
 
 module.exports = {
