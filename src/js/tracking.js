@@ -31,6 +31,19 @@
 
   var DL = window.dataLayer = window.dataLayer || [];
   var CAPI_URL = '/.netlify/functions/meta-capi';
+  var GOOGLE_CAPI_URL = '/.netlify/functions/google-capi';
+
+  // Google Ads conversion labels (loaded from meta tag set by head.njk)
+  var GADS_LABELS = (function () {
+    try {
+      var el = document.querySelector('meta[name="yb-google-ads-labels"]');
+      return el ? JSON.parse(el.getAttribute('content')) : {};
+    } catch (e) { return {}; }
+  })();
+  var GADS_ID = (function () {
+    var el = document.querySelector('meta[name="yb-google-ads-id"]');
+    return el ? el.getAttribute('content') : '';
+  })();
 
   // ============================================
   // HELPERS
@@ -105,6 +118,53 @@
         navigator.sendBeacon(CAPI_URL, JSON.stringify(payload));
       } else {
         fetch(CAPI_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: true
+        });
+      }
+    } catch (e) { /* silent */ }
+  }
+
+  /** Fire Google Ads conversion via gtag (if loaded) */
+  function gtagConversion(label, value, currency, eid) {
+    if (typeof gtag !== 'function' || !GADS_ID || !label) return;
+    var params = { send_to: GADS_ID + '/' + label };
+    if (value) { params.value = value; params.currency = currency || 'DKK'; }
+    if (eid) params.transaction_id = eid;
+    gtag('event', 'conversion', params);
+  }
+
+  /** Send event to Google Enhanced Conversions API server-side (fire-and-forget) */
+  function sendGoogleCAPI(conversionAction, eid, value, currency, userEmail) {
+    if (!hasMarketingConsent()) return;
+
+    var payload = {
+      conversion_action: conversionAction,
+      transaction_id: eid,
+      value: value || 0,
+      currency: currency || 'DKK',
+      conversion_time: new Date().toISOString(),
+      page_url: window.location.href
+    };
+
+    if (userEmail) {
+      sha256(userEmail).then(function (hashed) {
+        if (hashed) payload.hashed_email = hashed;
+        doSendGoogle(payload);
+      });
+    } else {
+      doSendGoogle(payload);
+    }
+  }
+
+  function doSendGoogle(payload) {
+    try {
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(GOOGLE_CAPI_URL, JSON.stringify(payload));
+      } else {
+        fetch(GOOGLE_CAPI_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -541,5 +601,95 @@
     }
   }, true);
 
-  console.log('✅ Tracking initialized');
+  // ============================================
+  // CHECKOUT FLOW: InitiateCheckout + Purchase
+  // Listens for custom events from checkout-flow.js
+  // Fixes the gap where the new checkout modal was
+  // not firing Meta CAPI or Google Ads conversions.
+  // ============================================
+
+  // InitiateCheckout — fired when checkout step is shown in the unified modal
+  window.addEventListener('ybCheckoutInitiated', function (e) {
+    var d = e.detail || {};
+    var eid = eventId();
+
+    DL.push({
+      event: 'checkout_start',
+      event_id: eid,
+      service_id: d.prodId,
+      service_name: d.productName || '',
+      service_price: d.value || 0,
+      product_category: d.productCategory || '',
+      source: 'checkout_flow'
+    });
+
+    pixelTrack('InitiateCheckout', {
+      content_name: d.productName || '',
+      content_category: d.productCategory || '',
+      value: d.value || 0,
+      currency: d.currency || 'DKK'
+    }, eid);
+
+    sendCAPI('InitiateCheckout', eid, {
+      content_name: d.productName || '',
+      content_category: d.productCategory || '',
+      value: d.value || 0,
+      currency: d.currency || 'DKK'
+    });
+  });
+
+  // Purchase — fired when payment succeeds in the unified modal
+  window.addEventListener('ybCheckoutSuccess', function (e) {
+    var d = e.detail || {};
+    var eid = eventId();
+    var value = d.value || 0;
+    var currency = d.currency || 'DKK';
+    var name = d.productName || '';
+    var email = d.email || '';
+
+    // dataLayer for GTM
+    DL.push({
+      event: 'checkout_complete',
+      event_id: eid,
+      service_name: name,
+      service_price: value,
+      product_category: d.productCategory || '',
+      product_id: d.prodId || '',
+      currency: currency,
+      source: 'checkout_flow'
+    });
+
+    // Meta Pixel + CAPI
+    pixelTrack('Purchase', {
+      content_name: name,
+      value: value,
+      currency: currency
+    }, eid);
+
+    sendCAPI('Purchase', eid, {
+      content_name: name,
+      content_category: d.productCategory || '',
+      value: value,
+      currency: currency
+    }, email);
+
+    // Google Ads conversion (client-side gtag)
+    gtagConversion(GADS_LABELS.purchase, value, currency, eid);
+
+    // Google server-side enhanced conversion
+    sendGoogleCAPI('purchase', eid, value, currency, email);
+  });
+
+  // ============================================
+  // SCHEDULE FORM: Google Ads Lead conversion
+  // Also fires when ybuForm submits (already fires Meta Lead above)
+  // ============================================
+
+  if (ybuForm) {
+    ybuForm.addEventListener('submit', function () {
+      gtagConversion(GADS_LABELS.get_schedule, 0, 'DKK', eventId());
+    });
+  }
+
+  console.log('✅ Tracking initialized (Meta CAPI + Google Ads)');
 })();

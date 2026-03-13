@@ -937,6 +937,22 @@
   transition: width 0.4s ease;
 }
 
+/* ── Conversion Period Buttons ── */
+.yb-admin__btn--sm {
+  padding: 5px 14px; font-size: 12px; border-radius: 16px;
+  border: 1px solid #E8E4E0; background: #fff; color: #6F6A66;
+  cursor: pointer; font-family: inherit; font-weight: 600;
+  transition: all 0.15s;
+}
+.yb-admin__btn--sm:hover { border-color: #f75c03; color: #f75c03; }
+.yb-admin__btn--sm.yb-admin__btn--active {
+  background: #f75c03; color: #fff; border-color: #f75c03;
+}
+/* ── Conversion Split Layout ── */
+@media (max-width: 768px) {
+  .yb-conv-split { grid-template-columns: 1fr !important; }
+}
+
 /* ── Student Progress ── */
 .yb-admin__student-row {
   display: flex; align-items: center; gap: 0.75rem;
