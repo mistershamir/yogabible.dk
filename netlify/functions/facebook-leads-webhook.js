@@ -118,15 +118,19 @@ async function processLeadgenChange(value) {
     fields[field.name] = Array.isArray(field.values) ? field.values[0] : field.values;
   }
 
+  // Log all raw field names for debugging (helps identify new form field names)
+  console.log(`[fb-leads] Raw field names: ${Object.keys(fields).join(', ')}`);
+
   // Parse name — Meta may send full_name or separate first_name/last_name
   // Danish forms use: fornavn (first name), efternavn (last name)
-  const fullName = fields.full_name || fields.name || '';
+  // Also handle "for- og efternavn" (first and last name combined field)
+  const fullName = fields.full_name || fields.name || fields['for- og efternavn'] || findFieldByKeyword(fields, ['fulde navn', 'full name', 'navn']) || '';
   const nameParts = fullName.trim().split(/\s+/);
-  const firstName = fields.first_name || fields.fornavn || nameParts[0] || '';
-  const lastName = fields.last_name || fields.efternavn || nameParts.slice(1).join(' ') || '';
-  const email = (fields.email || fields['e-mail'] || '').toLowerCase().trim();
-  const phone = fields.phone_number || fields.phone || fields.telefonnummer || '';
-  const city = fields.city || fields.location || fields.by || '';
+  const firstName = fields.first_name || fields.fornavn || fields.fornavne || findFieldByKeyword(fields, ['fornavn', 'first name', 'first_name']) || nameParts[0] || '';
+  const lastName = fields.last_name || fields.efternavn || findFieldByKeyword(fields, ['efternavn', 'last name', 'last_name']) || nameParts.slice(1).join(' ') || '';
+  const email = (fields.email || fields['e-mail'] || fields['e-mailadresse'] || findFieldByKeyword(fields, ['email', 'e-mail', 'mail']) || '').toLowerCase().trim();
+  const phone = fields.phone_number || fields.phone || fields.telefonnummer || fields.telefon || fields.mobil || findFieldByKeyword(fields, ['telefon', 'phone', 'mobil']) || '';
+  const city = fields.city || fields.location || fields.by || fields.land || findFieldByKeyword(fields, ['by', 'city', 'location', 'country', 'land', 'hvor bor']) || '';
 
   // Parse custom questions — Meta sends these as field_data with the question text as key
   // We do a fuzzy match since Meta may vary casing/encoding of Danish characters
@@ -139,11 +143,16 @@ async function processLeadgenChange(value) {
   const metaAdsetName = fields.adset_name || '';
   const metaAdName = fields.ad_name || '';
   const metaFormNameParam = fields.form_name || '';
-  const metaPlatform = fields.platform || '';
   const metaLang = fields.lang || 'da';
   const metaCohort = fields.cohort || '';
 
-  console.log(`[fb-leads] Parsed fields — program="${program}", housing="${housingAnswer}", platform="${metaPlatform}", lang="${metaLang}"`);
+  // Platform detection: Graph API returns "facebook", "instagram", or "messenger"
+  // Priority: Graph API response (most reliable) → form field fallback → page_id heuristic
+  const graphPlatform = (leadData.platform || '').toLowerCase();
+  const fieldPlatform = (fields.platform || '').toLowerCase();
+  const metaPlatform = graphPlatform || fieldPlatform || '';
+
+  console.log(`[fb-leads] Parsed fields — program="${program}", housing="${housingAnswer}", platform="${metaPlatform}" (graph="${graphPlatform}", field="${fieldPlatform}"), lang="${metaLang}"`);
 
   if (!email) {
     console.warn('[fb-leads] Lead has no email — skipping:', leadgen_id);
@@ -192,8 +201,8 @@ async function processLeadgenChange(value) {
     housing_months: '',
     service: '',
     subcategories: '',
-    message: fields.message || fields.comments || '',
-    source: 'Facebook Ad',
+    message: fields.message || fields.comments || fields.besked || findFieldByKeyword(fields, ['besked', 'message', 'kommentar', 'comment']) || '',
+    source: metaPlatform === 'instagram' ? 'Instagram Ad' : 'Facebook Ad',
     // Meta metadata (useful for reporting)
     meta_form_id: form_id || '',
     meta_form_name: formName || metaFormNameParam || '',
@@ -322,7 +331,7 @@ function normalizeHousingAnswer(val) {
 
 function fetchLeadFromGraph(leadgenId) {
   const token = process.env.FB_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
-  const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${leadgenId}?fields=field_data,form_id,ad_id,ad_name,created_time&access_token=${token}`;
+  const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${leadgenId}?fields=field_data,form_id,ad_id,ad_name,created_time,platform&access_token=${token}`;
 
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {

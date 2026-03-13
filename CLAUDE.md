@@ -133,6 +133,40 @@ Every page follows this pattern — **no exceptions**:
 
 ---
 
+## Bilingual Email & SMS System (MANDATORY)
+
+**IMPORTANT:** ALL automated emails and SMS messages MUST exist in both Danish and English. When creating or modifying any email template, drip sequence step, or SMS message, you MUST build both the DA and EN versions. English leads must receive the same level of detail as Danish leads — never a "generic" fallback.
+
+### How It Works
+
+- **Translation data:** `netlify/functions/shared/lead-email-i18n.js` — central i18n file with `SHARED`, `PROGRAMS`, `SCHEDULE_PATHS`, `PROGRAM_PAGES` objects, each containing `da` and `en` keys
+- **Email builders:** `netlify/functions/shared/lead-emails.js` — bilingual email functions that accept a `lang` parameter (`'da'` or `'en'`)
+- **Language detection:** `lead.lang` field determines email language. Set from website path detection (`/en/` prefix → `'en'`) or Meta form `lang` field
+- **Schedule URLs:** English leads get `/en/schedule/*` paths; Danish leads get `/tidsplan/*` paths. Both use tokenized `?tid=&tok=` params
+
+### Rules for Email/SMS Changes
+
+1. **Always update both languages** in `lead-email-i18n.js` — every key must have both `da` and `en` values
+2. **Never send a generic email** to English leads when a program-specific version exists in Danish
+3. **Schedule CTAs** must link to the correct language path (use `scheduleUrl(programKey, lang, tokenData)`)
+4. **New program types** require: add to `PROGRAMS` object in i18n file + add email builder in `lead-emails.js` + add routing in `sendWelcomeEmail`
+5. **SMS messages** must also be bilingual — check `shared/sms-service.js`
+6. **Drip sequences** (lead-agent) must send language-appropriate content based on `lead.lang`
+
+### Program Email Routing
+
+| Lead Type | DA Function | EN Function |
+|-----------|------------|-------------|
+| 4-week, 8-week, 18-week, 4-week-jul, 18-week-aug | `sendEmail{X}wYTT()` | `sendProgramEmail(lead, key, 'en', token)` |
+| 300h, specialty (50h/30h) | `sendEmail300hYTT()` / `sendEmailSpecialtyYTT()` | `sendProgramEmail(lead, key, 'en', token)` |
+| Multi-format | `sendEmailMultiFormat()` | `sendMultiFormatEmail(lead, 'en', token)` |
+| Undecided | `sendEmailUndecided()` | `sendUndecidedEmail(lead, 'en', token)` |
+| Courses | `sendEmailCourses()` | `sendCoursesEmail(lead, 'en')` |
+| Mentorship | `sendEmailMentorship()` | `sendMentorshipEmail(lead, 'en')` |
+| Generic/Contact | `sendEmailGeneric()` | `sendEmailGenericBilingual(lead, 'en')` |
+
+---
+
 ## Schedule Pages & Conflict Finder
 
 All YTT schedule pages include a **Conflict Finder** — an interactive tool that lets prospective students check which training days clash with their busy schedule.
