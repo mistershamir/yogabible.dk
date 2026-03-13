@@ -273,6 +273,76 @@
          ═══════════════════════════════════ #}
       <div class="yb-admin__tab-panel" data-yb-admin-panel="analytics">
 
+        {# ── SECTION 1: Conversion & Ad Tracking ── #}
+        <div class="yb-admin__view-head">
+          <h2>{{ t.conv_title }}</h2>
+          <p style="color:#6F6A66;margin:4px 0 0">{{ t.conv_subtitle }}</p>
+        </div>
+
+        {# Period filter #}
+        <div style="display:flex;gap:8px;margin:12px 0 16px;flex-wrap:wrap">
+          <button class="yb-admin__btn yb-admin__btn--sm yb-admin__conv-period" data-conv-days="7">{{ t.conv_period_7d }}</button>
+          <button class="yb-admin__btn yb-admin__btn--sm yb-admin__btn--active yb-admin__conv-period" data-conv-days="30">{{ t.conv_period_30d }}</button>
+          <button class="yb-admin__btn yb-admin__btn--sm yb-admin__conv-period" data-conv-days="90">{{ t.conv_period_90d }}</button>
+          <button class="yb-admin__btn yb-admin__btn--sm yb-admin__conv-period" data-conv-days="0">{{ t.conv_period_all }}</button>
+        </div>
+
+        {# Conversion stat cards #}
+        <div class="yb-admin__stats-grid">
+          <div class="yb-admin__stat-card">
+            <span class="yb-admin__stat-value" id="yb-conv-purchases">&mdash;</span>
+            <span class="yb-admin__stat-label">{{ t.conv_total_purchases }}</span>
+          </div>
+          <div class="yb-admin__stat-card">
+            <span class="yb-admin__stat-value" id="yb-conv-revenue">&mdash;</span>
+            <span class="yb-admin__stat-label">{{ t.conv_total_revenue }}</span>
+          </div>
+          <div class="yb-admin__stat-card">
+            <span class="yb-admin__stat-value" id="yb-conv-leads">&mdash;</span>
+            <span class="yb-admin__stat-label">{{ t.conv_total_leads }}</span>
+          </div>
+          <div class="yb-admin__stat-card">
+            <span class="yb-admin__stat-value" id="yb-conv-rate">&mdash;</span>
+            <span class="yb-admin__stat-label">{{ t.conv_conversion_rate }}</span>
+          </div>
+        </div>
+
+        {# Purchase funnel visualization #}
+        <div class="yb-admin__section-divider"></div>
+        <div class="yb-admin__view-head">
+          <h2>{{ t.conv_funnel_title }}</h2>
+        </div>
+        <div id="yb-conv-funnel" style="margin-bottom:24px">
+          <p class="yb-admin__empty">{{ t.loading }}</p>
+        </div>
+
+        {# Conversions by product + by source (side by side) #}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px" class="yb-conv-split">
+          <div>
+            <h3 style="font-size:14px;margin:0 0 12px;color:#0F0F0F">{{ t.conv_by_product }}</h3>
+            <div id="yb-conv-products"><p class="yb-admin__empty">{{ t.loading }}</p></div>
+          </div>
+          <div>
+            <h3 style="font-size:14px;margin:0 0 12px;color:#0F0F0F">{{ t.conv_by_source }}</h3>
+            <div id="yb-conv-sources"><p class="yb-admin__empty">{{ t.loading }}</p></div>
+          </div>
+        </div>
+
+        {# Recent conversions table #}
+        <div class="yb-admin__section-divider"></div>
+        <div class="yb-admin__view-head">
+          <h2>{{ t.conv_recent }}</h2>
+        </div>
+        <div class="yb-admin__table-wrap">
+          <div id="yb-conv-recent"><p class="yb-admin__empty">{{ t.loading }}</p></div>
+        </div>
+
+        {# ── SECTION 2: Course Enrollment Analytics (existing) ── #}
+        <div class="yb-admin__section-divider" style="margin:32px 0"></div>
+        <div class="yb-admin__view-head">
+          <h2>{{ t.analytics_title }}</h2>
+        </div>
+
         {# Stat cards grid #}
         <div class="yb-admin__stats-grid">
           <div class="yb-admin__stat-card">
