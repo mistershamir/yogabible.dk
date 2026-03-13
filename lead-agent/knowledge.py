@@ -145,7 +145,7 @@ Preparation Phase ("Forberedelsesfasen"): 3750 DKK (NEVER say "deposit"/"deposit
 
 COURSES: Inversions/Splits/Backbends — each 2300 DKK, 8 sessions. Bundle discounts available.
 
-LEADS (Firestore "leads" collection): Fields: email, first_name, last_name, phone, type (ytt/course/mentorship/contact/meta), ytt_program_type (18-week/4-week/8-week/300h/50h/30h), status (New/In Progress/Contacted/Converted/Not Interested/Deferred), temperature (Hot/Warm/Cold), notes, accommodation, city_country, source, cohort_label.
+LEADS (Firestore "leads" collection): Fields: email, first_name, last_name, phone, type (ytt/course/mentorship/contact/meta), ytt_program_type (18-week/4-week/8-week/300h/50h/30h), status (New/In Progress/Contacted/Converted/Not Interested/Deferred), temperature (Hot/Warm/Cold), notes, accommodation, city_country, source, cohort_label, channel (Google Ads/Meta Ads/Google Organic/AI Referral (ChatGPT)/Social (Facebook)/Direct/Email/SMS/Referral), utm_source, utm_medium, utm_campaign, gclid, fbclid, referrer, landing_page.
 
 DRIP SEQUENCE (5 steps over 10 days for YTT leads):
 1. Day 0: Welcome+schedule (auto-sent by Netlify)
