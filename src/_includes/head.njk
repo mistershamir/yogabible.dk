@@ -241,6 +241,58 @@
 </script>
 {% endif %}
 
+{% if page.url == "/" or page.url == "/en/" %}
+<!-- JSON-LD: Event schema for upcoming YTT intakes (homepage, rich results) -->
+{% set events = [
+  { "name_da": "4-Ugers Intensiv Yogalæreruddannelse — April 2026", "name_en": "4-Week Intensive Yoga Teacher Training — April 2026", "start": "2026-04-06", "end": "2026-05-01", "desc_da": "200-timers Yoga Alliance RYT-200 intensiv uddannelse i København. Max 12 deltagere.", "desc_en": "200-hour Yoga Alliance RYT-200 intensive training in Copenhagen, Denmark. Max 12 students." },
+  { "name_da": "8-Ugers Semi-Intensiv Yogalæreruddannelse — April–Maj 2026", "name_en": "8-Week Semi-Intensive Yoga Teacher Training — April–May 2026", "start": "2026-04-06", "end": "2026-05-29", "desc_da": "200-timers Yoga Alliance RYT-200 semi-intensiv uddannelse i København. Balanceret tempo over 8 uger.", "desc_en": "200-hour Yoga Alliance RYT-200 semi-intensive training in Copenhagen, Denmark. Balanced pace over 8 weeks." },
+  { "name_da": "4-Ugers Vinyasa Plus Yogalæreruddannelse — Juli 2026", "name_en": "4-Week Vinyasa Plus Yoga Teacher Training — July 2026", "start": "2026-07-06", "end": "2026-07-31", "desc_da": "200-timers Yoga Alliance RYT-200 intensiv uddannelse med 70% Vinyasa / 30% Yin & Hot Yoga. København.", "desc_en": "200-hour Yoga Alliance RYT-200 intensive training with 70% Vinyasa / 30% Yin & Hot Yoga. Copenhagen, Denmark." },
+  { "name_da": "18-Ugers Fleksibel Yogalæreruddannelse — April–August 2026", "name_en": "18-Week Flexible Yoga Teacher Training — April–August 2026", "start": "2026-04-06", "end": "2026-08-07", "desc_da": "200-timers Yoga Alliance RYT-200 fleksibel uddannelse i København. Hverdag eller weekend — skift frit.", "desc_en": "200-hour Yoga Alliance RYT-200 flexible training in Copenhagen, Denmark. Weekday or weekend — switch freely." },
+  { "name_da": "18-Ugers Fleksibel Yogalæreruddannelse — August–December 2026", "name_en": "18-Week Flexible Yoga Teacher Training — August–December 2026", "start": "2026-08-17", "end": "2026-12-18", "desc_da": "200-timers Yoga Alliance RYT-200 fleksibel uddannelse i København. Hverdag eller weekend — skift frit.", "desc_en": "200-hour Yoga Alliance RYT-200 flexible training in Copenhagen, Denmark. Weekday or weekend — switch freely." }
+] %}
+<script type="application/ld+json">
+[
+  {% for evt in events %}
+  {% if not loop.first %},{% endif %}
+  {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": "{% if lang == 'en' %}{{ evt.name_en }}{% else %}{{ evt.name_da }}{% endif %}",
+    "description": "{% if lang == 'en' %}{{ evt.desc_en }}{% else %}{{ evt.desc_da }}{% endif %}",
+    "startDate": "{{ evt.start }}",
+    "endDate": "{{ evt.end }}",
+    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+    "eventStatus": "https://schema.org/EventScheduled",
+    "location": {
+      "@type": "Place",
+      "name": "Yoga Bible Studio",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Torvegade 66",
+        "addressLocality": "Copenhagen",
+        "postalCode": "1400",
+        "addressCountry": "DK"
+      }
+    },
+    "organizer": {
+      "@type": "EducationalOrganization",
+      "@id": "{{ site.url }}/#organization"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "23750",
+      "priceCurrency": "DKK",
+      "availability": "https://schema.org/InStock",
+      "url": "{{ site.url }}{% if lang == 'en' %}/en{% endif %}/apply/",
+      "validFrom": "2025-01-01"
+    },
+    "image": "{{ site.url }}/assets/images/og/og-1200x630.png"
+  }
+  {% endfor %}
+]
+</script>
+{% endif %}
+
 {% set coursePages = ["/om-200hrs-yogalreruddannelser/", "/200-hours-18-weeks-flexible-programs/", "/200-hours-8-weeks-semi-intensive-programs/", "/200-hours-4-weeks-intensive-programs/"] %}
 {% set isCourse = page.url in coursePages or page.url | replace("/en/", "/") in coursePages %}
 {% if isCourse %}
@@ -489,6 +541,12 @@
     "priceCurrency": "DKK",
     "availability": "https://schema.org/InStock",
     "url": "{{ site.url }}/apply/"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.9",
+    "bestRating": "5",
+    "ratingCount": "500"
   }
 }
 </script>
