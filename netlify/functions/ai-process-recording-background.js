@@ -89,14 +89,18 @@ exports.handler = async function (event) {
     } catch (mp4Err) {
       // Fallback: Mux auto-generated subtitles → VTT → plain text
       console.log('[ai-process] MP4/Deepgram failed:', mp4Err.message, '— trying Mux subtitles fallback');
-      await updateDoc(COLLECTION, sessionId, { aiStatus: 'subtitle_fallback' });
+      await updateDoc(COLLECTION, sessionId, {
+        aiStatus: 'subtitle_fallback',
+        aiDeepgramError: mp4Err.message,
+        aiDeepgramFailedAt: new Date().toISOString()
+      });
       transcript = await transcribeViaMuxSubtitles(assetId, playbackId);
       console.log('[ai-process] Mux subtitle transcript length:', transcript.length, 'chars');
     }
 
     if (!transcript || transcript.length < 50) {
-      await updateDoc(COLLECTION, sessionId, { aiStatus: 'no_transcript' });
-      return jsonResponse(200, { ok: true, status: 'no_transcript', chars: transcript.length });
+      await updateDoc(COLLECTION, sessionId, { aiStatus: 'no_transcript', aiError: 'Transcript too short (' + (transcript ? transcript.length : 0) + ' chars)' });
+      return jsonResponse(200, { ok: true, status: 'no_transcript', chars: transcript ? transcript.length : 0 });
     }
 
     // ── Transcript-only mode: save transcript and stop (skip Claude) ──
