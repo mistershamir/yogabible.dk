@@ -46,14 +46,6 @@
     {% include "modal-schedule-300.njk" %}
   {% endif %}
 
-  {% if includeStoreCSS %}
-    <link rel="stylesheet" href="/css/store.css">
-  {% endif %}
-
-  {% if includeAdminCSS %}
-    <link rel="stylesheet" href="/css/admin.css">
-  {% endif %}
-
   {% if includeP300Styles %}
     <link rel="stylesheet" href="/css/p300.css">
     <script src="/js/p300.js" defer></script>
@@ -111,25 +103,23 @@
   {% include "cookies.njk" %}
   <script src="/js/cookies.js" defer></script>
 
-  <!-- Scripts: layout & navigation -->
-  <script src="/js/header.js" defer></script>
-  <script src="/js/main.js" defer></script>
-  <script src="/js/footer.js" defer></script>
-
   <!-- Firebase SDK (compat for broad browser support) -->
   <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js" defer></script>
 
-  <!-- App scripts (deferred) -->
+  <!-- Scripts (deferred for faster paint) -->
+  <script src="/js/header.js" defer></script>
+  <script src="/js/main.js" defer></script>
+  <script src="/js/footer.js" defer></script>
   <script src="/js/roles-permissions.js" defer></script>
   <script src="/js/firebase-auth.js" defer></script>
-  <script src="/js/mindbody.js" defer></script>
-  {% if includeAppointmentJS !== false %}<script src="/js/appointment-booking.js" defer></script>{% endif %}
+  <script src="/js/appointment-booking.js" defer></script>
   {% if includePhotoBooking %}<script src="/js/photo-booking.js" defer></script>{% endif %}
   <script src="/js/ytt-funnel.js" defer></script>
   <script src="/js/checkout-flow.js" defer></script>
   <script src="/js/workshop-browser.js" defer></script>
+  <script src="/js/mindbody.js" defer></script>
   {% if includeScheduleModal %}
     <script src="/js/modal-200ytt.js" defer></script>
   {% endif %}
