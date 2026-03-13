@@ -157,9 +157,11 @@ exports.handler = async function (event) {
     try {
       var errorBody = JSON.parse(event.body || '{}');
       if (errorBody.sessionId) {
+        // For long recordings where Mux subtitles need more time, use a retryable status
+        var isSubtitlePending = err.message && err.message.indexOf('subtitles not ready') !== -1;
         await updateDoc(COLLECTION, errorBody.sessionId, {
-          aiStatus: 'error',
-          aiError: err.message
+          aiStatus: isSubtitlePending ? 'subtitle_pending' : 'error',
+          aiError: err.message + (isSubtitlePending ? ' — run retranscribe again to resume polling (temp asset preserved)' : '')
         });
       }
     } catch (e) { /* ignore */ }
@@ -226,15 +228,23 @@ async function ensureMp4Rendition(assetId, playbackId) {
   var asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
   var renditions = asset.data && asset.data.static_renditions;
 
-  if (!renditions || renditions.status !== 'ready') {
-    // Enable MP4 support on the asset (Mux uses PATCH for asset updates)
-    console.log('[ai-process] Enabling MP4 support on asset:', assetId);
+  if (renditions && renditions.status === 'ready') {
+    console.log('[ai-process] MP4 renditions already available');
+    return 'https://stream.mux.com/' + playbackId + '/low.mp4';
+  }
+
+  // Try to enable MP4 support on the asset (Mux uses PATCH for asset updates)
+  console.log('[ai-process] Enabling MP4 support on asset:', assetId);
+  try {
     var patchResult = await muxRequest('PATCH', '/video/v1/assets/' + assetId, { mp4_support: 'capped-1080p' });
 
     // Check if MP4 support was actually enabled (live stream recordings may silently ignore the PATCH)
     var patchedMp4 = patchResult.data && patchResult.data.mp4_support;
     if (patchedMp4 === 'none' || !patchedMp4) {
-      throw new Error('MP4 support could not be enabled on this asset (mp4_support still "none" — likely a live stream recording with no input URL)');
+      // Live stream recordings can't have MP4 enabled — use HLS URL for Deepgram instead.
+      // Deepgram can process HLS/m3u8 URLs via its internal ffmpeg-based media pipeline.
+      console.log('[ai-process] MP4 unavailable (live stream recording) — using HLS URL for Deepgram');
+      return 'https://stream.mux.com/' + playbackId + '.m3u8';
     }
     console.log('[ai-process] MP4 support enabled (' + patchedMp4 + '), polling for readiness...');
 
@@ -250,23 +260,23 @@ async function ensureMp4Rendition(assetId, playbackId) {
 
       if (renditions && renditions.status === 'ready') {
         console.log('[ai-process] MP4 renditions ready after', attempt, 'polls (~' + (attempt * 30) + 's)');
-        break;
+        return 'https://stream.mux.com/' + playbackId + '/low.mp4';
       }
       if (renditions && renditions.status === 'errored') {
-        throw new Error('MP4 rendition creation failed on Mux');
+        console.log('[ai-process] MP4 rendition errored — using HLS URL for Deepgram');
+        return 'https://stream.mux.com/' + playbackId + '.m3u8';
       }
       console.log('[ai-process] MP4 poll', attempt + '/' + maxAttempts, '— status:', renditions ? renditions.status : 'none');
     }
 
-    if (!renditions || renditions.status !== 'ready') {
-      throw new Error('MP4 renditions not ready after 8 minutes — run ai-backfill?enable-mp4=1 first, wait, then ?retranscribe=all');
-    }
-  } else {
-    console.log('[ai-process] MP4 renditions already available');
+    // MP4 not ready after 8 min (common for long recordings) — use HLS URL instead of failing
+    console.log('[ai-process] MP4 not ready after 8 min — using HLS URL for Deepgram');
+    return 'https://stream.mux.com/' + playbackId + '.m3u8';
+  } catch (patchErr) {
+    // PATCH failed entirely — use HLS URL as fallback
+    console.log('[ai-process] MP4 PATCH error:', patchErr.message, '— using HLS URL for Deepgram');
+    return 'https://stream.mux.com/' + playbackId + '.m3u8';
   }
-
-  // Return the lowest quality MP4 URL (smallest file, audio quality still fine for transcription)
-  return 'https://stream.mux.com/' + playbackId + '/low.mp4';
 }
 
 // ═══════════════════════════════════════════════════
@@ -507,10 +517,11 @@ function transcribeWithDeepgram(audioUrl) {
       });
     });
 
-    // 10-minute timeout for long recordings (Deepgram processes at ~100x real-time)
-    req.setTimeout(600000, function () {
+    // 12-minute timeout for very long recordings (5+ hours). Deepgram processes
+    // at ~100x real-time but HLS URLs may need extra download time.
+    req.setTimeout(720000, function () {
       req.destroy();
-      reject(new Error('Deepgram request timed out after 10 minutes'));
+      reject(new Error('Deepgram request timed out after 12 minutes'));
     });
 
     req.on('error', reject);
