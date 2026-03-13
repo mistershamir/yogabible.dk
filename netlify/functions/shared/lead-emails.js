@@ -354,7 +354,7 @@ async function sendEmail4wYTT(leadData, tokenData = {}) {
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 4-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
@@ -423,7 +423,7 @@ async function sendEmail4wJulyYTT(leadData, tokenData = {}) {
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 4-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
@@ -482,7 +482,7 @@ async function sendEmail8wYTT(leadData, tokenData = {}) {
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 8-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
@@ -554,7 +554,7 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 18-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
@@ -628,7 +628,7 @@ async function sendEmail18wAugYTT(leadData, tokenData = {}) {
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 18-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
@@ -787,7 +787,7 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
   bodyHtml += '\u2705 Opbyg styrke, fleksibilitet og rutine inden uddannelsesstart<br>';
   bodyHtml += '\u2705 M\u00f8d dine kommende medstuderende i et afslappet milj\u00f8<br>';
   bodyHtml += '\u2705 Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer<br><br>';
-  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">Start forberedelsesfasen \u2014 3.750 kr.</a>';
+  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">Start forberedelsesfasen \u2014 3.750 kr.</a>';
   bodyHtml += '</div>';
 
   // Links + compare
@@ -796,7 +796,7 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
     const info = FORMAT_INFO[f];
     if (info) bodyHtml += '<a href="' + info.url + '" style="color:#f75c03;">' + escapeHtml(info.name.replace('program', 'detaljer')) + '</a> \u00b7 ';
   });
-  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Sammenlign alle formater</a>';
+  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Sammenlign alle formater</a>';
   bodyHtml += '</p>';
 
   bodyHtml += '<p style="margin-top:20px;">Har du lyst til at se studiet eller f\u00e5 hj\u00e6lp til at v\u00e6lge det rigtige format?</p>';
@@ -827,7 +827,7 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
   bodyPlain += '- Opbyg styrke og rutine inden uddannelsesstart\n';
   bodyPlain += '- M\u00f8d dine kommende medstuderende\n';
   bodyPlain += '- Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer\n';
-  bodyPlain += 'Start her: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n\n';
+  bodyPlain += 'Start her: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
   bodyPlain += 'Book infom\u00f8de eller samtale: ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += 'Gl\u00e6der mig til at h\u00f8re fra dig!';
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
@@ -924,7 +924,7 @@ async function sendEmailUndecidedYTT(leadData, tokenData = {}) {
   // Compare link
   bodyHtml += '<div style="margin:24px 0;padding:16px;background:#F5F3F0;border-radius:6px;text-align:center;">';
   bodyHtml += '<p style="margin:0 0 10px;"><strong>Stadig i tvivl?</strong></p>';
-  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="display:inline-block;background:#1a1a1a;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Sammenlign alle formater side om side \u2192</a>';
+  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="display:inline-block;background:#1a1a1a;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Sammenlign alle formater side om side \u2192</a>';
   bodyHtml += '</div>';
 
   // Pricing — same for all formats
@@ -933,7 +933,7 @@ async function sendEmailUndecidedYTT(leadData, tokenData = {}) {
 
   if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
   bodyHtml += getPricingSectionHtml('23.750', '3.750', '20.000', 'samme pris for alle formater \u2014 fleksibel ratebetaling');
-  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/om-200hrs-yogalreruddannelser');
+  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/om-200hrs-yogalaereruddannelser');
 
   // Meeting CTA
   bodyHtml += '<p style="margin-top:24px;">Det bedste du kan gøre nu? <strong>Book et gratis infomøde</strong> \u2014 så hjælper jeg dig personligt med at finde det rigtige format:</p>';
@@ -956,11 +956,11 @@ async function sendEmailUndecidedYTT(leadData, tokenData = {}) {
     bodyPlain += 'Læs mere: ' + f.pageUrl + '\n\n';
   });
 
-  bodyPlain += 'Sammenlign alle formater: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n\n';
+  bodyPlain += 'Sammenlign alle formater: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
   bodyPlain += programHighlightsPlain();
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += '\n' + getPricingSectionPlain('23.750', '3.750', '20.000', 'samme pris for alle formater — fleksibel ratebetaling') + '\n';
-  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/om-200hrs-yogalreruddannelser');
+  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/om-200hrs-yogalaereruddannelser');
   bodyPlain += '\nBook et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += 'Du kan også svare på denne e-mail med dine spørgsmål.\n\nGlæder mig til at høre fra dig!';
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);

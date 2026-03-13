@@ -4,8 +4,14 @@
  * Modes:
  *   ?debug=1    — Show status of all sessions (read-only)
  *   ?reconcile=1 — Find missing recordings from Mux and link them to Firestore sessions
- *   ?check=1    — Phase 2: check if Mux captions are ready, download transcript, run Claude
- *   ?retranscribe=SESSION_ID — Delete old subtitle track, re-request captions from Mux (use ?check=1 after)
+ *   ?enable-mp4=1 — Request MP4 static renditions on Mux assets
+ *   ?mp4-status=1 — Check if MP4 renditions are ready
+ *   ?generate-subtitles=1 — Request Mux auto-generated captions (fallback when MP4 unavailable)
+ *   ?subtitle-status=1 — Check if auto-generated subtitles are ready
+ *   ?check=1    — Find stuck sessions and re-trigger processing
+ *   ?retranscribe=SESSION_ID — Reset and re-trigger full pipeline (MP4→Deepgram→Claude, with subtitle fallback)
+ *   ?retranscribe=all — Re-transcribe ALL sessions with recordings (batch mode)
+ *   ?reprocess=SESSION_ID — Re-run Claude on existing transcript (no re-transcription)
  *   (default)   — Phase 1: trigger caption requests for sessions with recordings but no AI data
  *
  * All modes require: ?secret=YOUR_AI_INTERNAL_SECRET
@@ -46,7 +52,8 @@ exports.handler = async function (event) {
             recordingAssetId: item.recordingAssetId || null,
             recordingPlaybackId: item.recordingPlaybackId || null,
             muxLiveStreamId: item.muxLiveStreamId || null,
-            aiStatus: item.aiStatus || null
+            aiStatus: item.aiStatus || null,
+            aiError: item.aiError || null
           };
         })
       });
@@ -247,169 +254,278 @@ exports.handler = async function (event) {
       return jsonResponse(200, { ok: true, message: 'Reset ' + resetResults.length + ' sessions. Now run default mode.', results: resetResults });
     }
 
-    // ── Retranscribe mode: delete old subtitle track, re-request captions from Mux ──
-    // ?retranscribe=SESSION_ID  — then use ?check=1 after a few minutes to process
+    // ── Retranscribe mode: reset and re-trigger Deepgram transcription ──
+    // ?retranscribe=SESSION_ID  — single session
+    // ?retranscribe=all         — all sessions with recordings
+    // &transcript-only=1        — stop after transcription, skip Claude summary/quiz
     if (params.retranscribe) {
-      var sessId = params.retranscribe;
-      var sess = all.find(function (item) { return item.id === sessId; });
-      if (!sess) {
-        return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessId });
-      }
-      if (!sess.recordingAssetId) {
-        return jsonResponse(400, { ok: false, error: 'Session has no recording asset' });
+      var isTranscriptOnly = params['transcript-only'] === '1';
+      var retranscribeTargets = [];
+
+      if (params.retranscribe === 'all') {
+        // Batch mode: all ended sessions with recordings
+        retranscribeTargets = all.filter(function (item) {
+          return item.status === 'ended' && item.recordingAssetId;
+        });
+        if (retranscribeTargets.length === 0) {
+          return jsonResponse(200, { ok: true, message: 'No sessions with recordings found.' });
+        }
+      } else {
+        // Single session mode
+        var sessId = params.retranscribe;
+        var sess = all.find(function (item) { return item.id === sessId; });
+        if (!sess) {
+          return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessId });
+        }
+        if (!sess.recordingAssetId) {
+          return jsonResponse(400, { ok: false, error: 'Session has no recording asset' });
+        }
+        retranscribeTargets = [sess];
       }
 
-      // Step 1: Get current tracks on the asset
-      var assetResult = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
-      var tracks = (assetResult.data && assetResult.data.tracks) || [];
-      var deletedTracks = [];
+      console.log('[ai-backfill] Retranscribe:', retranscribeTargets.length, 'session(s)');
+      var retranscribeResults = [];
 
-      // Step 2: Delete any existing subtitle tracks
-      for (var dt = 0; dt < tracks.length; dt++) {
-        if (tracks[dt].type === 'text' && tracks[dt].text_type === 'subtitles') {
+      for (var rt = 0; rt < retranscribeTargets.length; rt++) {
+        var target = retranscribeTargets[rt];
+        try {
+          // Step 1: Delete old Mux subtitle tracks (cleanup)
+          var deletedCount = 0;
           try {
-            await muxRequest('DELETE', '/video/v1/assets/' + sess.recordingAssetId + '/tracks/' + tracks[dt].id);
-            deletedTracks.push(tracks[dt].id);
-            console.log('[ai-backfill] Deleted subtitle track:', tracks[dt].id);
-          } catch (delErr) {
-            console.error('[ai-backfill] Failed to delete track', tracks[dt].id, ':', delErr.message);
+            var assetResult = await muxRequest('GET', '/video/v1/assets/' + target.recordingAssetId);
+            var tracks = (assetResult.data && assetResult.data.tracks) || [];
+            for (var dt = 0; dt < tracks.length; dt++) {
+              if (tracks[dt].type === 'text' && tracks[dt].text_type === 'subtitles') {
+                try {
+                  await muxRequest('DELETE', '/video/v1/assets/' + target.recordingAssetId + '/tracks/' + tracks[dt].id);
+                  deletedCount++;
+                } catch (delErr) { /* ignore */ }
+              }
+            }
+          } catch (muxErr) {
+            console.log('[ai-backfill] Could not clean Mux tracks for', target.id, ':', muxErr.message);
           }
+
+          // Step 2: Reset Firestore status
+          await updateDoc(COLLECTION, target.id, {
+            aiStatus: null,
+            aiError: null,
+            aiTranscript: null,
+            aiSummary: null,
+            aiQuiz: null,
+            aiCaptionTrackId: null
+          });
+
+          // Step 3: Trigger the background function
+          await callAiProcess(target.id, target.recordingAssetId, { transcriptOnly: isTranscriptOnly });
+
+          retranscribeResults.push({
+            id: target.id,
+            title: target.title_da || target.title_en || '',
+            deletedSubtitleTracks: deletedCount,
+            status: 'triggered'
+          });
+          console.log('[ai-backfill] Retranscribe triggered:', target.id, '(cleaned', deletedCount, 'old tracks)');
+        } catch (err) {
+          console.error('[ai-backfill] Retranscribe error for', target.id, ':', err.message);
+          retranscribeResults.push({ id: target.id, title: target.title_da || '', status: 'error', error: err.message });
         }
       }
-
-      // Step 3: Find the audio track and request fresh captions
-      var audioTrackId = null;
-      for (var at = 0; at < tracks.length; at++) {
-        if (tracks[at].type === 'audio') {
-          audioTrackId = tracks[at].id;
-          break;
-        }
-      }
-
-      if (!audioTrackId) {
-        return jsonResponse(400, { ok: false, error: 'No audio track found on asset' });
-      }
-
-      var captionResult = await muxRequest('POST',
-        '/video/v1/assets/' + sess.recordingAssetId + '/tracks/' + audioTrackId + '/generate-subtitles',
-        {
-          generated_subtitles: [{
-            language_code: 'en',
-            name: 'English CC'
-          }]
-        }
-      );
-
-      // Get the new track ID
-      var newTrackId = null;
-      var newTracks = captionResult.data || [];
-      if (Array.isArray(newTracks) && newTracks.length > 0) {
-        newTrackId = newTracks[0].id;
-      }
-
-      // Update session status so ?check=1 picks it up
-      await updateDoc(COLLECTION, sessId, {
-        aiStatus: 'captions_requested',
-        aiCaptionTrackId: newTrackId,
-        aiError: null
-      });
-
-      console.log('[ai-backfill] Retranscribe:', sessId, '— deleted', deletedTracks.length, 'old tracks, new track:', newTrackId);
 
       return jsonResponse(200, {
         ok: true,
-        message: 'Deleted ' + deletedTracks.length + ' old subtitle track(s) and requested fresh captions. Wait 2-3 minutes then call ?check=1 to process.',
-        sessionId: sessId,
-        deletedTracks: deletedTracks,
-        newTrackId: newTrackId
+        message: retranscribeResults.length + ' session(s) triggered for re-transcription (old Mux subtitles cleaned).'
+          + (isTranscriptOnly ? ' TRANSCRIPT-ONLY mode — will stop after Deepgram, no Claude.' : ' Full pipeline: MP4 → Deepgram → Claude.'),
+        results: retranscribeResults
       });
     }
 
-    // ── Check mode (Phase 2): check if Mux captions are ready, download + Claude ──
+    // ── MP4 status check: query Mux directly to see if MP4 renditions are ready ──
+    if (params['mp4-status'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var mp4Results = [];
+      for (var m = 0; m < withRecordings.length; m++) {
+        var sess = withRecordings[m];
+        try {
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var renditions = asset.data && asset.data.static_renditions;
+          var mp4Support = asset.data && asset.data.mp4_support;
+          var duration = asset.data && asset.data.duration;
+          mp4Results.push({
+            id: sess.id,
+            title: (sess.title_da || sess.title_en || '').substring(0, 60),
+            assetId: sess.recordingAssetId,
+            mp4Support: mp4Support || 'none',
+            renditionStatus: renditions ? renditions.status : 'none',
+            durationMinutes: duration ? Math.round(duration / 60) : null,
+            aiStatus: sess.aiStatus
+          });
+        } catch (err) {
+          mp4Results.push({ id: sess.id, title: sess.title_da || '', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, { ok: true, results: mp4Results });
+    }
+
+    // ── Enable MP4 only (no processing): request MP4 renditions without triggering pipeline ──
+    if (params['enable-mp4'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var enableResults = [];
+      for (var e2 = 0; e2 < withRecordings.length; e2++) {
+        var sess = withRecordings[e2];
+        try {
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var renditions = asset.data && asset.data.static_renditions;
+          if (renditions && renditions.status === 'ready') {
+            enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'already_ready' });
+          } else {
+            var patchResult = await muxRequest('PATCH', '/video/v1/assets/' + sess.recordingAssetId, { mp4_support: 'capped-1080p' });
+            var patchMp4 = patchResult.data && patchResult.data.mp4_support;
+            var patchRenditions = patchResult.data && patchResult.data.static_renditions;
+            enableResults.push({
+              id: sess.id,
+              title: (sess.title_da || '').substring(0, 60),
+              status: 'mp4_requested',
+              mp4Support: patchMp4 || 'none',
+              renditionStatus: patchRenditions ? patchRenditions.status : 'none'
+            });
+          }
+        } catch (err) {
+          enableResults.push({ id: sess.id, title: sess.title_da || '', status: 'error', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'MP4 renditions requested. Use ?mp4-status=1 to check when ready, then ?retranscribe=all to process.',
+        results: enableResults
+      });
+    }
+
+    // ── Generate subtitles mode: request Mux auto-generated captions (fallback when MP4 doesn't work) ──
+    if (params['generate-subtitles'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var subtitleResults = [];
+      for (var s2 = 0; s2 < withRecordings.length; s2++) {
+        var sess = withRecordings[s2];
+        try {
+          // Check existing tracks
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var tracks = (asset.data && asset.data.tracks) || [];
+          var hasAutoSubs = false;
+          for (var t = 0; t < tracks.length; t++) {
+            if (tracks[t].type === 'text' && tracks[t].text_type === 'subtitles' && tracks[t].status === 'ready') {
+              hasAutoSubs = true;
+              break;
+            }
+          }
+
+          if (hasAutoSubs) {
+            subtitleResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'already_has_subtitles' });
+          } else {
+            // Request auto-generated subtitles from Mux
+            var trackResult = await muxRequest('POST', '/video/v1/assets/' + sess.recordingAssetId + '/tracks', {
+              type: 'text',
+              text_type: 'subtitles',
+              language_code: 'en',
+              name: 'English CC',
+              closed_captions: true
+            });
+            var trackId = trackResult.data && trackResult.data.id;
+            subtitleResults.push({
+              id: sess.id,
+              title: (sess.title_da || '').substring(0, 60),
+              status: 'subtitles_requested',
+              trackId: trackId
+            });
+          }
+        } catch (err) {
+          subtitleResults.push({ id: sess.id, title: sess.title_da || '', status: 'error', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'Subtitle tracks requested. Use ?subtitle-status=1 to check when ready, then ?retranscribe=all to process.',
+        results: subtitleResults
+      });
+    }
+
+    // ── Subtitle status check: see if auto-generated subtitles are ready ──
+    if (params['subtitle-status'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var subStatusResults = [];
+      for (var ss = 0; ss < withRecordings.length; ss++) {
+        var sess = withRecordings[ss];
+        try {
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var tracks = (asset.data && asset.data.tracks) || [];
+          var subtitleTracks = [];
+          for (var st = 0; st < tracks.length; st++) {
+            if (tracks[st].type === 'text') {
+              subtitleTracks.push({
+                id: tracks[st].id,
+                status: tracks[st].status,
+                name: tracks[st].name || '',
+                language: tracks[st].language_code || ''
+              });
+            }
+          }
+          var duration = asset.data && asset.data.duration;
+          subStatusResults.push({
+            id: sess.id,
+            title: (sess.title_da || sess.title_en || '').substring(0, 60),
+            assetId: sess.recordingAssetId,
+            durationMinutes: duration ? Math.round(duration / 60) : null,
+            subtitleTracks: subtitleTracks,
+            aiStatus: sess.aiStatus
+          });
+        } catch (err) {
+          subStatusResults.push({ id: sess.id, title: sess.title_da || '', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, { ok: true, results: subStatusResults });
+    }
+
+    // ── Check mode (Phase 2): find stuck sessions and re-trigger processing ──
     if (params.check === '1') {
       var waiting = all.filter(function (item) {
         return item.status === 'ended'
           && item.recordingAssetId
-          && (item.aiStatus === 'captions_requested' || item.aiStatus === 'captions_pending' || item.aiStatus === 'processing');
+          && (item.aiStatus === 'preparing_audio' || item.aiStatus === 'transcribing'
+              || item.aiStatus === 'processing' || item.aiStatus === 'captions_requested'
+              || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending');
       });
 
       if (waiting.length === 0) {
-        return jsonResponse(200, { ok: true, message: 'No sessions waiting for captions.' });
+        return jsonResponse(200, { ok: true, message: 'No stuck sessions found.' });
       }
 
-      console.log('[ai-backfill] Checking', waiting.length, 'sessions for ready captions');
+      console.log('[ai-backfill] Found', waiting.length, 'stuck sessions — re-triggering processing');
       var checkResults = [];
 
-      // Process one at a time to stay within function timeout
       for (var c = 0; c < waiting.length; c++) {
         var sess = waiting[c];
         try {
-          // Check if text track is ready on Mux
-          var tracksResult = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
-          var tracks = (tracksResult.data && tracksResult.data.tracks) || [];
-          var readyTrack = null;
-
-          for (var t = 0; t < tracks.length; t++) {
-            if (tracks[t].type === 'text' && tracks[t].text_type === 'subtitles') {
-              if (tracks[t].status === 'ready') {
-                readyTrack = tracks[t];
-              } else if (tracks[t].status === 'errored') {
-                await updateDoc(COLLECTION, sess.id, { aiStatus: 'error', aiError: 'Caption track errored on Mux' });
-                checkResults.push({ id: sess.id, title: sess.title_da || '', status: 'caption_errored' });
-                readyTrack = null;
-                break;
-              } else {
-                // Still preparing
-                checkResults.push({ id: sess.id, title: sess.title_da || '', status: 'still_preparing', trackStatus: tracks[t].status });
-                readyTrack = null;
-                break;
-              }
-            }
-          }
-
-          if (!readyTrack) continue;
-
-          // Caption track is ready — get VTT URL
-          // Individual track endpoint doesn't exist; use playback URL directly
-          var vttUrl = null;
-
-          if (!vttUrl && sess.recordingPlaybackId) {
-            vttUrl = 'https://stream.mux.com/' + sess.recordingPlaybackId + '/text/' + readyTrack.id + '.vtt';
-          }
-
-          if (!vttUrl) {
-            checkResults.push({ id: sess.id, title: sess.title_da || '', status: 'no_vtt_url' });
-            continue;
-          }
-
-          // Download VTT transcript
-          var transcript = await downloadVTT(vttUrl);
-          console.log('[ai-backfill] Transcript for', sess.id, ':', transcript.length, 'chars');
-
-          if (!transcript || transcript.length < 50) {
-            await updateDoc(COLLECTION, sess.id, { aiStatus: 'no_transcript' });
-            checkResults.push({ id: sess.id, title: sess.title_da || '', status: 'no_transcript', chars: transcript.length });
-            continue;
-          }
-
-          // Send to Claude for summary + quiz
-          var sessionTitle = sess.title_da || sess.title_en || 'Yoga Class';
-          var sessionInstructor = sess.instructor || '';
-          var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, null, !!sess.interactive);
-
-          // Save to Firestore
-          await updateDoc(COLLECTION, sess.id, {
-            aiStatus: 'complete',
-            aiTranscript: transcript.substring(0, 50000),
-            aiSummary: aiResult.summary || '',
-            aiSummaryLang: aiResult.lang || 'da',
-            aiQuiz: JSON.stringify(aiResult.quiz || []),
-            aiProcessedAt: new Date().toISOString()
-          });
-
-          checkResults.push({ id: sess.id, title: sess.title_da || '', status: 'complete' });
-          console.log('[ai-backfill] Complete:', sess.id);
-
+          // Reset status and re-trigger the background function
+          await updateDoc(COLLECTION, sess.id, { aiStatus: null, aiError: null });
+          await callAiProcess(sess.id, sess.recordingAssetId);
+          checkResults.push({ id: sess.id, title: sess.title_da || '', status: 're-triggered' });
+          console.log('[ai-backfill] Re-triggered:', sess.id);
         } catch (err) {
           console.error('[ai-backfill] Check error for', sess.id, ':', err.message);
           checkResults.push({ id: sess.id, title: sess.title_da || '', status: 'error', error: err.message });
@@ -418,7 +534,7 @@ exports.handler = async function (event) {
 
       return jsonResponse(200, {
         ok: true,
-        message: 'Check complete.',
+        message: 'Check complete. Stuck sessions re-triggered.',
         results: checkResults
       });
     }
@@ -479,7 +595,7 @@ exports.handler = async function (event) {
     var pending = all.filter(function (item) {
       return item.status === 'ended'
         && item.recordingAssetId
-        && (!item.aiStatus || item.aiStatus === 'error' || item.aiStatus === 'captions_pending');
+        && (!item.aiStatus || item.aiStatus === 'error' || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending');
     });
 
     console.log('[ai-backfill] Found', pending.length, 'recordings to process');
@@ -801,13 +917,16 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInte
 
 /* ── Call ai-process-recording (Phase 1 trigger) ── */
 
-function callAiProcess(sessionId, assetId) {
+function callAiProcess(sessionId, assetId, extraOpts) {
+  extraOpts = extraOpts || {};
+  var payload = {
+    sessionId: sessionId,
+    assetId: assetId,
+    secret: process.env.AI_INTERNAL_SECRET || ''
+  };
+  if (extraOpts.transcriptOnly) payload.transcriptOnly = true;
   return new Promise(function (resolve, reject) {
-    var body = JSON.stringify({
-      sessionId: sessionId,
-      assetId: assetId,
-      secret: process.env.AI_INTERNAL_SECRET || ''
-    });
+    var body = JSON.stringify(payload);
 
     var opts = {
       hostname: 'yogabible.dk',

@@ -394,6 +394,23 @@
     return labels[(type || '').toLowerCase()] || type || '\u2014';
   }
 
+  /** Render a colored channel badge */
+  function channelBadgeHtml(channel) {
+    if (!channel) return '\u2014';
+    var ch = channel.toLowerCase();
+    var color = '#6B7280'; // default gray
+    if (ch.includes('google ads')) color = '#4285F4';
+    else if (ch.includes('google') && ch.includes('organic')) color = '#34A853';
+    else if (ch.includes('meta ads') || ch.includes('instagram ads')) color = '#1877F2';
+    else if (ch.includes('ai referral')) color = '#8B5CF6';
+    else if (ch.includes('social')) color = '#E4405F';
+    else if (ch.includes('email')) color = '#f75c03';
+    else if (ch.includes('sms')) color = '#22C55E';
+    else if (ch.includes('referral')) color = '#F59E0B';
+    else if (ch === 'direct') color = '#6B7280';
+    return '<span class="yb-lead__channel-badge" style="background:' + color + '">' + esc(channel.substring(0, 25)) + '</span>';
+  }
+
   function lcRecencyColor(d) {
     if (!d) return '#6F6A66';
     var date = d.toDate ? d.toDate() : new Date(d);
@@ -502,6 +519,13 @@
      so that old leads with verbose sources still match.
      ══════════════════════════════════════════ */
   function matchesSourceFilter(lead, filterValue) {
+    // Channel-based filters (prefixed with "ch:")
+    if (filterValue.indexOf('ch:') === 0) {
+      var chFilter = filterValue.substring(3).toLowerCase();
+      var ch = (lead.channel || '').toLowerCase();
+      return ch.indexOf(chFilter) !== -1;
+    }
+
     var src  = (lead.source || '').toLowerCase();
     var type = (lead.type   || '').toLowerCase();
     var ytt  = (lead.ytt_program_type || '').toLowerCase();
@@ -706,7 +730,7 @@
     updateCountDisplay();
 
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;padding:2rem;color:var(--yb-muted)">' + t('leads_no_leads') + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="16" style="text-align:center;padding:2rem;color:var(--yb-muted)">' + t('leads_no_leads') + '</td></tr>';
       return;
     }
 
@@ -757,6 +781,7 @@
         '</td>' +
         '<td><span class="yb-lead__type-badge">' + typeBadge(l.type) + '</span></td>' +
         '<td class="yb-lead__cell-program">' + esc((l.program || l.cohort_label || '').substring(0, 30)) + '</td>' +
+        '<td class="yb-lead__cell-channel">' + channelBadgeHtml(l.channel) + '</td>' +
         '<td class="yb-lead__cell-source">' + esc((l.source || '').substring(0, 20)) + '</td>' +
         '<td>' + statusBadgeHtml(l.status) +
           (l.sub_status ? '<div class="yb-lead__sub-status">' + esc(l.sub_status) + '</div>' : '') +
@@ -1047,6 +1072,7 @@
       (followupText
         ? '<div class="yb-lead__kanban-followup' + followupUrgency + '">\ud83d\udcc5 ' + followupText + '</div>'
         : '') +
+      (l.channel ? '<div class="yb-lead__kanban-channel">' + channelBadgeHtml(l.channel) + '</div>' : '') +
       (l.source ? '<div class="yb-lead__kanban-source">' + esc(l.source.substring(0, 25)) + '</div>' : '') +
     '</div>';
   }
@@ -1205,9 +1231,25 @@
       '</div>';
     }
     html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('leads_channel') + '</span>' +
+      '<span class="yb-lead__card-value">' + channelBadgeHtml(l.channel) + '</span>' +
+    '</div>';
+    html += '<div class="yb-lead__card-row">' +
       '<span class="yb-lead__card-label">' + t('leads_source') + '</span>' +
       '<span class="yb-lead__card-value">' + esc(l.source || '\u2014') + '</span>' +
     '</div>';
+    if (l.utm_campaign) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">UTM Campaign</span>' +
+        '<span class="yb-lead__card-value">' + esc(l.utm_campaign) + '</span>' +
+      '</div>';
+    }
+    if (l.landing_page) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Landing Page</span>' +
+        '<span class="yb-lead__card-value">' + esc(l.landing_page) + '</span>' +
+      '</div>';
+    }
     html += '<div class="yb-lead__card-row">' +
       '<span class="yb-lead__card-label">' + t('leads_col_date') + '</span>' +
       '<span class="yb-lead__card-value">' + fmtDateTime(l.created_at) + '</span>' +
@@ -1358,6 +1400,7 @@
     el = $('yb-lead-edit-phone'); if (el) el.value = l.phone || '';
     el = $('yb-lead-edit-city'); if (el) el.value = l.city_country || '';
     el = $('yb-lead-edit-source'); if (el) el.value = l.source || '';
+    el = $('yb-lead-edit-channel'); if (el) el.value = l.channel || '';
     el = $('yb-lead-edit-type'); if (el) el.value = l.type || '';
     el = $('yb-lead-edit-program'); if (el) el.value = l.program || '';
     el = $('yb-lead-edit-preferred-month'); if (el) el.value = l.preferred_month || '';
@@ -1380,6 +1423,7 @@
       { id: 'yb-lead-edit-phone', key: 'phone' },
       { id: 'yb-lead-edit-city', key: 'city_country' },
       { id: 'yb-lead-edit-source', key: 'source' },
+      { id: 'yb-lead-edit-channel', key: 'channel' },
       { id: 'yb-lead-edit-type', key: 'type' },
       { id: 'yb-lead-edit-program', key: 'program' },
       { id: 'yb-lead-edit-preferred-month', key: 'preferred_month' },
@@ -2403,7 +2447,7 @@
     var filtered = getFilteredLeads();
     if (!filtered.length) { toast(t('leads_no_leads'), true); return; }
 
-    var headers = ['Name', 'Email', 'Phone', 'Type', 'Program', 'Status', 'Sub-Status', 'Priority', 'Temperature', 'Source', 'Accommodation', 'City', 'Follow-up', 'Last Contact', 'Call Attempts', 'Created'];
+    var headers = ['Name', 'Email', 'Phone', 'Type', 'Program', 'Status', 'Sub-Status', 'Priority', 'Temperature', 'Channel', 'Source', 'UTM Campaign', 'Landing Page', 'Accommodation', 'City', 'Follow-up', 'Last Contact', 'Call Attempts', 'Created'];
     var rows = filtered.map(function (l) {
       return [
         (l.first_name || '') + ' ' + (l.last_name || ''),
@@ -2415,7 +2459,10 @@
         l.sub_status || '',
         l.priority || '',
         l.temperature || '',
+        l.channel || '',
         l.source || '',
+        l.utm_campaign || '',
+        l.landing_page || '',
         l.accommodation || '',
         l.city_country || '',
         fmtDate(l.followup_date),

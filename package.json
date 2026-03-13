@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "npx @11ty/eleventy",
-    "postbuild": "node scripts/seo-validator.js",
+    "postbuild": "node scripts/minify-js.js && node scripts/critical-css.js && node scripts/seo-validator.js",
     "seo": "node scripts/seo-validator.js",
     "seo:strict": "node scripts/seo-validator.js --strict",
     "start": "npx @11ty/eleventy --serve",
@@ -20,7 +20,8 @@
   "type": "commonjs",
   "devDependencies": {
     "@11ty/eleventy": "^3.1.2",
-    "cloudinary": "^2.9.0"
+    "cloudinary": "^2.9.0",
+    "terser": "^5.46.0"
   },
   "dependencies": {
     "firebase-admin": "^13.6.1",

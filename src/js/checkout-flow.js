@@ -306,6 +306,18 @@
         // Track checkout opened
         if (window.CheckoutFunnel) window.CheckoutFunnel.trackCheckoutOpened();
 
+        // Notify tracking that checkout was initiated (for Meta + Google Ads conversion events)
+        var checkoutProduct = getProduct(currentProdId);
+        window.dispatchEvent(new CustomEvent('ybCheckoutInitiated', {
+          detail: {
+            prodId: currentProdId,
+            productName: checkoutProduct ? (isDa ? checkoutProduct.name_da : checkoutProduct.name_en) : '',
+            productCategory: checkoutProduct ? checkoutProduct.category : '',
+            value: checkoutProduct ? checkoutProduct.price : 0,
+            currency: 'DKK'
+          }
+        }));
+
         // Advance to checkout step
         showStep('ycf-step-checkout');
       })
@@ -543,8 +555,19 @@
         // Track purchase
         if (window.CheckoutFunnel) window.CheckoutFunnel.trackPurchased();
 
-        // Notify apply form (or any listener) that payment succeeded
-        window.dispatchEvent(new CustomEvent('ybCheckoutSuccess', { detail: { prodId: currentProdId } }));
+        // Notify tracking + apply form that payment succeeded (includes full product + user data for conversion tracking)
+        var purchasedProduct = getProduct(currentProdId);
+        var purchaseUser = firebase.auth().currentUser;
+        window.dispatchEvent(new CustomEvent('ybCheckoutSuccess', {
+          detail: {
+            prodId: currentProdId,
+            productName: purchasedProduct ? (isDa ? purchasedProduct.name_da : purchasedProduct.name_en) : '',
+            productCategory: purchasedProduct ? purchasedProduct.category : '',
+            value: purchasedProduct ? purchasedProduct.price : 0,
+            currency: 'DKK',
+            email: purchaseUser ? purchaseUser.email : ''
+          }
+        }));
 
         // Update success step content based on product
         var prod = currentProdId ? getProduct(currentProdId) : null;

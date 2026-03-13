@@ -252,12 +252,6 @@
           return 0;
         });
 
-    query.limit(PAGE_SIZE).get().then(function (snap) {
-      snap.forEach(function (doc) {
-        careers.push(Object.assign({ id: doc.id }, doc.data()));
-      });
-      careerLastDoc = null; // No pagination needed — all loaded at once
-
         // Auto-delete spam: on first load, permanently delete all records that
         // have gibberish names (no category, no role, no experience) — these are spam.
         if (!spamCleaned) {
@@ -289,17 +283,17 @@
           }
         }
 
-      renderCareersTable();
-      renderCareerStats();
+        renderCareersTable();
+        renderCareerStats();
 
-      // Hide Load More — everything is already loaded
-      var loadMore = $('yb-career-load-more-wrap');
-      if (loadMore) loadMore.hidden = true;
+        // Hide Load More — everything is already loaded
+        var loadMore = $('yb-career-load-more-wrap');
+        if (loadMore) loadMore.hidden = true;
 
-    }).catch(function (err) {
-      console.error('[careers-admin] Load error:', err);
-      toast(t('error_load'), true);
-    });
+      }).catch(function (err) {
+        console.error('[careers-admin] Load error:', err);
+        toast(t('error_load'), true);
+      });
   }
 
   /* ══════════════════════════════════════════

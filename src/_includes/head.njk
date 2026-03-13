@@ -51,6 +51,9 @@
 {% if site.metaPixelId %}<meta name="yb-meta-pixel-id" content="{{ site.metaPixelId }}">{% endif %}
 <!-- Clarity ID — loaded conditionally by cookie consent manager -->
 {% if site.clarityId %}<meta name="yb-clarity-id" content="{{ site.clarityId }}">{% endif %}
+<!-- Google Ads ID + conversion labels — loaded conditionally by cookie consent manager -->
+{% if site.googleAdsId %}<meta name="yb-google-ads-id" content="{{ site.googleAdsId }}">{% endif %}
+{% if site.googleAdsLabels %}<meta name="yb-google-ads-labels" content="{{ site.googleAdsLabels | dump | escape }}">{% endif %}
 <script>window.dataLayer = window.dataLayer || [];</script>
 
 <!-- hreflang: Danish is primary, English at /en/ prefix -->
@@ -217,6 +220,19 @@
   }
 }
 </script>
+<!-- JSON-LD: Speakable (homepage, AI voice assistants) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "{{ site.url }}{{ page.url }}",
+  "name": "{% if lang == 'en' %}Yoga Bible — Yoga Teacher Training in Copenhagen{% else %}Yoga Bible — Yogalæreruddannelse i København{% endif %}",
+  "speakable": {
+    "@type": "SpeakableSpecification",
+    "cssSelector": [".yb-hero__h2", ".yb-hero__subtitle", ".yb-hero__trust"]
+  }
+}
+</script>
 <!-- JSON-LD: Course summary (homepage only, satisfies Course schema check) -->
 <script type="application/ld+json">
 {
@@ -224,7 +240,7 @@
   "@type": "Course",
   "name": "{% if lang == 'en' %}200-Hour Yoga Teacher Training{% else %}200-Timers Yogalæreruddannelse{% endif %}",
   "description": "{% if lang == 'en' %}Yoga Alliance certified 200-hour teacher training in Copenhagen. Choose from 4-week intensive, 8-week semi-intensive, or 18-week flexible formats.{% else %}Yoga Alliance certificeret 200-timers yogalæreruddannelse i København. Vælg mellem 4-ugers intensiv, 8-ugers semi-intensiv eller 18-ugers fleksibel.{% endif %}",
-  "url": "{{ site.url }}{% if lang == 'en' %}/en{% endif %}/om-200hrs-yogalreruddannelser/",
+  "url": "{{ site.url }}{% if lang == 'en' %}/en{% endif %}/om-200hrs-yogalaereruddannelser/",
   "provider": {
     "@type": "EducationalOrganization",
     "@id": "{{ site.url }}/#organization"
@@ -293,7 +309,7 @@
 </script>
 {% endif %}
 
-{% set coursePages = ["/om-200hrs-yogalreruddannelser/", "/200-hours-18-weeks-flexible-programs/", "/200-hours-8-weeks-semi-intensive-programs/", "/200-hours-4-weeks-intensive-programs/"] %}
+{% set coursePages = ["/om-200hrs-yogalaereruddannelser/", "/200-hours-18-weeks-flexible-programs/", "/200-hours-8-weeks-semi-intensive-programs/", "/200-hours-4-weeks-intensive-programs/"] %}
 {% set isCourse = page.url in coursePages or page.url | replace("/en/", "/") in coursePages %}
 {% if isCourse %}
 <!-- JSON-LD: Course with multiple instances (program pages) -->
@@ -334,7 +350,7 @@
   },
   "teaches": ["Hatha Yoga", "Vinyasa Flow", "Yin Yoga", "Hot Yoga", "Meditation", "Pranayama", "Yoga Anatomy", "Yoga Philosophy", "Teaching Methodology", "Sequencing"],
   "hasCourseInstance": [
-    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
+    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalaereruddannelser/' or page.url == '/en/om-200hrs-yogalaereruddannelser/' %}
     {
       "@type": "CourseInstance",
       "name": "4-Week Intensive — April 2026",
@@ -390,8 +406,8 @@
       }
     }
     {% endif %}
-    {% if '/8-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
-    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %},{% endif %}
+    {% if '/8-weeks' in page.url or page.url == '/om-200hrs-yogalaereruddannelser/' or page.url == '/en/om-200hrs-yogalaereruddannelser/' %}
+    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalaereruddannelser/' or page.url == '/en/om-200hrs-yogalaereruddannelser/' %},{% endif %}
     {
       "@type": "CourseInstance",
       "name": "8-Week Semi-Intensive — May 2026",
@@ -420,8 +436,8 @@
       }
     }
     {% endif %}
-    {% if '/18-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
-    {% if '/4-weeks' in page.url or '/8-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %},{% endif %}
+    {% if '/18-weeks' in page.url or page.url == '/om-200hrs-yogalaereruddannelser/' or page.url == '/en/om-200hrs-yogalaereruddannelser/' %}
+    {% if '/4-weeks' in page.url or '/8-weeks' in page.url or page.url == '/om-200hrs-yogalaereruddannelser/' or page.url == '/en/om-200hrs-yogalaereruddannelser/' %},{% endif %}
     {
       "@type": "CourseInstance",
       "name": "18-Week Flexible — March 2026",
@@ -490,7 +506,65 @@
     "ratingValue": "4.9",
     "bestRating": "5",
     "ratingCount": "500"
-  }
+  },
+  "review": [
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Sara Gerlee" },
+      "datePublished": "2025-11-01",
+      "reviewBody": "The 200-hour program was transformative. Knowledgeable and supportive team — the studio feels like a second home, for both new and experienced practitioners."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Clara Aagaard" },
+      "datePublished": "2025-10-01",
+      "reviewBody": "Holistic learning environment with room for questions and practical focus. Skilled teachers and useful tools for class management."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Liza Westh" },
+      "datePublished": "2025-06-01",
+      "reviewBody": "My warmest recommendation. 200 hours of class management, anatomy and practice — I felt optimally prepared as a yoga teacher."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Signe Schmidt" },
+      "datePublished": "2025-03-01",
+      "reviewBody": "Effective 18-week training in anatomy, philosophy and practice (yin, vinyasa, hatha) — in a beautiful room with daylight and green plants."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Meg Ellis" },
+      "datePublished": "2025-05-01",
+      "reviewBody": "Extraordinary studio and teaching team. The 200h program prepares you fully — perfect for both deepening practice and teaching."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Kama Krystel" },
+      "datePublished": "2025-03-01",
+      "reviewBody": "Well-structured intensive program that blends theory and practice. Personal feedback and supportive community — highly recommended."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Maja Pedersen" },
+      "datePublished": "2025-05-01",
+      "reviewBody": "Pragmatic approach — you develop quickly. Super teachers with great experience in Hatha/Vinyasa, anatomy and yoga philosophy."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Tanja E." },
+      "datePublished": "2025-11-01",
+      "reviewBody": "Warm, friendly environment and competent teachers. Good balance between practice and philosophy — strong understanding of anatomy."
+    }
+  ]
 }
 </script>
 {% endif %}
@@ -693,16 +767,20 @@
 </script>
 {% endif %}
 
+<!-- DNS/Connection Preconnects -->
+<link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+
 <!-- Font Preloads -->
 <link rel="preload" href="/assets/fonts/AbacaxiLatinWeb-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/AbacaxiLatinWeb-Bold.woff2" as="font" type="font/woff2" crossorigin>
 
+<!-- LCP preload: hero poster — mobile-optimized sizes -->
+{% if page.url == "/" or page.url == "/en/" %}
+<link rel="preload" as="image" href="{{ media.homepage.studioPanorama | cloudimg('w_400,h_225,c_fill,q_70') }}" fetchpriority="high" media="(max-width: 768px)">
+<link rel="preload" as="image" href="{{ media.homepage.studioPanorama | cloudimg('w_800,h_450,c_fill,q_auto') }}" fetchpriority="high" media="(min-width: 769px)">
+{% endif %}
+
 <!-- Stylesheets -->
 <link rel="stylesheet" href="/css/main.css">
-<link rel="preconnect" href="https://use.typekit.net" crossorigin>
-<link rel="preconnect" href="https://p.typekit.net" crossorigin>
 
-<!-- Adobe Fonts (Typekit) -->
-<script type="text/javascript" src="//use.typekit.net/ik/hQtGqprj-gRFyuhFQlUdToJsdbe0LIz-yoettQMNu36fecjJXnX1IyvhF2jtFRZLFR6UZe9tFQjhw2BR5QwX52IDZQb35AIUe6MK21gkjAiljWsTjhIlihmKJ6NGjAUojW4qOAsTSagCjWq7fbKbmsMMeMw6MKGHf5A5MyMgeMw6MTMgTVDOk3j.js" async fetchpriority="high" onload="try{Typekit.load();}catch(e){} document.documentElement.classList.remove('wf-loading');"></script>
-<script>document.documentElement.classList.add('wf-loading')</script>
-<style>@keyframes fonts-loading { 0%, 99% { color: transparent; } } html.wf-loading * { animation: fonts-loading 3s; }</style>
