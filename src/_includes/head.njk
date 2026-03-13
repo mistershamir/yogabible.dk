@@ -237,7 +237,7 @@
   "@type": "Course",
   "name": "{% if lang == 'en' %}200-Hour Yoga Teacher Training{% else %}200-Timers Yogalæreruddannelse{% endif %}",
   "description": "{% if lang == 'en' %}Yoga Alliance certified 200-hour teacher training in Copenhagen. Choose from 4-week intensive, 8-week semi-intensive, or 18-week flexible formats.{% else %}Yoga Alliance certificeret 200-timers yogalæreruddannelse i København. Vælg mellem 4-ugers intensiv, 8-ugers semi-intensiv eller 18-ugers fleksibel.{% endif %}",
-  "url": "{{ site.url }}{% if lang == 'en' %}/en{% endif %}/om-200hrs-yogalreruddannelser/",
+  "url": "{{ site.url }}{% if lang == 'en' %}/en{% endif %}/om-200hrs-yogalaereruddannelser/",
   "provider": {
     "@type": "EducationalOrganization",
     "@id": "{{ site.url }}/#organization"
@@ -306,7 +306,7 @@
 </script>
 {% endif %}
 
-{% set coursePages = ["/om-200hrs-yogalreruddannelser/", "/200-hours-18-weeks-flexible-programs/", "/200-hours-8-weeks-semi-intensive-programs/", "/200-hours-4-weeks-intensive-programs/"] %}
+{% set coursePages = ["/om-200hrs-yogalaereruddannelser/", "/200-hours-18-weeks-flexible-programs/", "/200-hours-8-weeks-semi-intensive-programs/", "/200-hours-4-weeks-intensive-programs/"] %}
 {% set isCourse = page.url in coursePages or page.url | replace("/en/", "/") in coursePages %}
 {% if isCourse %}
 <!-- JSON-LD: Course with multiple instances (program pages) -->
@@ -347,7 +347,7 @@
   },
   "teaches": ["Hatha Yoga", "Vinyasa Flow", "Yin Yoga", "Hot Yoga", "Meditation", "Pranayama", "Yoga Anatomy", "Yoga Philosophy", "Teaching Methodology", "Sequencing"],
   "hasCourseInstance": [
-    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
+    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalaereruddannelser/' or page.url == '/en/om-200hrs-yogalaereruddannelser/' %}
     {
       "@type": "CourseInstance",
       "name": "4-Week Intensive — April 2026",
@@ -403,8 +403,8 @@
       }
     }
     {% endif %}
-    {% if '/8-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
-    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %},{% endif %}
+    {% if '/8-weeks' in page.url or page.url == '/om-200hrs-yogalaereruddannelser/' or page.url == '/en/om-200hrs-yogalaereruddannelser/' %}
+    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalaereruddannelser/' or page.url == '/en/om-200hrs-yogalaereruddannelser/' %},{% endif %}
     {
       "@type": "CourseInstance",
       "name": "8-Week Semi-Intensive — May 2026",
@@ -433,8 +433,8 @@
       }
     }
     {% endif %}
-    {% if '/18-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
-    {% if '/4-weeks' in page.url or '/8-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %},{% endif %}
+    {% if '/18-weeks' in page.url or page.url == '/om-200hrs-yogalaereruddannelser/' or page.url == '/en/om-200hrs-yogalaereruddannelser/' %}
+    {% if '/4-weeks' in page.url or '/8-weeks' in page.url or page.url == '/om-200hrs-yogalaereruddannelser/' or page.url == '/en/om-200hrs-yogalaereruddannelser/' %},{% endif %}
     {
       "@type": "CourseInstance",
       "name": "18-Week Flexible — March 2026",
@@ -503,7 +503,65 @@
     "ratingValue": "4.9",
     "bestRating": "5",
     "ratingCount": "500"
-  }
+  },
+  "review": [
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Sara Gerlee" },
+      "datePublished": "2025-11-01",
+      "reviewBody": "The 200-hour program was transformative. Knowledgeable and supportive team — the studio feels like a second home, for both new and experienced practitioners."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Clara Aagaard" },
+      "datePublished": "2025-10-01",
+      "reviewBody": "Holistic learning environment with room for questions and practical focus. Skilled teachers and useful tools for class management."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Liza Westh" },
+      "datePublished": "2025-06-01",
+      "reviewBody": "My warmest recommendation. 200 hours of class management, anatomy and practice — I felt optimally prepared as a yoga teacher."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Signe Schmidt" },
+      "datePublished": "2025-03-01",
+      "reviewBody": "Effective 18-week training in anatomy, philosophy and practice (yin, vinyasa, hatha) — in a beautiful room with daylight and green plants."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Meg Ellis" },
+      "datePublished": "2025-05-01",
+      "reviewBody": "Extraordinary studio and teaching team. The 200h program prepares you fully — perfect for both deepening practice and teaching."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Kama Krystel" },
+      "datePublished": "2025-03-01",
+      "reviewBody": "Well-structured intensive program that blends theory and practice. Personal feedback and supportive community — highly recommended."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Maja Pedersen" },
+      "datePublished": "2025-05-01",
+      "reviewBody": "Pragmatic approach — you develop quickly. Super teachers with great experience in Hatha/Vinyasa, anatomy and yoga philosophy."
+    },
+    {
+      "@type": "Review",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "author": { "@type": "Person", "name": "Tanja E." },
+      "datePublished": "2025-11-01",
+      "reviewBody": "Warm, friendly environment and competent teachers. Good balance between practice and philosophy — strong understanding of anatomy."
+    }
+  ]
 }
 </script>
 {% endif %}

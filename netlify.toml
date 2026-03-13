@@ -66,8 +66,8 @@
   status = 301
 
 [[redirects]]
-  from = "/200hrs-yogalreruddannelser"
-  to = "/om-200hrs-yogalreruddannelser"
+  from = "/200hrs-yogalaereruddannelser"
+  to = "/om-200hrs-yogalaereruddannelser"
   status = 301
 
 [[redirects]]
@@ -91,8 +91,55 @@
   status = 301
 
 [[redirects]]
-  from = "/sammenlign-yogalreruddannelser-1"
-  to = "/sammenlign-yogalreruddannelser"
+  from = "/sammenlign-yogalaereruddannelser-1"
+  to = "/sammenlign-yogalaereruddannelser"
+  status = 301
+
+# Slug typo fix: yogalreruddannelser → yogalaereruddannelser (missing "ae" from æ)
+[[redirects]]
+  from = "/om-200hrs-yogalreruddannelser"
+  to = "/om-200hrs-yogalaereruddannelser"
+  status = 301
+
+[[redirects]]
+  from = "/om-200hrs-yogalreruddannelser/"
+  to = "/om-200hrs-yogalaereruddannelser/"
+  status = 301
+
+[[redirects]]
+  from = "/en/om-200hrs-yogalreruddannelser"
+  to = "/en/om-200hrs-yogalaereruddannelser"
+  status = 301
+
+[[redirects]]
+  from = "/en/om-200hrs-yogalreruddannelser/"
+  to = "/en/om-200hrs-yogalaereruddannelser/"
+  status = 301
+
+[[redirects]]
+  from = "/sammenlign-yogalreruddannelser"
+  to = "/sammenlign-yogalaereruddannelser"
+  status = 301
+
+[[redirects]]
+  from = "/sammenlign-yogalreruddannelser/"
+  to = "/sammenlign-yogalaereruddannelser/"
+  status = 301
+
+[[redirects]]
+  from = "/en/sammenlign-yogalreruddannelser"
+  to = "/en/sammenlign-yogalaereruddannelser"
+  status = 301
+
+[[redirects]]
+  from = "/en/sammenlign-yogalreruddannelser/"
+  to = "/en/sammenlign-yogalaereruddannelser/"
+  status = 301
+
+# Also redirect old legacy URL to new correct slug
+[[redirects]]
+  from = "/200hrs-yogalreruddannelser"
+  to = "/om-200hrs-yogalaereruddannelser"
   status = 301
 
 [[redirects]]

@@ -28,7 +28,7 @@ ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
 ANALYZE_PAGES = [
     ('/', 'Homepage'),
     ('/en/', 'Homepage (EN)'),
-    ('/om-200hrs-yogalreruddannelser/', '200hr YTT Overview'),
+    ('/om-200hrs-yogalaereruddannelser/', '200hr YTT Overview'),
     ('/200-hours-4-weeks-intensive-programs/', '4-Week Intensive'),
     ('/200-hours-8-weeks-semi-intensive-programs/', '8-Week Semi-Intensive'),
     ('/200-hours-18-weeks-flexible-programs/', '18-Week Flexible'),
