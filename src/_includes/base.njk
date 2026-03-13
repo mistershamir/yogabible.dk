@@ -106,24 +106,37 @@
   {% include "cookies.njk" %}
   <script src="/js/cookies.js" defer></script>
 
-  <!-- Firebase SDK (compat for broad browser support) -->
-  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js" defer></script>
-
-  <!-- Scripts: deferred for faster initial paint -->
+  <!-- Critical scripts: layout & navigation -->
   <script src="/js/header.js" defer></script>
   <script src="/js/main.js" defer></script>
   <script src="/js/footer.js" defer></script>
-  <!-- Deferred: not needed for initial paint -->
-  <script src="/js/roles-permissions.js" defer></script>
-  <script src="/js/firebase-auth.js" defer></script>
-  {% if includeAppointmentJS !== false %}<script src="/js/appointment-booking.js" defer></script>{% endif %}
-  {% if includePhotoBooking %}<script src="/js/photo-booking.js" defer></script>{% endif %}
-  <script src="/js/ytt-funnel.js" defer></script>
-  <script src="/js/checkout-flow.js" defer></script>
-  <script src="/js/workshop-browser.js" defer></script>
-  <script src="/js/mindbody.js" defer></script>
+
+  <!-- Firebase + auth: lazy-loaded after idle for mobile performance -->
+  <script>
+  (function(){
+    var loaded=false;
+    function loadFirebase(){
+      if(loaded)return;loaded=true;
+      var s=['https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js',
+             'https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js',
+             'https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js'];
+      var chain=Promise.resolve();
+      s.forEach(function(u){chain=chain.then(function(){return new Promise(function(r){
+        var e=document.createElement('script');e.src=u;e.onload=r;document.body.appendChild(e);
+      })})});
+      chain.then(function(){
+        ['/js/roles-permissions.js','/js/firebase-auth.js','/js/mindbody.js'
+        {% if includeAppointmentJS !== false %},'/js/appointment-booking.js'{% endif %}
+        {% if includePhotoBooking %},'/js/photo-booking.js'{% endif %}
+        ,'/js/ytt-funnel.js','/js/checkout-flow.js','/js/workshop-browser.js'
+        ].forEach(function(u){var e=document.createElement('script');e.src=u;document.body.appendChild(e)});
+      });
+    }
+    if('requestIdleCallback' in window){requestIdleCallback(loadFirebase,{timeout:3500})}
+    else{setTimeout(loadFirebase,2000)}
+    document.addEventListener('click',loadFirebase,{once:true});
+  })();
+  </script>
   {% if includeScheduleModal %}
     <script src="/js/modal-200ytt.js" defer></script>
   {% endif %}
