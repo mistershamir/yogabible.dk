@@ -1,0 +1,1529 @@
+/* ═══════════════════════════════════════════════════════════
+   STORE & CHECKOUT — Extracted from main.css for conditional loading
+   Only loaded on pages with store/checkout (profile page)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Online Store ── */
+.yb-store__header {
+  margin-bottom: 2rem;
+}
+
+.yb-store__title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.5rem;
+}
+
+.yb-store__subtitle {
+  color: #6F6A66;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.yb-store__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #6F6A66;
+  padding: 2rem 0;
+}
+
+.yb-store__empty,
+.yb-store__error {
+  color: #6F6A66;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.yb-store__error {
+  color: #c0392b;
+}
+
+.yb-store__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 1.25rem;
+}
+
+.yb-store__item {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.yb-store__item:hover {
+  border-color: #f75c03;
+}
+
+.yb-store__item-info {
+  flex: 1;
+}
+
+.yb-store__item-name {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.5rem;
+}
+
+.yb-store__item-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f75c03;
+}
+
+.yb-store__item-btn {
+  width: 100%;
+}
+
+/* ── Store Checkout ── */
+.yb-store__checkout-inner {
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: clamp(1rem, 3vw, 2rem);
+  max-width: 900px;
+}
+
+.yb-store__checkout-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 1.5rem;
+}
+
+.yb-store__checkout-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #F5F3F0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* -- Checkout: Start Date picker (contracts) -- */
+.yb-store__checkout-startdate {
+  margin-bottom: 1.25rem;
+}
+.yb-store__checkout-startdate label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  margin-bottom: 0.35rem;
+}
+.yb-store__checkout-startdate label svg {
+  stroke: #f75c03;
+}
+.yb-store__checkout-startdate input[type="date"] {
+  width: 100%;
+  max-width: 220px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #f75c03;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: #0F0F0F;
+  background: #FFFCF9;
+  outline: none;
+}
+.yb-store__checkout-startdate input[type="date"]:focus {
+  border-color: #d94f02;
+  box-shadow: 0 0 0 2px rgba(247,92,3,0.12);
+}
+
+/* Two-column checkout grid */
+.yb-checkout__grid {
+  /* Default: single column — payment form fills width */
+}
+
+.yb-checkout__grid--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.yb-checkout__col-left {
+  display: none;
+}
+
+.yb-checkout__grid--split .yb-checkout__col-left {
+  display: block;
+}
+
+.yb-checkout__col-left .yb-checkout-doc:last-of-type {
+  margin-bottom: 0;
+}
+
+.yb-checkout__payment-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 1rem;
+  display: none;
+}
+
+.yb-checkout__grid--split .yb-checkout__payment-title {
+  display: block;
+}
+
+.yb-store__checkout-item-name {
+  font-weight: 700;
+  color: #0F0F0F;
+}
+
+.yb-store__checkout-item-price {
+  font-weight: 700;
+  color: #f75c03;
+  font-size: 1.1rem;
+}
+
+.yb-store__checkout-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.yb-store__checkout-actions .yb-auth-submit {
+  flex: 1;
+}
+
+.yb-store__checkout-actions .yb-btn--outline {
+  flex: 0 0 auto;
+}
+
+.yb-store__secure {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6F6A66;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+/* ── Save Card Checkbox ── */
+.yb-store__save-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #6F6A66;
+  margin-top: 0.5rem;
+}
+
+.yb-store__save-card input[type="checkbox"] {
+  accent-color: #f75c03;
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Stored Card (Profile) ── */
+.yb-stored-card__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.yb-stored-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.yb-stored-card__info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 150px;
+}
+
+.yb-stored-card__icon {
+  color: #6F6A66;
+  flex-shrink: 0;
+}
+
+.yb-stored-card__type {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.yb-stored-card__number {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  letter-spacing: 0.08em;
+  display: block;
+}
+
+.yb-stored-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  color: #6F6A66;
+}
+
+.yb-stored-card__empty-text {
+  color: #6F6A66;
+  font-size: 0.9rem;
+}
+
+/* ── Checkout Stored Card Toggle ── */
+.yb-checkout-stored-card {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.yb-checkout-stored-card__option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #6F6A66;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  flex: 1;
+}
+
+.yb-checkout-stored-card__option--active {
+  border-color: #f75c03;
+  color: #0F0F0F;
+  background: rgba(247, 92, 3, 0.04);
+}
+
+.yb-checkout-stored-card__option input[type="radio"] {
+  accent-color: #f75c03;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.yb-checkout-stored-card__option svg {
+  color: #f75c03;
+  flex-shrink: 0;
+}
+
+.yb-btn--sm {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+}
+
+/* ── Store Success ── */
+.yb-store__success-inner {
+  text-align: center;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  max-width: 480px;
+}
+
+.yb-store__success-inner h3 {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.3rem;
+  margin: 1rem 0 0.5rem;
+  color: #0F0F0F;
+}
+
+.yb-store__success-inner p {
+  color: #6F6A66;
+  margin-bottom: 1.5rem;
+}
+
+
+/* ── Store Responsive ── */
+@media (max-width: 768px) {
+  .yb-store__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .yb-store__checkout-inner {
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  .yb-checkout__grid--split {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .yb-store__checkout-actions {
+    flex-direction: column;
+  }
+
+  .yb-store__top-cat {
+    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+  }
+  .yb-store__top-cat-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .yb-store__top-cat-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+  .yb-store__subcats {
+    gap: 0.35rem;
+  }
+  .yb-store__sub-btn {
+    padding: 0.4rem 0.75rem;
+  }
+  .yb-store__sub-name {
+    font-size: 0.75rem;
+  }
+  .yb-store__sub-desc {
+    font-size: 0.62rem;
+  }
+}
+
+/* ═══════════════════════════════════════
+   STORE CATEGORY TABS
+   ═══════════════════════════════════════ */
+
+.yb-store__categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.yb-store__cat-btn {
+  background: #F5F3F0;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: #6F6A66;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.yb-store__cat-btn:hover {
+  border-color: #f75c03;
+  color: #f75c03;
+}
+
+.yb-store__cat-btn.is-active {
+  background: #f75c03;
+  border-color: #f75c03;
+  color: #fff;
+}
+
+.yb-store__cat-count {
+  display: inline-block;
+  background: rgba(255,255,255,0.25);
+  border-radius: 10px;
+  padding: 0 0.4rem;
+  font-size: 0.7rem;
+  margin-left: 0.25rem;
+}
+
+.yb-store__cat-btn.is-active .yb-store__cat-count {
+  background: rgba(255,255,255,0.3);
+}
+
+.yb-store__item-count {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  display: block;
+  margin: 0.15rem 0;
+}
+
+.yb-store__item-recurring {
+  font-size: 0.8rem;
+  color: #f75c03;
+  font-weight: 700;
+  display: block;
+  margin: 0.15rem 0;
+}
+
+.yb-store__item-duration {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  display: block;
+}
+
+.yb-store__checkout-item-recurring {
+  display: block;
+  font-size: 0.8rem;
+  color: #f75c03;
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+
+/* ── Store Search Bar ── */
+.yb-store__search-wrap {
+  position: relative;
+  margin-bottom: 1rem;
+}
+.yb-store__search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.yb-store__search {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 2.75rem;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #0F0F0F;
+  background: #FFFCF9;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.yb-store__search:focus {
+  outline: none;
+  border-color: #f75c03;
+}
+.yb-store__search::placeholder {
+  color: #B0AAA4;
+}
+.yb-store__search-clear {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  color: #6F6A66;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+}
+.yb-store__search-clear:hover {
+  color: #f75c03;
+}
+
+/* ── Store Program Filter Banner (from booking redirect) ── */
+.yb-store__program-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #fff3ec;
+  border: 1px solid #f75c03;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  color: #0F0F0F;
+}
+.yb-store__program-filter-clear {
+  background: none;
+  border: none;
+  color: #f75c03;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+}
+.yb-store__program-filter-clear:hover {
+  text-decoration: underline;
+}
+
+/* ── Store Results Count ── */
+.yb-store__results-count {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Store Item Badges ── */
+.yb-store__item-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.yb-store__badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+.yb-store__badge--membership {
+  background: #F5F3F0;
+  color: #6F6A66;
+  border: 1px solid #E8E4E0;
+}
+.yb-store__badge--free {
+  background: #FFF5EE;
+  color: #f75c03;
+  border: 1px solid #f75c03;
+}
+
+/* ── Store Item Description ── */
+.yb-store__item-desc {
+  font-size: 0.82rem;
+  color: #6F6A66;
+  line-height: 1.45;
+  margin: 0.35rem 0 0.5rem;
+}
+
+/* ── Store Per-Class Cost ── */
+.yb-store__item-per-class {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-style: italic;
+  margin: 0.35rem 0 0;
+  line-height: 1.4;
+}
+
+/* ── Store Item Pricing ── */
+.yb-store__item-pricing {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+/* ── Store Item Terms ── */
+.yb-store__item-terms {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.yb-store__item-terms li {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  padding: 0.15rem 0 0.15rem 1.2rem;
+  position: relative;
+}
+.yb-store__item-terms li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #f75c03;
+  font-weight: 700;
+}
+.yb-store__item-terms li:last-child::before {
+  content: '→';
+}
+.yb-store__item-terms a {
+  color: #f75c03;
+  text-decoration: underline;
+  font-size: 0.75rem;
+}
+.yb-store__item-terms a:hover {
+  color: #d94f02;
+}
+
+/* ── Checkout Terms ── */
+.yb-store__checkout-item-details {
+  flex: 1;
+  min-width: 0;
+}
+.yb-store__checkout-terms {
+  list-style: none;
+  padding: 0;
+  margin: 0.35rem 0 0;
+}
+.yb-store__checkout-terms li {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  padding: 0.1rem 0 0.1rem 1rem;
+  position: relative;
+}
+.yb-store__checkout-terms li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #f75c03;
+  font-weight: 600;
+}
+
+/* ── Checkout: Product Description & Features ── */
+.yb-store__checkout-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+.yb-store__checkout-meta-chip {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #f75c03;
+  background: rgba(247,92,3,0.08);
+  border: 1px solid rgba(247,92,3,0.2);
+  border-radius: 20px;
+  padding: 0.2rem 0.65rem;
+}
+.yb-store__checkout-meta-format {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  font-weight: 600;
+}
+.yb-store__checkout-desc {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  line-height: 1.45;
+  margin: 0.4rem 0 0;
+}
+.yb-store__checkout-features {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.yb-store__checkout-features li {
+  font-size: 0.75rem;
+  color: #0F0F0F;
+  padding: 0.15rem 0 0.15rem 1.1rem;
+  position: relative;
+  line-height: 1.4;
+}
+.yb-store__checkout-features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #27ae60;
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+.yb-store__checkout-remaining {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  background: #F5F3F0;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  margin-top: 0.5rem;
+}
+.yb-store__checkout-remaining svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  stroke: #6F6A66;
+}
+.yb-store__checkout-remaining span {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  line-height: 1.4;
+}
+.yb-store__checkout-bonus {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(247,92,3,0.06);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  margin-top: 0.4rem;
+}
+.yb-store__checkout-bonus span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f75c03;
+}
+
+/* ── Store: Top-level Category Cards ── */
+.yb-store__top-cats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.yb-store__top-cat {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+.yb-store__top-cat:hover {
+  border-color: #f75c03;
+  box-shadow: 0 2px 12px rgba(247,92,3,0.10);
+}
+.yb-store__top-cat-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(247,92,3,0.08);
+  border-radius: 12px;
+  color: #f75c03;
+}
+.yb-store__top-cat-text {
+  flex: 1;
+  min-width: 0;
+}
+.yb-store__top-cat-name {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  line-height: 1.3;
+}
+.yb-store__top-cat-desc {
+  display: block;
+  font-size: 0.82rem;
+  color: #6F6A66;
+  margin-top: 0.15rem;
+  line-height: 1.35;
+}
+.yb-store__top-cat-count {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  background: #F5F3F0;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6F6A66;
+  padding: 0 0.5rem;
+}
+.yb-store__top-cat-arrow {
+  flex-shrink: 0;
+  color: #B0AAA4;
+  transition: transform 0.15s;
+}
+.yb-store__top-cat:hover .yb-store__top-cat-arrow {
+  transform: translateX(3px);
+  color: #f75c03;
+}
+.yb-store__top-cat:hover .yb-store__top-cat-icon {
+  color: #f75c03;
+}
+.yb-store__top-cat--soon {
+  opacity: 0.75;
+  border-style: dashed;
+}
+.yb-store__top-cat--soon:hover {
+  opacity: 1;
+}
+.yb-store__top-cat-soon {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #f75c03;
+  margin-top: 4px;
+}
+
+/* ── Store: Back Button ── */
+.yb-store__back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #f75c03;
+  padding: 0.25rem 0;
+  margin-bottom: 0.75rem;
+  transition: color 0.15s;
+}
+.yb-store__back-btn:hover {
+  color: #d94f02;
+}
+
+/* ── Store: Category Heading ── */
+.yb-store__cat-heading {
+  margin-bottom: 1rem;
+}
+.yb-store__cat-title {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0;
+}
+.yb-store__cat-title::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f75c03;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+/* ── Store: Subcategory Pills ── */
+.yb-store__subcats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.yb-store__sub-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  background: #F5F3F0;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  text-align: center;
+}
+.yb-store__sub-btn:hover {
+  border-color: #f75c03;
+}
+.yb-store__sub-btn.is-active {
+  background: #f75c03;
+  border-color: #f75c03;
+}
+.yb-store__sub-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  line-height: 1.3;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-name {
+  color: #fff;
+}
+.yb-store__sub-desc {
+  font-size: 0.68rem;
+  color: #6F6A66;
+  font-weight: 400;
+  line-height: 1.2;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-desc {
+  color: rgba(255,255,255,0.8);
+}
+.yb-store__sub-count {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #B0AAA4;
+  line-height: 1;
+}
+.yb-store__sub-btn.is-active .yb-store__sub-count {
+  color: rgba(255,255,255,0.7);
+}
+
+/* ── Store: Info Note ── */
+.yb-store__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: rgba(247,92,3,0.06);
+  border: 1px solid rgba(247,92,3,0.2);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: #0F0F0F;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+.yb-store__note svg {
+  flex-shrink: 0;
+  color: #f75c03;
+  margin-top: 0.1rem;
+}
+
+/* ── Store: Features List (memberships) ── */
+.yb-store__item-features {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+}
+.yb-store__item-features li {
+  font-size: 0.8rem;
+  color: #0F0F0F;
+  padding: 0.25rem 0 0.25rem 1.4rem;
+  position: relative;
+  line-height: 1.45;
+}
+.yb-store__item-features li::before {
+  content: '\2713';
+  position: absolute;
+  left: 0;
+  color: #f75c03;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* ── Store: Validity ── */
+.yb-store__item-validity {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  margin: 0.35rem 0 0;
+}
+
+/* ── Store: Sharing Info ── */
+.yb-store__item-sharing {
+  font-size: 0.8rem;
+  color: #f75c03;
+  font-weight: 600;
+  margin: 0.4rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.yb-store__item-sharing svg {
+  flex-shrink: 0;
+}
+.yb-store__sharing-how {
+  margin: 0.5rem 0 0;
+}
+.yb-store__sharing-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  padding: 0.3rem 0;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #f75c03;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.yb-store__sharing-toggle:hover {
+  color: #d94f02;
+}
+.yb-store__sharing-toggle svg {
+  transition: transform 0.25s ease;
+}
+.yb-store__sharing-toggle.is-open svg {
+  transform: rotate(180deg);
+}
+.yb-store__sharing-details {
+  margin: 0.4rem 0 0;
+  padding: 0.75rem 1rem;
+  background: #F5F3F0;
+  border-radius: 10px;
+  border: 1px solid #E8E4E0;
+}
+.yb-store__sharing-details ol {
+  margin: 0;
+  padding: 0 0 0 1.3rem;
+}
+.yb-store__sharing-details li {
+  font-size: 0.78rem;
+  color: #0F0F0F;
+  padding: 0.2rem 0;
+  line-height: 1.45;
+}
+.yb-store__sharing-details li::marker {
+  color: #f75c03;
+  font-weight: 700;
+}
+.yb-store__sharing-note {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  font-style: italic;
+  margin: 0.5rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px dashed #E8E4E0;
+}
+
+/* ── Store: Saving Info (time-based) ── */
+.yb-store__item-saving {
+  font-size: 0.78rem;
+  color: #27ae60;
+  font-weight: 600;
+  margin: 0.4rem 0 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  line-height: 1.4;
+}
+.yb-store__item-saving svg {
+  flex-shrink: 0;
+  color: #f75c03;
+  stroke: #f75c03;
+  margin-top: 0.1rem;
+}
+.yb-store__saving-text {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 0.78rem;
+}
+.yb-store__saving-breakdown {
+  font-weight: 400;
+  color: #6F6A66;
+  font-size: 0.72rem;
+  margin-top: 0.15rem;
+}
+
+/* ── Store: VAT Info ── */
+.yb-store__item-vat {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  margin: 0.3rem 0 0;
+}
+.yb-store__item-vat--zero {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+/* ── Store: Popular / Best Deal badges ── */
+.yb-store__badge--popular {
+  background: rgba(247,92,3,0.1);
+  color: #f75c03;
+  border: 1px solid rgba(247,92,3,0.2);
+}
+.yb-store__badge--best {
+  background: #f75c03;
+  color: #fff;
+}
+.yb-store__badge--tourist {
+  background: #fff3e0;
+  color: #e67e22;
+  border: 1px solid #f0c27a;
+}
+.yb-store__badge--cph {
+  background: #F5F3F0;
+  color: #6F6A66;
+  border: 1px solid #E8E4E0;
+}
+
+/* ── Store: Popular/Best card highlights ── */
+.yb-store__item--popular {
+  border-color: #f75c03;
+  box-shadow: 0 0 0 1px rgba(247,92,3,0.15);
+}
+.yb-store__item--best {
+  border-color: #27ae60;
+  box-shadow: 0 0 0 1px rgba(39,174,96,0.15);
+}
+
+/* ── Store: Item Footer (price + button) ── */
+.yb-store__item-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid #E8E4E0;
+}
+.yb-store__item--deposit .yb-store__item-footer {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
+}
+.yb-store__item--deposit .yb-store__item-footer .yb-store__item-pricing {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.yb-store__item--deposit .yb-store__item-footer .yb-store__item-btn {
+  width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+.yb-store__item-footer .yb-store__item-btn {
+  width: auto;
+  white-space: nowrap;
+}
+.yb-store__item-footer .yb-store__item-pricing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.yb-store__item-footer .yb-store__item-pricing .yb-store__item-price {
+  font-size: 1.15rem;
+}
+.yb-store__item-footer .yb-store__item-recurring {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-weight: 400;
+}
+
+/* ── Store: Checkout Saving/Due ── */
+.yb-store__checkout-saving {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+}
+.yb-store__checkout-saving svg {
+  flex-shrink: 0;
+}
+.yb-store__checkout-price-old {
+  color: #6F6A66;
+  font-size: 0.82rem;
+}
+.yb-store__checkout-price-old s {
+  text-decoration: line-through;
+}
+.yb-store__checkout-price-free {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 0.85rem;
+}
+.yb-store__checkout-due {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.75rem;
+  background: #FFF7ED;
+  border: 1px solid #f75c03;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.yb-store__checkout-due-label {
+  color: #6F6A66;
+}
+.yb-store__checkout-due-amount {
+  color: #f75c03;
+  font-size: 1rem;
+}
+.yb-store__checkout-due-note {
+  color: #6F6A66;
+  font-size: 0.78rem;
+}
+
+/* ── Store: Teacher Training Info Banner ── */
+.yb-store__teacher-info {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #FFFCF9 0%, #FFF7ED 100%);
+  border: 1.5px solid #f75c03;
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+}
+.yb-store__teacher-info-icon {
+  flex-shrink: 0;
+  color: #f75c03;
+  margin-top: 0.1rem;
+}
+.yb-store__teacher-info-text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #0F0F0F;
+}
+.yb-store__teacher-info-text strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.35rem;
+  color: #0F0F0F;
+}
+.yb-store__teacher-info-text p {
+  margin: 0;
+  color: #6F6A66;
+  font-size: 0.82rem;
+}
+
+/* ── Store: Contract card highlight ── */
+.yb-store__item--contract {
+  border-color: #f75c03;
+  border-width: 1.5px;
+}
+
+/* ── Store: Deposit Cards ── */
+.yb-store__item--deposit {
+  border-color: #f75c03;
+  background: linear-gradient(180deg, #FFFCF9 0%, #FFF9F3 100%);
+}
+.yb-store__item--deposit:hover {
+  box-shadow: 0 4px 16px rgba(247,92,3,0.12);
+}
+.yb-store__deposit-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #f75c03;
+  background: rgba(247,92,3,0.08);
+  border: 1px solid rgba(247,92,3,0.2);
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.yb-store__deposit-period {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 0.25rem;
+}
+.yb-store__deposit-period svg {
+  color: #f75c03;
+  flex-shrink: 0;
+}
+.yb-store__deposit-format {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-weight: 600;
+  margin: 0 0 0.4rem;
+}
+
+/* ── Store: Course Builder ── */
+.yb-store__course-intro {
+  margin-bottom: 1.25rem;
+}
+.yb-store__course-intro p {
+  font-size: 0.88rem;
+  color: #6F6A66;
+  line-height: 1.55;
+  margin: 0;
+}
+.yb-store__course-intro strong {
+  color: #f75c03;
+  font-weight: 700;
+}
+.yb-store__course-month {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+.yb-store__course-month-label {
+  font-size: 0.78rem;
+  color: #6F6A66;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.yb-store__course-month-chip {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #f75c03;
+  background: rgba(247,92,3,0.08);
+  border: 1px solid rgba(247,92,3,0.2);
+  border-radius: 20px;
+  padding: 0.3rem 0.85rem;
+}
+
+/* Course selection grid */
+.yb-store__course-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+@media (max-width: 640px) {
+  .yb-store__course-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.yb-store__course-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.25rem 1rem;
+  background: #FFFCF9;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Abacaxi', sans-serif;
+}
+.yb-store__course-card:hover {
+  border-color: #f75c03;
+  background: #FFF9F3;
+}
+.yb-store__course-card.is-selected {
+  border-color: #f75c03;
+  background: linear-gradient(180deg, #FFF7ED 0%, #FFF3E6 100%);
+  box-shadow: 0 0 0 2px rgba(247,92,3,0.15);
+}
+.yb-store__course-card-check {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid #E8E4E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  background: #fff;
+}
+.yb-store__course-card-check svg {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  color: #fff;
+}
+.yb-store__course-card.is-selected .yb-store__course-card-check {
+  background: #f75c03;
+  border-color: #f75c03;
+}
+.yb-store__course-card.is-selected .yb-store__course-card-check svg {
+  opacity: 1;
+}
+.yb-store__course-card-icon {
+  color: #6F6A66;
+  margin-bottom: 0.5rem;
+}
+.yb-store__course-card.is-selected .yb-store__course-card-icon {
+  color: #f75c03;
+}
+.yb-store__course-card-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 0.35rem;
+}
+.yb-store__course-card-desc {
+  font-size: 0.75rem;
+  color: #6F6A66;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+.yb-store__course-card-price {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #f75c03;
+  margin-bottom: 0.35rem;
+}
+.yb-store__course-card-link {
+  font-size: 0.72rem;
+  color: #f75c03;
+  text-decoration: underline;
+  font-weight: 600;
+}
+.yb-store__course-card-link:hover {
+  color: #d94f02;
+}
+
+/* Course summary */
+.yb-store__course-summary {
+  background: #F5F3F0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1.5px solid #E8E4E0;
+  transition: border-color 0.2s ease;
+}
+.yb-store__course-summary.has-selection {
+  border-color: #f75c03;
+  background: linear-gradient(135deg, #FFFCF9 0%, #FFF7ED 100%);
+}
+.yb-store__course-summary-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.yb-store__course-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+.yb-store__course-summary-label {
+  color: #6F6A66;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.yb-store__course-summary-label svg {
+  flex-shrink: 0;
+}
+.yb-store__course-summary-value {
+  text-align: right;
+  color: #0F0F0F;
+  font-weight: 600;
+}
+.yb-store__course-summary-value em {
+  color: #6F6A66;
+  font-weight: 400;
+  font-style: italic;
+}
+.yb-store__course-summary-row--price .yb-store__course-summary-value strong {
+  font-size: 1.1rem;
+  color: #f75c03;
+}
+.yb-store__course-original {
+  text-decoration: line-through;
+  color: #6F6A66;
+  font-weight: 400;
+  font-size: 0.82rem;
+}
+.yb-store__course-savings {
+  font-size: 0.75rem;
+  color: #27ae60;
+  font-weight: 700;
+}
+.yb-store__course-summary-row--bonus {
+  background: rgba(247,92,3,0.06);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  margin-top: 0.15rem;
+}
+.yb-store__course-summary-row--bonus .yb-store__course-summary-label {
+  color: #f75c03;
+}
+.yb-store__course-summary-row--bonus .yb-store__course-summary-value {
+  font-size: 0.82rem;
+  color: #0F0F0F;
+}
+.yb-store__course-cta {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 10px;
+}
+.yb-store__course-cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
