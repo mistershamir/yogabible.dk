@@ -95,7 +95,10 @@ def format_new_lead_notification(lead):
     else:
         msg += f"📱 No phone provided\n"
 
+    channel = lead.get('channel', '')
     msg += f"🎓 {program}\n"
+    if channel:
+        msg += f"📡 Channel: <b>{channel}</b>\n"
     msg += f"📍 Source: {source}\n"
 
     if cohort:
