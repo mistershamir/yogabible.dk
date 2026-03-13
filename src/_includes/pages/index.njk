@@ -9,6 +9,7 @@
     {# CLOUDINARY: yoga-bible-DK/homepage/yoga-bible-hero-loop — 1920x1080, dark cinematic studio practice #}
     <video autoplay muted loop playsinline fetchpriority="high" preload="auto"
       poster="{{ media.homepage.studioPanorama | cloudimg('w_1280,h_720,c_fill,q_auto') }}">
+      <source src="{{ media.homepage.heroVideo | cloudvid('w_640,q_auto') }}" type="video/mp4" media="(max-width: 768px)">
       <source src="{{ media.homepage.heroVideo | cloudvid('w_1280,q_auto') }}" type="video/mp4">
     </video>
   </div>

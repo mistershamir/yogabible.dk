@@ -46,6 +46,14 @@
     {% include "modal-schedule-300.njk" %}
   {% endif %}
 
+  {% if includeStoreCSS %}
+    <link rel="stylesheet" href="/css/store.css">
+  {% endif %}
+
+  {% if includeAdminCSS %}
+    <link rel="stylesheet" href="/css/admin.css">
+  {% endif %}
+
   {% if includeP300Styles %}
     <link rel="stylesheet" href="/css/p300.css">
     <script src="/js/p300.js" defer></script>
@@ -94,7 +102,7 @@
 
   <!-- Cookie Consent -->
   {% include "cookies.njk" %}
-  <script src="/js/cookies.js"></script>
+  <script src="/js/cookies.js" defer></script>
 
   <!-- Firebase SDK (compat for broad browser support) -->
   <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js" defer></script>
