@@ -174,7 +174,7 @@ def _check_gatewayapi(result):
     url = 'https://gatewayapi.eu/rest/me'
     try:
         req = urllib.request.Request(url, method='GET')
-        req.add_header('Authorization', f'Bearer {token}')
+        req.add_header('Authorization', f'Token {token}')
         ctx = ssl.create_default_context()
         with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
             if resp.status == 200:
