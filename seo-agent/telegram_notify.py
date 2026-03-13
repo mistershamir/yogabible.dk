@@ -134,6 +134,17 @@ def send_report(report):
     _send(text)
 
 
+def send_ai_analysis(analysis):
+    """Send the AI analysis as a separate Telegram message."""
+    text = '🤖 <b>AI SEO Analysis</b>\n\n' + _escape(analysis)
+
+    # Telegram max message length is 4096
+    if len(text) > 4000:
+        text = text[:3950] + '\n\n... (truncated)'
+
+    _send(text)
+
+
 def _escape(text):
     """Escape HTML entities for Telegram."""
     return str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
