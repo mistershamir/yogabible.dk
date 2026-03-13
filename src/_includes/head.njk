@@ -69,7 +69,7 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": ["EducationalOrganization", "LocalBusiness", "HealthAndBeautyBusiness"],
+  "@type": ["Organization", "EducationalOrganization", "LocalBusiness", "HealthAndBeautyBusiness"],
   "@id": "{{ site.url }}/#organization",
   "name": "Yoga Bible",
   "alternateName": ["YOGA BIBLE", "Yoga Bible DK", "Yoga Bible Copenhagen"],
@@ -214,6 +214,28 @@
       "urlTemplate": "{{ site.url }}/yoga-journal/?q={search_term_string}"
     },
     "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<!-- JSON-LD: Course summary (homepage only, satisfies Course schema check) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "{% if lang == 'en' %}200-Hour Yoga Teacher Training{% else %}200-Timers Yogalæreruddannelse{% endif %}",
+  "description": "{% if lang == 'en' %}Yoga Alliance certified 200-hour teacher training in Copenhagen. Choose from 4-week intensive, 8-week semi-intensive, or 18-week flexible formats.{% else %}Yoga Alliance certificeret 200-timers yogalæreruddannelse i København. Vælg mellem 4-ugers intensiv, 8-ugers semi-intensiv eller 18-ugers fleksibel.{% endif %}",
+  "url": "{{ site.url }}{% if lang == 'en' %}/en{% endif %}/om-200hrs-yogalreruddannelser/",
+  "provider": {
+    "@type": "EducationalOrganization",
+    "@id": "{{ site.url }}/#organization"
+  },
+  "educationalCredentialAwarded": "RYT-200 Yoga Alliance Certification",
+  "inLanguage": ["da", "en"],
+  "offers": {
+    "@type": "Offer",
+    "price": "23750",
+    "priceCurrency": "DKK",
+    "availability": "https://schema.org/InStock"
   }
 }
 </script>
