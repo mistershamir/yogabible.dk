@@ -47,7 +47,8 @@ exports.handler = async function (event) {
             recordingAssetId: item.recordingAssetId || null,
             recordingPlaybackId: item.recordingPlaybackId || null,
             muxLiveStreamId: item.muxLiveStreamId || null,
-            aiStatus: item.aiStatus || null
+            aiStatus: item.aiStatus || null,
+            aiError: item.aiError || null
           };
         })
       });
