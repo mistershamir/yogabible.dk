@@ -33,7 +33,7 @@ KEY_PAGES = [
     '/hot-yoga-copenhagen/',
     '/vibro-yoga/',
     '/sammenlign-yogalreruddannelser/',
-    '/ansog/',
+    '/apply/',
     '/kontakt/',
     '/sitemap.xml',
     '/robots.txt',
@@ -134,19 +134,26 @@ def check_structured_data():
     result['metrics']['jsonld_blocks'] = len(blocks)
 
     schema_types = set()
+    def _add_type(t):
+        """Safely add a @type which may be a string or list of strings."""
+        if isinstance(t, list):
+            for item in t:
+                schema_types.add(item)
+        elif isinstance(t, str):
+            schema_types.add(t)
+
     for i, block in enumerate(blocks):
         try:
             data = json.loads(block)
             # Collect types
             if isinstance(data, dict):
-                t = data.get('@type', 'unknown')
-                schema_types.add(t)
+                _add_type(data.get('@type', 'unknown'))
                 if '@graph' in data:
                     for item in data['@graph']:
-                        schema_types.add(item.get('@type', 'unknown'))
+                        _add_type(item.get('@type', 'unknown'))
             elif isinstance(data, list):
                 for item in data:
-                    schema_types.add(item.get('@type', 'unknown'))
+                    _add_type(item.get('@type', 'unknown'))
         except json.JSONDecodeError as e:
             result['errors'].append(f'Invalid JSON-LD block #{i+1}: {str(e)[:60]}')
 

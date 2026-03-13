@@ -26,6 +26,26 @@
 
 # Legacy Squarespace URL redirects (301)
 [[redirects]]
+  from = "/ansog"
+  to = "/apply"
+  status = 301
+
+[[redirects]]
+  from = "/ansog/"
+  to = "/apply/"
+  status = 301
+
+[[redirects]]
+  from = "/en/ansog"
+  to = "/en/apply"
+  status = 301
+
+[[redirects]]
+  from = "/en/ansog/"
+  to = "/en/apply/"
+  status = 301
+
+[[redirects]]
   from = "/yoga-glossory"
   to = "/yoga-glossary"
   status = 301
