@@ -22,7 +22,7 @@
   var BRAND_RGBA12 = 'rgba(63,153,165,.12)';
   var API_BASE     = 'https://profile.hotyogacph.dk/.netlify/functions';
   var PROFILE_URL  = 'https://profile.hotyogacph.dk';
-  var FIREBASE_VER = '10.14.1';
+  var FIREBASE_VER = '12.10.0';
   var FIREBASE_CDN = 'https://www.gstatic.com/firebasejs/' + FIREBASE_VER;
 
   // Firebase config — placeholders replaced at Netlify build time
@@ -653,7 +653,22 @@
                   });
                   return;
                 }
-                // Not in MB or already has Firebase account — show error
+                // Account exists in Firebase — wrong password. Auto-send reset email.
+                if (data.hasFirebaseAccount) {
+                  var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
+                  fetch(apiBase + '/send-password-reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+                  }).catch(function() {});
+                  errorEl.innerHTML = t(
+                    'Forkert adgangskode. Vi har sendt en email til <strong>' + email + '</strong> s\u00e5 du kan nulstille din adgangskode. Tjek din indbakke (og spam).',
+                    'Incorrect password. We\u2019ve sent an email to <strong>' + email + '</strong> to reset your password. Check your inbox (and spam).'
+                  );
+                  errorEl.classList.add('is-visible');
+                  return;
+                }
+                // Not in MB — show generic error
                 errorEl.innerHTML = t(
                   'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
                   'We couldn\'t find an account with these details. Already a client? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
@@ -1141,12 +1156,81 @@
 
 
   // ═══════════════════════════════════════════════════════════════════
-  // CROSS-IFRAME AUTH SYNC (polling)
+  // CROSS-IFRAME AUTH SYNC (via shared auth-sync.html bridge)
   // ═══════════════════════════════════════════════════════════════════
-  // login-cta and checkout-embed run in separate Framer iframes with
-  // separate Firebase instances.  We poll the shared auth token in
-  // localStorage every 2 s so that a login in one iframe is picked up
-  // by the other.
+  // login-cta and checkout-embed run in separate Framer srcdoc iframes
+  // with null origin — localStorage is sandboxed per iframe.
+  // We load a hidden iframe from profile.hotyogacph.dk/auth-sync.html
+  // which has real localStorage and relays auth events between siblings.
+
+  var _syncFrame = null;
+  var _syncReady = false;
+  var _syncQueue = [];
+
+  function initAuthSyncBridge() {
+    try {
+      var f = document.createElement('iframe');
+      f.src = 'https://profile.hotyogacph.dk/auth-sync.html';
+      f.style.cssText = 'display:none;width:0;height:0;border:0';
+      f.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(f);
+      _syncFrame = f;
+      f.addEventListener('load', function () {
+        _syncReady = true;
+        // Flush queued messages
+        for (var i = 0; i < _syncQueue.length; i++) {
+          try { f.contentWindow.postMessage(_syncQueue[i], '*'); } catch (x) {}
+        }
+        _syncQueue = [];
+        // Ask bridge if anyone is already logged in
+        try { f.contentWindow.postMessage({ type: 'hyc-auth-sync', action: 'query' }, '*'); } catch (x) {}
+      });
+    } catch (e) { /* iframe blocked */ }
+  }
+
+  function sendToSyncBridge(msg) {
+    if (_syncReady && _syncFrame && _syncFrame.contentWindow) {
+      try { _syncFrame.contentWindow.postMessage(msg, '*'); } catch (e) {}
+    } else {
+      _syncQueue.push(msg);
+    }
+  }
+
+  function broadcastAuthChange(user) {
+    if (!user) {
+      sendToSyncBridge({ type: 'hyc-auth-sync', action: 'logout' });
+      return;
+    }
+    user.getIdToken().then(function (token) {
+      sendToSyncBridge({ type: 'hyc-auth-sync', action: 'login', idToken: token });
+    }).catch(function () {});
+  }
+
+  function listenForAuthSync() {
+    window.addEventListener('message', function (e) {
+      try {
+        if (!e.data || e.data.type !== 'hyc-auth-sync') return;
+        if (!firebaseReady) return;
+
+        if (e.data.action === 'login' && e.data.idToken && !currentUser && !_restoring) {
+          _restoring = true;
+          fetch(API_BASE + '/auth-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: e.data.idToken })
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.customToken) return firebase.auth().signInWithCustomToken(data.customToken);
+              _restoring = false;
+            })
+            .catch(function () { _restoring = false; });
+        } else if (e.data.action === 'logout' && currentUser) {
+          firebase.auth().signOut();
+        }
+      } catch (x) {}
+    });
+  }
 
   function startAuthPolling() {
     setInterval(function () {
@@ -1155,11 +1239,9 @@
       var hasToken = s && s.getItem(SESSION_KEY);
 
       if (hasToken && !currentUser && !_restoring) {
-        // Another iframe logged in — restore session from shared token
         _restoring = true;
         restoreSession();
       } else if (!hasToken && currentUser) {
-        // Another iframe logged out — sign out here too
         firebase.auth().signOut();
       }
     }, 2000);
@@ -1195,11 +1277,16 @@
       } catch (e) { /* auth() threw */ }
 
       try {
+        // Set up cross-iframe auth sync via hidden bridge iframe
+        initAuthSyncBridge();
+        listenForAuthSync();
+
         firebase.auth().onAuthStateChanged(function (user) {
           currentUser = user;
           if (user) {
             _restoring = false;
             persistAuthToken(user);
+            broadcastAuthChange(user);
             resolveMbClient(user);
             renderLoggedIn(user);
             // If auth modal is open, close it — user just logged in
@@ -1212,6 +1299,7 @@
             // but always render the logged-out state so the button is never invisible
             if (!_restoring) {
               clearAuthToken();
+              broadcastAuthChange(null);
             }
             renderLoggedOut();
             // Close user area modal if open
@@ -1226,7 +1314,7 @@
           restoreSession();
         }
 
-        // Start polling for auth changes from other iframes
+        // Start polling for auth changes from other iframes (fallback)
         startAuthPolling();
       } catch (e) {
         console.warn('[login-cta] Firebase auth error:', e.message);

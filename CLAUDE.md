@@ -167,6 +167,51 @@ Every page follows this pattern — **no exceptions**:
 
 ---
 
+## Schedule Pages & Conflict Finder
+
+All YTT schedule pages include a **Conflict Finder** — an interactive tool that lets prospective students check which training days clash with their busy schedule.
+
+### Schedule Pages
+
+| Page | Template | i18n JSON | Prefix |
+|------|----------|-----------|--------|
+| 4-Week Intensive (Apr) | `schedule-4w.njk` | `schedule_4w.json` | `s4w-` |
+| 4-Week Vinyasa Plus (Jul) | `schedule-4w-jul.njk` | `schedule_4w_jul.json` | `s4wj-` |
+| 8-Week Semi-Intensive | `schedule-8w.njk` | `schedule_8w.json` | `s8w-` |
+| 18-Week Flexible (Apr) | `schedule-18w.njk` | `schedule_18w.json` | `s18w-` |
+| 18-Week Flexible (Aug) | `schedule-18w-aug.njk` | `schedule_18w_aug.json` | `s18w-` |
+
+### Conflict Finder Architecture
+
+**Location:** Each schedule template (`src/_includes/pages/schedule-*.njk`) contains the conflict finder as a `<details>` accordion placed between the hours breakdown and the schedule body.
+
+**How it works:**
+1. User marks which days of the week they're busy (checkboxes with time ranges)
+2. User can add specific dates they can't attend
+3. Clicking "Check conflicts" compares their busy times against the training schedule
+4. **Single-track programs (4w, 4w-jul, 8w):** Shows number of conflicting training days + lists them
+5. **Dual-track programs (18w, 18w-aug):** Compares weekday vs weekend track, recommends the best fit
+
+**i18n keys (required for conflict finder):**
+- `conflictTitle`, `conflictDesc`, `conflictBtn`
+- `conflictSpecificLabel`, `conflictSpecificHint`, `conflictAddDate`
+- `conflictDateFrom`, `conflictDateTo`
+- Single-track: `conflictResultTitle`, `conflictNone`, `conflictSome`
+- Dual-track: `conflictSpecificHits`, `bestMatchLabel`, `bothFitLabel`, `recommendLabel`, `conflictsOfLabel`, `conflictBaseRecommend`, `conflictNoConflict`
+- All: `conflictNote` (HTML with contact links)
+
+**JS pattern:** Each prefix (`s4w-`, `s8w-`, `s18w-`, etc.) namespaces all DOM IDs, CSS classes, and JS functions to avoid conflicts when multiple schedules might coexist. The training dates are hardcoded as a JS array in the `<script>` block at the bottom of each template.
+
+### Adding a Conflict Finder to a New Schedule
+
+1. Add conflict i18n keys to the schedule's JSON file (both `da` and `en`)
+2. Add the `<details>` HTML block between hours breakdown and schedule body
+3. Add the JS block with: toggle function, specific date adder, schedule dates array, check function, chevron toggle
+4. Use a unique prefix for all IDs/classes (e.g., `s4w-`, `s8w-`)
+5. Build and verify: `npx @11ty/eleventy`
+
+---
+
 ## Architecture Reference
 
 - **Framework:** Eleventy v3.1.2, Nunjucks templates

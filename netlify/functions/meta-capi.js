@@ -98,7 +98,7 @@ exports.handler = async function (event) {
   }
 
   // Forward to Meta Conversions API
-  const url = `https://graph.facebook.com/v21.0/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`;
+  const url = `https://graph.facebook.com/v25.0/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`;
 
   try {
     const response = await fetch(url, {
