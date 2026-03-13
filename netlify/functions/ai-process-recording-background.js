@@ -277,18 +277,28 @@ async function transcribeViaMuxSubtitles(assetId, playbackId) {
     }
   }
 
-  // Step 2: If no ready subtitles, request auto-generated ones
+  // Step 2: If no ready subtitles, request auto-generated ones via generate-subtitles endpoint
   if (!readyTrack) {
-    console.log('[ai-process] Requesting Mux auto-generated subtitles for asset:', assetId);
-    var trackResult = await muxRequest('POST', '/video/v1/assets/' + assetId + '/tracks', {
-      type: 'text',
-      text_type: 'subtitles',
-      language_code: 'en',
-      name: 'English CC',
-      closed_captions: true
+    // Find the audio track ID (required for the generate-subtitles endpoint)
+    var audioTrackId = null;
+    for (var at = 0; at < tracks.length; at++) {
+      if (tracks[at].type === 'audio') {
+        audioTrackId = tracks[at].id;
+        break;
+      }
+    }
+    if (!audioTrackId) {
+      throw new Error('No audio track found on asset ' + assetId);
+    }
+
+    console.log('[ai-process] Requesting Mux auto-generated subtitles for asset:', assetId, 'audio track:', audioTrackId);
+    await muxRequest('POST', '/video/v1/assets/' + assetId + '/tracks/' + audioTrackId + '/generate-subtitles', {
+      generated_subtitles: [{
+        language_code: 'auto',
+        name: 'Auto CC'
+      }]
     });
-    var newTrackId = trackResult.data && trackResult.data.id;
-    console.log('[ai-process] Subtitle track created:', newTrackId, '— polling for readiness...');
+    console.log('[ai-process] Subtitle generation requested — polling for readiness...');
 
     // Poll until ready (up to 10 minutes for long recordings)
     var maxAttempts = 20; // 20 × 30s = 10 minutes
@@ -301,13 +311,13 @@ async function transcribeViaMuxSubtitles(assetId, playbackId) {
       tracks = (asset.data && asset.data.tracks) || [];
 
       for (var t2 = 0; t2 < tracks.length; t2++) {
-        if (tracks[t2].id === newTrackId) {
+        if (tracks[t2].type === 'text' && tracks[t2].text_type === 'subtitles' && tracks[t2].text_source === 'generated_vod') {
           if (tracks[t2].status === 'ready') {
             readyTrack = tracks[t2];
             break;
           }
           if (tracks[t2].status === 'errored') {
-            throw new Error('Mux subtitle generation failed for track ' + newTrackId);
+            throw new Error('Mux subtitle generation failed for track ' + tracks[t2].id);
           }
           console.log('[ai-process] Subtitle poll', attempt + '/' + maxAttempts, '— status:', tracks[t2].status);
           break;
