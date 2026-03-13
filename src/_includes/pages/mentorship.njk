@@ -842,6 +842,7 @@
         message:fd.get("message")||"",
         sourceUrl:window.location.href
       };
+      if(typeof window.ybAttribution==='function'){var attr=window.ybAttribution();if(attr.channel)payload.channel=attr.channel;if(attr.utm_source)payload.utm_source=attr.utm_source;if(attr.utm_medium)payload.utm_medium=attr.utm_medium;if(attr.utm_campaign)payload.utm_campaign=attr.utm_campaign;if(attr.gclid)payload.gclid=attr.gclid;if(attr.fbclid)payload.fbclid=attr.fbclid;if(attr.referrer)payload.referrer=attr.referrer;if(attr.landing_page)payload.landing_page=attr.landing_page;}
       fetch(YBINTAKE_WEBAPP_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
         .then(function(r){return r.json();})
         .then(function(data){

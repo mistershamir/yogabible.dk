@@ -3314,6 +3314,20 @@
   color: #f75c03;
 }
 
+/* Channel badge */
+.yb-lead__channel-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+.yb-lead__cell-channel { max-width: 140px; }
+.yb-lead__th-channel { min-width: 90px; }
+
 /* Bounce badge */
 .yb-lead__bounce-badge {
   display: inline-block;
