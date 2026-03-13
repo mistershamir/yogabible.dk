@@ -194,14 +194,10 @@ async function ensureMp4Rendition(assetId, playbackId) {
   var renditions = asset.data && asset.data.static_renditions;
 
   if (!renditions || renditions.status !== 'ready') {
-    // Enable MP4 support on the asset
+    // Enable MP4 support on the asset (Mux uses PATCH for asset updates)
     console.log('[ai-process] Enabling MP4 support on asset:', assetId);
-    try {
-      await muxRequest('PUT', '/video/v1/assets/' + assetId, { mp4_support: 'standard' });
-    } catch (e) {
-      // May already be enabled — check if renditions exist now
-      console.log('[ai-process] MP4 enable note:', e.message);
-    }
+    await muxRequest('PATCH', '/video/v1/assets/' + assetId, { mp4_support: 'standard' });
+    console.log('[ai-process] MP4 support enabled successfully, polling for readiness...');
 
     // Poll until renditions are ready (up to 10 minutes)
     var maxAttempts = 20; // 20 × 30s = 10 minutes
