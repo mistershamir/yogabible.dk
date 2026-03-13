@@ -274,7 +274,7 @@
         var statusEl = $('yb-la-ai-status');
         var st = item.aiStatus || 'none';
         statusEl.textContent = st;
-        statusEl.style.background = st === 'complete' ? '#34c759' : st === 'processing' || st === 'captions_requested' ? '#ff9500' : st === 'error' ? '#ff453a' : '#E8E4E0';
+        statusEl.style.background = st === 'complete' ? '#34c759' : st === 'processing' || st === 'preparing_audio' || st === 'transcribing' || st === 'generating_summary' || st === 'captions_requested' ? '#ff9500' : st === 'error' ? '#ff453a' : '#E8E4E0';
         statusEl.style.color = st === 'none' ? '#6F6A66' : '#fff';
         // Hide preview
         var previewEl = $('yb-la-ai-preview');
