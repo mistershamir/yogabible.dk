@@ -31,6 +31,7 @@
       cohorts: [],
       paymentStatuses: [],
       selectedLists: [],    // which list IDs to filter by (empty = all lists)
+      channels: [],
       recency: null,
       housing: false,
       meta: false,
@@ -396,6 +397,17 @@
           if (src.indexOf('meta') === -1 && src.indexOf('facebook') === -1 && src.indexOf('instagram') === -1) return false;
         }
 
+        // Channel filter
+        if (f.channels && f.channels.length > 0) {
+          var leadCh = String(lead.channel || '').toLowerCase();
+          var chMatch = false;
+          for (var ci = 0; ci < f.channels.length; ci++) {
+            var chVal = f.channels[ci].replace('ch_', '').replace(/_/g, ' ');
+            if (leadCh.indexOf(chVal) !== -1) { chMatch = true; break; }
+          }
+          if (!chMatch) return false;
+        }
+
         // Exclude filters
         if (f.excludeConverted) {
           var st = String(lead.status || '').toLowerCase();
@@ -660,6 +672,17 @@
       { id: '30d', label: t('campaign_filter_recency_30d') },
       { id: 'older', label: t('campaign_filter_recency_older') }
     ], f.recency ? [f.recency] : [], 'recency', true);
+
+    // Channel filter
+    html += buildChipSection('campaign_filter_channel', [
+      { id: 'ch_google_ads', label: 'Google Ads' },
+      { id: 'ch_meta_ads', label: 'Meta Ads' },
+      { id: 'ch_google_organic', label: 'Google Organic' },
+      { id: 'ch_ai_referral', label: 'AI Referral' },
+      { id: 'ch_social', label: 'Social' },
+      { id: 'ch_direct', label: 'Direct' },
+      { id: 'ch_email', label: 'Email' }
+    ], f.channels || [], 'channels');
 
     // Toggle filters
     html += '<div class="yb-lead__campaign-filter-section">';
@@ -2081,7 +2104,7 @@
     campaignState.filters = {
       source: 'all', statuses: [], programs: [], subtypes: [], routes: [],
       countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],
-      recency: null, housing: false, meta: false,
+      channels: [], recency: null, housing: false, meta: false,
       excludeConverted: true, excludeRecent: false,
       excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true, excludeBounced: true
     };
@@ -2387,7 +2410,7 @@
         campaignState.filters = {
           source: 'all', statuses: [], programs: [], subtypes: [], routes: [],
           countries: [], periods: [], tracks: [], cohorts: [], paymentStatuses: [],
-          recency: null, housing: false, meta: false,
+          channels: [], recency: null, housing: false, meta: false,
           excludeConverted: true, excludeRecent: false,
           excludeNotInterested: true, excludeBadLeads: true, excludeUnsubscribed: true, excludeBounced: true
         };

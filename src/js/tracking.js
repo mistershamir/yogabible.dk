@@ -33,6 +33,15 @@
   var CAPI_URL = '/.netlify/functions/meta-capi';
   var GOOGLE_CAPI_URL = '/.netlify/functions/google-capi';
 
+  // ============================================
+  // LEAD ATTRIBUTION
+  // Attribution capture runs in an inline <script> in base.njk
+  // (before consent) so UTM params, gclid, fbclid, and referrer
+  // are captured on first landing regardless of cookie consent.
+  // The data is stored in sessionStorage as "yb_attribution" and
+  // exposed as window.ybAttribution() — used by lead forms.
+  // ============================================
+
   // Google Ads conversion labels (loaded from meta tag set by head.njk)
   var GADS_LABELS = (function () {
     try {
