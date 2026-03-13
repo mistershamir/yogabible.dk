@@ -34,7 +34,8 @@ from checks import (
     check_price_consistency,
 )
 from api_health import check_api_health
-from telegram_notify import send_report
+from ai_analysis import analyze_with_ai
+from telegram_notify import send_report, send_ai_analysis
 
 
 def run_all_checks():
@@ -87,6 +88,13 @@ def main():
         else:
             send_report(report)
             logger.info('Report sent to Telegram')
+            # AI analysis on weekly reports
+            if not report.get('is_daily'):
+                logger.info('Running AI analysis...')
+                analysis = analyze_with_ai(report)
+                if analysis:
+                    send_ai_analysis(analysis)
+                    logger.info('AI analysis sent to Telegram')
 
 
 def run_daemon():
@@ -95,9 +103,18 @@ def run_daemon():
 
     scheduler = BlockingScheduler()
 
-    # Weekly full report (Monday 8am CET)
+    # Weekly full report + AI analysis (Monday 8am CET)
+    def weekly_full():
+        report = run_all_checks()
+        send_report(report)
+        logger.info('Running AI analysis...')
+        analysis = analyze_with_ai(report)
+        if analysis:
+            send_ai_analysis(analysis)
+            logger.info('AI analysis sent')
+
     scheduler.add_job(
-        lambda: send_report(run_all_checks()),
+        weekly_full,
         'cron',
         day_of_week='mon',
         hour=7,  # UTC = 8am CET
