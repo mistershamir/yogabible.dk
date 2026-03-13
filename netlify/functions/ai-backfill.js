@@ -257,7 +257,9 @@ exports.handler = async function (event) {
     // ── Retranscribe mode: reset and re-trigger Deepgram transcription ──
     // ?retranscribe=SESSION_ID  — single session
     // ?retranscribe=all         — all sessions with recordings
+    // &transcript-only=1        — stop after transcription, skip Claude summary/quiz
     if (params.retranscribe) {
+      var isTranscriptOnly = params['transcript-only'] === '1';
       var retranscribeTargets = [];
 
       if (params.retranscribe === 'all') {
@@ -314,8 +316,8 @@ exports.handler = async function (event) {
             aiCaptionTrackId: null
           });
 
-          // Step 3: Trigger the background function (MP4 + Deepgram + Claude)
-          await callAiProcess(target.id, target.recordingAssetId);
+          // Step 3: Trigger the background function
+          await callAiProcess(target.id, target.recordingAssetId, { transcriptOnly: isTranscriptOnly });
 
           retranscribeResults.push({
             id: target.id,
@@ -332,7 +334,8 @@ exports.handler = async function (event) {
 
       return jsonResponse(200, {
         ok: true,
-        message: retranscribeResults.length + ' session(s) triggered for re-transcription (old Mux subtitles cleaned). Each runs MP4 → Deepgram → Claude in background.',
+        message: retranscribeResults.length + ' session(s) triggered for re-transcription (old Mux subtitles cleaned).'
+          + (isTranscriptOnly ? ' TRANSCRIPT-ONLY mode — will stop after Deepgram, no Claude.' : ' Full pipeline: MP4 → Deepgram → Claude.'),
         results: retranscribeResults
       });
     }
@@ -914,13 +917,16 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInte
 
 /* ── Call ai-process-recording (Phase 1 trigger) ── */
 
-function callAiProcess(sessionId, assetId) {
+function callAiProcess(sessionId, assetId, extraOpts) {
+  extraOpts = extraOpts || {};
+  var payload = {
+    sessionId: sessionId,
+    assetId: assetId,
+    secret: process.env.AI_INTERNAL_SECRET || ''
+  };
+  if (extraOpts.transcriptOnly) payload.transcriptOnly = true;
   return new Promise(function (resolve, reject) {
-    var body = JSON.stringify({
-      sessionId: sessionId,
-      assetId: assetId,
-      secret: process.env.AI_INTERNAL_SECRET || ''
-    });
+    var body = JSON.stringify(payload);
 
     var opts = {
       hostname: 'yogabible.dk',
