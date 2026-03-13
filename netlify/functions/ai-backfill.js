@@ -332,6 +332,67 @@ exports.handler = async function (event) {
       });
     }
 
+    // ── MP4 status check: query Mux directly to see if MP4 renditions are ready ──
+    if (params['mp4-status'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var mp4Results = [];
+      for (var m = 0; m < withRecordings.length; m++) {
+        var sess = withRecordings[m];
+        try {
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var renditions = asset.data && asset.data.static_renditions;
+          var mp4Support = asset.data && asset.data.mp4_support;
+          var duration = asset.data && asset.data.duration;
+          mp4Results.push({
+            id: sess.id,
+            title: (sess.title_da || sess.title_en || '').substring(0, 60),
+            assetId: sess.recordingAssetId,
+            mp4Support: mp4Support || 'none',
+            renditionStatus: renditions ? renditions.status : 'none',
+            durationMinutes: duration ? Math.round(duration / 60) : null,
+            aiStatus: sess.aiStatus
+          });
+        } catch (err) {
+          mp4Results.push({ id: sess.id, title: sess.title_da || '', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, { ok: true, results: mp4Results });
+    }
+
+    // ── Enable MP4 only (no processing): request MP4 renditions without triggering pipeline ──
+    if (params['enable-mp4'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var enableResults = [];
+      for (var e2 = 0; e2 < withRecordings.length; e2++) {
+        var sess = withRecordings[e2];
+        try {
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var renditions = asset.data && asset.data.static_renditions;
+          if (renditions && renditions.status === 'ready') {
+            enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'already_ready' });
+          } else {
+            await muxRequest('PATCH', '/video/v1/assets/' + sess.recordingAssetId, { mp4_support: 'standard' });
+            enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'mp4_requested' });
+          }
+        } catch (err) {
+          enableResults.push({ id: sess.id, title: sess.title_da || '', status: 'error', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'MP4 renditions requested. Use ?mp4-status=1 to check when ready, then ?retranscribe=all to process.',
+        results: enableResults
+      });
+    }
+
     // ── Check mode (Phase 2): find stuck sessions and re-trigger processing ──
     if (params.check === '1') {
       var waiting = all.filter(function (item) {

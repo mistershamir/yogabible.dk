@@ -199,8 +199,9 @@ async function ensureMp4Rendition(assetId, playbackId) {
     await muxRequest('PATCH', '/video/v1/assets/' + assetId, { mp4_support: 'standard' });
     console.log('[ai-process] MP4 support enabled successfully, polling for readiness...');
 
-    // Poll until renditions are ready (up to 30 minutes — long sessions need more time)
-    var maxAttempts = 60; // 60 × 30s = 30 minutes
+    // Poll until renditions are ready (up to 8 minutes — must fit in Netlify's 15-min bg limit)
+    // For long recordings, use ai-backfill?enable-mp4=1 first, then retranscribe after ready
+    var maxAttempts = 16; // 16 × 30s = 8 minutes
     var pollInterval = 30000;
 
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -220,7 +221,7 @@ async function ensureMp4Rendition(assetId, playbackId) {
     }
 
     if (!renditions || renditions.status !== 'ready') {
-      throw new Error('MP4 renditions not ready after 30 minutes — run ai-backfill?retranscribe=all manually');
+      throw new Error('MP4 renditions not ready after 8 minutes — run ai-backfill?enable-mp4=1 first, wait, then ?retranscribe=all');
     }
   } else {
     console.log('[ai-process] MP4 renditions already available');
