@@ -7,8 +7,9 @@
 <section class="yb-hero">
   <div class="yb-hero__bg">
     {# CLOUDINARY: yoga-bible-DK/homepage/yoga-bible-hero-loop — 1920x1080, dark cinematic studio practice #}
-    <video autoplay muted loop playsinline poster="{{ media.homepage.studioPanorama | cloudimg('w_1920,h_1080,c_fill,q_auto') }}">
-      <source src="{{ media.homepage.heroVideo | cloudvid('w_1920,q_auto') }}" type="video/mp4">
+    <video autoplay muted loop playsinline fetchpriority="high" preload="auto"
+      poster="{{ media.homepage.studioPanorama | cloudimg('w_1280,h_720,c_fill,q_auto') }}">
+      <source src="{{ media.homepage.heroVideo | cloudvid('w_1280,q_auto') }}" type="video/mp4">
     </video>
   </div>
   <div class="yb-hero__glow"></div>
@@ -52,6 +53,7 @@
         src="{{ media.courses.education200hr | cloudimg('w_1200,h_800,c_fill') }}"
         alt="{{ t.fork_left_img_alt }}"
         loading="lazy"
+        width="1200" height="800"
       >
     </div>
     <div class="yb-fork2__content">
@@ -69,6 +71,7 @@
         src="{{ media.courses.inversionsPromo | cloudimg('w_1200,h_800,c_fill') }}"
         alt="{{ t.fork_right_img_alt }}"
         loading="lazy"
+        width="1200" height="800"
       >
     </div>
     <div class="yb-fork2__content">
@@ -211,6 +214,7 @@
         src="{{ media.homepage.inversionsCard | cloudimg('w_800,h_900,c_fill') }}"
         alt="{{ t.inv_img_alt }}"
         loading="lazy"
+        width="800" height="900"
         class="yb-triptych__img"
       >
       <div class="yb-triptych__overlay">
@@ -227,6 +231,7 @@
         src="{{ media.homepage.splitsCard | cloudimg('w_800,h_900,c_fill') }}"
         alt="{{ t.splits_img_alt }}"
         loading="lazy"
+        width="800" height="900"
         class="yb-triptych__img"
       >
       <div class="yb-triptych__overlay">
@@ -243,6 +248,7 @@
         src="{{ media.homepage.backbendsCard | cloudimg('w_800,h_900,c_fill') }}"
         alt="{{ t.back_img_alt }}"
         loading="lazy"
+        width="800" height="900"
         class="yb-triptych__img"
       >
       <div class="yb-triptych__overlay">
@@ -267,8 +273,8 @@
 <section class="yb-studio">
   <div class="yb-studio__bg">
     {# CLOUDINARY: yoga-bible-DK/homepage/practice-loop #}
-    <video autoplay muted loop playsinline poster="{{ media.homepage.studioPanorama | cloudimg('w_1920,h_900,c_fill,q_auto') }}">
-      <source src="{{ media.homepage.practiceLoop | cloudvid('w_1920,q_auto') }}" type="video/mp4">
+    <video autoplay muted loop playsinline preload="none" poster="{{ media.homepage.studioPanorama | cloudimg('w_1280,h_600,c_fill,q_auto') }}">
+      <source src="{{ media.homepage.practiceLoop | cloudvid('w_1280,q_auto') }}" type="video/mp4">
     </video>
   </div>
   <div class="yb-studio__overlay">
@@ -385,6 +391,7 @@
       src="{{ media.copenhagen.canalPanorama | cloudimg('w_1920,h_1080,c_fill') }}"
       alt="{{ t.cph_img_alt }}"
       loading="lazy"
+      width="1920" height="1080"
     >
   </div>
   <div class="yb-cph-cinema__overlay">
@@ -398,7 +405,7 @@
       <div class="yb-cph-cinema__highlights yb-fade-in">
         <div class="yb-cph-highlight">
           <div class="yb-cph-highlight__thumb">
-            <img src="{{ media.copenhagen.canalPanorama | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy">
+            <img src="{{ media.copenhagen.canalPanorama | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy" width="120" height="120">
           </div>
           <div class="yb-cph-highlight__text">
             <strong>{{ t.cph_h1_title }}</strong>
@@ -408,7 +415,7 @@
 
         <div class="yb-cph-highlight">
           <div class="yb-cph-highlight__thumb">
-            <img src="{{ media.copenhagen.bikeCulture | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy">
+            <img src="{{ media.copenhagen.bikeCulture | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy" width="120" height="120">
           </div>
           <div class="yb-cph-highlight__text">
             <strong>{{ t.cph_h2_title }}</strong>
@@ -418,7 +425,7 @@
 
         <div class="yb-cph-highlight">
           <div class="yb-cph-highlight__thumb">
-            <img src="{{ media.copenhagen.saunagus | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy">
+            <img src="{{ media.copenhagen.saunagus | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy" width="120" height="120">
           </div>
           <div class="yb-cph-highlight__text">
             <strong>{{ t.cph_h3_title }}</strong>
@@ -428,7 +435,7 @@
 
         <div class="yb-cph-highlight">
           <div class="yb-cph-highlight__thumb">
-            <img src="{{ media.copenhagen.foodScene | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy">
+            <img src="{{ media.copenhagen.foodScene | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy" width="120" height="120">
           </div>
           <div class="yb-cph-highlight__text">
             <strong>{{ t.cph_h4_title }}</strong>
@@ -438,7 +445,7 @@
 
         <div class="yb-cph-highlight">
           <div class="yb-cph-highlight__thumb">
-            <img src="{{ media.copenhagen.cafeScene | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy">
+            <img src="{{ media.copenhagen.cafeScene | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy" width="120" height="120">
           </div>
           <div class="yb-cph-highlight__text">
             <strong>{{ t.cph_h5_title }}</strong>
@@ -448,7 +455,7 @@
 
         <div class="yb-cph-highlight">
           <div class="yb-cph-highlight__thumb">
-            <img src="{{ media.copenhagen.greenSpaces | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy">
+            <img src="{{ media.copenhagen.greenSpaces | cloudimg('w_120,h_120,c_fill') }}" alt="" loading="lazy" width="120" height="120">
           </div>
           <div class="yb-cph-highlight__text">
             <strong>{{ t.cph_h6_title }}</strong>
@@ -482,9 +489,9 @@
           <a href="{{ lp }}/yoga-journal/{{ entry.slug }}/" class="yb-journal-card__link">
             <div class="yb-journal-card__media">
               {% if entry.cloudinaryImage %}
-                <img src="{{ entry.cloudinaryImage | cloudimg('w_600,h_340,c_fill') }}" alt="" loading="lazy">
+                <img src="{{ entry.cloudinaryImage | cloudimg('w_600,h_340,c_fill') }}" alt="" loading="lazy" width="600" height="340">
               {% else %}
-                <img src="{{ entry.image }}" alt="" loading="lazy">
+                <img src="{{ entry.image }}" alt="" loading="lazy" width="600" height="340">
               {% endif %}
             </div>
             <div class="yb-journal-card__body">

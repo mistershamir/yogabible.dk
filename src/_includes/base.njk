@@ -97,27 +97,28 @@
   <script src="/js/cookies.js"></script>
 
   <!-- Firebase SDK (compat for broad browser support) -->
-  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js" defer></script>
 
-  <!-- Scripts -->
+  <!-- Scripts: header/main/footer stay sync for above-fold rendering -->
   <script src="/js/header.js"></script>
   <script src="/js/main.js"></script>
   <script src="/js/footer.js"></script>
-  <script src="/js/roles-permissions.js"></script>
-  <script src="/js/firebase-auth.js"></script>
-  <script src="/js/appointment-booking.js"></script>
-  <script src="/js/photo-booking.js"></script>
-  <script src="/js/ytt-funnel.js"></script>
-  <script src="/js/checkout-flow.js"></script>
-  <script src="/js/workshop-browser.js"></script>
-  <script src="/js/mindbody.js"></script>
+  <!-- Deferred: not needed for initial paint -->
+  <script src="/js/roles-permissions.js" defer></script>
+  <script src="/js/firebase-auth.js" defer></script>
+  <script src="/js/appointment-booking.js" defer></script>
+  <script src="/js/photo-booking.js" defer></script>
+  <script src="/js/ytt-funnel.js" defer></script>
+  <script src="/js/checkout-flow.js" defer></script>
+  <script src="/js/workshop-browser.js" defer></script>
+  <script src="/js/mindbody.js" defer></script>
   {% if includeScheduleModal %}
-    <script src="/js/modal-200ytt.js"></script>
+    <script src="/js/modal-200ytt.js" defer></script>
   {% endif %}
   {% if includeScheduleModal300 %}
-    <script src="/js/modal-300ytt.js"></script>
+    <script src="/js/modal-300ytt.js" defer></script>
   {% endif %}
   {% if includeCourseJS %}
     <script src="/js/course.js" defer></script>
