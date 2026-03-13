@@ -94,7 +94,7 @@ exports.handler = async function (event) {
         aiDeepgramError: mp4Err.message,
         aiDeepgramFailedAt: new Date().toISOString()
       });
-      transcript = await transcribeViaMuxSubtitles(assetId, playbackId);
+      transcript = await transcribeViaMuxSubtitles(assetId, playbackId, sessionId);
       console.log('[ai-process] Mux subtitle transcript length:', transcript.length, 'chars');
     }
 
@@ -273,12 +273,25 @@ async function ensureMp4Rendition(assetId, playbackId) {
 // Mux subtitle fallback transcription
 // ═══════════════════════════════════════════════════
 
-async function transcribeViaMuxSubtitles(assetId, playbackId) {
-  // Step 1: Check if subtitles already exist on the original asset
-  var asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
+async function transcribeViaMuxSubtitles(assetId, playbackId, sessionId) {
+  // Step 1: Check if a previous run already created a temp asset (saved in Firestore)
+  var subtitleAssetId = assetId;
+  var subtitlePlaybackId = playbackId;
+  var createdTempAsset = false;
+
+  if (sessionId) {
+    var sessionDoc = await getDoc(COLLECTION, sessionId);
+    if (sessionDoc && sessionDoc.aiTempAssetId) {
+      subtitleAssetId = sessionDoc.aiTempAssetId;
+      subtitlePlaybackId = sessionDoc.aiTempPlaybackId || playbackId;
+      console.log('[ai-process] Resuming with previously created temp asset:', subtitleAssetId);
+    }
+  }
+
+  // Step 2: Check if subtitles already exist on the target asset
+  var asset = await muxRequest('GET', '/video/v1/assets/' + subtitleAssetId);
   var tracks = (asset.data && asset.data.tracks) || [];
   var readyTrack = null;
-  var subtitlePlaybackId = playbackId; // may change if we create a temp asset
 
   for (var t = 0; t < tracks.length; t++) {
     if (tracks[t].type === 'text' && tracks[t].text_type === 'subtitles' && tracks[t].status === 'ready') {
@@ -287,52 +300,65 @@ async function transcribeViaMuxSubtitles(assetId, playbackId) {
     }
   }
 
-  // Step 2: If no ready subtitles, try generate-subtitles on the original asset first
+  // Step 3: If no ready subtitles, try generate-subtitles on the original asset first
   if (!readyTrack) {
-    var audioTrackId = null;
-    for (var at = 0; at < tracks.length; at++) {
-      if (tracks[at].type === 'audio') {
-        audioTrackId = tracks[at].id;
-        break;
+    // Only try generate-subtitles on the ORIGINAL asset (not if we already have a temp asset)
+    if (subtitleAssetId === assetId) {
+      var audioTrackId = null;
+      for (var at = 0; at < tracks.length; at++) {
+        if (tracks[at].type === 'audio') {
+          audioTrackId = tracks[at].id;
+          break;
+        }
       }
-    }
-    if (!audioTrackId) {
-      throw new Error('No audio track found on asset ' + assetId);
-    }
+      if (!audioTrackId) {
+        throw new Error('No audio track found on asset ' + assetId);
+      }
 
-    try {
-      console.log('[ai-process] Requesting Mux auto-generated subtitles for asset:', assetId, 'audio track:', audioTrackId);
-      await muxRequest('POST', '/video/v1/assets/' + assetId + '/tracks/' + audioTrackId + '/generate-subtitles', {
-        generated_subtitles: [{
-          language_code: 'en',
-          name: 'English CC'
-        }]
-      });
-      console.log('[ai-process] Subtitle generation requested on original asset — polling...');
-    } catch (genErr) {
-      // Live stream recording assets often have empty input URLs, causing generate-subtitles to fail.
-      // Fallback: create a NEW temporary asset from the HLS URL with subtitles baked into creation.
-      console.log('[ai-process] generate-subtitles failed on original asset:', genErr.message);
-      console.log('[ai-process] Creating temporary asset from HLS URL for subtitle generation...');
-
-      var hlsUrl = 'https://stream.mux.com/' + playbackId + '.m3u8';
-      var newAsset = await muxRequest('POST', '/video/v1/assets', {
-        input: [{
-          url: hlsUrl,
+      try {
+        console.log('[ai-process] Requesting Mux auto-generated subtitles for asset:', assetId, 'audio track:', audioTrackId);
+        await muxRequest('POST', '/video/v1/assets/' + assetId + '/tracks/' + audioTrackId + '/generate-subtitles', {
           generated_subtitles: [{
             language_code: 'en',
             name: 'English CC'
           }]
-        }],
-        playback_policy: ['public'],
-        encoding_tier: 'baseline'
-      });
+        });
+        console.log('[ai-process] Subtitle generation requested on original asset — polling...');
+      } catch (genErr) {
+        // Live stream recording assets often have empty input URLs, causing generate-subtitles to fail.
+        // Fallback: create a NEW temporary asset from the HLS URL with subtitles baked into creation.
+        console.log('[ai-process] generate-subtitles failed on original asset:', genErr.message);
+        console.log('[ai-process] Creating temporary asset from HLS URL for subtitle generation...');
 
-      assetId = newAsset.data.id;
-      // Get the new asset's playback ID for VTT download
-      var newPlaybackIds = newAsset.data.playback_ids || [];
-      subtitlePlaybackId = newPlaybackIds.length > 0 ? newPlaybackIds[0].id : playbackId;
-      console.log('[ai-process] Temporary asset created:', assetId, 'playback:', subtitlePlaybackId);
+        var hlsUrl = 'https://stream.mux.com/' + playbackId + '.m3u8';
+        var newAsset = await muxRequest('POST', '/video/v1/assets', {
+          input: [{
+            url: hlsUrl,
+            generated_subtitles: [{
+              language_code: 'en',
+              name: 'English CC'
+            }]
+          }],
+          playback_policy: ['public'],
+          encoding_tier: 'baseline'
+        });
+
+        subtitleAssetId = newAsset.data.id;
+        var newPlaybackIds = newAsset.data.playback_ids || [];
+        subtitlePlaybackId = newPlaybackIds.length > 0 ? newPlaybackIds[0].id : playbackId;
+        createdTempAsset = true;
+
+        // Save temp asset ID to Firestore so retries can resume without creating another
+        if (sessionId) {
+          await updateDoc(COLLECTION, sessionId, {
+            aiTempAssetId: subtitleAssetId,
+            aiTempPlaybackId: subtitlePlaybackId
+          });
+        }
+        console.log('[ai-process] Temporary asset created and saved:', subtitleAssetId, 'playback:', subtitlePlaybackId);
+      }
+    } else {
+      console.log('[ai-process] Using existing temp asset:', subtitleAssetId, '— checking subtitle status...');
     }
 
     // Poll until subtitles are ready (up to 12 minutes — temp asset needs to ingest first)
@@ -342,7 +368,7 @@ async function transcribeViaMuxSubtitles(assetId, playbackId) {
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
       await sleep(pollInterval);
 
-      asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
+      asset = await muxRequest('GET', '/video/v1/assets/' + subtitleAssetId);
       tracks = (asset.data && asset.data.tracks) || [];
 
       for (var t2 = 0; t2 < tracks.length; t2++) {
@@ -371,13 +397,13 @@ async function transcribeViaMuxSubtitles(assetId, playbackId) {
     }
 
     if (!readyTrack) {
-      throw new Error('Mux subtitles not ready after 12 minutes');
+      throw new Error('Mux subtitles not ready after 12 minutes — temp asset ' + subtitleAssetId + ' may still be processing. Retry with retranscribe to resume.');
     }
   }
 
   console.log('[ai-process] Subtitles ready, downloading VTT...');
 
-  // Step 3: Download VTT file
+  // Step 4: Download VTT file
   var vttUrl = 'https://stream.mux.com/' + subtitlePlaybackId + '/text/' + readyTrack.id + '.vtt';
   var vttContent = await fetchUrl(vttUrl);
 
