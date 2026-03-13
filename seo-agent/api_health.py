@@ -36,9 +36,18 @@ HEALTH_ENDPOINTS = [
     ('Netlify Functions', f'{SITE_URL}/.netlify/functions/health', 200, 10),
     ('Site Homepage', SITE_URL, 200, 15),
     ('Sitemap', f'{SITE_URL}/sitemap.xml', 200, 10),
-    ('FB Leads Webhook', f'{SITE_URL}/.netlify/functions/facebook-leads-webhook', 200, 10),
+    ('FB Leads Webhook', f'{SITE_URL}/.netlify/functions/facebook-leads-webhook', 403, 10),
     ('Meta CAPI', f'{SITE_URL}/.netlify/functions/meta-capi', 405, 10),
 ]
+
+# Actionable context for each endpoint — shown when something is DOWN
+ENDPOINT_CONTEXT = {
+    'Netlify Functions': 'Netlify Functions DOWN — serverless backend is unreachable. Check Netlify dashboard for deploy errors',
+    'Site Homepage': 'SITE DOWN — yogabible.dk is unreachable. Check Netlify status and DNS',
+    'Sitemap': 'Sitemap DOWN — Google cannot crawl your site properly. Check Netlify deploy',
+    'FB Leads Webhook': 'FB LEADS PIPELINE DOWN — you are NOT receiving Facebook ad leads. Check Netlify Functions logs',
+    'Meta CAPI': 'META CONVERSION TRACKING DOWN — Facebook cannot track conversions from your ads. Ad optimization will suffer. Check Netlify Functions logs',
+}
 
 
 def check_api_health():
@@ -84,10 +93,16 @@ def _check_endpoints(result):
                     ok += 1
                 else:
                     fail += 1
-                    result['errors'].append(f'{name}: HTTP {resp.status} (expected {expected})')
+                    result['errors'].append(f'{ENDPOINT_CONTEXT.get(name, name)}: HTTP {resp.status} (expected {expected})')
+        except urllib.error.HTTPError as e:
+            if e.code == expected:
+                ok += 1
+            else:
+                fail += 1
+                result['errors'].append(f'{ENDPOINT_CONTEXT.get(name, name)}: HTTP {e.code} (expected {expected})')
         except Exception as e:
             fail += 1
-            result['errors'].append(f'{name}: {str(e)[:80]}')
+            result['errors'].append(f'{ENDPOINT_CONTEXT.get(name, name)}: {str(e)[:80]}')
 
     result['metrics']['api_endpoints_ok'] = ok
     result['metrics']['api_endpoints_fail'] = fail
