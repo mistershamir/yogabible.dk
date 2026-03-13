@@ -262,7 +262,7 @@ def check_search_console():
         service = build('searchconsole', 'v1', credentials=creds)
 
         # Last 28 days performance
-        from datetime import timedelta
+        from datetime import datetime, timedelta
         end_date = datetime.now().strftime('%Y-%m-%d')
         start_date = (datetime.now() - timedelta(days=28)).strftime('%Y-%m-%d')
 
