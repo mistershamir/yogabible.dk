@@ -696,22 +696,21 @@
 <!-- DNS/Connection Preconnects -->
 <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://use.typekit.net" crossorigin>
-<link rel="preconnect" href="https://p.typekit.net" crossorigin>
+<link rel="dns-prefetch" href="https://use.typekit.net">
+<link rel="dns-prefetch" href="https://p.typekit.net">
 
 <!-- Font Preloads -->
 <link rel="preload" href="/assets/fonts/AbacaxiLatinWeb-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/AbacaxiLatinWeb-Bold.woff2" as="font" type="font/woff2" crossorigin>
 
-<!-- Hero poster preload for LCP (homepage only) -->
+<!-- LCP preload: hero poster image (homepage only) -->
 {% if page.url == "/" or page.url == "/en/" %}
-<link rel="preload" as="image" href="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto,w_1280,h_720,c_fill,q_auto/yoga-bible-DK/homepage/yoga-bible-studio-panorama-torvegade" fetchpriority="high">
+<link rel="preload" as="image" href="{{ media.homepage.studioPanorama | cloudimg('w_800,h_450,c_fill,q_auto') }}" fetchpriority="high">
 {% endif %}
 
 <!-- Stylesheets -->
 <link rel="stylesheet" href="/css/main.css">
 
 <!-- Adobe Fonts (Typekit) -->
-<script type="text/javascript" src="//use.typekit.net/ik/hQtGqprj-gRFyuhFQlUdToJsdbe0LIz-yoettQMNu36fecjJXnX1IyvhF2jtFRZLFR6UZe9tFQjhw2BR5QwX52IDZQb35AIUe6MK21gkjAiljWsTjhIlihmKJ6NGjAUojW4qOAsTSagCjWq7fbKbmsMMeMw6MKGHf5A5MyMgeMw6MTMgTVDOk3j.js" async fetchpriority="high" onload="try{Typekit.load();}catch(e){} document.documentElement.classList.remove('wf-loading');"></script>
-<script>document.documentElement.classList.add('wf-loading')</script>
-<style>@keyframes fonts-loading { 0%, 99% { color: transparent; } } html.wf-loading * { animation: fonts-loading 3s; }</style>
+<script type="text/javascript" src="//use.typekit.net/ik/hQtGqprj-gRFyuhFQlUdToJsdbe0LIz-yoettQMNu36fecjJXnX1IyvhF2jtFRZLFR6UZe9tFQjhw2BR5QwX52IDZQb35AIUe6MK21gkjAiljWsTjhIlihmKJ6NGjAUojW4qOAsTSagCjWq7fbKbmsMMeMw6MKGHf5A5MyMgeMw6MTMgTVDOk3j.js" async fetchpriority="low" onload="try{Typekit.load();}catch(e){} document.documentElement.classList.remove('wf-loading');"></script>
+<!-- wf-loading class kept for Typekit callback; no FOIT — self-hosted fonts use font-display:swap -->
