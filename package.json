@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "npx @11ty/eleventy",
-    "postbuild": "node scripts/minify-js.js && node scripts/seo-validator.js",
+    "postbuild": "node scripts/purge-css.js && node scripts/minify-js.js && node scripts/critical-css.js && node scripts/seo-validator.js",
     "seo": "node scripts/seo-validator.js",
     "seo:strict": "node scripts/seo-validator.js --strict",
     "start": "npx @11ty/eleventy --serve",
