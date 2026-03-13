@@ -6,8 +6,8 @@
  *
  * Full pipeline (runs automatically end-to-end):
  *   1. Resolves Mux playback ID for the recording
- *   2. Enables MP4 static renditions on the Mux asset, polls until ready
- *   3. Sends MP4 URL to Deepgram for AI-powered transcription
+ *   2. Tries MP4 static renditions → Deepgram transcription (primary path)
+ *   3. Falls back to Mux auto-generated subtitles → VTT parsing (if MP4 unavailable)
  *   4. Sends transcript to Claude for summary + quiz generation
  *   5. Saves results to Firestore
  *
@@ -72,16 +72,26 @@ exports.handler = async function (event) {
       return jsonResponse(200, { ok: true, status: 'no_playback_id' });
     }
 
-    // ── Step 2: Ensure MP4 rendition is available ──
+    // ── Step 2+3: Transcribe via MP4+Deepgram, falling back to Mux subtitles ──
     await updateDoc(COLLECTION, sessionId, { aiStatus: 'preparing_audio' });
-    var mp4Url = await ensureMp4Rendition(assetId, playbackId);
-    console.log('[ai-process] MP4 ready:', mp4Url);
+    var transcript = '';
 
-    // ── Step 3: Transcribe with Deepgram ──
-    await updateDoc(COLLECTION, sessionId, { aiStatus: 'transcribing' });
-    console.log('[ai-process] Sending to Deepgram for transcription...');
-    var transcript = await transcribeWithDeepgram(mp4Url);
-    console.log('[ai-process] Transcript length:', transcript.length, 'chars');
+    try {
+      // Primary path: MP4 → Deepgram
+      var mp4Url = await ensureMp4Rendition(assetId, playbackId);
+      console.log('[ai-process] MP4 ready:', mp4Url);
+
+      await updateDoc(COLLECTION, sessionId, { aiStatus: 'transcribing' });
+      console.log('[ai-process] Sending to Deepgram for transcription...');
+      transcript = await transcribeWithDeepgram(mp4Url);
+      console.log('[ai-process] Deepgram transcript length:', transcript.length, 'chars');
+    } catch (mp4Err) {
+      // Fallback: Mux auto-generated subtitles → VTT → plain text
+      console.log('[ai-process] MP4/Deepgram failed:', mp4Err.message, '— trying Mux subtitles fallback');
+      await updateDoc(COLLECTION, sessionId, { aiStatus: 'subtitle_fallback' });
+      transcript = await transcribeViaMuxSubtitles(assetId, playbackId);
+      console.log('[ai-process] Mux subtitle transcript length:', transcript.length, 'chars');
+    }
 
     if (!transcript || transcript.length < 50) {
       await updateDoc(COLLECTION, sessionId, { aiStatus: 'no_transcript' });
@@ -196,7 +206,7 @@ async function ensureMp4Rendition(assetId, playbackId) {
   if (!renditions || renditions.status !== 'ready') {
     // Enable MP4 support on the asset (Mux uses PATCH for asset updates)
     console.log('[ai-process] Enabling MP4 support on asset:', assetId);
-    await muxRequest('PATCH', '/video/v1/assets/' + assetId, { mp4_support: 'standard' });
+    await muxRequest('PATCH', '/video/v1/assets/' + assetId, { mp4_support: 'capped-1080p' });
     console.log('[ai-process] MP4 support enabled successfully, polling for readiness...');
 
     // Poll until renditions are ready (up to 8 minutes — must fit in Netlify's 15-min bg limit)
@@ -229,6 +239,129 @@ async function ensureMp4Rendition(assetId, playbackId) {
 
   // Return the lowest quality MP4 URL (smallest file, audio quality still fine for transcription)
   return 'https://stream.mux.com/' + playbackId + '/low.mp4';
+}
+
+// ═══════════════════════════════════════════════════
+// Mux subtitle fallback transcription
+// ═══════════════════════════════════════════════════
+
+async function transcribeViaMuxSubtitles(assetId, playbackId) {
+  // Step 1: Check if subtitles already exist
+  var asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
+  var tracks = (asset.data && asset.data.tracks) || [];
+  var readyTrack = null;
+
+  for (var t = 0; t < tracks.length; t++) {
+    if (tracks[t].type === 'text' && tracks[t].text_type === 'subtitles' && tracks[t].status === 'ready') {
+      readyTrack = tracks[t];
+      break;
+    }
+  }
+
+  // Step 2: If no ready subtitles, request auto-generated ones
+  if (!readyTrack) {
+    console.log('[ai-process] Requesting Mux auto-generated subtitles for asset:', assetId);
+    var trackResult = await muxRequest('POST', '/video/v1/assets/' + assetId + '/tracks', {
+      type: 'text',
+      text_type: 'subtitles',
+      language_code: 'en',
+      name: 'English CC',
+      closed_captions: true
+    });
+    var newTrackId = trackResult.data && trackResult.data.id;
+    console.log('[ai-process] Subtitle track created:', newTrackId, '— polling for readiness...');
+
+    // Poll until ready (up to 10 minutes for long recordings)
+    var maxAttempts = 20; // 20 × 30s = 10 minutes
+    var pollInterval = 30000;
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      await sleep(pollInterval);
+
+      asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
+      tracks = (asset.data && asset.data.tracks) || [];
+
+      for (var t2 = 0; t2 < tracks.length; t2++) {
+        if (tracks[t2].id === newTrackId) {
+          if (tracks[t2].status === 'ready') {
+            readyTrack = tracks[t2];
+            break;
+          }
+          if (tracks[t2].status === 'errored') {
+            throw new Error('Mux subtitle generation failed for track ' + newTrackId);
+          }
+          console.log('[ai-process] Subtitle poll', attempt + '/' + maxAttempts, '— status:', tracks[t2].status);
+          break;
+        }
+      }
+      if (readyTrack) break;
+    }
+
+    if (!readyTrack) {
+      throw new Error('Mux subtitles not ready after 10 minutes');
+    }
+  }
+
+  console.log('[ai-process] Subtitles ready, downloading VTT...');
+
+  // Step 3: Download VTT file
+  var vttUrl = 'https://stream.mux.com/' + playbackId + '/text/' + readyTrack.id + '.vtt';
+  var vttContent = await fetchUrl(vttUrl);
+
+  // Step 4: Parse VTT to plain text (strip timestamps and formatting)
+  var lines = vttContent.split('\n');
+  var textParts = [];
+  for (var l = 0; l < lines.length; l++) {
+    var line = lines[l].trim();
+    // Skip WEBVTT header, empty lines, timestamps (contain -->), and numeric cue IDs
+    if (!line || line === 'WEBVTT' || line.indexOf('-->') !== -1 || /^\d+$/.test(line) || line.indexOf('NOTE') === 0) {
+      continue;
+    }
+    // Strip HTML tags from cue text
+    line = line.replace(/<[^>]+>/g, '');
+    if (line) textParts.push(line);
+  }
+
+  var transcript = textParts.join(' ');
+  if (!transcript || transcript.length < 50) {
+    throw new Error('Mux subtitles produced empty/short transcript (' + transcript.length + ' chars)');
+  }
+
+  return transcript;
+}
+
+function fetchUrl(url) {
+  return new Promise(function (resolve, reject) {
+    var parsedUrl = new URL(url);
+    var opts = {
+      hostname: parsedUrl.hostname,
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: 'GET'
+    };
+
+    var req = https.request(opts, function (res) {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        // Follow redirect
+        fetchUrl(res.headers.location).then(resolve).catch(reject);
+        return;
+      }
+      var chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(Buffer.concat(chunks).toString());
+        } else {
+          reject(new Error('Fetch ' + url + ' failed: HTTP ' + res.statusCode));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(60000, function () {
+      req.destroy();
+      reject(new Error('Fetch timeout: ' + url));
+    });
+    req.end();
+  });
 }
 
 // ═══════════════════════════════════════════════════
