@@ -90,7 +90,9 @@
   {% include "modal-appointment.njk" %}
 
   <!-- Photo Session Request Modal -->
-  {% include "modal-photo-booking.njk" %}
+  {% if includePhotoBooking %}
+    {% include "modal-photo-booking.njk" %}
+  {% endif %}
 
   <!-- Workshop Browser Modal -->
   {% include "modal-workshops.njk" %}
@@ -116,8 +118,8 @@
   <!-- Deferred: not needed for initial paint -->
   <script src="/js/roles-permissions.js" defer></script>
   <script src="/js/firebase-auth.js" defer></script>
-  <script src="/js/appointment-booking.js" defer></script>
-  <script src="/js/photo-booking.js" defer></script>
+  {% if includeAppointmentJS !== false %}<script src="/js/appointment-booking.js" defer></script>{% endif %}
+  {% if includePhotoBooking %}<script src="/js/photo-booking.js" defer></script>{% endif %}
   <script src="/js/ytt-funnel.js" defer></script>
   <script src="/js/checkout-flow.js" defer></script>
   <script src="/js/workshop-browser.js" defer></script>
