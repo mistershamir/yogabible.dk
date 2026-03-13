@@ -8,17 +8,19 @@
   <div class="yb-hero__bg">
     {# CLOUDINARY: yoga-bible-DK/homepage/yoga-bible-hero-loop — 1920x1080, dark cinematic studio practice #}
     <video autoplay muted loop playsinline preload="none" width="1280" height="720"
-      poster="{{ media.homepage.studioPanorama | cloudimg('w_800,h_450,c_fill,q_auto') }}">
+      poster="{{ media.homepage.studioPanorama | cloudimg('w_400,h_225,c_fill,q_70') if true }}"
+      data-poster-lg="{{ media.homepage.studioPanorama | cloudimg('w_800,h_450,c_fill,q_auto') }}">
       <source src="{{ media.homepage.heroVideo | cloudvid('w_480,q_auto') }}" type="video/mp4" media="(max-width: 768px)">
       <source src="{{ media.homepage.heroVideo | cloudvid('w_1280,q_auto') }}" type="video/mp4">
     </video>
+    <script>if(window.innerWidth>768){var v=document.querySelector('.yb-hero video');if(v&&v.dataset.posterLg)v.poster=v.dataset.posterLg}</script>
   </div>
   <div class="yb-hero__glow"></div>
 
   <div class="yb-hero__content">
     <p class="yb-hero__tagline">{{ t.hero_flag }}</p>
-    <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
-    <h2 class="yb-hero__h2">{{ t.hero_h2 }}</h2>
+    <p class="yb-hero__title" role="doc-subtitle">{{ t.hero_title | safe }}</p>
+    <h1 class="yb-hero__h2">{{ t.hero_h2 }}</h1>
     <p class="yb-hero__subtitle">{{ t.hero_lead }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
