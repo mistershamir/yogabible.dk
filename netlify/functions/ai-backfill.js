@@ -6,6 +6,7 @@
  *   ?reconcile=1 — Find missing recordings from Mux and link them to Firestore sessions
  *   ?check=1    — Phase 2: find stuck sessions and re-trigger Deepgram transcription
  *   ?retranscribe=SESSION_ID — Reset and re-trigger full transcription pipeline (Deepgram + Claude)
+ *   ?retranscribe=all — Re-transcribe ALL sessions with recordings (batch mode)
  *   (default)   — Phase 1: trigger caption requests for sessions with recordings but no AI data
  *
  * All modes require: ?secret=YOUR_AI_INTERNAL_SECRET
@@ -247,40 +248,86 @@ exports.handler = async function (event) {
       return jsonResponse(200, { ok: true, message: 'Reset ' + resetResults.length + ' sessions. Now run default mode.', results: resetResults });
     }
 
-    // ── Retranscribe mode: reset session and re-trigger Deepgram transcription ──
-    // ?retranscribe=SESSION_ID  — triggers full re-processing via background function
+    // ── Retranscribe mode: reset and re-trigger Deepgram transcription ──
+    // ?retranscribe=SESSION_ID  — single session
+    // ?retranscribe=all         — all sessions with recordings
     if (params.retranscribe) {
-      var sessId = params.retranscribe;
-      var sess = all.find(function (item) { return item.id === sessId; });
-      if (!sess) {
-        return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessId });
-      }
-      if (!sess.recordingAssetId) {
-        return jsonResponse(400, { ok: false, error: 'Session has no recording asset' });
-      }
+      var retranscribeTargets = [];
 
-      // Reset status so the background function processes it fresh
-      await updateDoc(COLLECTION, sessId, {
-        aiStatus: null,
-        aiError: null,
-        aiTranscript: null,
-        aiSummary: null,
-        aiQuiz: null
-      });
-
-      // Trigger the background function (handles MP4 + Deepgram + Claude)
-      try {
-        await callAiProcess(sessId, sess.recordingAssetId);
-      } catch (err) {
-        console.error('[ai-backfill] Retranscribe trigger error:', err.message);
+      if (params.retranscribe === 'all') {
+        // Batch mode: all ended sessions with recordings
+        retranscribeTargets = all.filter(function (item) {
+          return item.status === 'ended' && item.recordingAssetId;
+        });
+        if (retranscribeTargets.length === 0) {
+          return jsonResponse(200, { ok: true, message: 'No sessions with recordings found.' });
+        }
+      } else {
+        // Single session mode
+        var sessId = params.retranscribe;
+        var sess = all.find(function (item) { return item.id === sessId; });
+        if (!sess) {
+          return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessId });
+        }
+        if (!sess.recordingAssetId) {
+          return jsonResponse(400, { ok: false, error: 'Session has no recording asset' });
+        }
+        retranscribeTargets = [sess];
       }
 
-      console.log('[ai-backfill] Retranscribe triggered for:', sessId);
+      console.log('[ai-backfill] Retranscribe:', retranscribeTargets.length, 'session(s)');
+      var retranscribeResults = [];
+
+      for (var rt = 0; rt < retranscribeTargets.length; rt++) {
+        var target = retranscribeTargets[rt];
+        try {
+          // Step 1: Delete old Mux subtitle tracks (cleanup)
+          var deletedCount = 0;
+          try {
+            var assetResult = await muxRequest('GET', '/video/v1/assets/' + target.recordingAssetId);
+            var tracks = (assetResult.data && assetResult.data.tracks) || [];
+            for (var dt = 0; dt < tracks.length; dt++) {
+              if (tracks[dt].type === 'text' && tracks[dt].text_type === 'subtitles') {
+                try {
+                  await muxRequest('DELETE', '/video/v1/assets/' + target.recordingAssetId + '/tracks/' + tracks[dt].id);
+                  deletedCount++;
+                } catch (delErr) { /* ignore */ }
+              }
+            }
+          } catch (muxErr) {
+            console.log('[ai-backfill] Could not clean Mux tracks for', target.id, ':', muxErr.message);
+          }
+
+          // Step 2: Reset Firestore status
+          await updateDoc(COLLECTION, target.id, {
+            aiStatus: null,
+            aiError: null,
+            aiTranscript: null,
+            aiSummary: null,
+            aiQuiz: null,
+            aiCaptionTrackId: null
+          });
+
+          // Step 3: Trigger the background function (MP4 + Deepgram + Claude)
+          await callAiProcess(target.id, target.recordingAssetId);
+
+          retranscribeResults.push({
+            id: target.id,
+            title: target.title_da || target.title_en || '',
+            deletedSubtitleTracks: deletedCount,
+            status: 'triggered'
+          });
+          console.log('[ai-backfill] Retranscribe triggered:', target.id, '(cleaned', deletedCount, 'old tracks)');
+        } catch (err) {
+          console.error('[ai-backfill] Retranscribe error for', target.id, ':', err.message);
+          retranscribeResults.push({ id: target.id, title: target.title_da || '', status: 'error', error: err.message });
+        }
+      }
 
       return jsonResponse(200, {
         ok: true,
-        message: 'Re-transcription triggered for session. The background function will process MP4 → Deepgram → Claude. Check aiStatus in a few minutes.',
-        sessionId: sessId
+        message: retranscribeResults.length + ' session(s) triggered for re-transcription (old Mux subtitles cleaned). Each runs MP4 → Deepgram → Claude in background.',
+        results: retranscribeResults
       });
     }
 
