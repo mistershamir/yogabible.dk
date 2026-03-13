@@ -163,7 +163,7 @@ function sendEmail4wYTT(leadData) {
   // Links
   bodyHtml += '<p style="margin-top:20px;">';
   bodyHtml += '<a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">Læs mere om 4-ugers programmet</a>';
-  bodyHtml += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a>';
+  bodyHtml += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a>';
   bodyHtml += '</p>';
 
   // CTA
@@ -197,7 +197,7 @@ function sendEmail4wYTT(leadData) {
   bodyPlain += 'Depositum: 3.750 kr.\n';
   bodyPlain += 'Rest: ' + remaining + ' kr. (' + rateNote + ')\n\n';
   bodyPlain += 'Læs mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
-  bodyPlain += 'Om uddannelsen: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n\n';
+  bodyPlain += 'Om uddannelsen: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
   bodyPlain += 'Book et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n\n';
   bodyPlain += 'Hvad fik dig til at overveje en yogauddannelse? Svar gerne på denne mail.\n\n';
   bodyPlain += 'Glæder mig til at høre fra dig.';
@@ -268,7 +268,7 @@ function sendEmail8wYTT(leadData) {
 
   bodyHtml += '<p style="margin-top:20px;">';
   bodyHtml += '<a href="https://www.yogabible.dk/200-hours-8-weeks-flexible-programs" style="color:#f75c03;">Læs mere om 8-ugers programmet</a>';
-  bodyHtml += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a>';
+  bodyHtml += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a>';
   bodyHtml += '</p>';
 
   bodyHtml += '<p style="margin-top:20px;">Har du lyst til at høre mere eller stille spørgsmål? Book et gratis og uforpligtende infomøde:</p>';
@@ -300,7 +300,7 @@ function sendEmail8wYTT(leadData) {
   }
   bodyPlain += getPricingSectionPlain('23.750', '3.750', '20.000', 'fleksibel ratebetaling') + '\n';
   bodyPlain += 'Læs mere: https://www.yogabible.dk/200-hours-8-weeks-flexible-programs\n';
-  bodyPlain += 'Om uddannelsen: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n\n';
+  bodyPlain += 'Om uddannelsen: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
   bodyPlain += 'Book et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n\n';
   bodyPlain += 'Hvad fik dig til at overveje en yogauddannelse? Svar gerne på denne mail.\n\n';
   bodyPlain += 'Glæder mig til at høre fra dig.';
@@ -372,7 +372,7 @@ function sendEmail18wYTT(leadData) {
 
   bodyHtml += '<p style="margin-top:20px;">';
   bodyHtml += '<a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">Læs mere om 18-ugers programmet</a>';
-  bodyHtml += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a>';
+  bodyHtml += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a>';
   bodyHtml += '</p>';
 
   bodyHtml += '<p style="margin-top:20px;">Har du lyst til at høre mere eller stille spørgsmål? Book et gratis og uforpligtende infomøde:</p>';
@@ -406,7 +406,7 @@ function sendEmail18wYTT(leadData) {
   }
   bodyPlain += getPricingSectionPlain('23.750', '3.750', '20.000', 'fleksibel ratebetaling') + '\n';
   bodyPlain += 'Læs mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
-  bodyPlain += 'Om uddannelsen: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n\n';
+  bodyPlain += 'Om uddannelsen: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
   bodyPlain += 'Book et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n\n';
   bodyPlain += 'Hvad fik dig til at overveje en yogauddannelse? Svar gerne på denne mail.\n\n';
   bodyPlain += 'Glæder mig til at høre fra dig.';
@@ -507,7 +507,7 @@ function sendEmailMultiFormat(leadData, formats) {
   if (formats.indexOf('18w') !== -1) bodyHtml += '<a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">18-ugers detaljer</a> · ';
   if (formats.indexOf('8w') !== -1) bodyHtml += '<a href="https://www.yogabible.dk/200-hours-8-weeks-flexible-programs" style="color:#f75c03;">8-ugers detaljer</a> · ';
   if (formats.indexOf('4w') !== -1) bodyHtml += '<a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">4-ugers detaljer</a> · ';
-  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores uddannelse</a>';
+  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores uddannelse</a>';
   bodyHtml += '</p>';
 
   bodyHtml += '<p style="margin-top:20px;">Har du lyst til at se studiet eller få hjælp til at vælge det rigtige format?</p>';

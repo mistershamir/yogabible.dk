@@ -142,7 +142,7 @@ const PROGRAM_PAGES = {
     '8-week':    'https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs',
     '18-week':   'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',
     '18-week-aug':'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',
-    'about200h': 'https://www.yogabible.dk/om-200hrs-yogalreruddannelser'
+    'about200h': 'https://www.yogabible.dk/om-200hrs-yogalaereruddannelser'
   },
   en: {
     '4-week':    'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs',
@@ -150,7 +150,7 @@ const PROGRAM_PAGES = {
     '8-week':    'https://www.yogabible.dk/en/200-hours-8-weeks-semi-intensive-programs',
     '18-week':   'https://www.yogabible.dk/en/200-hours-18-weeks-flexible-programs',
     '18-week-aug':'https://www.yogabible.dk/en/200-hours-18-weeks-flexible-programs',
-    'about200h': 'https://www.yogabible.dk/en/om-200hrs-yogalreruddannelser'
+    'about200h': 'https://www.yogabible.dk/en/om-200hrs-yogalaereruddannelser'
   }
 };
 

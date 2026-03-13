@@ -139,7 +139,7 @@
   // ============================================
 
   var coursePages = [
-    '/om-200hrs-yogalreruddannelser/',
+    '/om-200hrs-yogalaereruddannelser/',
     '/200-hours-18-weeks-flexible-programs/',
     '/200-hours-8-weeks-semi-intensive-programs/',
     '/200-hours-4-weeks-intensive-programs/',
@@ -239,7 +239,7 @@
     }
 
     // Course program links
-    if (href.match(/200-hours|yogalreruddannelser|inversions|splits|backbends|mentorship/i)) {
+    if (href.match(/200-hours|yogalaereruddannelser|inversions|splits|backbends|mentorship/i)) {
       DL.push({
         event: 'cta_click',
         cta_type: 'course',
