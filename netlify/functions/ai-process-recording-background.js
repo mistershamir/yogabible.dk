@@ -199,8 +199,8 @@ async function ensureMp4Rendition(assetId, playbackId) {
     await muxRequest('PATCH', '/video/v1/assets/' + assetId, { mp4_support: 'standard' });
     console.log('[ai-process] MP4 support enabled successfully, polling for readiness...');
 
-    // Poll until renditions are ready (up to 10 minutes)
-    var maxAttempts = 20; // 20 × 30s = 10 minutes
+    // Poll until renditions are ready (up to 30 minutes — long sessions need more time)
+    var maxAttempts = 60; // 60 × 30s = 30 minutes
     var pollInterval = 30000;
 
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -220,7 +220,7 @@ async function ensureMp4Rendition(assetId, playbackId) {
     }
 
     if (!renditions || renditions.status !== 'ready') {
-      throw new Error('MP4 renditions not ready after 10 minutes — run ai-backfill?check=1 manually');
+      throw new Error('MP4 renditions not ready after 30 minutes — run ai-backfill?retranscribe=all manually');
     }
   } else {
     console.log('[ai-process] MP4 renditions already available');
