@@ -90,7 +90,9 @@
   {% include "modal-appointment.njk" %}
 
   <!-- Photo Session Request Modal -->
-  {% include "modal-photo-booking.njk" %}
+  {% if includePhotoBooking %}
+    {% include "modal-photo-booking.njk" %}
+  {% endif %}
 
   <!-- Workshop Browser Modal -->
   {% include "modal-workshops.njk" %}
@@ -109,15 +111,15 @@
   <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js" defer></script>
 
-  <!-- Scripts: header/main/footer stay sync for above-fold rendering -->
-  <script src="/js/header.js"></script>
-  <script src="/js/main.js"></script>
-  <script src="/js/footer.js"></script>
+  <!-- Scripts: deferred for better mobile performance -->
+  <script src="/js/header.js" defer></script>
+  <script src="/js/main.js" defer></script>
+  <script src="/js/footer.js" defer></script>
   <!-- Deferred: not needed for initial paint -->
   <script src="/js/roles-permissions.js" defer></script>
   <script src="/js/firebase-auth.js" defer></script>
-  <script src="/js/appointment-booking.js" defer></script>
-  <script src="/js/photo-booking.js" defer></script>
+  {% if includeAppointmentJS !== false %}<script src="/js/appointment-booking.js" defer></script>{% endif %}
+  {% if includePhotoBooking %}<script src="/js/photo-booking.js" defer></script>{% endif %}
   <script src="/js/ytt-funnel.js" defer></script>
   <script src="/js/checkout-flow.js" defer></script>
   <script src="/js/workshop-browser.js" defer></script>

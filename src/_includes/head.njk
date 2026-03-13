@@ -703,6 +703,11 @@
 <link rel="preload" href="/assets/fonts/AbacaxiLatinWeb-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/AbacaxiLatinWeb-Bold.woff2" as="font" type="font/woff2" crossorigin>
 
+<!-- Hero poster preload for LCP (homepage only) -->
+{% if page.url == "/" or page.url == "/en/" %}
+<link rel="preload" as="image" href="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto,w_1280,h_720,c_fill,q_auto/yoga-bible-DK/homepage/yoga-bible-studio-panorama-torvegade" fetchpriority="high">
+{% endif %}
+
 <!-- Stylesheets -->
 <link rel="stylesheet" href="/css/main.css">
 
