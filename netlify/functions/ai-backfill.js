@@ -11,6 +11,7 @@
  *   ?check=1    — Find stuck sessions and re-trigger processing
  *   ?retranscribe=SESSION_ID — Reset and re-trigger full pipeline (MP4→Deepgram→Claude, with subtitle fallback)
  *   ?retranscribe=all — Re-transcribe ALL sessions with recordings (batch mode)
+ *   ?deepgram-direct=SESSION_ID — Skip Mux asset creation, send HLS URL straight to Deepgram (for large recordings)
  *   ?reprocess=SESSION_ID — Re-run Claude on existing transcript (no re-transcription)
  *   (default)   — Phase 1: trigger caption requests for sessions with recordings but no AI data
  *
@@ -337,6 +338,50 @@ exports.handler = async function (event) {
         message: retranscribeResults.length + ' session(s) triggered for re-transcription (old Mux subtitles cleaned).'
           + (isTranscriptOnly ? ' TRANSCRIPT-ONLY mode — will stop after Deepgram, no Claude.' : ' Full pipeline: MP4 → Deepgram → Claude.'),
         results: retranscribeResults
+      });
+    }
+
+    // ── Deepgram Direct mode: skip Mux asset creation, send HLS URL straight to Deepgram ──
+    // ?deepgram-direct=SESSION_ID  — send HLS playback URL directly to Deepgram
+    // &transcript-only=1           — stop after transcription, skip Claude summary/quiz
+    if (params['deepgram-direct']) {
+      var sessId = params['deepgram-direct'];
+      var isTranscriptOnly = params['transcript-only'] === '1';
+      var sess = all.find(function (item) { return item.id === sessId; });
+
+      if (!sess) {
+        return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessId });
+      }
+      if (!sess.recordingPlaybackId) {
+        return jsonResponse(400, { ok: false, error: 'Session has no recordingPlaybackId' });
+      }
+
+      // Build the HLS URL from the recording playback ID
+      var hlsUrl = 'https://stream.mux.com/' + sess.recordingPlaybackId + '.m3u8';
+      console.log('[ai-backfill] Deepgram-direct: sending HLS URL to Deepgram via background function:', hlsUrl);
+
+      // Reset status
+      await updateDoc(COLLECTION, sessId, {
+        aiStatus: null,
+        aiError: null,
+        aiTranscript: null,
+        aiSummary: null,
+        aiQuiz: null
+      });
+
+      // Call the background function with directUrl (skips ensureMp4Rendition entirely)
+      await callAiProcess(sessId, sess.recordingAssetId, {
+        transcriptOnly: isTranscriptOnly,
+        directUrl: hlsUrl
+      });
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'Deepgram-direct triggered for session ' + sessId + '. HLS URL sent directly to Deepgram, bypassing Mux asset creation.'
+          + (isTranscriptOnly ? ' TRANSCRIPT-ONLY mode.' : ' Full pipeline: Deepgram → Claude.'),
+        id: sessId,
+        title: sess.title_da || sess.title_en || '',
+        hlsUrl: hlsUrl
       });
     }
 
@@ -925,6 +970,7 @@ function callAiProcess(sessionId, assetId, extraOpts) {
     secret: process.env.AI_INTERNAL_SECRET || ''
   };
   if (extraOpts.transcriptOnly) payload.transcriptOnly = true;
+  if (extraOpts.directUrl) payload.directUrl = extraOpts.directUrl;
   return new Promise(function (resolve, reject) {
     var body = JSON.stringify(payload);
 

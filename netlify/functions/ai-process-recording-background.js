@@ -38,6 +38,7 @@ exports.handler = async function (event) {
     var assetId = body.assetId;
     var playbackId = body.playbackId || null;
     var transcriptOnly = body.transcriptOnly === true;
+    var directUrl = body.directUrl || null; // Skip Mux MP4 — send this URL straight to Deepgram
 
     if (!sessionId || !assetId) {
       return jsonResponse(400, { ok: false, error: 'sessionId and assetId required' });
@@ -74,28 +75,37 @@ exports.handler = async function (event) {
     }
 
     // ── Step 2+3: Transcribe via MP4+Deepgram, falling back to Mux subtitles ──
-    await updateDoc(COLLECTION, sessionId, { aiStatus: 'preparing_audio' });
     var transcript = '';
 
-    try {
-      // Primary path: MP4 → Deepgram (creates temp asset for live recordings if needed)
-      var mp4Url = await ensureMp4Rendition(assetId, playbackId, sessionId);
-      console.log('[ai-process] MP4 ready:', mp4Url);
-
+    if (directUrl) {
+      // Direct URL mode: skip all Mux asset creation, send URL straight to Deepgram
+      console.log('[ai-process] DIRECT URL mode — skipping Mux MP4, sending to Deepgram:', directUrl);
       await updateDoc(COLLECTION, sessionId, { aiStatus: 'transcribing' });
-      console.log('[ai-process] Sending to Deepgram for transcription...');
-      transcript = await transcribeWithDeepgram(mp4Url);
+      transcript = await transcribeWithDeepgram(directUrl);
       console.log('[ai-process] Deepgram transcript length:', transcript.length, 'chars');
-    } catch (mp4Err) {
-      // Fallback: Mux auto-generated subtitles → VTT → plain text
-      console.log('[ai-process] MP4/Deepgram failed:', mp4Err.message, '— trying Mux subtitles fallback');
-      await updateDoc(COLLECTION, sessionId, {
-        aiStatus: 'subtitle_fallback',
-        aiDeepgramError: mp4Err.message,
-        aiDeepgramFailedAt: new Date().toISOString()
-      });
-      transcript = await transcribeViaMuxSubtitles(assetId, playbackId, sessionId);
-      console.log('[ai-process] Mux subtitle transcript length:', transcript.length, 'chars');
+    } else {
+      await updateDoc(COLLECTION, sessionId, { aiStatus: 'preparing_audio' });
+
+      try {
+        // Primary path: MP4 → Deepgram (creates temp asset for live recordings if needed)
+        var mp4Url = await ensureMp4Rendition(assetId, playbackId, sessionId);
+        console.log('[ai-process] MP4 ready:', mp4Url);
+
+        await updateDoc(COLLECTION, sessionId, { aiStatus: 'transcribing' });
+        console.log('[ai-process] Sending to Deepgram for transcription...');
+        transcript = await transcribeWithDeepgram(mp4Url);
+        console.log('[ai-process] Deepgram transcript length:', transcript.length, 'chars');
+      } catch (mp4Err) {
+        // Fallback: Mux auto-generated subtitles → VTT → plain text
+        console.log('[ai-process] MP4/Deepgram failed:', mp4Err.message, '— trying Mux subtitles fallback');
+        await updateDoc(COLLECTION, sessionId, {
+          aiStatus: 'subtitle_fallback',
+          aiDeepgramError: mp4Err.message,
+          aiDeepgramFailedAt: new Date().toISOString()
+        });
+        transcript = await transcribeViaMuxSubtitles(assetId, playbackId, sessionId);
+        console.log('[ai-process] Mux subtitle transcript length:', transcript.length, 'chars');
+      }
     }
 
     if (!transcript || transcript.length < 50) {
