@@ -74,6 +74,7 @@ body {
   font-family: var(--font-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #F5F3F0;
 }
 
 /* ========================================
@@ -738,7 +739,7 @@ body {
    ======================================== */
 
 .yb-profile {
-  padding: 0 0 80px;
+  padding: 40px 0 80px;
 }
 
 /* Guest state */
@@ -750,7 +751,7 @@ body {
 .yb-profile__guest-inner {
   text-align: center;
   padding: 48px 32px;
-  background: #F5F3F0;
+  background: #fff;
   border-radius: 16px;
   border: 1px solid #E8E4E0;
 }
@@ -845,6 +846,28 @@ body {
 }
 
 .yb-profile__hero-logout:hover {
+  background: rgba(255,255,255,.2);
+  color: #fff;
+}
+
+.yb-profile__hero-back {
+  padding: 5px 14px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.1);
+  border: none;
+  color: rgba(255,255,255,.6);
+  font-family: var(--font-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.yb-profile__hero-back:hover {
   background: rgba(255,255,255,.2);
   color: #fff;
 }
