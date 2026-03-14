@@ -219,7 +219,7 @@ All YTT schedule pages include a **Conflict Finder** — an interactive tool tha
 - **Listing:** `src/yoga-journal.njk` → `/yoga-journal/`
 - **Posts:** `src/yoga-journal-post.njk` (Eleventy pagination, size:1)
 - **JS:** `src/js/journal.js` — language switching, search, progress bar, share
-- **CSS:** `src/css/main.css` — all journal styles prefixed `yj-`, all store/profile styles prefixed `yb-store__`, admin knowledge styles `yb-kb__`
+- **CSS:** Split across 4 files for performance (see **CSS Architecture** below)
 - **CMS:** Decap CMS at `/admin/` with Netlify Identity
 - **i18n:** Build-time via JSON files in `src/_data/i18n/`, path-based (`/en/` prefix). Journal uses `data-yj-da`/`data-yj-en` attributes toggled by path detection.
 - **Deploy:** Netlify from `main` branch
@@ -227,6 +227,36 @@ All YTT schedule pages include a **Conflict Finder** — an interactive tool tha
 - **Profile/Store:** `src/js/profile.js` — user profile, store catalog, checkout, waiver, schedule, membership
 - **Hot Yoga CPH:** `hot-yoga-cph/public/js/profile.js` + `hot-yoga-cph/public/css/profile.css` — mirrored store/profile for HYC site
 - **Apps Script:** `apps-script/` — legacy Google Sheets-based lead/application system (13 files). Being replaced by Netlify functions + Firestore.
+
+### CSS Architecture (MANDATORY)
+
+**IMPORTANT:** CSS is split into 4 files for performance. Each file serves specific pages. When adding or modifying styles, put them in the correct file — NEVER dump everything into `main.css`.
+
+| File | Loaded On | Contains | Prefix(es) |
+|------|-----------|----------|------------|
+| `src/css/main.css` | **Every page** | Global styles: header, footer, hero, typography, buttons, forms, cards, design system, glossary, schedule, landing pages, responsive base | Various global |
+| `src/css/journal.css` | Journal pages only | Blog listing, post layout, search, filters, tags, author card, related posts | `.yj-` |
+| `src/css/store.css` | Profile/store pages only | Store catalog, checkout modal, categories, badges, product cards, deposit items | `.yb-store__` |
+| `src/css/admin-panel.css` | Admin panel only | Admin tabs, lead management, campaigns, billing, documents, knowledge base, sequences | `.yb-admin__`, `.yb-kb__`, `.yb-lead__`, `.yb-billing__`, `.yb-doc-browser__`, `.yb-seq__` |
+
+**How conditional loading works:**
+
+Pages opt into extra CSS via front matter flags:
+- `includeJournal: true` → loads `journal.css`
+- `includeStore: true` → loads `store.css`
+- `includeAdmin: true` → loads `admin-panel.css`
+
+These flags are checked in `src/_includes/head.njk` with `{% if includeJournal %}` etc.
+
+**Rules for adding new CSS:**
+
+1. **Global components** (header, footer, hero, buttons, design system, new landing pages) → `main.css`
+2. **Journal/blog styles** (`.yj-` prefix) → `journal.css`
+3. **Store/checkout/profile styles** (`.yb-store__` prefix) → `store.css`
+4. **Admin panel styles** (`.yb-admin__`, `.yb-lead__`, `.yb-billing__`, `.yb-kb__`, `.yb-doc-browser__`, `.yb-seq__`) → `admin-panel.css`
+5. **New page-specific styles** that are large (500+ lines) → consider creating a new split file with a new front matter flag
+6. **When creating a new page** that needs store/journal/admin styles, add the appropriate front matter flag to both the DA and EN wrapper `.njk` files
+7. **Checkout flow modal** (`.ycf-` prefix) lives in `main.css` because it can appear on any page
 
 ### Netlify Functions Reference
 
