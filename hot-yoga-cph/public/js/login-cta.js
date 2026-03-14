@@ -943,65 +943,95 @@
   function renderProfileIframe(contentEl) {
     if (!currentUser) return;
 
-    var html = '';
-    html += '<div class="hyc-ua__iframe-wrap">';
-    html += '<div class="hyc-ua__iframe-loader" id="hyc-ua-iframe-loader">';
-    html += '<div class="hyc-ua__spinner"></div>';
-    html += '<span id="hyc-ua-iframe-loader-text">' + t('Henter din profil\u2026', 'Loading your profile\u2026') + '</span>';
-    html += '</div>';
-    html += '<iframe class="hyc-ua__iframe" id="hyc-ua-iframe" src="' + PROFILE_URL + '/" allow="payment" title="' + t('Min profil', 'My profile') + '"></iframe>';
-    html += '</div>';
+    // Get a fresh token FIRST, then load the iframe with it as a hash param.
+    // This is more reliable than postMessage across Framer's nested iframes
+    // because the profile page can read the token from its own URL on load.
+    currentUser.getIdToken(true).then(function (idToken) {
+      var profileSrc = PROFILE_URL + '/#auth=' + encodeURIComponent(idToken);
 
-    contentEl.innerHTML = html;
+      var html = '';
+      html += '<div class="hyc-ua__iframe-wrap">';
+      html += '<div class="hyc-ua__iframe-loader" id="hyc-ua-iframe-loader">';
+      html += '<div class="hyc-ua__spinner"></div>';
+      html += '<span id="hyc-ua-iframe-loader-text">' + t('Henter din profil\u2026', 'Loading your profile\u2026') + '</span>';
+      html += '</div>';
+      html += '<iframe class="hyc-ua__iframe" id="hyc-ua-iframe" src="' + profileSrc + '" allow="payment" title="' + t('Min profil', 'My profile') + '"></iframe>';
+      html += '</div>';
 
-    var iframe = $t('hyc-ua-iframe');
-    var loader = $t('hyc-ua-iframe-loader');
-    var loaderText = $t('hyc-ua-iframe-loader-text');
+      contentEl.innerHTML = html;
 
-    if (iframe) {
-      var authConfirmed = false;
+      var iframe = $t('hyc-ua-iframe');
+      var loader = $t('hyc-ua-iframe-loader');
+      var loaderText = $t('hyc-ua-iframe-loader-text');
 
-      // Listen for auth-ready confirmation from profile page
-      var onProfileMsg = function (e) {
-        if (e.data && e.data.type === 'hyc-profile-authenticated') {
-          authConfirmed = true;
+      if (iframe) {
+        var authConfirmed = false;
+
+        // Listen for auth-ready confirmation from profile page
+        var onProfileMsg = function (e) {
+          if (e.data && e.data.type === 'hyc-profile-authenticated') {
+            authConfirmed = true;
+            if (loader) loader.classList.add('is-hidden');
+            window.removeEventListener('message', onProfileMsg);
+          }
+        };
+        window.addEventListener('message', onProfileMsg);
+        // Also listen on parent window (message may bubble up from nested iframe)
+        try {
+          if (window.top !== window) {
+            window.top.addEventListener('message', onProfileMsg);
+          }
+        } catch (e) {}
+
+        // Also send via postMessage as a backup (profile page JS may load after hash is consumed)
+        iframe.addEventListener('load', function () {
+          sendAuthToIframe(iframe);
+          setTimeout(function () { sendAuthToIframe(iframe); }, 800);
+          setTimeout(function () { sendAuthToIframe(iframe); }, 2000);
+        });
+
+        // After 4s, hide loader regardless (profile page may not send confirmation)
+        setTimeout(function () {
           if (loader) loader.classList.add('is-hidden');
-          window.removeEventListener('message', onProfileMsg);
-        }
-      };
-      window.addEventListener('message', onProfileMsg);
+        }, 4000);
 
-      // Send auth token multiple times (profile page JS may not be ready on first attempt)
-      iframe.addEventListener('load', function () {
-        sendAuthToIframe(iframe);
-        setTimeout(function () { sendAuthToIframe(iframe); }, 800);
-        setTimeout(function () { sendAuthToIframe(iframe); }, 2000);
-      });
-
-      // After 4s, hide loader regardless (profile page may not send confirmation)
-      setTimeout(function () {
-        if (loader) loader.classList.add('is-hidden');
-      }, 4000);
-
-      // After 7s, if still no auth confirmation, show a fallback link
-      setTimeout(function () {
-        if (!authConfirmed && loaderText) {
-          loaderText.innerHTML =
-            '<a href="' + PROFILE_URL + '/" target="_blank" rel="noopener" style="color:' + BRAND + ';text-decoration:underline">' +
-            t('\u00c5bn profil i ny fane', 'Open profile in new tab') + '</a>';
-        }
-      }, 7000);
-    }
+        // After 7s, if still no auth confirmation, show a fallback link
+        setTimeout(function () {
+          if (!authConfirmed && loaderText) {
+            loaderText.innerHTML =
+              '<a href="' + PROFILE_URL + '/" target="_blank" rel="noopener" style="color:' + BRAND + ';text-decoration:underline">' +
+              t('\u00c5bn profil i ny fane', 'Open profile in new tab') + '</a>';
+          }
+        }, 7000);
+      }
+    }).catch(function (err) {
+      console.warn('Could not get token for profile iframe:', err);
+      // Fallback: load without token, will show logged-out state
+      contentEl.innerHTML =
+        '<div style="text-align:center;padding:40px">' +
+        '<a href="' + PROFILE_URL + '/" target="_blank" rel="noopener" style="color:' + BRAND + ';text-decoration:underline;font-size:16px">' +
+        t('\u00c5bn profil i ny fane', 'Open profile in new tab') + '</a></div>';
+    });
   }
 
   function sendAuthToIframe(iframe) {
     if (!currentUser || !iframe || !iframe.contentWindow) return;
 
     currentUser.getIdToken().then(function (idToken) {
-      iframe.contentWindow.postMessage(
-        { type: 'hyc-auth-bridge', idToken: idToken },
-        PROFILE_URL
-      );
+      // Try posting with specific origin first, then wildcard as fallback
+      try {
+        iframe.contentWindow.postMessage(
+          { type: 'hyc-auth-bridge', idToken: idToken },
+          PROFILE_URL
+        );
+      } catch (e) {}
+      // Wildcard fallback (Framer iframe nesting can cause origin mismatches)
+      try {
+        iframe.contentWindow.postMessage(
+          { type: 'hyc-auth-bridge', idToken: idToken },
+          '*'
+        );
+      } catch (e) {}
     }).catch(function (err) {
       console.warn('Could not send auth to profile iframe:', err);
     });
