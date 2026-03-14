@@ -126,6 +126,19 @@
       p.append('cityCountry', city);
     }
 
+    // Attach attribution data (UTM, referrer, channel)
+    if (typeof window.ybAttribution === 'function') {
+      var attr = window.ybAttribution();
+      if (attr.channel) p.append('channel', attr.channel);
+      if (attr.utm_source) p.append('utm_source', attr.utm_source);
+      if (attr.utm_medium) p.append('utm_medium', attr.utm_medium);
+      if (attr.utm_campaign) p.append('utm_campaign', attr.utm_campaign);
+      if (attr.gclid) p.append('gclid', attr.gclid);
+      if (attr.fbclid) p.append('fbclid', attr.fbclid);
+      if (attr.referrer) p.append('referrer', attr.referrer);
+      if (attr.landing_page) p.append('landing_page', attr.landing_page);
+    }
+
     fetch(FORM_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p.toString() })
       .then(function () {
         viewForm.hidden = true;
