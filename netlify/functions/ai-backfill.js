@@ -11,7 +11,10 @@
  *   ?check=1    — Find stuck sessions and re-trigger processing
  *   ?retranscribe=SESSION_ID — Reset and re-trigger full pipeline (MP4→Deepgram→Claude, with subtitle fallback)
  *   ?retranscribe=all — Re-transcribe ALL sessions with recordings (batch mode)
- *   ?deepgram-direct=SESSION_ID — Skip Mux, send HLS URL to Deepgram async API with callback webhook
+ *   ?deepgram-direct=SESSION_ID — Get MP4 from Mux (creates temp asset if needed), send to Deepgram async callback
+ *     Run 1: creates temp MP4 asset → "mp4_pending" (run again in 2-5 min)
+ *     Run 2: MP4 ready → sends to Deepgram callback → "deepgram_pending"
+ *     &url=CUSTOM_URL — skip MP4 creation, send this URL directly to Deepgram
  *   ?reprocess=SESSION_ID — Re-run Claude on existing transcript (no re-transcription)
  *   (default)   — Phase 1: trigger caption requests for sessions with recordings but no AI data
  *
@@ -341,10 +344,15 @@ exports.handler = async function (event) {
       });
     }
 
-    // ── Deepgram Direct mode: skip Mux, send HLS URL to Deepgram with async callback ──
-    // ?deepgram-direct=SESSION_ID  — send HLS playback URL to Deepgram's async API
+    // ── Deepgram Direct mode: get MP4 URL, send to Deepgram with async callback ──
+    // ?deepgram-direct=SESSION_ID  — creates MP4 temp asset if needed, sends MP4 URL to Deepgram
     // &transcript-only=1           — stop after transcription, skip Claude summary/quiz
-    // &url=CUSTOM_URL              — override the audio URL (default: HLS from recordingPlaybackId)
+    // &url=CUSTOM_URL              — override the audio URL (skip MP4 creation, send this URL directly)
+    //
+    // Idempotent 2-step flow:
+    //   Run 1: Creates Mux temp asset with MP4 → returns "mp4_pending", run again in a few minutes
+    //   Run 2: Checks MP4 ready → sends to Deepgram with callback → "deepgram_pending"
+    //   Deepgram webhook: receives result → "transcript_ready"
     if (params['deepgram-direct']) {
       var sessId = params['deepgram-direct'];
       var isTranscriptOnly = params['transcript-only'] === '1';
@@ -357,42 +365,28 @@ exports.handler = async function (event) {
         return jsonResponse(400, { ok: false, error: 'Session has no recordingPlaybackId and no ?url= provided' });
       }
 
-      // Build the audio URL (HLS from Mux, or custom override)
-      var audioUrl = params.url || ('https://stream.mux.com/' + sess.recordingPlaybackId + '.m3u8');
+      // If custom URL provided, skip MP4 creation and send directly
+      if (params.url) {
+        return await sendToDeepgramCallback(sessId, sess, params.url, isTranscriptOnly);
+      }
 
-      // Build the callback URL — Deepgram will POST the result here when done
-      var callbackSecret = encodeURIComponent(process.env.AI_INTERNAL_SECRET || '');
-      var callbackMode = isTranscriptOnly ? 'transcript-only' : 'full';
-      var callbackUrl = 'https://yogabible.dk/.netlify/functions/deepgram-webhook'
-        + '?sessionId=' + sessId
-        + '&secret=' + callbackSecret
-        + '&mode=' + callbackMode;
+      // Try to get an MP4 URL — check temp asset, original asset, or create new temp asset
+      var mp4Url = await getMp4UrlForSession(sessId, sess);
 
-      console.log('[ai-backfill] Deepgram-direct: sending to Deepgram async API');
-      console.log('[ai-backfill] Audio URL:', audioUrl);
-      console.log('[ai-backfill] Callback URL:', callbackUrl.replace(callbackSecret, '***'));
-
-      // Reset status
-      await updateDoc(COLLECTION, sessId, {
-        aiStatus: 'deepgram_pending',
-        aiError: null,
-        aiTranscript: null,
-        aiSummary: null,
-        aiQuiz: null
-      });
-
-      // Send to Deepgram with callback — returns immediately with request_id
-      var dgResult = await deepgramWithCallback(audioUrl, callbackUrl);
-
-      return jsonResponse(200, {
-        ok: true,
-        message: 'Deepgram async transcription requested. Deepgram will POST the result to our webhook when done.'
-          + (isTranscriptOnly ? ' TRANSCRIPT-ONLY mode.' : ' Full pipeline: Deepgram → Claude.'),
-        id: sessId,
-        title: sess.title_da || sess.title_en || '',
-        audioUrl: audioUrl,
-        deepgramRequestId: dgResult.request_id || null
-      });
+      if (mp4Url) {
+        // MP4 ready — send to Deepgram with callback
+        return await sendToDeepgramCallback(sessId, sess, mp4Url, isTranscriptOnly);
+      } else {
+        // MP4 not ready yet — tell user to retry
+        return jsonResponse(202, {
+          ok: true,
+          status: 'mp4_pending',
+          message: 'MP4 rendition is being created by Mux. Run this same command again in 2-5 minutes.',
+          id: sessId,
+          title: sess.title_da || sess.title_en || '',
+          aiStatus: 'mp4_pending'
+        });
+      }
     }
 
     // ── MP4 status check: query Mux directly to see if MP4 renditions are ready ──
@@ -969,6 +963,118 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInte
       }
       return { summary: parsed.summary || '', quiz: parsed.quiz || [], lang: lang };
     });
+}
+
+/* ── Get MP4 URL for a session (check temp asset, original, or create new) ── */
+
+async function getMp4UrlForSession(sessionId, sess) {
+  var playbackId = sess.recordingPlaybackId;
+  var assetId = sess.recordingAssetId;
+
+  // 1. Check if a previous run already created a temp asset
+  if (sess.aiTempAssetId) {
+    var tempAssetId = sess.aiTempAssetId;
+    var tempPlaybackId = sess.aiTempPlaybackId || playbackId;
+    console.log('[ai-backfill] Found existing temp asset:', tempAssetId);
+
+    try {
+      var tempAsset = await muxRequest('GET', '/video/v1/assets/' + tempAssetId);
+      var tempRend = tempAsset.data && tempAsset.data.static_renditions;
+
+      if (tempRend && tempRend.status === 'ready') {
+        console.log('[ai-backfill] Temp asset MP4 is ready!');
+        return 'https://stream.mux.com/' + tempPlaybackId + '/low.mp4';
+      }
+      if (tempRend && tempRend.status === 'errored') {
+        console.log('[ai-backfill] Temp asset MP4 errored — will create a new one');
+        // Fall through to create new
+      } else {
+        var tempStatus = tempAsset.data && tempAsset.data.status;
+        console.log('[ai-backfill] Temp asset still processing — renditions:', tempRend ? tempRend.status : 'none', 'asset:', tempStatus);
+        await updateDoc(COLLECTION, sessionId, { aiStatus: 'mp4_pending', aiError: null });
+        return null; // Not ready yet
+      }
+    } catch (e) {
+      console.log('[ai-backfill] Error checking temp asset:', e.message, '— creating new one');
+    }
+  }
+
+  // 2. Check if original asset already has MP4 renditions
+  if (assetId) {
+    try {
+      var asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
+      var renditions = asset.data && asset.data.static_renditions;
+      if (renditions && renditions.status === 'ready') {
+        console.log('[ai-backfill] Original asset MP4 already available');
+        return 'https://stream.mux.com/' + playbackId + '/low.mp4';
+      }
+    } catch (e) {
+      console.log('[ai-backfill] Error checking original asset:', e.message);
+    }
+  }
+
+  // 3. Create a new temp asset from HLS with MP4 support
+  console.log('[ai-backfill] Creating temp Mux asset with MP4 from HLS...');
+  var hlsUrl = 'https://stream.mux.com/' + playbackId + '.m3u8';
+  var newAsset = await muxRequest('POST', '/video/v1/assets', {
+    input: [{ url: hlsUrl }],
+    playback_policy: ['public'],
+    mp4_support: 'capped-1080p',
+    encoding_tier: 'baseline'
+  });
+
+  var newAssetId = newAsset.data.id;
+  var newPbIds = newAsset.data.playback_ids || [];
+  var newPlaybackId = newPbIds.length > 0 ? newPbIds[0].id : playbackId;
+
+  // Save temp asset IDs so next call can pick up
+  await updateDoc(COLLECTION, sessionId, {
+    aiTempAssetId: newAssetId,
+    aiTempPlaybackId: newPlaybackId,
+    aiStatus: 'mp4_pending',
+    aiError: null
+  });
+
+  console.log('[ai-backfill] Temp asset created:', newAssetId, '— run deepgram-direct again in 2-5 min');
+  return null; // Not ready yet
+}
+
+/* ── Send audio URL to Deepgram with callback ── */
+
+async function sendToDeepgramCallback(sessionId, sess, audioUrl, isTranscriptOnly) {
+  var callbackSecret = encodeURIComponent(process.env.AI_INTERNAL_SECRET || '');
+  var callbackMode = isTranscriptOnly ? 'transcript-only' : 'full';
+  var callbackUrl = 'https://yogabible.dk/.netlify/functions/deepgram-webhook'
+    + '?sessionId=' + sessionId
+    + '&secret=' + callbackSecret
+    + '&mode=' + callbackMode;
+
+  console.log('[ai-backfill] Sending to Deepgram async API');
+  console.log('[ai-backfill] Audio URL:', audioUrl);
+  console.log('[ai-backfill] Callback URL:', callbackUrl.replace(callbackSecret, '***'));
+
+  // Reset status
+  await updateDoc(COLLECTION, sessionId, {
+    aiStatus: 'deepgram_pending',
+    aiError: null,
+    aiTranscript: null,
+    aiSummary: null,
+    aiQuiz: null
+  });
+
+  // Send to Deepgram — returns immediately with request_id
+  var dgResult = await deepgramWithCallback(audioUrl, callbackUrl);
+
+  return jsonResponse(200, {
+    ok: true,
+    status: 'deepgram_pending',
+    message: 'Deepgram async transcription requested. Deepgram will POST the result to our webhook when done.'
+      + (isTranscriptOnly ? ' TRANSCRIPT-ONLY mode.' : ' Full pipeline: Deepgram → Claude.'),
+    id: sessionId,
+    title: sess.title_da || sess.title_en || '',
+    audioUrl: audioUrl,
+    deepgramRequestId: dgResult.request_id || null
+  });
 }
 
 /* ── Deepgram async transcription with callback ── */
