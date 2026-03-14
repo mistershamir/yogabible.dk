@@ -78,8 +78,8 @@ exports.handler = async function (event) {
     var transcript = '';
 
     try {
-      // Primary path: MP4 → Deepgram
-      var mp4Url = await ensureMp4Rendition(assetId, playbackId);
+      // Primary path: MP4 → Deepgram (creates temp asset for live recordings if needed)
+      var mp4Url = await ensureMp4Rendition(assetId, playbackId, sessionId);
       console.log('[ai-process] MP4 ready:', mp4Url);
 
       await updateDoc(COLLECTION, sessionId, { aiStatus: 'transcribing' });
@@ -157,11 +157,11 @@ exports.handler = async function (event) {
     try {
       var errorBody = JSON.parse(event.body || '{}');
       if (errorBody.sessionId) {
-        // For long recordings where Mux subtitles need more time, use a retryable status
-        var isSubtitlePending = err.message && err.message.indexOf('subtitles not ready') !== -1;
+        // For long recordings where temp asset needs more time, use a retryable status
+        var isPending = err.message && (err.message.indexOf('not ready yet') !== -1 || err.message.indexOf('subtitles not ready') !== -1);
         await updateDoc(COLLECTION, errorBody.sessionId, {
-          aiStatus: isSubtitlePending ? 'subtitle_pending' : 'error',
-          aiError: err.message + (isSubtitlePending ? ' — run retranscribe again to resume polling (temp asset preserved)' : '')
+          aiStatus: isPending ? 'mp4_pending' : 'error',
+          aiError: err.message
         });
       }
     } catch (e) { /* ignore */ }
@@ -223,8 +223,56 @@ function muxRequest(method, path, body) {
   });
 }
 
-async function ensureMp4Rendition(assetId, playbackId) {
-  // Check if MP4 renditions already exist
+async function ensureMp4Rendition(assetId, playbackId, sessionId) {
+  // Step 1: Check if a previous run created a temp asset with MP4 (for live recordings)
+  if (sessionId) {
+    var sessionDoc = await getDoc(COLLECTION, sessionId);
+    if (sessionDoc && sessionDoc.aiTempAssetId) {
+      var tempAssetId = sessionDoc.aiTempAssetId;
+      var tempPlaybackId = sessionDoc.aiTempPlaybackId || playbackId;
+      console.log('[ai-process] Found temp asset from previous run:', tempAssetId);
+
+      var tempAsset = await muxRequest('GET', '/video/v1/assets/' + tempAssetId);
+      var tempRenditions = tempAsset.data && tempAsset.data.static_renditions;
+
+      if (tempRenditions && tempRenditions.status === 'ready') {
+        console.log('[ai-process] Temp asset MP4 ready! Using it for Deepgram');
+        return 'https://stream.mux.com/' + tempPlaybackId + '/low.mp4';
+      }
+      if (tempRenditions && tempRenditions.status === 'errored') {
+        console.log('[ai-process] Temp asset MP4 errored — will create a new one');
+      } else {
+        // Still preparing — poll for up to 10 minutes
+        console.log('[ai-process] Temp asset MP4 still preparing, polling...');
+        var maxPoll = 20; // 20 × 30s = 10 minutes
+        for (var pa = 1; pa <= maxPoll; pa++) {
+          await sleep(30000);
+          tempAsset = await muxRequest('GET', '/video/v1/assets/' + tempAssetId);
+          tempRenditions = tempAsset.data && tempAsset.data.static_renditions;
+          if (tempRenditions && tempRenditions.status === 'ready') {
+            console.log('[ai-process] Temp asset MP4 ready after', pa, 'polls');
+            return 'https://stream.mux.com/' + tempPlaybackId + '/low.mp4';
+          }
+          if (tempRenditions && tempRenditions.status === 'errored') {
+            console.log('[ai-process] Temp asset MP4 errored after', pa, 'polls');
+            break;
+          }
+          var tempStatus = tempAsset.data && tempAsset.data.status;
+          if (tempStatus === 'errored') {
+            console.log('[ai-process] Temp asset ingestion errored');
+            break;
+          }
+          if (pa % 4 === 0) console.log('[ai-process] Temp MP4 poll', pa + '/' + maxPoll, '— renditions:', tempRenditions ? tempRenditions.status : 'none', 'asset:', tempStatus);
+        }
+        // If still not ready, throw so caller can save status and exit
+        if (!tempRenditions || tempRenditions.status !== 'ready') {
+          throw new Error('Temp asset MP4 not ready yet (asset ' + tempAssetId + '). Run retranscribe again to resume.');
+        }
+      }
+    }
+  }
+
+  // Step 2: Check if MP4 renditions already exist on original asset
   var asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
   var renditions = asset.data && asset.data.static_renditions;
 
@@ -233,49 +281,85 @@ async function ensureMp4Rendition(assetId, playbackId) {
     return 'https://stream.mux.com/' + playbackId + '/low.mp4';
   }
 
-  // Try to enable MP4 support on the asset (Mux uses PATCH for asset updates)
+  // Step 3: Try to enable MP4 support on the original asset
   console.log('[ai-process] Enabling MP4 support on asset:', assetId);
   try {
     var patchResult = await muxRequest('PATCH', '/video/v1/assets/' + assetId, { mp4_support: 'capped-1080p' });
-
-    // Check if MP4 support was actually enabled (live stream recordings may silently ignore the PATCH)
     var patchedMp4 = patchResult.data && patchResult.data.mp4_support;
+
     if (patchedMp4 === 'none' || !patchedMp4) {
-      // Live stream recordings can't have MP4 enabled — use HLS URL for Deepgram instead.
-      // Deepgram can process HLS/m3u8 URLs via its internal ffmpeg-based media pipeline.
-      console.log('[ai-process] MP4 unavailable (live stream recording) — using HLS URL for Deepgram');
-      return 'https://stream.mux.com/' + playbackId + '.m3u8';
+      // Live stream recordings can't have MP4 enabled on the original asset.
+      // Create a NEW temp asset from HLS with MP4 support for Deepgram.
+      console.log('[ai-process] MP4 unavailable on original (live recording) — creating temp asset with MP4...');
+      var hlsUrl = 'https://stream.mux.com/' + playbackId + '.m3u8';
+      var newAsset = await muxRequest('POST', '/video/v1/assets', {
+        input: [{ url: hlsUrl }],
+        playback_policy: ['public'],
+        mp4_support: 'capped-1080p',
+        encoding_tier: 'baseline'
+      });
+
+      var newAssetId = newAsset.data.id;
+      var newPbIds = newAsset.data.playback_ids || [];
+      var newPlaybackId = newPbIds.length > 0 ? newPbIds[0].id : playbackId;
+
+      // Save temp asset so retries can resume
+      if (sessionId) {
+        await updateDoc(COLLECTION, sessionId, {
+          aiTempAssetId: newAssetId,
+          aiTempPlaybackId: newPlaybackId
+        });
+      }
+      console.log('[ai-process] Temp asset created:', newAssetId, '— polling for MP4...');
+
+      // Poll for MP4 readiness (up to 10 min — ingestion + rendering for long recordings)
+      var maxAttempts2 = 20; // 20 × 30s = 10 minutes
+      for (var attempt2 = 1; attempt2 <= maxAttempts2; attempt2++) {
+        await sleep(30000);
+        var tempCheck = await muxRequest('GET', '/video/v1/assets/' + newAssetId);
+        var tempRend = tempCheck.data && tempCheck.data.static_renditions;
+        if (tempRend && tempRend.status === 'ready') {
+          console.log('[ai-process] Temp asset MP4 ready after', attempt2, 'polls');
+          return 'https://stream.mux.com/' + newPlaybackId + '/low.mp4';
+        }
+        if (tempRend && tempRend.status === 'errored') {
+          throw new Error('Temp asset MP4 rendition failed');
+        }
+        var assetSt = tempCheck.data && tempCheck.data.status;
+        if (assetSt === 'errored') {
+          throw new Error('Temp asset ingestion errored');
+        }
+        if (attempt2 % 4 === 0) console.log('[ai-process] Temp MP4 poll', attempt2 + '/' + maxAttempts2, '— renditions:', tempRend ? tempRend.status : 'none', 'asset:', assetSt);
+      }
+
+      // Not ready in time — for 5+ hour recordings, ingestion can take 20+ min.
+      // Save state so retranscribe can resume from this temp asset.
+      throw new Error('Temp asset MP4 not ready yet (asset ' + newAssetId + '). Run retranscribe again to resume.');
     }
+
     console.log('[ai-process] MP4 support enabled (' + patchedMp4 + '), polling for readiness...');
 
-    // Poll until renditions are ready (up to 8 minutes — must fit in Netlify's 15-min bg limit)
-    var maxAttempts = 16; // 16 × 30s = 8 minutes
+    // Poll original asset for MP4 (up to 10 minutes)
+    var maxAttempts = 20; // 20 × 30s = 10 minutes
     var pollInterval = 30000;
 
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
       await sleep(pollInterval);
-
       asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
       renditions = asset.data && asset.data.static_renditions;
-
       if (renditions && renditions.status === 'ready') {
         console.log('[ai-process] MP4 renditions ready after', attempt, 'polls (~' + (attempt * 30) + 's)');
         return 'https://stream.mux.com/' + playbackId + '/low.mp4';
       }
       if (renditions && renditions.status === 'errored') {
-        console.log('[ai-process] MP4 rendition errored — using HLS URL for Deepgram');
-        return 'https://stream.mux.com/' + playbackId + '.m3u8';
+        throw new Error('MP4 rendition creation failed on Mux');
       }
       console.log('[ai-process] MP4 poll', attempt + '/' + maxAttempts, '— status:', renditions ? renditions.status : 'none');
     }
 
-    // MP4 not ready after 8 min (common for long recordings) — use HLS URL instead of failing
-    console.log('[ai-process] MP4 not ready after 8 min — using HLS URL for Deepgram');
-    return 'https://stream.mux.com/' + playbackId + '.m3u8';
+    throw new Error('MP4 renditions not ready after 10 minutes. Run retranscribe again to resume.');
   } catch (patchErr) {
-    // PATCH failed entirely — use HLS URL as fallback
-    console.log('[ai-process] MP4 PATCH error:', patchErr.message, '— using HLS URL for Deepgram');
-    return 'https://stream.mux.com/' + playbackId + '.m3u8';
+    throw patchErr;
   }
 }
 

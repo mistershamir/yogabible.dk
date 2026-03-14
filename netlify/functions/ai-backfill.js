@@ -508,7 +508,7 @@ exports.handler = async function (event) {
           && item.recordingAssetId
           && (item.aiStatus === 'preparing_audio' || item.aiStatus === 'transcribing'
               || item.aiStatus === 'processing' || item.aiStatus === 'captions_requested'
-              || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending');
+              || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending' || item.aiStatus === 'mp4_pending');
       });
 
       if (waiting.length === 0) {
@@ -595,7 +595,7 @@ exports.handler = async function (event) {
     var pending = all.filter(function (item) {
       return item.status === 'ended'
         && item.recordingAssetId
-        && (!item.aiStatus || item.aiStatus === 'error' || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending');
+        && (!item.aiStatus || item.aiStatus === 'error' || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending' || item.aiStatus === 'mp4_pending');
     });
 
     console.log('[ai-backfill] Found', pending.length, 'recordings to process');
