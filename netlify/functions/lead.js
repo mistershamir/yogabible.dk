@@ -206,9 +206,9 @@ function processLead(payload, action) {
         ...base,
         type: 'ytt',
         ytt_program_type: '4-week',
-        program: payload.program || '4-Week Intensive YTT',
+        program: payload.program || '4-Week Intensive YTT (April 2026)',
         course_id: '',
-        cohort_label: payload.program || '',
+        cohort_label: payload.program || 'April 2026',
         preferred_month: '',
         accommodation: normalizeYesNo(payload.accommodation || 'No'),
         city_country: payload.cityCountry || '',
@@ -224,9 +224,9 @@ function processLead(payload, action) {
         ...base,
         type: 'ytt',
         ytt_program_type: '4-week-jul',
-        program: payload.program || '4-Week Vinyasa Plus YTT (July)',
+        program: payload.program || '4-Week Vinyasa Plus YTT (July 2026)',
         course_id: '',
-        cohort_label: 'Juli 2026',
+        cohort_label: 'July 2026',
         preferred_month: '',
         accommodation: normalizeYesNo(payload.accommodation || 'No'),
         city_country: payload.cityCountry || '',
@@ -242,9 +242,9 @@ function processLead(payload, action) {
         ...base,
         type: 'ytt',
         ytt_program_type: '8-week',
-        program: payload.program || '8-Week Semi-Intensive YTT',
+        program: payload.program || '8-Week Semi-Intensive YTT (April–May 2026)',
         course_id: '',
-        cohort_label: payload.cohort || '',
+        cohort_label: payload.cohort || 'April–May 2026',
         preferred_month: '',
         accommodation: normalizeYesNo(payload.accommodation || 'No'),
         city_country: payload.cityCountry || '',
@@ -260,14 +260,22 @@ function processLead(payload, action) {
       const allFmts = (payload.allFormats || '').split(',').filter(f => f);
       const fmtMap = { '4w': '4-week', '8w': '8-week', '18w': '18-week', '4w-apr': '4-week', '4w-jul': '4-week-jul', '18w-aug': '18-week-aug' };
       const programTypes = allFmts.map(f => fmtMap[f] || f);
-      // Store raw program types; getDisplayProgram() handles display names per language
+      // Human-readable names with cohort dates
+      const displayMap = {
+        '4-week': '4-Week Intensive (April 2026)',
+        '4-week-jul': '4-Week Vinyasa Plus (July 2026)',
+        '8-week': '8-Week Semi-Intensive (April–May 2026)',
+        '18-week': '18-Week Flexible (April–August 2026)',
+        '18-week-aug': '18-Week Flexible (August–December 2026)'
+      };
+      const displayNames = programTypes.map(t => displayMap[t] || t);
       return {
         ...base,
         type: 'ytt',
         ytt_program_type: programTypes.join(','),
-        program: programTypes.join(' + ') + ' Yoga Teacher Training',
+        program: displayNames.join(' + ') + ' YTT',
         course_id: '',
-        cohort_label: '',
+        cohort_label: displayNames.join(' + '),
         preferred_month: '',
         accommodation: normalizeYesNo(payload.accommodation || 'No'),
         city_country: payload.cityCountry || '',
