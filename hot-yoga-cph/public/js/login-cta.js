@@ -1287,6 +1287,7 @@
             _restoring = false;
             persistAuthToken(user);
             broadcastAuthChange(user);
+            broadcastAuthStateToFramer(user);
             resolveMbClient(user);
             renderLoggedIn(user);
             // If auth modal is open, close it — user just logged in
@@ -1301,6 +1302,7 @@
               clearAuthToken();
               broadcastAuthChange(null);
             }
+            broadcastAuthStateToFramer(null);
             renderLoggedOut();
             // Close user area modal if open
             if (modalMode === 'user-area') {
@@ -1341,35 +1343,83 @@
 
 
   // ═══════════════════════════════════════════════════════════════════
+  // FRAMER NATIVE BUTTON BRIDGE (postMessage)
+  // ═══════════════════════════════════════════════════════════════════
+  // When using a native Framer button instead of the HTML-rendered CTA,
+  // the Framer button sends { type: 'hyc-open-auth' } and this script
+  // responds by opening the appropriate modal. Auth state changes are
+  // broadcast back via { type: 'hyc-auth-state', loggedIn, displayName }
+  // so the Framer button can update its label.
+
+  function broadcastAuthStateToFramer(user) {
+    var msg = {
+      type: 'hyc-auth-state',
+      loggedIn: !!user,
+      displayName: user ? (user.displayName || user.email || '') : ''
+    };
+    // Post to parent (if we're in an iframe)
+    try { if (window.parent !== window) window.parent.postMessage(msg, '*'); } catch (e) {}
+    // Post to top (in case of nested iframes)
+    try { if (window.top !== window) window.top.postMessage(msg, '*'); } catch (e) {}
+    // Also post on own window (for same-frame listeners)
+    try { window.postMessage(msg, '*'); } catch (e) {}
+  }
+
+  function listenForFramerButton() {
+    // Listen on both the iframe's own window and try the parent
+    function handleMessage(e) {
+      try {
+        if (e.data && e.data.type === 'hyc-open-auth') {
+          if (currentUser) {
+            openModal('user-area');
+          } else {
+            openModal('auth-login');
+          }
+        }
+        // Framer button requesting current auth state on load
+        if (e.data && e.data.type === 'hyc-auth-state-request') {
+          broadcastAuthStateToFramer(currentUser);
+        }
+      } catch (ex) {}
+    }
+    window.addEventListener('message', handleMessage);
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
   // BOOT
   // ═══════════════════════════════════════════════════════════════════
 
   function boot() {
     injectCSS();
-    container = document.getElementById('hyc-login-cta');
-    if (!container) return;
-    container.className = 'hyc-cta';
 
-    // If we have a stored session token, show loading spinner instead
-    // of "Log ind" to avoid a logged-out → logged-in flash
-    var s = _parentStorage();
-    var hasStoredToken = s && s.getItem(SESSION_KEY);
-    if (hasStoredToken) {
-      container.innerHTML = '<span class="hyc-ua__loading" style="padding:6px 12px">' + ICON.spinner + '</span>';
-      notifyFramerHeight();
-    } else {
-      renderLoggedOut();
+    // Listen for postMessage from native Framer button
+    listenForFramerButton();
+
+    container = document.getElementById('hyc-login-cta');
+    if (container) {
+      container.className = 'hyc-cta';
+
+      // If we have a stored session token, show loading spinner instead
+      // of "Log ind" to avoid a logged-out → logged-in flash
+      var s = _parentStorage();
+      var hasStoredToken = s && s.getItem(SESSION_KEY);
+      if (hasStoredToken) {
+        container.innerHTML = '<span class="hyc-ua__loading" style="padding:6px 12px">' + ICON.spinner + '</span>';
+        notifyFramerHeight();
+      } else {
+        renderLoggedOut();
+      }
+
+      // Keep posting height to Framer every 500ms for 8 seconds.
+      if (_heightInterval) clearInterval(_heightInterval);
+      _heightInterval = setInterval(_sendHeight, 500);
+      setTimeout(function () { clearInterval(_heightInterval); }, 8000);
     }
 
+    // Always init auth — even without a visible container the modal
+    // still needs Firebase for the Framer-button bridge to work.
     initAuth();
-
-    // Keep posting height to Framer every 500ms for 8 seconds.
-    // Framer's ResizeObserver can report height:0 before our content
-    // renders, and once Framer collapses the iframe to 0px it won't
-    // recover unless it receives a new embedHeight message.
-    if (_heightInterval) clearInterval(_heightInterval);
-    _heightInterval = setInterval(_sendHeight, 500);
-    setTimeout(function () { clearInterval(_heightInterval); }, 8000);
   }
 
   if (document.readyState === 'loading') {
