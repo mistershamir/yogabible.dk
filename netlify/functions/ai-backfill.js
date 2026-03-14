@@ -11,7 +11,7 @@
  *   ?check=1    — Find stuck sessions and re-trigger processing
  *   ?retranscribe=SESSION_ID — Reset and re-trigger full pipeline (MP4→Deepgram→Claude, with subtitle fallback)
  *   ?retranscribe=all — Re-transcribe ALL sessions with recordings (batch mode)
- *   ?deepgram-direct=SESSION_ID — Skip Mux asset creation, send HLS URL straight to Deepgram (for large recordings)
+ *   ?deepgram-direct=SESSION_ID — Skip Mux, send HLS URL to Deepgram async API with callback webhook
  *   ?reprocess=SESSION_ID — Re-run Claude on existing transcript (no re-transcription)
  *   (default)   — Phase 1: trigger caption requests for sessions with recordings but no AI data
  *
@@ -341,9 +341,10 @@ exports.handler = async function (event) {
       });
     }
 
-    // ── Deepgram Direct mode: skip Mux asset creation, send HLS URL straight to Deepgram ──
-    // ?deepgram-direct=SESSION_ID  — send HLS playback URL directly to Deepgram
+    // ── Deepgram Direct mode: skip Mux, send HLS URL to Deepgram with async callback ──
+    // ?deepgram-direct=SESSION_ID  — send HLS playback URL to Deepgram's async API
     // &transcript-only=1           — stop after transcription, skip Claude summary/quiz
+    // &url=CUSTOM_URL              — override the audio URL (default: HLS from recordingPlaybackId)
     if (params['deepgram-direct']) {
       var sessId = params['deepgram-direct'];
       var isTranscriptOnly = params['transcript-only'] === '1';
@@ -352,36 +353,45 @@ exports.handler = async function (event) {
       if (!sess) {
         return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessId });
       }
-      if (!sess.recordingPlaybackId) {
-        return jsonResponse(400, { ok: false, error: 'Session has no recordingPlaybackId' });
+      if (!sess.recordingPlaybackId && !params.url) {
+        return jsonResponse(400, { ok: false, error: 'Session has no recordingPlaybackId and no ?url= provided' });
       }
 
-      // Build the HLS URL from the recording playback ID
-      var hlsUrl = 'https://stream.mux.com/' + sess.recordingPlaybackId + '.m3u8';
-      console.log('[ai-backfill] Deepgram-direct: sending HLS URL to Deepgram via background function:', hlsUrl);
+      // Build the audio URL (HLS from Mux, or custom override)
+      var audioUrl = params.url || ('https://stream.mux.com/' + sess.recordingPlaybackId + '.m3u8');
+
+      // Build the callback URL — Deepgram will POST the result here when done
+      var callbackSecret = encodeURIComponent(process.env.AI_INTERNAL_SECRET || '');
+      var callbackMode = isTranscriptOnly ? 'transcript-only' : 'full';
+      var callbackUrl = 'https://yogabible.dk/.netlify/functions/deepgram-webhook'
+        + '?sessionId=' + sessId
+        + '&secret=' + callbackSecret
+        + '&mode=' + callbackMode;
+
+      console.log('[ai-backfill] Deepgram-direct: sending to Deepgram async API');
+      console.log('[ai-backfill] Audio URL:', audioUrl);
+      console.log('[ai-backfill] Callback URL:', callbackUrl.replace(callbackSecret, '***'));
 
       // Reset status
       await updateDoc(COLLECTION, sessId, {
-        aiStatus: null,
+        aiStatus: 'deepgram_pending',
         aiError: null,
         aiTranscript: null,
         aiSummary: null,
         aiQuiz: null
       });
 
-      // Call the background function with directUrl (skips ensureMp4Rendition entirely)
-      await callAiProcess(sessId, sess.recordingAssetId, {
-        transcriptOnly: isTranscriptOnly,
-        directUrl: hlsUrl
-      });
+      // Send to Deepgram with callback — returns immediately with request_id
+      var dgResult = await deepgramWithCallback(audioUrl, callbackUrl);
 
       return jsonResponse(200, {
         ok: true,
-        message: 'Deepgram-direct triggered for session ' + sessId + '. HLS URL sent directly to Deepgram, bypassing Mux asset creation.'
+        message: 'Deepgram async transcription requested. Deepgram will POST the result to our webhook when done.'
           + (isTranscriptOnly ? ' TRANSCRIPT-ONLY mode.' : ' Full pipeline: Deepgram → Claude.'),
         id: sessId,
         title: sess.title_da || sess.title_en || '',
-        hlsUrl: hlsUrl
+        audioUrl: audioUrl,
+        deepgramRequestId: dgResult.request_id || null
       });
     }
 
@@ -553,7 +563,8 @@ exports.handler = async function (event) {
           && item.recordingAssetId
           && (item.aiStatus === 'preparing_audio' || item.aiStatus === 'transcribing'
               || item.aiStatus === 'processing' || item.aiStatus === 'captions_requested'
-              || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending' || item.aiStatus === 'mp4_pending');
+              || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending' || item.aiStatus === 'mp4_pending'
+              || item.aiStatus === 'deepgram_pending');
       });
 
       if (waiting.length === 0) {
@@ -958,6 +969,58 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInte
       }
       return { summary: parsed.summary || '', quiz: parsed.quiz || [], lang: lang };
     });
+}
+
+/* ── Deepgram async transcription with callback ── */
+
+function deepgramWithCallback(audioUrl, callbackUrl) {
+  var apiKey = process.env.DEEPGRAM_API_KEY;
+  if (!apiKey) throw new Error('DEEPGRAM_API_KEY env var required');
+
+  return new Promise(function (resolve, reject) {
+    var body = JSON.stringify({ url: audioUrl });
+    var queryParams = 'model=nova-2&detect_language=true&smart_format=true&paragraphs=true'
+      + '&callback=' + encodeURIComponent(callbackUrl);
+
+    var opts = {
+      hostname: 'api.deepgram.com',
+      path: '/v1/listen?' + queryParams,
+      method: 'POST',
+      headers: {
+        'Authorization': 'Token ' + apiKey,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    };
+
+    var req = https.request(opts, function (res) {
+      var chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () {
+        var raw = Buffer.concat(chunks).toString();
+        console.log('[ai-backfill] Deepgram callback response:', res.statusCode, raw.substring(0, 300));
+        try {
+          var json = JSON.parse(raw);
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve(json);
+          } else {
+            reject(new Error('Deepgram API error ' + res.statusCode + ': ' + raw.substring(0, 300)));
+          }
+        } catch (e) {
+          reject(new Error('Deepgram parse error: ' + raw.substring(0, 300)));
+        }
+      });
+    });
+
+    req.setTimeout(30000, function () {
+      req.destroy();
+      reject(new Error('Deepgram callback request timed out'));
+    });
+
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
 }
 
 /* ── Call ai-process-recording (Phase 1 trigger) ── */
