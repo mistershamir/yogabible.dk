@@ -124,6 +124,24 @@ exports.handler = async (event) => {
 async function getAll(db) {
   const snapshot = await db.collection(SEQUENCES_COL).orderBy('created_at', 'desc').get();
   const sequences = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  // Fetch all enrollments in one query and aggregate stats per sequence
+  const enrollSnap = await db.collection(ENROLLMENTS_COL).get();
+  var statsMap = {};
+  enrollSnap.docs.forEach(d => {
+    var data = d.data();
+    var seqId = data.sequence_id;
+    if (!seqId) return;
+    if (!statsMap[seqId]) statsMap[seqId] = { total: 0, active: 0, paused: 0, completed: 0, exited: 0 };
+    statsMap[seqId].total++;
+    var status = data.status || 'active';
+    if (statsMap[seqId][status] !== undefined) statsMap[seqId][status]++;
+  });
+
+  for (var i = 0; i < sequences.length; i++) {
+    sequences[i].enrollment_stats = statsMap[sequences[i].id] || { total: 0, active: 0, paused: 0, completed: 0, exited: 0 };
+  }
+
   return jsonResponse(200, { ok: true, sequences, count: sequences.length });
 }
 
