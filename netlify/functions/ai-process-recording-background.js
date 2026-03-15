@@ -53,6 +53,16 @@ exports.handler = async function (event) {
 
     console.log('[ai-process] Starting full pipeline for session:', sessionId, 'asset:', assetId);
 
+    // Guard: skip if already processing (prevents duplicate Deepgram calls from
+    // concurrent triggers — e.g. retranscribe + Mux webhook both firing)
+    var currentDoc = await getDoc(COLLECTION, sessionId);
+    var currentStatus = currentDoc && currentDoc.aiStatus;
+    if (currentStatus === 'processing' || currentStatus === 'transcribing' ||
+        currentStatus === 'uploading_subtitles' || currentStatus === 'generating_summary') {
+      console.log('[ai-process] Session', sessionId, 'already has aiStatus:', currentStatus, '— skipping duplicate run');
+      return jsonResponse(200, { ok: true, status: 'already_processing', aiStatus: currentStatus });
+    }
+
     // Mark processing started
     await updateDoc(COLLECTION, sessionId, { aiStatus: 'processing' });
 

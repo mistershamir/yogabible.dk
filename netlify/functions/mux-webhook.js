@@ -26,7 +26,7 @@
  */
 
 const crypto = require('crypto');
-const { getCollection, getDb, updateDoc, addDoc, deleteDoc } = require('./shared/firestore');
+const { getCollection, getDb, getDoc, updateDoc, addDoc, deleteDoc } = require('./shared/firestore');
 const { jsonResponse } = require('./shared/utils');
 
 const COLLECTION = 'live-schedule';
@@ -401,7 +401,15 @@ async function handleAssetReady(assetData) {
     console.log('[mux-webhook] Session', matched.id, 'now has recording', recordingPlaybackId);
 
     // Trigger AI processing (transcription + summary + quiz)
-    triggerAiProcessing(matched.id, assetData.id);
+    // Skip if already processing (retranscribe or previous webhook may have started it)
+    var aiStatus = matched.aiStatus;
+    if (aiStatus === 'processing' || aiStatus === 'transcribing' ||
+        aiStatus === 'uploading_subtitles' || aiStatus === 'generating_summary') {
+      console.log('[mux-webhook] Session', matched.id, 'already has aiStatus:', aiStatus,
+        '— skipping duplicate AI trigger');
+    } else {
+      triggerAiProcessing(matched.id, assetData.id);
+    }
   } else {
     // No match — store as unmatched recording so it gets reconciled
     // when handleStreamActive runs (events can arrive out of order)
@@ -451,9 +459,16 @@ async function reconcileUnmatchedRecordings(liveStreamId, sessionId) {
       recordingAssetId: rec.recordingAssetId || null
     });
 
-    // Trigger AI processing for reconciled recording
+    // Trigger AI processing for reconciled recording (skip if already running)
     if (rec.recordingAssetId) {
-      triggerAiProcessing(sessionId, rec.recordingAssetId);
+      var sessDoc = await getDoc(COLLECTION, sessionId);
+      var sessAiStatus = sessDoc && sessDoc.aiStatus;
+      if (sessAiStatus === 'processing' || sessAiStatus === 'transcribing' ||
+          sessAiStatus === 'uploading_subtitles' || sessAiStatus === 'generating_summary') {
+        console.log('[mux-webhook] Session', sessionId, 'already processing (aiStatus:', sessAiStatus, ') — skipping reconcile AI trigger');
+      } else {
+        triggerAiProcessing(sessionId, rec.recordingAssetId);
+      }
     }
 
     // Delete all matched unmatched records
