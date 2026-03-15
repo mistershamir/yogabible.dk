@@ -77,12 +77,15 @@ exports.handler = async function (event) {
     // ── Step 2+3: Transcribe via MP4+Deepgram, falling back to Mux subtitles ──
     var transcript = '';
 
+    var deepgramResult = null;
+
     if (directUrl) {
       // Direct URL mode: skip all Mux asset creation, send URL straight to Deepgram
       console.log('[ai-process] DIRECT URL mode — skipping Mux MP4, sending to Deepgram:', directUrl);
       await updateDoc(COLLECTION, sessionId, { aiStatus: 'transcribing' });
-      transcript = await transcribeWithDeepgram(directUrl);
-      console.log('[ai-process] Deepgram transcript length:', transcript.length, 'chars');
+      deepgramResult = await transcribeWithDeepgram(directUrl);
+      transcript = deepgramResult.transcript;
+      console.log('[ai-process] Deepgram transcript length:', transcript.length, 'chars, utterances:', deepgramResult.utterances.length);
     } else {
       await updateDoc(COLLECTION, sessionId, { aiStatus: 'preparing_audio' });
 
@@ -94,13 +97,52 @@ exports.handler = async function (event) {
 
       await updateDoc(COLLECTION, sessionId, { aiStatus: 'transcribing' });
       console.log('[ai-process] Sending to Deepgram for transcription...');
-      transcript = await transcribeWithDeepgram(mp4Url);
-      console.log('[ai-process] Deepgram transcript length:', transcript.length, 'chars');
+      deepgramResult = await transcribeWithDeepgram(mp4Url);
+      transcript = deepgramResult.transcript;
+      console.log('[ai-process] Deepgram transcript length:', transcript.length, 'chars, utterances:', deepgramResult.utterances.length);
     }
 
     if (!transcript || transcript.length < 50) {
       await updateDoc(COLLECTION, sessionId, { aiStatus: 'no_transcript', aiError: 'Transcript too short (' + (transcript ? transcript.length : 0) + ' chars)' });
       return jsonResponse(200, { ok: true, status: 'no_transcript', chars: transcript ? transcript.length : 0 });
+    }
+
+    // ── Upload Deepgram subtitles to Mux (replace auto-generated ones) ──
+    if (deepgramResult && deepgramResult.utterances && deepgramResult.utterances.length > 0) {
+      try {
+        await updateDoc(COLLECTION, sessionId, { aiStatus: 'uploading_subtitles' });
+        var vttContent = generateVttFromUtterances(deepgramResult.utterances);
+        console.log('[ai-process] Generated VTT:', vttContent.length, 'chars,', deepgramResult.utterances.length, 'cues');
+
+        // Save VTT to Firestore so serve-vtt function can serve it
+        // Firestore max doc size is 1MB; VTT for 5hr session ≈ 500KB, safe margin
+        if (vttContent.length > 900000) {
+          console.log('[ai-process] VTT too large for Firestore (' + vttContent.length + ' chars), truncating');
+          // Truncate at last complete cue boundary
+          var truncated = vttContent.substring(0, 900000);
+          var lastDouble = truncated.lastIndexOf('\n\n');
+          if (lastDouble > 0) vttContent = truncated.substring(0, lastDouble + 2);
+        }
+        await updateDoc(COLLECTION, sessionId, {
+          captionVtt: vttContent,
+          captionLang: deepgramResult.detectedLang || 'en'
+        });
+
+        // Build the VTT URL for Mux to fetch
+        // Use canonical domain directly — process.env.URL may include www which 301-redirects,
+        // and Mux may not follow redirects when ingesting subtitle tracks
+        var vttUrl = 'https://yogabible.dk/.netlify/functions/serve-vtt?session=' + sessionId + '&secret=' + encodeURIComponent(internalSecret);
+
+        var subtitleLang = deepgramResult.detectedLang || 'en';
+        var trackId = await replaceSubtitlesOnMux(assetId, vttUrl, subtitleLang);
+
+        await updateDoc(COLLECTION, sessionId, { aiCaptionTrackId: trackId });
+        console.log('[ai-process] Subtitles uploaded to Mux successfully, track:', trackId);
+      } catch (subErr) {
+        // Non-fatal: subtitles failed but we continue with summary
+        console.error('[ai-process] Subtitle upload failed (non-fatal):', subErr.message);
+        await updateDoc(COLLECTION, sessionId, { aiSubtitleError: subErr.message });
+      }
     }
 
     // ── Transcript-only mode: save transcript and stop (skip Claude) ──
@@ -334,6 +376,11 @@ async function ensureMp4Rendition(assetId, playbackId, sessionId) {
 // Deepgram transcription
 // ═══════════════════════════════════════════════════
 
+/**
+ * Transcribe audio with Deepgram Nova-2.
+ * Returns { transcript, utterances } where utterances is an array of
+ * { start, end, transcript } objects for VTT subtitle generation.
+ */
 function transcribeWithDeepgram(audioUrl) {
   var apiKey = process.env.DEEPGRAM_API_KEY;
   if (!apiKey) throw new Error('DEEPGRAM_API_KEY env var required');
@@ -342,7 +389,7 @@ function transcribeWithDeepgram(audioUrl) {
     var body = JSON.stringify({ url: audioUrl });
     var opts = {
       hostname: 'api.deepgram.com',
-      path: '/v1/listen?model=nova-2&detect_language=true&smart_format=true&paragraphs=true',
+      path: '/v1/listen?model=nova-2&detect_language=true&smart_format=true&paragraphs=true&utterances=true&utt_split=0.8',
       method: 'POST',
       headers: {
         'Authorization': 'Token ' + apiKey,
@@ -364,7 +411,26 @@ function transcribeWithDeepgram(audioUrl) {
           }
           var channels = json.results && json.results.channels;
           if (channels && channels[0] && channels[0].alternatives && channels[0].alternatives[0]) {
-            resolve(channels[0].alternatives[0].transcript || '');
+            var alt = channels[0].alternatives[0];
+            var utterances = (json.results && json.results.utterances) || [];
+            var mappedUtterances = utterances.map(function (u) {
+              return { start: u.start, end: u.end, transcript: u.transcript };
+            });
+
+            // Fallback: if Deepgram returned no utterances (can happen with long recordings),
+            // build synthetic utterances from word-level timestamps (~10s chunks)
+            if (mappedUtterances.length === 0 && alt.words && alt.words.length > 0) {
+              console.log('[ai-process] No utterances from Deepgram, building from', alt.words.length, 'words');
+              mappedUtterances = buildUtterancesFromWords(alt.words);
+              console.log('[ai-process] Built', mappedUtterances.length, 'synthetic utterances from words');
+            }
+
+            resolve({
+              transcript: alt.transcript || '',
+              utterances: mappedUtterances,
+              detectedLang: (json.results && json.results.channels[0] &&
+                json.results.channels[0].detected_language) || null
+            });
           } else {
             reject(new Error('Deepgram: no transcript in response: ' + raw.substring(0, 300)));
           }
@@ -385,6 +451,114 @@ function transcribeWithDeepgram(audioUrl) {
     req.write(body);
     req.end();
   });
+}
+
+// ═══════════════════════════════════════════════════
+// Build utterances from word-level timestamps (fallback)
+// ═══════════════════════════════════════════════════
+
+/**
+ * When Deepgram returns words but no utterances (happens with long recordings),
+ * chunk words into ~10-second segments to create VTT cues.
+ */
+function buildUtterancesFromWords(words) {
+  var MAX_CHUNK_SECS = 10;
+  var utterances = [];
+  var chunkWords = [];
+  var chunkStart = null;
+
+  for (var i = 0; i < words.length; i++) {
+    var w = words[i];
+    if (chunkStart === null) chunkStart = w.start;
+    chunkWords.push(w.punctuated_word || w.word);
+
+    var chunkDuration = w.end - chunkStart;
+    var isLast = i === words.length - 1;
+
+    if (chunkDuration >= MAX_CHUNK_SECS || isLast) {
+      utterances.push({
+        start: chunkStart,
+        end: w.end,
+        transcript: chunkWords.join(' ')
+      });
+      chunkWords = [];
+      chunkStart = null;
+    }
+  }
+  return utterances;
+}
+
+// ═══════════════════════════════════════════════════
+// VTT subtitle generation from Deepgram utterances
+// ═══════════════════════════════════════════════════
+
+function formatVttTime(seconds) {
+  var h = Math.floor(seconds / 3600);
+  var m = Math.floor((seconds % 3600) / 60);
+  var s = Math.floor(seconds % 60);
+  var ms = Math.round((seconds % 1) * 1000);
+  return (h < 10 ? '0' : '') + h + ':' +
+         (m < 10 ? '0' : '') + m + ':' +
+         (s < 10 ? '0' : '') + s + '.' +
+         (ms < 100 ? '0' : '') + (ms < 10 ? '0' : '') + ms;
+}
+
+function generateVttFromUtterances(utterances) {
+  var lines = ['WEBVTT', ''];
+  for (var i = 0; i < utterances.length; i++) {
+    var u = utterances[i];
+    if (!u.transcript || !u.transcript.trim()) continue;
+    lines.push('' + (i + 1));
+    lines.push(formatVttTime(u.start) + ' --> ' + formatVttTime(u.end));
+    lines.push(u.transcript.trim());
+    lines.push('');
+  }
+  return lines.join('\n');
+}
+
+// ═══════════════════════════════════════════════════
+// Mux subtitle track management
+// ═══════════════════════════════════════════════════
+
+/**
+ * Delete all existing subtitle tracks on a Mux asset,
+ * then upload a new one from the given URL.
+ */
+async function replaceSubtitlesOnMux(assetId, vttUrl, langCode) {
+  langCode = langCode || 'en';
+
+  // Step 1: Get current tracks and delete subtitles
+  try {
+    var asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
+    var tracks = (asset.data && asset.data.tracks) || [];
+    for (var i = 0; i < tracks.length; i++) {
+      if (tracks[i].type === 'text' && tracks[i].text_type === 'subtitles') {
+        try {
+          await muxRequest('DELETE', '/video/v1/assets/' + assetId + '/tracks/' + tracks[i].id);
+          console.log('[ai-process] Deleted old subtitle track:', tracks[i].id, '(' + tracks[i].name + ')');
+        } catch (e) {
+          console.log('[ai-process] Could not delete track', tracks[i].id, ':', e.message);
+        }
+      }
+    }
+  } catch (e) {
+    console.log('[ai-process] Could not fetch tracks for cleanup:', e.message);
+  }
+
+  // Step 2: Add new subtitle track from VTT URL
+  var trackName = langCode === 'da' ? 'Dansk' : 'English';
+  var result = await muxRequest('POST', '/video/v1/assets/' + assetId + '/tracks', {
+    url: vttUrl,
+    type: 'text',
+    text_type: 'subtitles',
+    language_code: langCode,
+    name: trackName,
+    closed_captions: true
+  });
+
+  var trackId = result.data && result.data.id;
+  console.log('[ai-process] Uploaded new subtitle track:', trackId, '(' + trackName + ')');
+  return trackId;
 }
 
 // ═══════════════════════════════════════════════════
