@@ -129,8 +129,9 @@ exports.handler = async function (event) {
         });
 
         // Build the VTT URL for Mux to fetch
-        var siteHost = process.env.URL || process.env.DEPLOY_PRIME_URL || 'https://yogabible.dk';
-        var vttUrl = siteHost + '/.netlify/functions/serve-vtt?session=' + sessionId + '&secret=' + encodeURIComponent(internalSecret);
+        // Use canonical domain directly — process.env.URL may include www which 301-redirects,
+        // and Mux may not follow redirects when ingesting subtitle tracks
+        var vttUrl = 'https://yogabible.dk/.netlify/functions/serve-vtt?session=' + sessionId + '&secret=' + encodeURIComponent(internalSecret);
 
         var subtitleLang = deepgramResult.detectedLang || 'en';
         var trackId = await replaceSubtitlesOnMux(assetId, vttUrl, subtitleLang);
@@ -412,11 +413,21 @@ function transcribeWithDeepgram(audioUrl) {
           if (channels && channels[0] && channels[0].alternatives && channels[0].alternatives[0]) {
             var alt = channels[0].alternatives[0];
             var utterances = (json.results && json.results.utterances) || [];
+            var mappedUtterances = utterances.map(function (u) {
+              return { start: u.start, end: u.end, transcript: u.transcript };
+            });
+
+            // Fallback: if Deepgram returned no utterances (can happen with long recordings),
+            // build synthetic utterances from word-level timestamps (~10s chunks)
+            if (mappedUtterances.length === 0 && alt.words && alt.words.length > 0) {
+              console.log('[ai-process] No utterances from Deepgram, building from', alt.words.length, 'words');
+              mappedUtterances = buildUtterancesFromWords(alt.words);
+              console.log('[ai-process] Built', mappedUtterances.length, 'synthetic utterances from words');
+            }
+
             resolve({
               transcript: alt.transcript || '',
-              utterances: utterances.map(function (u) {
-                return { start: u.start, end: u.end, transcript: u.transcript };
-              }),
+              utterances: mappedUtterances,
               detectedLang: (json.results && json.results.channels[0] &&
                 json.results.channels[0].detected_language) || null
             });
@@ -440,6 +451,41 @@ function transcribeWithDeepgram(audioUrl) {
     req.write(body);
     req.end();
   });
+}
+
+// ═══════════════════════════════════════════════════
+// Build utterances from word-level timestamps (fallback)
+// ═══════════════════════════════════════════════════
+
+/**
+ * When Deepgram returns words but no utterances (happens with long recordings),
+ * chunk words into ~10-second segments to create VTT cues.
+ */
+function buildUtterancesFromWords(words) {
+  var MAX_CHUNK_SECS = 10;
+  var utterances = [];
+  var chunkWords = [];
+  var chunkStart = null;
+
+  for (var i = 0; i < words.length; i++) {
+    var w = words[i];
+    if (chunkStart === null) chunkStart = w.start;
+    chunkWords.push(w.punctuated_word || w.word);
+
+    var chunkDuration = w.end - chunkStart;
+    var isLast = i === words.length - 1;
+
+    if (chunkDuration >= MAX_CHUNK_SECS || isLast) {
+      utterances.push({
+        start: chunkStart,
+        end: w.end,
+        transcript: chunkWords.join(' ')
+      });
+      chunkWords = [];
+      chunkStart = null;
+    }
+  }
+  return utterances;
 }
 
 // ═══════════════════════════════════════════════════
