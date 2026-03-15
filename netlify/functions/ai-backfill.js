@@ -998,7 +998,10 @@ function getRenditionStatus(renditions) {
   return renditions.status || 'none';
 }
 
-/* ── Get audio URL for a session (static renditions on original, or temp asset) ── */
+/* ── Get downloadable audio/video URL for a session ── */
+// Strategy: static renditions → master_access download URL
+// Mux HLS streams (.m3u8) CANNOT be re-ingested as new assets — Mux rejects them
+// as "not a valid video or audio file". So we use master_access instead.
 
 async function getMp4UrlForSession(sessionId, sess) {
   var playbackId = sess.recordingPlaybackId;
@@ -1021,46 +1024,12 @@ async function getMp4UrlForSession(sessionId, sess) {
         return { url: readyUrl, action: 'mp4_ready' };
       }
 
-      var rStatus = getRenditionStatus(tempRend);
-
-      // Asset or renditions errored — delete and try original asset
-      if (tempStatus === 'errored' || rStatus === 'errored') {
-        console.log('[ai-backfill] Temp asset errored (asset:', tempStatus, ', renditions:', rStatus, ') — deleting');
-        try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
-          console.log('[ai-backfill] Could not delete errored temp asset (non-fatal):', delErr.message);
-        }
-        await updateDoc(COLLECTION, sessionId, { aiTempAssetId: null, aiTempPlaybackId: null, aiTempAssetCreatedAt: null });
-        // Fall through to try original asset
-      } else {
-        // Check staleness
-        var rawCreatedAt = sess.aiTempAssetCreatedAt
-          || (tempAsset.data && tempAsset.data.created_at);
-        var tempCreatedAt = 0;
-        if (rawCreatedAt) {
-          tempCreatedAt = typeof rawCreatedAt === 'number'
-            ? rawCreatedAt * 1000
-            : new Date(rawCreatedAt).getTime();
-          if (isNaN(tempCreatedAt)) tempCreatedAt = 0;
-        }
-        var tempAgeMs = Date.now() - tempCreatedAt;
-        var tempAgeMin = Math.round(tempAgeMs / 60000);
-
-        if (!tempCreatedAt || tempAgeMs > 30 * 60 * 1000) {
-          console.log('[ai-backfill] Temp asset stale (' + (tempCreatedAt ? tempAgeMin + ' min' : 'no timestamp') + ') — deleting');
-          try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
-            console.log('[ai-backfill] Could not delete stale temp asset (non-fatal):', delErr.message);
-          }
-          await updateDoc(COLLECTION, sessionId, { aiTempAssetId: null, aiTempPlaybackId: null, aiTempAssetCreatedAt: null });
-          // Fall through to try original asset
-        } else {
-          console.log('[ai-backfill] Temp asset still processing (' + tempAgeMin + ' min) — renditions:', rStatus, 'asset:', tempStatus);
-          await updateDoc(COLLECTION, sessionId, { aiStatus: 'mp4_pending', aiError: null });
-          return {
-            url: null, action: 'waiting', tempAssetId: tempAssetId, tempAgeMinutes: tempAgeMin,
-            detail: 'Temp asset ' + tempAssetId + ' still processing (' + tempAgeMin + ' min). Asset: ' + tempStatus + ', renditions: ' + rStatus + '. Try again in 2-5 min.'
-          };
-        }
+      // Not ready — clean up and fall through to master_access approach
+      console.log('[ai-backfill] Temp asset not usable (asset:', tempStatus, ', renditions:', getRenditionStatus(tempRend), ') — cleaning up, will use master_access');
+      try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
+        console.log('[ai-backfill] Could not delete temp asset (non-fatal):', delErr.message);
       }
+      await updateDoc(COLLECTION, sessionId, { aiTempAssetId: null, aiTempPlaybackId: null, aiTempAssetCreatedAt: null });
     } catch (e) {
       console.log('[ai-backfill] Error checking temp asset:', e.message, '— clearing from Firestore');
       await updateDoc(COLLECTION, sessionId, {
@@ -1069,95 +1038,82 @@ async function getMp4UrlForSession(sessionId, sess) {
     }
   }
 
-  // 2. Check original asset — try adding audio-only static rendition retroactively
-  if (assetId) {
-    try {
-      var asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
-      var renditions = asset.data && asset.data.static_renditions;
+  if (!assetId) {
+    throw new Error('Session has no recordingAssetId — cannot get download URL');
+  }
 
-      console.log('[ai-backfill] Original asset renditions:', JSON.stringify(renditions));
+  // 2. Check original asset for existing static renditions
+  var asset;
+  try {
+    asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
+    var renditions = asset.data && asset.data.static_renditions;
 
-      // Already has a ready rendition?
-      var readyUrl = getReadyRenditionUrl(renditions, playbackId);
-      if (readyUrl) {
-        console.log('[ai-backfill] Original asset rendition already ready');
-        return { url: readyUrl, action: 'original_mp4_ready' };
+    var readyUrl = getReadyRenditionUrl(renditions, playbackId);
+    if (readyUrl) {
+      console.log('[ai-backfill] Original asset rendition already ready');
+      return { url: readyUrl, action: 'original_mp4_ready' };
+    }
+  } catch (e) {
+    console.log('[ai-backfill] Error checking original asset:', e.message);
+    throw new Error('Cannot access original Mux asset ' + assetId + ': ' + e.message);
+  }
+
+  // 3. Check if master_access is already enabled and has a download URL
+  var master = asset.data && asset.data.master;
+  if (master) {
+    console.log('[ai-backfill] Master access status:', master.status);
+    if (master.status === 'ready' && master.url) {
+      console.log('[ai-backfill] Master download URL ready!');
+      return { url: master.url, action: 'master_ready' };
+    }
+    if (master.status === 'preparing') {
+      var reqAt = sess.aiMasterAccessRequestedAt;
+      var ageMs = reqAt ? Date.now() - new Date(reqAt).getTime() : 0;
+      var ageMin = Math.round(ageMs / 60000);
+      if (reqAt && ageMs < 60 * 60 * 1000) { // 60 min timeout for master
+        await updateDoc(COLLECTION, sessionId, { aiStatus: 'mp4_pending', aiError: null });
+        return {
+          url: null, action: 'waiting', tempAgeMinutes: ageMin,
+          detail: 'Master download URL preparing on original asset (' + ageMin + ' min). Try again in 2-5 min.'
+        };
       }
-
-      var rStatus = getRenditionStatus(renditions);
-
-      // If errored, don't retry on original — go straight to temp asset
-      if (rStatus === 'errored') {
-        console.log('[ai-backfill] Original asset rendition errored — skipping to temp asset');
-      }
-
-      // Still preparing from a previous request?
-      if (rStatus === 'preparing') {
-        var reqAt = sess.aiStaticRenditionRequestedAt;
-        var ageMs = reqAt ? Date.now() - new Date(reqAt).getTime() : 0;
-        var ageMin = Math.round(ageMs / 60000);
-        if (reqAt && ageMs < 30 * 60 * 1000) {
-          await updateDoc(COLLECTION, sessionId, { aiStatus: 'mp4_pending', aiError: null });
-          return {
-            url: null, action: 'waiting', tempAgeMinutes: ageMin,
-            detail: 'Audio rendition on original asset preparing (' + ageMin + ' min). Try again in 2-5 min.'
-          };
-        }
-        // Stale — fall through to request new
-      }
-
-      // Request audio-only static rendition on original asset (new Mux API)
-      // Only if not already errored or preparing
-      if (rStatus !== 'preparing' && rStatus !== 'errored') {
-        console.log('[ai-backfill] Requesting audio-only static rendition on original asset:', assetId);
-        try {
-          await muxRequest('POST', '/video/v1/assets/' + assetId + '/static-renditions', {
-            resolution: 'audio-only'
-          });
-          await updateDoc(COLLECTION, sessionId, {
-            aiStatus: 'mp4_pending',
-            aiStaticRenditionRequestedAt: new Date().toISOString(),
-            aiError: null
-          });
-          return {
-            url: null, action: 'rendition_requested',
-            detail: 'Requested audio-only rendition on original asset ' + assetId + '. Run again in 2-5 min.'
-          };
-        } catch (rendErr) {
-          console.log('[ai-backfill] Could not add static rendition to original:', rendErr.message, '— falling back to temp asset');
-        }
-      }
-    } catch (e) {
-      console.log('[ai-backfill] Error checking original asset:', e.message);
+      console.log('[ai-backfill] Master access request stale (' + ageMin + ' min) — will re-request');
+    }
+    if (master.status === 'errored') {
+      console.log('[ai-backfill] Master access errored — will re-request');
     }
   }
 
-  // 3. Fallback: Create a new temp asset from HLS with audio-only static rendition
-  console.log('[ai-backfill] Creating temp Mux asset with audio-only rendition from HLS...');
-  var hlsUrl = 'https://stream.mux.com/' + playbackId + '.m3u8';
-  var newAsset = await muxRequest('POST', '/video/v1/assets', {
-    input: [{ url: hlsUrl }],
-    playback_policy: ['public'],
-    static_renditions: [{ resolution: 'audio-only' }]
-  });
+  // 4. Enable master_access on original asset to get a downloadable MP4 URL
+  console.log('[ai-backfill] Enabling master_access on original asset:', assetId);
+  try {
+    var masterResult = await muxRequest('PUT', '/video/v1/assets/' + assetId + '/master-access', {
+      master_access: 'temporary'
+    });
 
-  var newAssetId = newAsset.data.id;
-  var newPbIds = newAsset.data.playback_ids || [];
-  var newPlaybackId = newPbIds.length > 0 ? newPbIds[0].id : playbackId;
+    var newMaster = masterResult.data && masterResult.data.master;
+    console.log('[ai-backfill] Master access response:', JSON.stringify(newMaster));
 
-  await updateDoc(COLLECTION, sessionId, {
-    aiTempAssetId: newAssetId,
-    aiTempPlaybackId: newPlaybackId,
-    aiTempAssetCreatedAt: new Date().toISOString(),
-    aiStatus: 'mp4_pending',
-    aiError: null
-  });
+    // Check if master is immediately ready (unlikely but possible for small assets)
+    if (newMaster && newMaster.status === 'ready' && newMaster.url) {
+      console.log('[ai-backfill] Master URL immediately ready!');
+      return { url: newMaster.url, action: 'master_ready' };
+    }
 
-  console.log('[ai-backfill] Temp asset created:', newAssetId, '— run again in 2-5 min');
-  return {
-    url: null, action: 'created_new', tempAssetId: newAssetId,
-    detail: 'Created temp asset ' + newAssetId + ' with audio-only rendition. Run again in 2-5 min.'
-  };
+    await updateDoc(COLLECTION, sessionId, {
+      aiStatus: 'mp4_pending',
+      aiMasterAccessRequestedAt: new Date().toISOString(),
+      aiError: null
+    });
+
+    return {
+      url: null, action: 'master_requested',
+      detail: 'Enabled master_access on original asset ' + assetId + '. Master download URL will be ready in 2-10 min. Run again.'
+    };
+  } catch (masterErr) {
+    console.log('[ai-backfill] Failed to enable master_access:', masterErr.message);
+    throw new Error('Could not enable master_access on asset ' + assetId + ': ' + masterErr.message);
+  }
 }
 
 /* ── Send audio URL to Deepgram with callback ── */

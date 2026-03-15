@@ -247,8 +247,12 @@ function getRenditionStatus(renditions) {
   return renditions.status || 'none';
 }
 
+// Strategy: static renditions → master_access download URL
+// Mux HLS streams (.m3u8) CANNOT be re-ingested as new assets.
+// For live recordings without static renditions, we use master_access instead.
+
 async function ensureMp4Rendition(assetId, playbackId, sessionId) {
-  // Step 1: Check if a previous run created a temp asset (backward compat)
+  // Step 1: Check if a previous run created a temp asset with ready renditions (backward compat)
   if (sessionId) {
     var sessionDoc = await getDoc(COLLECTION, sessionId);
     if (sessionDoc && sessionDoc.aiTempAssetId) {
@@ -256,47 +260,20 @@ async function ensureMp4Rendition(assetId, playbackId, sessionId) {
       var tempPlaybackId = sessionDoc.aiTempPlaybackId || playbackId;
       console.log('[ai-process] Found temp asset from previous run:', tempAssetId);
 
-      var tempAsset = await muxRequest('GET', '/video/v1/assets/' + tempAssetId);
-      var tempRenditions = tempAsset.data && tempAsset.data.static_renditions;
-
-      var readyUrl = getReadyRenditionUrl(tempRenditions, tempPlaybackId);
-      if (readyUrl) {
-        console.log('[ai-process] Temp asset rendition ready!');
-        return readyUrl;
-      }
-
-      var tStatus = getRenditionStatus(tempRenditions);
-      if (tStatus === 'errored') {
-        console.log('[ai-process] Temp asset rendition errored — will try original asset');
-      } else {
-        // Still preparing — poll for up to 10 minutes
-        console.log('[ai-process] Temp asset still preparing, polling...');
-        var maxPoll = 20;
-        for (var pa = 1; pa <= maxPoll; pa++) {
-          await sleep(30000);
-          tempAsset = await muxRequest('GET', '/video/v1/assets/' + tempAssetId);
-          tempRenditions = tempAsset.data && tempAsset.data.static_renditions;
-          readyUrl = getReadyRenditionUrl(tempRenditions, tempPlaybackId);
-          if (readyUrl) {
-            console.log('[ai-process] Temp asset rendition ready after', pa, 'polls');
-            return readyUrl;
-          }
-          tStatus = getRenditionStatus(tempRenditions);
-          if (tStatus === 'errored') {
-            console.log('[ai-process] Temp asset rendition errored after', pa, 'polls');
-            break;
-          }
-          var tempAssetStatus = tempAsset.data && tempAsset.data.status;
-          if (tempAssetStatus === 'errored') {
-            console.log('[ai-process] Temp asset ingestion errored');
-            break;
-          }
-          if (pa % 4 === 0) console.log('[ai-process] Temp poll', pa + '/' + maxPoll, '— renditions:', tStatus, 'asset:', tempAssetStatus);
+      try {
+        var tempAsset = await muxRequest('GET', '/video/v1/assets/' + tempAssetId);
+        var tempRenditions = tempAsset.data && tempAsset.data.static_renditions;
+        var readyUrl = getReadyRenditionUrl(tempRenditions, tempPlaybackId);
+        if (readyUrl) {
+          console.log('[ai-process] Temp asset rendition ready!');
+          return readyUrl;
         }
-        if (!readyUrl) {
-          throw new Error('Temp asset rendition not ready yet (asset ' + tempAssetId + '). Run retranscribe again to resume.');
-        }
+      } catch (e) {
+        console.log('[ai-process] Temp asset check failed:', e.message);
       }
+      // Clean up temp asset — we'll use master_access instead
+      console.log('[ai-process] Temp asset not usable — cleaning up, will use master_access');
+      await updateDoc(COLLECTION, sessionId, { aiTempAssetId: null, aiTempPlaybackId: null, aiTempAssetCreatedAt: null });
     }
   }
 
@@ -310,85 +287,47 @@ async function ensureMp4Rendition(assetId, playbackId, sessionId) {
     return readyUrl;
   }
 
-  // Step 3: Try to add audio-only static rendition on original asset (new Mux API)
-  console.log('[ai-process] Requesting audio-only static rendition on original asset:', assetId);
-  try {
-    await muxRequest('POST', '/video/v1/assets/' + assetId + '/static-renditions', {
-      resolution: 'audio-only'
-    });
-    console.log('[ai-process] Audio-only rendition requested, polling for readiness...');
-
-    if (sessionId) {
-      await updateDoc(COLLECTION, sessionId, { aiStaticRenditionRequestedAt: new Date().toISOString() });
-    }
-
-    // Poll for readiness (up to 10 minutes)
-    var maxAttempts = 20;
-    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
-      await sleep(30000);
-      asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
-      renditions = asset.data && asset.data.static_renditions;
-      readyUrl = getReadyRenditionUrl(renditions, playbackId);
-      if (readyUrl) {
-        console.log('[ai-process] Audio rendition ready after', attempt, 'polls (~' + (attempt * 30) + 's)');
-        return readyUrl;
-      }
-      var rStatus = getRenditionStatus(renditions);
-      if (rStatus === 'errored') {
-        throw new Error('Audio rendition creation failed on original asset');
-      }
-      if (attempt % 4 === 0) console.log('[ai-process] Rendition poll', attempt + '/' + maxAttempts, '— status:', rStatus);
-    }
-
-    throw new Error('Audio rendition not ready after 10 minutes. Run retranscribe again to resume.');
-  } catch (origErr) {
-    // If adding to original fails, fall back to creating temp asset
-    if (origErr.message && origErr.message.indexOf('not ready after') !== -1) throw origErr;
-
-    console.log('[ai-process] Could not add rendition to original:', origErr.message, '— creating temp asset...');
-    var hlsUrl = 'https://stream.mux.com/' + playbackId + '.m3u8';
-    var newAsset = await muxRequest('POST', '/video/v1/assets', {
-      input: [{ url: hlsUrl }],
-      playback_policy: ['public'],
-      static_renditions: [{ resolution: 'audio-only' }]
-    });
-
-    var newAssetId = newAsset.data.id;
-    var newPbIds = newAsset.data.playback_ids || [];
-    var newPlaybackId = newPbIds.length > 0 ? newPbIds[0].id : playbackId;
-
-    if (sessionId) {
-      await updateDoc(COLLECTION, sessionId, {
-        aiTempAssetId: newAssetId,
-        aiTempPlaybackId: newPlaybackId,
-        aiTempAssetCreatedAt: new Date().toISOString()
-      });
-    }
-    console.log('[ai-process] Temp asset created:', newAssetId, '— polling...');
-
-    var maxAttempts2 = 20;
-    for (var attempt2 = 1; attempt2 <= maxAttempts2; attempt2++) {
-      await sleep(30000);
-      var tempCheck = await muxRequest('GET', '/video/v1/assets/' + newAssetId);
-      var tempRend = tempCheck.data && tempCheck.data.static_renditions;
-      readyUrl = getReadyRenditionUrl(tempRend, newPlaybackId);
-      if (readyUrl) {
-        console.log('[ai-process] Temp asset rendition ready after', attempt2, 'polls');
-        return readyUrl;
-      }
-      var tempRStatus = getRenditionStatus(tempRend);
-      if (tempRStatus === 'errored') {
-        throw new Error('Temp asset audio rendition failed');
-      }
-      var assetSt = tempCheck.data && tempCheck.data.status;
-      if (assetSt === 'errored') {
-        throw new Error('Temp asset ingestion errored');
-      }
-      if (attempt2 % 4 === 0) console.log('[ai-process] Temp poll', attempt2 + '/' + maxAttempts2, '— renditions:', tempRStatus, 'asset:', assetSt);
-    }
-
-    throw new Error('Temp asset rendition not ready yet (asset ' + newAssetId + '). Run retranscribe again to resume.');
+  // Step 3: Check if master_access already has a download URL
+  var master = asset.data && asset.data.master;
+  if (master && master.status === 'ready' && master.url) {
+    console.log('[ai-process] Master download URL already available');
+    return master.url;
   }
+
+  // Step 4: Enable master_access on original asset to get downloadable MP4
+  console.log('[ai-process] Enabling master_access on original asset:', assetId);
+  var masterResult = await muxRequest('PUT', '/video/v1/assets/' + assetId + '/master-access', {
+    master_access: 'temporary'
+  });
+
+  var newMaster = masterResult.data && masterResult.data.master;
+  if (newMaster && newMaster.status === 'ready' && newMaster.url) {
+    console.log('[ai-process] Master URL immediately ready!');
+    return newMaster.url;
+  }
+
+  if (sessionId) {
+    await updateDoc(COLLECTION, sessionId, { aiMasterAccessRequestedAt: new Date().toISOString() });
+  }
+  console.log('[ai-process] Master access requested, polling for readiness...');
+
+  // Poll for master URL readiness (up to 10 minutes)
+  var maxAttempts = 20; // 20 × 30s = 10 minutes
+  for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+    await sleep(30000);
+    asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
+    master = asset.data && asset.data.master;
+    if (master && master.status === 'ready' && master.url) {
+      console.log('[ai-process] Master URL ready after', attempt, 'polls (~' + (attempt * 30) + 's)');
+      return master.url;
+    }
+    if (master && master.status === 'errored') {
+      throw new Error('Master access failed on asset ' + assetId);
+    }
+    if (attempt % 4 === 0) console.log('[ai-process] Master poll', attempt + '/' + maxAttempts, '— status:', master ? master.status : 'none');
+  }
+
+  throw new Error('Master download URL not ready after 10 minutes on asset ' + assetId + '. Run retranscribe again to resume.');
 }
 
 // ═══════════════════════════════════════════════════
