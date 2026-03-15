@@ -5,7 +5,12 @@
 
   {# ── Hero Media (mobile only) ── #}
   <div class="yb-link__media">
-    {% cldimg "hero_image_link_page_yoga_bible_hp1qxj", "", "w_800,c_scale", "800" %}
+    <img
+      class="yb-link__video"
+      src="{{ 'hero_image_link_page_yoga_bible_hp1qxj' | cloudimg('w_800,c_scale') }}"
+      alt=""
+      loading="eager"
+    >
     <div class="yb-link__media-overlay"></div>
   </div>
 
