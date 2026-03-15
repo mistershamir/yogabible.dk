@@ -117,7 +117,9 @@ async function handleCreateStream(event, user) {
   var result = await muxFetch('/video/v1/live-streams', 'POST', {
     playback_policy: ['public'],
     new_asset_settings: {
-      playback_policy: ['public']
+      playback_policy: ['public'],
+      // Pre-create audio-only rendition for Deepgram transcription after stream ends
+      static_renditions: [{ resolution: 'audio-only' }]
     },
     // Low-latency mode for better interactivity
     latency_mode: 'low',

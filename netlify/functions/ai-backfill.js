@@ -411,7 +411,8 @@ exports.handler = async function (event) {
             title: (sess.title_da || sess.title_en || '').substring(0, 60),
             assetId: sess.recordingAssetId,
             mp4Support: mp4Support || 'none',
-            renditionStatus: renditions ? renditions.status : 'none',
+            renditionStatus: getRenditionStatus(renditions),
+            renditions: Array.isArray(renditions) ? renditions.map(function (r) { return { resolution: r.resolution, status: r.status, name: r.name }; }) : null,
             durationMinutes: duration ? Math.round(duration / 60) : null,
             aiStatus: sess.aiStatus
           });
@@ -435,19 +436,21 @@ exports.handler = async function (event) {
         try {
           var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
           var renditions = asset.data && asset.data.static_renditions;
-          if (renditions && renditions.status === 'ready') {
+          var rStatus = getRenditionStatus(renditions);
+          if (rStatus === 'ready') {
             enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'already_ready' });
+          } else if (rStatus === 'preparing') {
+            enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'already_preparing' });
           } else {
-            var patchResult = await muxRequest('PATCH', '/video/v1/assets/' + sess.recordingAssetId, { mp4_support: 'capped-1080p' });
-            var patchMp4 = patchResult.data && patchResult.data.mp4_support;
-            var patchRenditions = patchResult.data && patchResult.data.static_renditions;
-            enableResults.push({
-              id: sess.id,
-              title: (sess.title_da || '').substring(0, 60),
-              status: 'mp4_requested',
-              mp4Support: patchMp4 || 'none',
-              renditionStatus: patchRenditions ? patchRenditions.status : 'none'
-            });
+            // Use new static_renditions API (audio-only for Deepgram)
+            try {
+              await muxRequest('POST', '/video/v1/assets/' + sess.recordingAssetId + '/static-renditions', {
+                resolution: 'audio-only'
+              });
+              enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'rendition_requested', resolution: 'audio-only' });
+            } catch (rendErr) {
+              enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'error', error: rendErr.message });
+            }
           }
         } catch (err) {
           enableResults.push({ id: sess.id, title: sess.title_da || '', status: 'error', error: err.message });
@@ -968,13 +971,40 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInte
     });
 }
 
-/* ── Get MP4 URL for a session (check temp asset, original, or create new) ── */
+/* ── Rendition helpers (handle both old object and new array format) ── */
+
+function getReadyRenditionUrl(renditions, pbId) {
+  if (!renditions) return null;
+  // New array format: [{ status, name, resolution, ... }]
+  if (Array.isArray(renditions)) {
+    var ready = renditions.find(function (r) { return r.status === 'ready'; });
+    return ready ? 'https://stream.mux.com/' + pbId + '/' + ready.name : null;
+  }
+  // Old object format (deprecated mp4_support): { status: 'ready', files: [...] }
+  if (renditions.status === 'ready') {
+    return 'https://stream.mux.com/' + pbId + '/low.mp4';
+  }
+  return null;
+}
+
+function getRenditionStatus(renditions) {
+  if (!renditions) return 'none';
+  if (Array.isArray(renditions)) {
+    if (renditions.some(function (r) { return r.status === 'ready'; })) return 'ready';
+    if (renditions.some(function (r) { return r.status === 'errored'; })) return 'errored';
+    if (renditions.some(function (r) { return r.status === 'preparing'; })) return 'preparing';
+    return 'none';
+  }
+  return renditions.status || 'none';
+}
+
+/* ── Get audio URL for a session (static renditions on original, or temp asset) ── */
 
 async function getMp4UrlForSession(sessionId, sess) {
   var playbackId = sess.recordingPlaybackId;
   var assetId = sess.recordingAssetId;
 
-  // 1. Check if a previous run already created a temp asset
+  // 1. Check existing temp asset (backward compat for in-progress ones)
   if (sess.aiTempAssetId) {
     var tempAssetId = sess.aiTempAssetId;
     var tempPlaybackId = sess.aiTempPlaybackId || playbackId;
@@ -983,100 +1013,130 @@ async function getMp4UrlForSession(sessionId, sess) {
     try {
       var tempAsset = await muxRequest('GET', '/video/v1/assets/' + tempAssetId);
       var tempRend = tempAsset.data && tempAsset.data.static_renditions;
-
       var tempStatus = tempAsset.data && tempAsset.data.status;
 
-      if (tempRend && tempRend.status === 'ready') {
-        console.log('[ai-backfill] Temp asset MP4 is ready!');
-        return { url: 'https://stream.mux.com/' + tempPlaybackId + '/low.mp4', action: 'mp4_ready' };
+      var readyUrl = getReadyRenditionUrl(tempRend, tempPlaybackId);
+      if (readyUrl) {
+        console.log('[ai-backfill] Temp asset rendition ready!');
+        return { url: readyUrl, action: 'mp4_ready' };
       }
 
-      // Asset or renditions errored — delete and recreate
-      if (tempStatus === 'errored' || (tempRend && tempRend.status === 'errored')) {
-        console.log('[ai-backfill] Temp asset errored (asset:', tempStatus, ', renditions:', tempRend ? tempRend.status : 'none', ') — deleting and creating new');
+      var rStatus = getRenditionStatus(tempRend);
+
+      // Asset or renditions errored — delete and try original asset
+      if (tempStatus === 'errored' || rStatus === 'errored') {
+        console.log('[ai-backfill] Temp asset errored (asset:', tempStatus, ', renditions:', rStatus, ') — deleting');
         try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
           console.log('[ai-backfill] Could not delete errored temp asset (non-fatal):', delErr.message);
         }
-        // Clear Firestore references before creating new
         await updateDoc(COLLECTION, sessionId, { aiTempAssetId: null, aiTempPlaybackId: null, aiTempAssetCreatedAt: null });
-        // Fall through to create new
+        // Fall through to try original asset
       } else {
-        // Check if temp asset is stale — if created > 30 min ago and still not ready, delete and recreate
-        // Mux created_at can be a Unix timestamp (number) or ISO string — handle both
+        // Check staleness
         var rawCreatedAt = sess.aiTempAssetCreatedAt
           || (tempAsset.data && tempAsset.data.created_at);
         var tempCreatedAt = 0;
         if (rawCreatedAt) {
           tempCreatedAt = typeof rawCreatedAt === 'number'
-            ? rawCreatedAt * 1000  // Unix seconds → ms
+            ? rawCreatedAt * 1000
             : new Date(rawCreatedAt).getTime();
           if (isNaN(tempCreatedAt)) tempCreatedAt = 0;
         }
         var tempAgeMs = Date.now() - tempCreatedAt;
         var tempAgeMin = Math.round(tempAgeMs / 60000);
 
-        // Treat missing timestamp (0) or stale (>30 min) as needing recreation
         if (!tempCreatedAt || tempAgeMs > 30 * 60 * 1000) {
-          console.log('[ai-backfill] Temp asset is stale (' + (tempCreatedAt ? tempAgeMin + ' min old' : 'no timestamp') + ') — deleting and recreating');
+          console.log('[ai-backfill] Temp asset stale (' + (tempCreatedAt ? tempAgeMin + ' min' : 'no timestamp') + ') — deleting');
           try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
             console.log('[ai-backfill] Could not delete stale temp asset (non-fatal):', delErr.message);
           }
-          // Clear Firestore references before creating new
           await updateDoc(COLLECTION, sessionId, { aiTempAssetId: null, aiTempPlaybackId: null, aiTempAssetCreatedAt: null });
-          // Fall through to create new
+          // Fall through to try original asset
         } else {
-          var rendStatus = tempRend ? tempRend.status : 'none';
-          console.log('[ai-backfill] Temp asset still processing (' + tempAgeMin + ' min old) — renditions:', rendStatus, 'asset:', tempStatus);
+          console.log('[ai-backfill] Temp asset still processing (' + tempAgeMin + ' min) — renditions:', rStatus, 'asset:', tempStatus);
           await updateDoc(COLLECTION, sessionId, { aiStatus: 'mp4_pending', aiError: null });
           return {
-            url: null,
-            action: 'waiting',
-            tempAssetId: tempAssetId,
-            tempAgeMinutes: tempAgeMin,
-            detail: 'Temp asset ' + tempAssetId + ' still processing (' + tempAgeMin + ' min old). Asset status: ' + tempStatus + ', renditions: ' + rendStatus + '. Try again in 2-5 min.'
+            url: null, action: 'waiting', tempAssetId: tempAssetId, tempAgeMinutes: tempAgeMin,
+            detail: 'Temp asset ' + tempAssetId + ' still processing (' + tempAgeMin + ' min). Asset: ' + tempStatus + ', renditions: ' + rStatus + '. Try again in 2-5 min.'
           };
         }
       }
     } catch (e) {
-      console.log('[ai-backfill] Error checking temp asset:', e.message, '— clearing from Firestore and creating new one');
-      // Clear stale temp asset reference so we don't keep retrying the same dead ID
+      console.log('[ai-backfill] Error checking temp asset:', e.message, '— clearing from Firestore');
       await updateDoc(COLLECTION, sessionId, {
-        aiTempAssetId: null,
-        aiTempPlaybackId: null,
-        aiTempAssetCreatedAt: null
+        aiTempAssetId: null, aiTempPlaybackId: null, aiTempAssetCreatedAt: null
       });
     }
   }
 
-  // 2. Check if original asset already has MP4 renditions
+  // 2. Check original asset — try adding audio-only static rendition retroactively
   if (assetId) {
     try {
       var asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
       var renditions = asset.data && asset.data.static_renditions;
-      if (renditions && renditions.status === 'ready') {
-        console.log('[ai-backfill] Original asset MP4 already available');
-        return { url: 'https://stream.mux.com/' + playbackId + '/low.mp4', action: 'original_mp4_ready' };
+
+      // Already has a ready rendition?
+      var readyUrl = getReadyRenditionUrl(renditions, playbackId);
+      if (readyUrl) {
+        console.log('[ai-backfill] Original asset rendition already ready');
+        return { url: readyUrl, action: 'original_mp4_ready' };
+      }
+
+      var rStatus = getRenditionStatus(renditions);
+
+      // Still preparing from a previous request?
+      if (rStatus === 'preparing') {
+        var reqAt = sess.aiStaticRenditionRequestedAt;
+        var ageMs = reqAt ? Date.now() - new Date(reqAt).getTime() : 0;
+        var ageMin = Math.round(ageMs / 60000);
+        if (reqAt && ageMs < 30 * 60 * 1000) {
+          await updateDoc(COLLECTION, sessionId, { aiStatus: 'mp4_pending', aiError: null });
+          return {
+            url: null, action: 'waiting', tempAgeMinutes: ageMin,
+            detail: 'Audio rendition on original asset preparing (' + ageMin + ' min). Try again in 2-5 min.'
+          };
+        }
+        // Stale — fall through to request new
+      }
+
+      // Request audio-only static rendition on original asset (new Mux API)
+      if (rStatus !== 'preparing') {
+        console.log('[ai-backfill] Requesting audio-only static rendition on original asset:', assetId);
+        try {
+          await muxRequest('POST', '/video/v1/assets/' + assetId + '/static-renditions', {
+            resolution: 'audio-only'
+          });
+          await updateDoc(COLLECTION, sessionId, {
+            aiStatus: 'mp4_pending',
+            aiStaticRenditionRequestedAt: new Date().toISOString(),
+            aiError: null
+          });
+          return {
+            url: null, action: 'rendition_requested',
+            detail: 'Requested audio-only rendition on original asset ' + assetId + '. Run again in 2-5 min.'
+          };
+        } catch (rendErr) {
+          console.log('[ai-backfill] Could not add static rendition to original:', rendErr.message, '— falling back to temp asset');
+        }
       }
     } catch (e) {
       console.log('[ai-backfill] Error checking original asset:', e.message);
     }
   }
 
-  // 3. Create a new temp asset from HLS with MP4 support
-  console.log('[ai-backfill] Creating temp Mux asset with MP4 from HLS...');
+  // 3. Fallback: Create a new temp asset from HLS with audio-only static rendition
+  console.log('[ai-backfill] Creating temp Mux asset with audio-only rendition from HLS...');
   var hlsUrl = 'https://stream.mux.com/' + playbackId + '.m3u8';
   var newAsset = await muxRequest('POST', '/video/v1/assets', {
     input: [{ url: hlsUrl }],
     playback_policy: ['public'],
-    mp4_support: 'capped-1080p',
-    encoding_tier: 'baseline'
+    static_renditions: [{ resolution: 'audio-only' }]
   });
 
   var newAssetId = newAsset.data.id;
   var newPbIds = newAsset.data.playback_ids || [];
   var newPlaybackId = newPbIds.length > 0 ? newPbIds[0].id : playbackId;
 
-  // Save temp asset IDs so next call can pick up (+ timestamp for stale detection)
   await updateDoc(COLLECTION, sessionId, {
     aiTempAssetId: newAssetId,
     aiTempPlaybackId: newPlaybackId,
@@ -1085,12 +1145,10 @@ async function getMp4UrlForSession(sessionId, sess) {
     aiError: null
   });
 
-  console.log('[ai-backfill] Temp asset created:', newAssetId, '— run deepgram-direct again in 2-5 min');
+  console.log('[ai-backfill] Temp asset created:', newAssetId, '— run again in 2-5 min');
   return {
-    url: null,
-    action: 'created_new',
-    tempAssetId: newAssetId,
-    detail: 'Created new temp asset ' + newAssetId + ' with MP4 support. Run again in 2-5 min.'
+    url: null, action: 'created_new', tempAssetId: newAssetId,
+    detail: 'Created temp asset ' + newAssetId + ' with audio-only rendition. Run again in 2-5 min.'
   };
 }
 
