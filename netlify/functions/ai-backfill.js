@@ -371,20 +371,23 @@ exports.handler = async function (event) {
       }
 
       // Try to get an MP4 URL — check temp asset, original asset, or create new temp asset
-      var mp4Url = await getMp4UrlForSession(sessId, sess);
+      var mp4Result = await getMp4UrlForSession(sessId, sess);
 
-      if (mp4Url) {
+      if (mp4Result.url) {
         // MP4 ready — send to Deepgram with callback
-        return await sendToDeepgramCallback(sessId, sess, mp4Url, isTranscriptOnly);
+        return await sendToDeepgramCallback(sessId, sess, mp4Result.url, isTranscriptOnly);
       } else {
         // MP4 not ready yet — tell user to retry
         return jsonResponse(202, {
           ok: true,
           status: 'mp4_pending',
-          message: 'MP4 rendition is being created by Mux. Run this same command again in 2-5 minutes.',
+          message: mp4Result.detail || 'MP4 rendition is being created by Mux. Run this same command again in 2-5 minutes.',
           id: sessId,
           title: sess.title_da || sess.title_en || '',
-          aiStatus: 'mp4_pending'
+          aiStatus: 'mp4_pending',
+          tempAssetId: mp4Result.tempAssetId || null,
+          tempAgeMinutes: mp4Result.tempAgeMinutes || null,
+          action: mp4Result.action || null
         });
       }
     }
@@ -983,7 +986,7 @@ async function getMp4UrlForSession(sessionId, sess) {
 
       if (tempRend && tempRend.status === 'ready') {
         console.log('[ai-backfill] Temp asset MP4 is ready!');
-        return 'https://stream.mux.com/' + tempPlaybackId + '/low.mp4';
+        return { url: 'https://stream.mux.com/' + tempPlaybackId + '/low.mp4', action: 'mp4_ready' };
       }
       if (tempRend && tempRend.status === 'errored') {
         console.log('[ai-backfill] Temp asset MP4 errored — will create a new one');
@@ -994,19 +997,27 @@ async function getMp4UrlForSession(sessionId, sess) {
           ? new Date(sess.aiTempAssetCreatedAt).getTime()
           : (tempAsset.data && tempAsset.data.created_at ? new Date(tempAsset.data.created_at).getTime() : 0);
         var tempAgeMs = Date.now() - tempCreatedAt;
+        var tempAgeMin = Math.round(tempAgeMs / 60000);
 
         if (tempCreatedAt && tempAgeMs > 30 * 60 * 1000) {
           // Stale temp asset — delete and recreate
-          console.log('[ai-backfill] Temp asset is stale (' + Math.round(tempAgeMs / 60000) + ' min old) — deleting and recreating');
+          console.log('[ai-backfill] Temp asset is stale (' + tempAgeMin + ' min old) — deleting and recreating');
           try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
             console.log('[ai-backfill] Could not delete stale temp asset (non-fatal):', delErr.message);
           }
           // Fall through to create new
         } else {
           var tempStatus = tempAsset.data && tempAsset.data.status;
-          console.log('[ai-backfill] Temp asset still processing (' + Math.round(tempAgeMs / 60000) + ' min old) — renditions:', tempRend ? tempRend.status : 'none', 'asset:', tempStatus);
+          var rendStatus = tempRend ? tempRend.status : 'none';
+          console.log('[ai-backfill] Temp asset still processing (' + tempAgeMin + ' min old) — renditions:', rendStatus, 'asset:', tempStatus);
           await updateDoc(COLLECTION, sessionId, { aiStatus: 'mp4_pending', aiError: null });
-          return null; // Not ready yet — genuinely still processing
+          return {
+            url: null,
+            action: 'waiting',
+            tempAssetId: tempAssetId,
+            tempAgeMinutes: tempAgeMin,
+            detail: 'Temp asset ' + tempAssetId + ' still processing (' + tempAgeMin + ' min old). Asset status: ' + tempStatus + ', renditions: ' + rendStatus + '. Try again in 2-5 min.'
+          };
         }
       }
     } catch (e) {
@@ -1021,7 +1032,7 @@ async function getMp4UrlForSession(sessionId, sess) {
       var renditions = asset.data && asset.data.static_renditions;
       if (renditions && renditions.status === 'ready') {
         console.log('[ai-backfill] Original asset MP4 already available');
-        return 'https://stream.mux.com/' + playbackId + '/low.mp4';
+        return { url: 'https://stream.mux.com/' + playbackId + '/low.mp4', action: 'original_mp4_ready' };
       }
     } catch (e) {
       console.log('[ai-backfill] Error checking original asset:', e.message);
@@ -1052,7 +1063,12 @@ async function getMp4UrlForSession(sessionId, sess) {
   });
 
   console.log('[ai-backfill] Temp asset created:', newAssetId, '— run deepgram-direct again in 2-5 min');
-  return null; // Not ready yet
+  return {
+    url: null,
+    action: 'created_new',
+    tempAssetId: newAssetId,
+    detail: 'Created new temp asset ' + newAssetId + ' with MP4 support. Run again in 2-5 min.'
+  };
 }
 
 /* ── Send audio URL to Deepgram with callback ── */
