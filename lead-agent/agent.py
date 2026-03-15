@@ -20,6 +20,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Nurture sequence monitoring — flip to True when sequences are live
+NURTURE_MONITORING_ENABLED = False
+
 import anthropic
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -992,6 +995,8 @@ def check_stale_leads():
 
 def audit_unenrolled_leads():
     """Check for YTT leads not in any sequence — alert if found."""
+    if not NURTURE_MONITORING_ENABLED:
+        return
     try:
         from tools.firestore import get_leads_not_in_any_sequence
         unenrolled = get_leads_not_in_any_sequence()
@@ -1017,6 +1022,8 @@ def audit_unenrolled_leads():
 
 def audit_sequence_failures():
     """Check for sequence send failures — alert if found."""
+    if not NURTURE_MONITORING_ENABLED:
+        return
     try:
         from tools.firestore import get_sequence_failures
         failures = get_sequence_failures(hours=4)
@@ -1039,6 +1046,8 @@ def audit_sequence_failures():
 
 def review_completed_leads():
     """Daily review of leads who completed sequences without converting."""
+    if not NURTURE_MONITORING_ENABLED:
+        return
     try:
         from tools.firestore import get_completed_not_converted
         completed = get_completed_not_converted(days=7)

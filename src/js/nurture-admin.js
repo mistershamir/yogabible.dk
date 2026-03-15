@@ -36,7 +36,13 @@
 
   function formatDate(d) {
     if (!d) return '—';
-    var date = d instanceof Date ? d : new Date(d);
+    // Handle Firestore Timestamp objects ({_seconds, _nanoseconds})
+    var date;
+    if (d._seconds !== undefined) {
+      date = new Date(d._seconds * 1000);
+    } else {
+      date = d instanceof Date ? d : new Date(d);
+    }
     if (isNaN(date.getTime())) return '—';
     var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return date.getDate() + '. ' + months[date.getMonth()] + ' ' + date.getFullYear();
@@ -44,7 +50,12 @@
 
   function formatDateTime(d) {
     if (!d) return '—';
-    var date = d instanceof Date ? d : new Date(d);
+    var date;
+    if (d && d._seconds !== undefined) {
+      date = new Date(d._seconds * 1000);
+    } else {
+      date = d instanceof Date ? d : new Date(d);
+    }
     if (isNaN(date.getTime())) return '—';
     return formatDate(d) + ' ' + String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
   }
@@ -168,15 +179,18 @@
 
   // ── Quick Enrollment ────────────────────────────────────────────────────
   function loadUnenrolledLeads() {
-    // Load all YTT leads and sequence enrollments, then find unenrolled
+    // Load all leads (no type filter to avoid composite index requirement)
+    // and sequence enrollments, then filter client-side
     Promise.all([
-      api('GET', 'leads?type=ytt&limit=500'),
+      api('GET', 'leads?limit=500'),
       api('GET', 'sequences?action=enrollments&all=true')
     ]).then(function (results) {
       var leadsData = results[0];
       var enrollData = results[1];
 
-      allLeads = (leadsData.ok ? leadsData.leads : []) || [];
+      // Filter to YTT leads client-side (avoids Firestore composite index issue)
+      var rawLeads = (leadsData.ok ? leadsData.leads : []) || [];
+      allLeads = rawLeads.filter(function (l) { return l.type === 'ytt'; });
 
       // Build set of lead IDs with active enrollments
       var enrolledIds = new Set();
