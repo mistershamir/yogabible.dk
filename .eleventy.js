@@ -112,7 +112,7 @@ module.exports = function(eleventyConfig) {
         return '<picture>' +
           '<source type="image/webp" srcset="' + srcsetWebp + '">' +
           '<source type="image/jpeg" srcset="' + srcsetJpeg + '">' +
-          '<img src="' + fallback.url + '" alt="' + (alt || '') + '"' + wAttr + hAttr + ' loading="lazy" decoding="async">' +
+          '<img src="' + fallback.url + '" alt="' + (alt || '') + '"' + wAttr + hAttr + ' loading="lazy" decoding="async" eleventy:ignore>' +
           '</picture>';
       } catch (e) {
         // If eleventy-img fails (corrupt file, etc.), serve original
