@@ -372,7 +372,17 @@
 
     api('GET', 'sequences').then(function (data) {
       if (!data.ok) { toast('Failed to load sequences', true); return; }
-      sequences = data.sequences || [];
+      sequences = (data.sequences || []).map(function (seq) {
+        // Normalize: backend stores trigger as nested object { type, conditions }
+        // but UI code references seq.trigger_type and seq.conditions as flat fields
+        if (seq.trigger && !seq.trigger_type) {
+          seq.trigger_type = seq.trigger.type || 'manual';
+          seq.conditions = seq.trigger.conditions || {};
+        }
+        if (!seq.trigger_type) seq.trigger_type = 'manual';
+        if (!seq.conditions) seq.conditions = {};
+        return seq;
+      });
       renderSequenceCards();
       renderStats();
     }).catch(function (err) { toast('Error: ' + err.message, true); });
@@ -471,7 +481,7 @@
     if (!seq) return;
 
     var newState = !seq.active;
-    api('PUT', 'sequences', { id: seqId, active: newState }).then(function (data) {
+    api('PUT', 'sequences?id=' + seqId, { active: newState }).then(function (data) {
       if (data.ok) {
         seq.active = newState;
         toast('Sequence ' + (newState ? 'activated' : 'paused'));
@@ -491,8 +501,10 @@
       name: seq.name + ' (Copy)',
       description: seq.description || '',
       active: false,
-      trigger_type: seq.trigger_type || 'manual',
-      conditions: seq.conditions ? JSON.parse(JSON.stringify(seq.conditions)) : {},
+      trigger: {
+        type: seq.trigger_type || (seq.trigger && seq.trigger.type) || 'manual',
+        conditions: seq.conditions ? JSON.parse(JSON.stringify(seq.conditions)) : {}
+      },
       exit_conditions: seq.exit_conditions ? seq.exit_conditions.slice() : [],
       steps: seq.steps ? JSON.parse(JSON.stringify(seq.steps)) : []
     };
@@ -823,16 +835,14 @@
       name: name,
       description: $('yb-seq-desc').value.trim(),
       active: $('yb-seq-active').checked,
-      trigger_type: triggerType,
-      conditions: conditions,
+      trigger: { type: triggerType, conditions: conditions },
       exit_conditions: exitConditions,
       steps: builderSteps
     };
 
     var id = $('yb-seq-id').value;
     if (id) {
-      body.id = id;
-      api('PUT', 'sequences', body).then(function (data) {
+      api('PUT', 'sequences?id=' + id, body).then(function (data) {
         if (data.ok) {
           toast('Sequence updated');
           loadSequences();
@@ -930,8 +940,7 @@
     if (!currentSequence) return;
 
     var action = pause ? 'pause' : 'resume';
-    api('PUT', 'sequences', {
-      action: action + '_enrollment',
+    api('POST', 'sequences?action=' + action, {
       enrollment_id: enrollId,
       sequence_id: currentSequence.id
     }).then(function (data) {
@@ -948,7 +957,7 @@
     if (!currentSequence) return;
     if (!confirm('Remove this enrollment? The lead will stop receiving messages from this sequence.')) return;
 
-    api('DELETE', 'sequences?action=unenroll&enrollment_id=' + enrollId + '&sequence_id=' + currentSequence.id).then(function (data) {
+    api('POST', 'sequences?action=unenroll', { enrollment_ids: [enrollId] }).then(function (data) {
       if (data.ok) {
         toast('Enrollment removed');
         loadEnrollments(currentSequence.id);

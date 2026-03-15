@@ -762,12 +762,17 @@
     var listsSec = $('yb-el-sec-lists');
     var campSec = $('yb-el-sec-campaigns');
     var seqSec = $('yb-el-sec-sequences');
+    var nurSec = $('yb-el-sec-nurture');
     if (listsSec) listsSec.hidden = (target !== 'lists');
     if (campSec) campSec.hidden = (target !== 'campaigns');
     if (seqSec) seqSec.hidden = (target !== 'sequences');
+    if (nurSec) nurSec.hidden = (target !== 'nurture');
 
     if (target === 'campaigns' && !campaignsLoaded) {
       loadCampaigns();
+    }
+    if (target === 'nurture' && window.YBNurtureAdmin) {
+      window.YBNurtureAdmin.init();
     }
   }
 

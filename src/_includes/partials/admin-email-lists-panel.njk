@@ -5,6 +5,7 @@
   <button type="button" class="yb-el__subnav-btn is-active" data-action="el-subnav" data-subnav="lists">{{ t.el_subnav_lists or "Email Lists" }}</button>
   <button type="button" class="yb-el__subnav-btn" data-action="el-subnav" data-subnav="campaigns">{{ t.el_subnav_campaigns or "Campaign Reports" }}</button>
   <button type="button" class="yb-el__subnav-btn" data-action="el-subnav" data-subnav="sequences">{{ t.seq_subnav or "Sequences" }}</button>
+  <button type="button" class="yb-el__subnav-btn" data-action="el-subnav" data-subnav="nurture">Nurture</button>
 </div>
 
 {# ═══════════════════════════════════
@@ -381,6 +382,13 @@
   </div>
 
 </div>{# end yb-el-sec-sequences #}
+
+{# ═══════════════════════════════════
+   SECTION: Nurture Dashboard
+   ═══════════════════════════════════ #}
+<div class="yb-el__section" id="yb-el-sec-nurture" hidden>
+  {% include "partials/admin-nurture-panel.njk" %}
+</div>{# end yb-el-sec-nurture #}
 
 {# CSV Import modal #}
 <div id="yb-el-import-modal" class="yb-lead__modal" hidden>

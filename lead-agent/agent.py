@@ -988,6 +988,84 @@ def check_stale_leads():
         logger.error(f'Stale lead check failed: {e}')
 
 
+# ── Sequence monitoring functions ──────────────────────
+
+def audit_unenrolled_leads():
+    """Check for YTT leads not in any sequence — alert if found."""
+    try:
+        from tools.firestore import get_leads_not_in_any_sequence
+        unenrolled = get_leads_not_in_any_sequence()
+        if not unenrolled:
+            return
+
+        lines = [f"⚠️ <b>{len(unenrolled)} YTT lead{'s' if len(unenrolled) != 1 else ''} not in any sequence:</b>\n"]
+        for lead in unenrolled[:5]:
+            name = lead.get('first_name', lead.get('name', '?'))
+            program = lead.get('ytt_program_type', 'undecided')
+            lines.append(f"  • <b>{name}</b> ({program}) — {lead.get('email', '?')}")
+        if len(unenrolled) > 5:
+            lines.append(f"  ... and {len(unenrolled) - 5} more")
+        lines.append("\nReply 'enroll' to auto-assign them to sequences.")
+
+        from monitor import _send_telegram_sync
+        _send_telegram_sync('\n'.join(lines))
+        logger.info(f'Unenrolled leads alert: {len(unenrolled)} found')
+
+    except Exception as e:
+        logger.error(f'Unenrolled leads check failed: {e}')
+
+
+def audit_sequence_failures():
+    """Check for sequence send failures — alert if found."""
+    try:
+        from tools.firestore import get_sequence_failures
+        failures = get_sequence_failures(hours=4)
+        if not failures:
+            return
+
+        lines = [f"❌ <b>{len(failures)} sequence email{'s' if len(failures) != 1 else ''} failed in the last 4 hours:</b>\n"]
+        for f in failures[:5]:
+            lines.append(f"  • {f.get('to', '?')} — {f.get('subject', '?')[:50]}")
+        if len(failures) > 5:
+            lines.append(f"  ... and {len(failures) - 5} more")
+
+        from monitor import _send_telegram_sync
+        _send_telegram_sync('\n'.join(lines))
+        logger.info(f'Sequence failure alert: {len(failures)} failures')
+
+    except Exception as e:
+        logger.error(f'Sequence failure check failed: {e}')
+
+
+def review_completed_leads():
+    """Daily review of leads who completed sequences without converting."""
+    try:
+        from tools.firestore import get_completed_not_converted
+        completed = get_completed_not_converted(days=7)
+        if not completed:
+            return
+
+        lines = [f"📋 <b>{len(completed)} lead{'s' if len(completed) != 1 else ''} completed sequence but didn't convert:</b>\n"]
+        for item in completed[:5]:
+            lead = item['lead']
+            enrollment = item['enrollment']
+            name = lead.get('first_name', lead.get('name', '?'))
+            program = lead.get('ytt_program_type', 'undecided')
+            seq_name = enrollment.get('sequence_name', '?')
+            lines.append(f"  • <b>{name}</b> ({program}) — finished '{seq_name}'")
+
+        if len(completed) > 5:
+            lines.append(f"  ... and {len(completed) - 5} more")
+        lines.append("\nThese leads need a personalized follow-up. Reply with a name to draft a message.")
+
+        from monitor import _send_telegram_sync
+        _send_telegram_sync('\n'.join(lines))
+        logger.info(f'Completed leads review: {len(completed)} need follow-up')
+
+    except Exception as e:
+        logger.error(f'Completed leads review failed: {e}')
+
+
 # ── Appointment reminder (Telegram, 24h before) ──────
 def check_appointment_reminders():
     """Check for appointments tomorrow and send Telegram reminders to admin."""
@@ -1200,6 +1278,15 @@ def main_telegram():
                       timezone='Europe/Copenhagen',
                       id='appointment_reminders', replace_existing=True)
 
+    # ── Sequence monitoring jobs ─────────────────────────────────────────
+    scheduler.add_job(audit_unenrolled_leads, 'interval', hours=2,
+                      id='unenrolled_check', replace_existing=True)
+    scheduler.add_job(audit_sequence_failures, 'interval', hours=4,
+                      id='sequence_failure_check', replace_existing=True)
+    scheduler.add_job(review_completed_leads, 'cron', hour=10, minute=0,
+                      timezone='Europe/Copenhagen',
+                      id='completed_review', replace_existing=True)
+
     scheduler.start()
     logger.info(f'Drip scheduler started (checking every {interval} min)')
     logger.info('Auto-update checker started (git pull + knowledge refresh every 1 min)')
@@ -1207,6 +1294,7 @@ def main_telegram():
     logger.info('Stale lead checker started (every 6h)')
     logger.info('Appointment reminders scheduled (daily 18:00 CET)')
     logger.info('Daily heartbeat scheduled')
+    logger.info('Sequence monitoring jobs started (unenrolled/failures/completed review)')
 
     # Start Firestore listener for new leads
     try:
