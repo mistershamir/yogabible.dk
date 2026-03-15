@@ -693,6 +693,8 @@ curl "https://yogabible.dk/.netlify/functions/ai-backfill?mp4-status=1&secret=AI
 
 **What retranscribe does:** Deletes old Mux subtitle tracks → resets Firestore AI fields → triggers `ai-process-recording-background` as a new invocation. Each session runs as a separate background function (15-min timeout).
 
+**IMPORTANT — Process sessions one at a time:** Do NOT retranscribe multiple sessions in parallel. Deepgram returns 504 timeouts when processing multiple long recordings simultaneously. Retranscribe one session, wait for `aiStatus` to reach `complete` (~5-10 min), then start the next.
+
 **Troubleshooting stuck sessions:** If `aiStatus` is stuck at `transcribing`, the Deepgram call likely timed out (504). Just retrigger with the same curl. Check Deepgram dashboard (console.deepgram.com → Usage → Logs) to see if the request completed (200 OK) or failed. Dashboard times are UTC.
 
 #### Key Files
