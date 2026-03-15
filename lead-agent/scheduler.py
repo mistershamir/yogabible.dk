@@ -8,7 +8,7 @@ import os
 import logging
 from datetime import datetime, timedelta, timezone
 from tools.firestore import (
-    get_leads_due_for_drip, set_drip_status,
+    get_db, get_leads_due_for_drip, set_drip_status,
     log_email_sent, add_lead_note
 )
 from tools.email import send_email, build_drip_email
@@ -43,8 +43,24 @@ SCHEDULE_LINKS = {
 
 
 def initialize_drip_for_lead(lead_id, lead_data):
-    """Set up the drip sequence for a new lead. Starts at step 2 since
-    step 1 (welcome email) is already sent by the Netlify function."""
+    """DEPRECATED: New leads are now auto-enrolled via Netlify sequence engine.
+    This function only runs if the lead was NOT enrolled by triggerNewLeadSequences().
+    Starts at step 2 since step 1 (welcome email) is already sent by the Netlify function."""
+
+    # Migration guard: check if lead is already enrolled in a Netlify sequence
+    db = get_db()
+    existing = db.collection('sequence_enrollments') \
+        .where('lead_id', '==', lead_id) \
+        .where('status', 'in', ['active', 'paused']) \
+        .limit(1) \
+        .get()
+
+    if len(existing.docs) > 0:
+        seq_name = existing.docs[0].to_dict().get('sequence_name', 'unknown')
+        logger.info(f'Lead {lead_id} already in Netlify sequence "{seq_name}" — skipping agent drip')
+        return
+
+    # Fallback: create agent drip (will be removed once all new leads go through Netlify sequences)
     program_type = lead_data.get('ytt_program_type', '8-week')
     next_send = datetime.now(timezone.utc) + timedelta(days=DRIP_SCHEDULE[2])
 
@@ -57,13 +73,14 @@ def initialize_drip_for_lead(lead_id, lead_data):
         'lead_email': lead_data.get('email', ''),
         'started_at': datetime.now(timezone.utc),
     })
-    logger.info(f'Drip initialized for {lead_id} (step 2, due {next_send.isoformat()})')
+    logger.info(f'Drip initialized for {lead_id} (step 2, due {next_send.isoformat()}) — agent fallback')
 
 
 def process_due_drips():
     """Check for and send due drip emails. Called periodically by APScheduler."""
     due = get_leads_due_for_drip()
     logger.info(f'Checking drip queue: {len(due)} leads due')
+    db = get_db()
 
     for drip in due:
         lead_id = drip['lead_id']
@@ -76,6 +93,25 @@ def process_due_drips():
             set_drip_status(lead_id, {'completed': True})
             add_lead_note(lead_id, f'Drip sequence completed (5 emails sent)')
             continue
+
+        # Migration guard: hand off to Netlify sequence engine if enrolled there
+        try:
+            existing_enrollment = db.collection('sequence_enrollments') \
+                .where('lead_id', '==', lead_id) \
+                .where('status', 'in', ['active', 'paused']) \
+                .limit(1) \
+                .get()
+
+            if len(existing_enrollment.docs) > 0:
+                set_drip_status(lead_id, {
+                    'completed': True,
+                    'pause_reason': 'Migrated to Netlify sequence engine'
+                })
+                add_lead_note(lead_id, 'Drip handed off to Netlify sequence engine')
+                logger.info(f'Lead {lead_id} migrated to Netlify sequences — agent drip completed')
+                continue
+        except Exception as e:
+            logger.warning(f'Migration check failed for {lead_id}: {e}')
 
         # Skip unsubscribed
         if lead.get('unsubscribed'):

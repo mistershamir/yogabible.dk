@@ -4351,3 +4351,51 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   .yb-seq__step-row { flex-direction: column; }
   .yb-seq__steps-timeline { padding-left: 24px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   NURTURE DASHBOARD (.yb-nur__)
+   ═══════════════════════════════════════════════════════════════ */
+
+.yb-nur__section-title {
+  font-size: 16px; font-weight: 700; margin: 0 0 12px; color: #0F0F0F;
+}
+
+/* Pipeline */
+.yb-nur__pipeline { margin-bottom: 24px; }
+.yb-nur__pipeline-stages { display: flex; flex-direction: column; gap: 6px; }
+.yb-nur__stage { position: relative; background: #F5F3F0; border-radius: 6px; overflow: hidden; min-height: 32px; }
+.yb-nur__stage-bar { position: absolute; top: 0; left: 0; height: 100%; border-radius: 6px; opacity: 0.2; transition: width 0.4s ease; }
+.yb-nur__stage-info { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; z-index: 1; }
+.yb-nur__stage-label { font-size: 13px; font-weight: 600; color: #0F0F0F; }
+.yb-nur__stage-count { font-size: 14px; font-weight: 700; color: #0F0F0F; }
+
+/* Sequence Health */
+.yb-nur__health { margin-bottom: 24px; }
+.yb-nur__health-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.yb-nur__health-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.yb-nur__health-card {
+  background: #FFFCF9; border: 1px solid #E8E4E0; border-radius: 8px; padding: 14px;
+  transition: border-color 0.2s;
+}
+.yb-nur__health-card:hover { border-color: #f75c03; }
+.yb-nur__health-card--inactive { opacity: 0.6; }
+.yb-nur__health-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.yb-nur__health-card-head strong { font-size: 14px; }
+.yb-nur__health-card-stats { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #6F6A66; margin-bottom: 4px; }
+.yb-nur__health-card-trigger { font-size: 11px; color: #6F6A66; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Quick Enrollment */
+.yb-nur__enrollment { margin-bottom: 24px; }
+.yb-nur__enrollment-header {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;
+}
+.yb-nur__enrollment-header > div { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.yb-nur__filter-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+
+/* Recent Activity */
+.yb-nur__activity { margin-bottom: 24px; }
+
+@media (max-width: 640px) {
+  .yb-nur__health-grid { grid-template-columns: 1fr; }
+  .yb-nur__enrollment-header { flex-direction: column; align-items: stretch; }
+}

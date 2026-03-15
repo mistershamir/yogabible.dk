@@ -342,12 +342,16 @@ async function handleUnenroll(db, event) {
 }
 
 async function handleGetEnrollments(db, params) {
-  if (!params.sequence_id) {
-    return jsonResponse(400, { ok: false, error: 'sequence_id query parameter is required' });
+  // Support ?all=true for fetching enrollments across all sequences (nurture dashboard)
+  if (!params.sequence_id && !params.all) {
+    return jsonResponse(400, { ok: false, error: 'sequence_id query parameter is required (or use all=true)' });
   }
 
-  var query = db.collection(ENROLLMENTS_COL)
-    .where('sequence_id', '==', params.sequence_id);
+  var query = db.collection(ENROLLMENTS_COL);
+
+  if (params.sequence_id) {
+    query = query.where('sequence_id', '==', params.sequence_id);
+  }
 
   if (params.status) {
     query = query.where('status', '==', params.status);
@@ -564,6 +568,27 @@ async function handleProcess() {
           }
         }
 
+        // Frequency throttle: check if lead received an email in the last 48 hours
+        if (step.channel === 'email' || step.channel === 'both') {
+          var throttleCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+          var recentEmailSnap = await db.collection('email_log')
+            .where('lead_id', '==', enrollment.lead_id)
+            .where('sent_at', '>=', throttleCutoff)
+            .where('status', '==', 'sent')
+            .limit(1)
+            .get();
+
+          if (!recentEmailSnap.empty) {
+            // Postpone this step by 24 hours
+            await db.collection(ENROLLMENTS_COL).doc(enrollId).update({
+              next_send_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              updated_at: now
+            });
+            console.log('[sequences] Throttled step for lead ' + enrollment.lead_id + ' — recent email within 48h');
+            continue;
+          }
+        }
+
         // Substitute template variables
         var vars = {
           '{{first_name}}': lead.first_name || '',
@@ -674,9 +699,16 @@ function calculateNextSendAt(fromISO, step) {
   var date = new Date(fromISO);
   var delayDays = (step && step.delay_days) || 0;
   var delayHours = (step && step.delay_hours) || 0;
+  var delayMinutes = (step && step.delay_minutes) || 0;
 
-  date.setDate(date.getDate() + delayDays);
-  date.setHours(date.getHours() + delayHours);
+  // Support delay_minutes (used by seed scripts & sequence-trigger.js)
+  // as well as delay_days + delay_hours (used by admin UI step builder)
+  if (delayMinutes > 0 && delayDays === 0 && delayHours === 0) {
+    date = new Date(date.getTime() + delayMinutes * 60 * 1000);
+  } else {
+    date.setDate(date.getDate() + delayDays);
+    date.setHours(date.getHours() + delayHours);
+  }
 
   return date.toISOString();
 }
