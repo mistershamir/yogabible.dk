@@ -1075,6 +1075,8 @@ async function getMp4UrlForSession(sessionId, sess) {
       var asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
       var renditions = asset.data && asset.data.static_renditions;
 
+      console.log('[ai-backfill] Original asset renditions:', JSON.stringify(renditions));
+
       // Already has a ready rendition?
       var readyUrl = getReadyRenditionUrl(renditions, playbackId);
       if (readyUrl) {
@@ -1083,6 +1085,11 @@ async function getMp4UrlForSession(sessionId, sess) {
       }
 
       var rStatus = getRenditionStatus(renditions);
+
+      // If errored, don't retry on original — go straight to temp asset
+      if (rStatus === 'errored') {
+        console.log('[ai-backfill] Original asset rendition errored — skipping to temp asset');
+      }
 
       // Still preparing from a previous request?
       if (rStatus === 'preparing') {
@@ -1100,7 +1107,8 @@ async function getMp4UrlForSession(sessionId, sess) {
       }
 
       // Request audio-only static rendition on original asset (new Mux API)
-      if (rStatus !== 'preparing') {
+      // Only if not already errored or preparing
+      if (rStatus !== 'preparing' && rStatus !== 'errored') {
         console.log('[ai-backfill] Requesting audio-only static rendition on original asset:', assetId);
         try {
           await muxRequest('POST', '/video/v1/assets/' + assetId + '/static-renditions', {
