@@ -154,7 +154,35 @@ async function handleStreamActive(streamData) {
 
   // Fetch ALL sessions (no orderBy → no composite index needed)
   var allSessions = await getAllSessions();
-  var sessions = allSessions.filter(function (s) { return s.status === 'scheduled'; });
+
+  // Safety: first check if any session already owns this exact stream ID
+  // (e.g. created via mux-stream.js create-stream before ATEM started pushing)
+  var preMatched = null;
+  for (var p = 0; p < allSessions.length; p++) {
+    if (allSessions[p].muxLiveStreamId === liveStreamId) {
+      preMatched = allSessions[p];
+      break;
+    }
+  }
+
+  if (preMatched) {
+    // Session already has this stream ID (set by mux-stream or livekit-token) — just mark live
+    console.log('[mux-webhook] Stream', liveStreamId, 'already assigned to session',
+      preMatched.id, '— marking live');
+    var preUpdate = { status: 'live', liveStartedAt: now.toISOString() };
+    if (streamPlaybackId && !preMatched.muxPlaybackId) {
+      preUpdate.muxPlaybackId = streamPlaybackId;
+    }
+    await updateDoc(COLLECTION, preMatched.id, preUpdate);
+    await reconcileUnmatchedRecordings(liveStreamId, preMatched.id);
+    return;
+  }
+
+  // Only match to sessions that are 'scheduled' AND don't already have a recording
+  // This prevents a random ATEM stream from hijacking a session that already finished
+  var sessions = allSessions.filter(function (s) {
+    return s.status === 'scheduled' && !s.recordingPlaybackId && !s.muxLiveStreamId;
+  });
 
   // Match sessions from today (same calendar day UTC), or yesterday if stream started around midnight
   var yesterday = new Date(now.getTime() - 12 * 60 * 60 * 1000);
@@ -235,22 +263,18 @@ async function handleStreamIdle(streamData) {
     }
   }
 
-  // Priority 2: if only one session is live, it's almost certainly the right one
+  // Priority 2: if only one session is live AND its muxLiveStreamId is empty
+  // (i.e. it was set live manually, not via webhook), cautiously match it.
+  // But NEVER match if the session already has a different stream ID — that means
+  // this idle event is from an orphan stream unrelated to the session.
   if (!matched && liveSessions.length === 1) {
-    matched = liveSessions[0];
-    console.log('[mux-webhook] Fallback: matched to only live session:', matched.id);
-  }
-
-  // Priority 3: match to closest live session by startDateTime (same day)
-  if (!matched && liveSessions.length > 0) {
-    var now = new Date();
-    var bounds = getDayBounds(now);
-    var todayLive = liveSessions.filter(function (s) {
-      return s.startDateTime && s.startDateTime >= bounds.start && s.startDateTime <= bounds.end;
-    });
-    if (todayLive.length === 1) {
-      matched = todayLive[0];
-      console.log('[mux-webhook] Fallback: matched to only today-live session:', matched.id);
+    var candidate = liveSessions[0];
+    if (!candidate.muxLiveStreamId) {
+      matched = candidate;
+      console.log('[mux-webhook] Fallback: matched to only live session (no stream ID):', matched.id);
+    } else {
+      console.log('[mux-webhook] Only live session', candidate.id, 'has stream ID',
+        candidate.muxLiveStreamId, 'which does not match idle stream', liveStreamId, '— skipping');
     }
   }
 
@@ -348,6 +372,22 @@ async function handleAssetReady(assetData) {
   }
 
   if (matched) {
+    // Safety: never overwrite an existing recording — save as unmatched instead
+    if (matched.recordingPlaybackId && matched.recordingPlaybackId !== recordingPlaybackId) {
+      console.log('[mux-webhook] Session', matched.id, 'already has recording',
+        matched.recordingPlaybackId, '— refusing to overwrite with', recordingPlaybackId,
+        '. Saving as unmatched.');
+      await addDoc(UNMATCHED_COLLECTION, {
+        muxLiveStreamId: liveStreamId,
+        recordingPlaybackId: recordingPlaybackId,
+        recordingAssetId: assetData.id,
+        reason: 'session_already_has_recording',
+        matchedSessionId: matched.id,
+        createdAt: new Date().toISOString()
+      });
+      return;
+    }
+
     console.log('[mux-webhook] Attaching recording to session:', matched.id,
       '(' + (matched.title_da || matched.title_en) + ')');
 
