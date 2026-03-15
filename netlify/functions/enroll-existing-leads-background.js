@@ -1,18 +1,17 @@
 /**
- * Batch Enroll Existing Leads — Netlify Function
+ * Batch Enroll Existing Leads — Netlify Background Function (15-min timeout)
  *
- * POST /.netlify/functions/enroll-existing-leads              — execute enrollment
- * POST /.netlify/functions/enroll-existing-leads?dry_run=true — preview only
+ * POST /.netlify/functions/enroll-existing-leads-background              — execute
+ * POST /.netlify/functions/enroll-existing-leads-background?dry_run=true — preview
  *
  * Auth: X-Internal-Secret header
  *
- * Finds unconverted YTT leads and enrolls them into the appropriate
- * nurture sequence based on ytt_program_type / cohort_label.
- * Skips leads already enrolled or mid-agent-drip.
+ * Returns 202 immediately. Does all Firestore work asynchronously.
+ * Writes results to Firestore doc system/last_enrollment_run when done.
  */
 
 const { getDb, serverTimestamp } = require('./shared/firestore');
-const { jsonResponse, optionsResponse } = require('./shared/utils');
+const { optionsResponse } = require('./shared/utils');
 
 // ── Sequence matching logic ─────────────────────────────────────────────────
 
@@ -22,29 +21,20 @@ function getSequenceForLead(lead, priorEmailCount) {
 
   var skipOnboarding = priorEmailCount >= 2;
 
-  // April 4-week intensive
   if (program === '4-week' && (cohort.includes('apr') || cohort.includes('april') || !cohort)) {
     return 'April 4W Intensive — Conversion Push';
   }
-
-  // July Vinyasa Plus
   if (program === '4-week-jul' || cohort.includes('jul') || cohort.includes('vinyasa')) {
     return 'July Vinyasa Plus — International Nurture';
   }
-
-  // 8-week semi-intensive
   if (program === '8-week' || cohort.includes('8') || cohort.includes('maj') || cohort.includes('may')) {
     return '8W Semi-Intensive May–Jun — DK Nurture';
   }
-
-  // 18-week flexible (August-December)
   if (program === '18-week-aug' || program === '18-week' || cohort.includes('aug') || cohort.includes('18')) {
     return '18W Flexible Aug–Dec — DK Nurture';
   }
-
-  // General / undecided leads
   if (skipOnboarding) {
-    return null; // Already received campaign content — skip
+    return null;
   }
   return 'YTT Onboarding — 2026';
 }
@@ -55,7 +45,7 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
 
   if (event.httpMethod !== 'POST') {
-    return jsonResponse(405, { ok: false, error: 'POST only' });
+    return { statusCode: 405, body: JSON.stringify({ ok: false, error: 'POST only' }) };
   }
 
   // Auth: internal secret
@@ -63,7 +53,7 @@ exports.handler = async (event) => {
   var expected = (process.env.AI_INTERNAL_SECRET || '').trim();
 
   if (!expected || secret !== expected) {
-    return jsonResponse(401, { ok: false, error: 'Unauthorized' });
+    return { statusCode: 401, body: JSON.stringify({ ok: false, error: 'Unauthorized' }) };
   }
 
   var params = event.queryStringParameters || {};
@@ -74,13 +64,13 @@ exports.handler = async (event) => {
   try {
     // 1. Load all active sequence definitions
     var seqSnap = await db.collection('sequences').where('active', '==', true).get();
-    var sequenceMap = {}; // name -> { id, name, steps }
+    var sequenceMap = {};
     seqSnap.forEach(function (doc) {
       var data = doc.data();
       sequenceMap[data.name] = { id: doc.id, name: data.name, steps: data.steps || [] };
     });
 
-    // 2. Load all YTT leads
+    // 2. Load all YTT leads (single bulk read)
     var leadsSnap = await db.collection('leads')
       .where('type', '==', 'ytt')
       .get();
@@ -93,7 +83,7 @@ exports.handler = async (event) => {
       candidates.push({ id: doc.id, ...lead });
     });
 
-    // 3. Check existing enrollments
+    // 3. Bulk-load existing enrollments (single read)
     var enrollSnap = await db.collection('sequence_enrollments')
       .where('status', 'in', ['active', 'paused'])
       .get();
@@ -103,7 +93,7 @@ exports.handler = async (event) => {
       enrolledLeadIds.add(doc.data().lead_id);
     });
 
-    // 4. Check active agent drips
+    // 4. Bulk-load active agent drips (single read)
     var dripSnap = await db.collection('lead_drip_sequences').get();
     var activeDripLeadIds = new Set();
     dripSnap.forEach(function (doc) {
@@ -113,7 +103,29 @@ exports.handler = async (event) => {
       }
     });
 
-    // 5. Process each candidate
+    // 5. Bulk-load email_log for all candidate emails (single read instead of N reads)
+    var candidateEmails = new Set(candidates.map(function (l) { return l.email; }).filter(Boolean));
+    var emailCountByAddress = {};
+
+    // Firestore 'in' queries are limited to 30 values, so batch them
+    var emailArray = Array.from(candidateEmails);
+    for (var batch = 0; batch < emailArray.length; batch += 30) {
+      var chunk = emailArray.slice(batch, batch + 30);
+      try {
+        var logSnap = await db.collection('email_log')
+          .where('to', 'in', chunk)
+          .where('status', '==', 'sent')
+          .get();
+        logSnap.forEach(function (doc) {
+          var to = doc.data().to;
+          emailCountByAddress[to] = (emailCountByAddress[to] || 0) + 1;
+        });
+      } catch (e) {
+        console.log('[enroll-bg] email_log batch query failed:', e.message);
+      }
+    }
+
+    // 6. Process each candidate
     var results = {
       enrolled: {},
       skipped_already_enrolled: 0,
@@ -136,18 +148,7 @@ exports.handler = async (event) => {
         continue;
       }
 
-      // Check prior campaign emails
-      var priorEmailCount = 0;
-      try {
-        var emailLogSnap = await db.collection('email_log')
-          .where('to', '==', lead.email)
-          .where('status', '==', 'sent')
-          .get();
-        priorEmailCount = emailLogSnap.size;
-      } catch (e) {
-        // Index might not exist — default to 0
-      }
-
+      var priorEmailCount = emailCountByAddress[lead.email] || 0;
       var sequenceName = getSequenceForLead(lead, priorEmailCount);
 
       if (!sequenceName) {
@@ -161,7 +162,6 @@ exports.handler = async (event) => {
         continue;
       }
 
-      // Track result
       if (!results.enrolled[sequenceName]) results.enrolled[sequenceName] = [];
       results.enrolled[sequenceName].push({
         id: lead.id,
@@ -171,7 +171,6 @@ exports.handler = async (event) => {
         prior_emails: priorEmailCount
       });
 
-      // Execute enrollment (unless dry run)
       if (!dryRun) {
         try {
           var now = new Date();
@@ -195,13 +194,13 @@ exports.handler = async (event) => {
             created_at: serverTimestamp()
           });
         } catch (e) {
-          console.error('[enroll-existing] Error enrolling ' + lead.email + ':', e.message);
+          console.error('[enroll-bg] Error enrolling ' + lead.email + ':', e.message);
           results.errors++;
         }
       }
     }
 
-    // Build summary
+    // 7. Build summary
     var totalEnrolled = 0;
     var breakdown = {};
     for (var seqName in results.enrolled) {
@@ -210,7 +209,7 @@ exports.handler = async (event) => {
       breakdown[seqName] = count;
     }
 
-    return jsonResponse(200, {
+    var summary = {
       ok: true,
       dry_run: dryRun,
       total_candidates: candidates.length,
@@ -226,11 +225,36 @@ exports.handler = async (event) => {
       errors: results.errors,
       available_sequences: Object.keys(sequenceMap),
       active_enrollments: enrolledLeadIds.size,
-      active_agent_drips: activeDripLeadIds.size
-    });
+      active_agent_drips: activeDripLeadIds.size,
+      completed_at: new Date().toISOString()
+    };
+
+    // 8. Log to console (visible in Netlify function logs)
+    console.log('[enroll-bg] ===== ENROLLMENT RUN COMPLETE =====');
+    console.log('[enroll-bg] Mode:', dryRun ? 'DRY RUN' : 'EXECUTE');
+    console.log('[enroll-bg] Candidates:', candidates.length);
+    console.log('[enroll-bg] To enroll:', totalEnrolled);
+    console.log('[enroll-bg] Breakdown:', JSON.stringify(breakdown));
+    console.log('[enroll-bg] Skipped:', JSON.stringify(summary.skipped));
+    console.log('[enroll-bg] Errors:', results.errors);
+
+    // 9. Write results to Firestore for retrieval
+    await db.collection('system').doc('last_enrollment_run').set(summary);
+    console.log('[enroll-bg] Results written to system/last_enrollment_run');
 
   } catch (error) {
-    console.error('[enroll-existing] Error:', error);
-    return jsonResponse(500, { ok: false, error: error.message });
+    console.error('[enroll-bg] Fatal error:', error);
+
+    // Write error to Firestore so caller can see what happened
+    try {
+      await db.collection('system').doc('last_enrollment_run').set({
+        ok: false,
+        error: error.message,
+        completed_at: new Date().toISOString(),
+        dry_run: dryRun
+      });
+    } catch (writeErr) {
+      console.error('[enroll-bg] Could not write error to Firestore:', writeErr.message);
+    }
   }
 };
