@@ -69,7 +69,7 @@
       <span class="ybh-philosophy__label">{{ t.philosophy_label }}</span>
     </div>
     <div class="ybh-philosophy__right">
-      <img src="{{ media.brand.logo | cloudimg('w_200,q_auto') }}" alt="Yoga Bible" class="ybh-philosophy__logo" width="160" height="40" loading="lazy">
+      {% cldimg media.brand.logo, "Yoga Bible", "w_200,q_auto", "160", "40" %}
       <p class="ybh-philosophy__text">{{ t.philosophy_text }}</p>
       <blockquote class="ybh-philosophy__quote">{{ t.philosophy_quote }}</blockquote>
     </div>
@@ -132,7 +132,7 @@
 {# ═══ 4. ORIGIN — Full-Width Cinematic with Timeline ═══ #}
 <section class="ybh-origin">
   <div class="ybh-origin__bg">
-    <img src="{{ media.studio.mainRoom | cloudimg('w_1920,h_900,c_fill,q_auto') }}" alt="" loading="lazy">
+    {% cldimg media.studio.mainRoom, "", "w_1920,h_900,c_fill,q_auto", "1920", "900" %}
   </div>
   <div class="ybh-origin__overlay"></div>
   <div class="container ybh-origin__inner">
@@ -157,7 +157,7 @@
         <span class="ybh-origin__year">{{ t.origin2_year }}</span>
         <h3 class="ybh-origin__name">{{ t.origin2_name }}</h3>
         <p>{{ t.origin2_desc }}</p>
-        <img src="{{ media.programs.certificate | cloudimg('w_200,q_auto') }}" alt="Yoga Alliance RYT-200" class="ybh-origin__badge" width="120" loading="lazy">
+        {% cldimg media.programs.certificate, "Yoga Alliance RYT-200", "w_200,q_auto", "120" %}
       </div>
     </div>
 
@@ -202,7 +202,7 @@
     <div class="ybh-concepts__grid">
       <a href="{{ lp }}/hot-yoga-cph" class="ybh-concepts__card ybh-concepts__card--hyc ybh-scroll-reveal">
         <div class="ybh-concepts__img">
-          <img src="{{ media.concepts.hotyogaHero | cloudimg('w_600,h_400,c_fill') }}" alt="Hot Yoga Copenhagen" loading="lazy" width="600" height="400">
+          {% cldimg media.concepts.hotyogaHero, "Hot Yoga Copenhagen", "w_600,h_400,c_fill", "600", "400" %}
         </div>
         <div class="ybh-concepts__info">
           <h3>{{ t.concept1_name }}</h3>
@@ -213,7 +213,7 @@
 
       <a href="{{ lp }}/namaste-online" class="ybh-concepts__card ybh-scroll-reveal">
         <div class="ybh-concepts__img">
-          <img src="{{ media.concepts.namasteHero | cloudimg('w_600,h_400,c_fill') }}" alt="Namasté Online" loading="lazy" width="600" height="400">
+          {% cldimg media.concepts.namasteHero, "Namasté Online", "w_600,h_400,c_fill", "600", "400" %}
         </div>
         <div class="ybh-concepts__info">
           <h3>{{ t.concept2_name }}</h3>
@@ -224,7 +224,7 @@
 
       <a href="{{ lp }}/vibro-yoga" class="ybh-concepts__card ybh-scroll-reveal">
         <div class="ybh-concepts__img">
-          <img src="{{ media.concepts.vibroHero | cloudimg('w_600,h_400,c_fill') }}" alt="Vibro Yoga" loading="lazy" width="600" height="400">
+          {% cldimg media.concepts.vibroHero, "Vibro Yoga", "w_600,h_400,c_fill", "600", "400" %}
         </div>
         <div class="ybh-concepts__info">
           <h3>{{ t.concept3_name }}</h3>
@@ -246,12 +246,12 @@
   </div>
   <div class="ybh-copenhagen__gallery">
     <div class="ybh-copenhagen__track">
-      <img src="{{ media.copenhagen.canalPanorama | cloudimg('w_600,h_400,c_fill') }}" alt="Christianshavn canal" loading="lazy" width="600" height="400">
-      <img src="{{ media.copenhagen.locationGallery2 | cloudimg('w_600,h_400,c_fill') }}" alt="Christianshavn colorful houses" loading="lazy" width="600" height="400">
-      <img src="{{ media.studio.entrance | cloudimg('w_600,h_400,c_fill') }}" alt="Yoga Bible studio entrance" loading="lazy" width="600" height="400">
-      <img src="{{ media.copenhagen.nyhavn | cloudimg('w_600,h_400,c_fill') }}" alt="Nyhavn harbor" loading="lazy" width="600" height="400">
-      <img src="{{ media.copenhagen.bikeCulture | cloudimg('w_600,h_400,c_fill') }}" alt="Copenhagen bike culture" loading="lazy" width="600" height="400">
-      <img src="{{ media.copenhagen.cafeScene | cloudimg('w_600,h_400,c_fill') }}" alt="Copenhagen café scene" loading="lazy" width="600" height="400">
+      {% cldimg media.copenhagen.canalPanorama, "Christianshavn canal", "w_600,h_400,c_fill", "600", "400" %}
+      {% cldimg media.copenhagen.locationGallery2, "Christianshavn colorful houses", "w_600,h_400,c_fill", "600", "400" %}
+      {% cldimg media.studio.entrance, "Yoga Bible studio entrance", "w_600,h_400,c_fill", "600", "400" %}
+      {% cldimg media.copenhagen.nyhavn, "Nyhavn harbor", "w_600,h_400,c_fill", "600", "400" %}
+      {% cldimg media.copenhagen.bikeCulture, "Copenhagen bike culture", "w_600,h_400,c_fill", "600", "400" %}
+      {% cldimg media.copenhagen.cafeScene, "Copenhagen café scene", "w_600,h_400,c_fill", "600", "400" %}
     </div>
   </div>
 </section>

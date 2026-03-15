@@ -105,13 +105,7 @@
       {# IMAGE SIDE #}
       <div class="yphoto-session__media yphoto-reveal">
         {# CLOUDINARY: yoga-bible-DK/yogaphotography/session-hero.jpg — portrait, studio yoga #}
-        <img
-          class="yphoto-session__img"
-          src="{{ 'yoga-bible-DK/yogaphotography/session-hero' | cloudimg('w_1200,c_fill,g_auto') }}"
-          alt="{{ t.session_img_alt }}"
-          loading="lazy"
-          decoding="async"
-        />
+        {% cldimg "yoga-bible-DK/yogaphotography/session-hero", t.session_img_alt, "w_1200,c_fill,g_auto", "1200" %}
         <div class="yphoto-session__badge">
           <span class="yphoto-session__badge-pill">{{ t.session_img_pill }}</span>
           <span class="yphoto-session__badge-loc">{{ t.session_img_loc }}</span>
@@ -240,13 +234,7 @@
 <section class="yphoto-quote" aria-label="{{ t.quote1_kicker }}">
   <div class="yphoto-quote__wrap yphoto-reveal">
     {# CLOUDINARY: yoga-bible-DK/yogaphotography/quote-hero.jpg — tall portrait, 1159x2048 #}
-    <img
-      class="yphoto-quote__img"
-      src="{{ 'yoga-bible-DK/yogaphotography/quote-hero' | cloudimg('w_1400,c_fill,g_auto') }}"
-      alt="Yoga Photography — Yoga Bible"
-      loading="lazy"
-      decoding="async"
-    />
+    {% cldimg "yoga-bible-DK/yogaphotography/quote-hero", "Yoga Photography — Yoga Bible", "w_1400,c_fill,g_auto", "1400" %}
     <div class="yphoto-quote__overlay">
       <div class="yphoto-quote__glass yphoto-reveal yphoto-delay-2">
         <div class="yphoto-quote__bar" aria-hidden="true"></div>
@@ -285,7 +273,7 @@
 <section class="yphoto-interstitial">
   <div class="yphoto-interstitial__inner yphoto-reveal">
     {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-1.jpg — 1200x1600 vertical #}
-    <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-1' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
+    {% cldimg "yoga-bible-DK/yogaphotography/interstitial-1", "", "w_1200,h_1600,c_fill", "1200", "1600" %}
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial1_quote }}</blockquote>
       <button class="yb-btn yb-btn--primary" data-open-photo-booking>
@@ -300,7 +288,7 @@
 <section class="yphoto-interstitial">
   <div class="yphoto-interstitial__inner yphoto-reveal">
     {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-2.jpg — 1200x1600 vertical #}
-    <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-2' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
+    {% cldimg "yoga-bible-DK/yogaphotography/interstitial-2", "", "w_1200,h_1600,c_fill", "1200", "1600" %}
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial2_quote }}</blockquote>
       <button class="yb-btn yb-btn--primary" data-open-photo-booking>
@@ -315,7 +303,7 @@
 <section class="yphoto-interstitial">
   <div class="yphoto-interstitial__inner yphoto-reveal">
     {# CLOUDINARY: yoga-bible-DK/yogaphotography/interstitial-3.jpg — 1200x1600 vertical #}
-    <img class="yphoto-interstitial__img" src="{{ 'yoga-bible-DK/yogaphotography/interstitial-3' | cloudimg('w_1200,h_1600,c_fill') }}" alt="" loading="lazy" decoding="async" />
+    {% cldimg "yoga-bible-DK/yogaphotography/interstitial-3", "", "w_1200,h_1600,c_fill", "1200", "1600" %}
     <div class="yphoto-interstitial__overlay">
       <blockquote class="yphoto-interstitial__quote">{{ t.interstitial3_quote }}</blockquote>
       <button class="yb-btn yb-btn--primary" data-open-photo-booking>
@@ -338,12 +326,7 @@
       {# Portrait — use override or default path, no forced crop #}
       {% set portrait_src = m.img_p if m.img_p else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-portrait') %}
       <div class="yphoto-model__portrait">
-        <img
-          src="{{ portrait_src | cloudimg('w_520,c_scale') }}"
-          alt="{{ mname }}"
-          loading="lazy"
-          decoding="async"
-        />
+        {% cldimg portrait_src, mname, "w_520,c_scale", "520" %}
       </div>
       <div class="yphoto-model__info">
         <p class="yphoto-model__eyebrow">Yoga Bible Model</p>
@@ -362,13 +345,13 @@
     {% set g3 = m.img_3 if m.img_3 else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-3') %}
     <div class="yphoto-model__gallery">
       <div class="yphoto-model__photo yphoto-model__photo--1">
-        <img src="{{ g1 | cloudimg('w_800,c_scale') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
+        {% cldimg g1, mname + " — Yoga Photography", "w_800,c_scale", "800" %}
       </div>
       <div class="yphoto-model__photo yphoto-model__photo--2">
-        <img src="{{ g2 | cloudimg('w_600,c_scale') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
+        {% cldimg g2, mname + " — Yoga Photography", "w_600,c_scale", "600" %}
       </div>
       <div class="yphoto-model__photo yphoto-model__photo--3">
-        <img src="{{ g3 | cloudimg('w_700,c_scale') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
+        {% cldimg g3, mname + " — Yoga Photography", "w_700,c_scale", "700" %}
       </div>
     </div>
   </div>
