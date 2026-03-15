@@ -646,18 +646,63 @@ Two-mode live streaming: one-way broadcast (Mux) + Zoom-style interactive (LiveK
 | `panel` | Expert panel with named speakers + audience |
 | `google-meet` | External Google Meet link |
 
-### AI Recording Processing
+### AI Recording Processing Pipeline
 
-After a live session ends, recordings are automatically processed:
+After a live session ends, recordings are automatically processed via **Deepgram transcription** (not Mux auto-captions):
 
-1. Mux webhook fires when asset is ready
-2. `ai-process-recording-background` requests captions from Mux
-3. Polls for caption readiness (up to 10 min)
-4. Downloads VTT transcript
-5. Claude generates summary + quiz
-6. Saved to Firestore `live-schedule` document
+1. Mux webhook fires when recording asset is ready
+2. `ai-process-recording-background` gets MP4 URL from Mux (via `master_access: "temporary"` download URL, or creates temp asset for live recordings)
+3. Sends MP4 audio to **Deepgram Nova-2** (`/v1/listen`) with `utterances=true`, `detect_language=true`, `smart_format=true`
+4. Generates VTT subtitles from Deepgram response, saves VTT to Firestore (`captionVtt` field)
+5. Uploads VTT to Mux as subtitle track via `serve-vtt` function (Mux fetches the VTT URL)
+6. Sends transcript to **Claude Sonnet 4.6** for summary + quiz generation
+7. Saves everything to Firestore `live-schedule` document
 
-**Fields:** `aiStatus` (`processing` → `captions_requested` → `captions_ready` → `summarizing` → `done`), `aiSummary`, `aiQuiz`, `aiSummaryLang`
+**Status flow:** `aiStatus`: `preparing_audio` → `transcribing` → `uploading_subtitles` → `generating_summary` → `complete`
+
+**Fields:** `aiStatus`, `aiError`, `aiSummary`, `aiSummaryLang`, `aiQuiz`, `aiTranscript`, `aiProcessedAt`, `captionVtt`, `captionLang`, `aiCaptionTrackId`
+
+#### Key Implementation Details (Deepgram + Subtitles)
+
+**Word-level fallback for VTT generation:** Deepgram can return a full transcript but an **empty utterances array** (especially for long recordings 3h+). The code handles this by building synthetic utterances from word-level timestamps in ~10-second chunks (`buildUtterancesFromWords()`). Without this fallback, the VTT generation silently skips and no subtitles appear on Mux. This was the root cause of a multi-week debugging effort — do NOT remove this fallback.
+
+**VTT URL must use canonical domain:** The `serve-vtt` URL passed to Mux must use `https://yogabible.dk` (hardcoded), NOT `process.env.URL` which resolves to `www.yogabible.dk` and causes a 301 redirect. Mux does not follow redirects when ingesting subtitle tracks, so the upload silently fails.
+
+**Deepgram API config:** Model `nova-2`, features: `detect_language`, `smart_format`, `paragraphs`, `utterances` (with `utt_split=0.8`). API key stored in Netlify env. ~$1.20 per 4.5h recording.
+
+#### Retranscribe / Reprocess Sessions
+
+Use `ai-backfill` function to retrigger processing for existing recordings:
+
+```bash
+# Single session (full pipeline: Deepgram → subtitles → Claude summary)
+curl "https://yogabible.dk/.netlify/functions/ai-backfill?retranscribe=SESSION_ID&secret=AI_INTERNAL_SECRET"
+
+# All sessions with recordings
+curl "https://yogabible.dk/.netlify/functions/ai-backfill?retranscribe=all&secret=AI_INTERNAL_SECRET"
+
+# Transcript only (skip Claude summary/quiz)
+curl "https://yogabible.dk/.netlify/functions/ai-backfill?retranscribe=SESSION_ID&transcript-only=1&secret=AI_INTERNAL_SECRET"
+
+# Check status of all sessions
+curl "https://yogabible.dk/.netlify/functions/ai-backfill?debug=1&secret=AI_INTERNAL_SECRET"
+
+# Check MP4 rendition status
+curl "https://yogabible.dk/.netlify/functions/ai-backfill?mp4-status=1&secret=AI_INTERNAL_SECRET"
+```
+
+**What retranscribe does:** Deletes old Mux subtitle tracks → resets Firestore AI fields → triggers `ai-process-recording-background` as a new invocation. Each session runs as a separate background function (15-min timeout).
+
+**Troubleshooting stuck sessions:** If `aiStatus` is stuck at `transcribing`, the Deepgram call likely timed out (504). Just retrigger with the same curl. Check Deepgram dashboard (console.deepgram.com → Usage → Logs) to see if the request completed (200 OK) or failed. Dashboard times are UTC.
+
+#### Key Files
+
+| File | Purpose |
+|------|---------|
+| `netlify/functions/ai-process-recording-background.js` | Main pipeline: MP4 → Deepgram → VTT → Mux subtitles → Claude summary |
+| `netlify/functions/ai-backfill.js` | Admin tool: debug, retranscribe, MP4 status, subtitle management |
+| `netlify/functions/serve-vtt.js` | Serves VTT from Firestore for Mux to ingest |
+| `netlify/functions/mux-webhook.js` | Triggers pipeline when recording asset is ready |
 
 ---
 
