@@ -48,17 +48,22 @@ def initialize_drip_for_lead(lead_id, lead_data):
     Starts at step 2 since step 1 (welcome email) is already sent by the Netlify function."""
 
     # Migration guard: check if lead is already enrolled in a Netlify sequence
-    db = get_db()
-    existing = db.collection('sequence_enrollments') \
-        .where('lead_id', '==', lead_id) \
-        .where('status', 'in', ['active', 'paused']) \
-        .limit(1) \
-        .get()
+    # Wrapped in try/except — if Firestore is down or collection doesn't exist,
+    # default to NOT enrolled (let the existing drip continue as normal)
+    try:
+        db = get_db()
+        existing = db.collection('sequence_enrollments') \
+            .where('lead_id', '==', lead_id) \
+            .where('status', 'in', ['active', 'paused']) \
+            .limit(1) \
+            .get()
 
-    if len(existing.docs) > 0:
-        seq_name = existing.docs[0].to_dict().get('sequence_name', 'unknown')
-        logger.info(f'Lead {lead_id} already in Netlify sequence "{seq_name}" — skipping agent drip')
-        return
+        if len(existing.docs) > 0:
+            seq_name = existing.docs[0].to_dict().get('sequence_name', 'unknown')
+            logger.info(f'Lead {lead_id} already in Netlify sequence "{seq_name}" — skipping agent drip')
+            return
+    except Exception as e:
+        logger.warning(f'Migration guard check failed for {lead_id}: {e} — falling back to agent drip')
 
     # Fallback: create agent drip (will be removed once all new leads go through Netlify sequences)
     program_type = lead_data.get('ytt_program_type', '8-week')

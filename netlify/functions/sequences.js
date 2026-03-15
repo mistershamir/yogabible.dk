@@ -569,8 +569,10 @@ async function handleProcess() {
         }
 
         // Frequency throttle: check if lead received an email in the last 48 hours
+        // Uses Date object (not ISO string) to match Firestore Timestamp format
+        // used by lead-emails.js, email-service.js, and other senders.
         if (step.channel === 'email' || step.channel === 'both') {
-          var throttleCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+          var throttleCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
           var recentEmailSnap = await db.collection('email_log')
             .where('lead_id', '==', enrollment.lead_id)
             .where('sent_at', '>=', throttleCutoff)
@@ -615,13 +617,14 @@ async function handleProcess() {
               stepHistory.error = emailResult.error;
             }
 
-            // Log to email_log
+            // Log to email_log — use new Date() to match Timestamp format
+            // used by lead-emails.js, email-service.js, etc.
             await db.collection('email_log').add({
               lead_id: enrollment.lead_id,
               to: lead.email,
               subject: substituteVars(step.email_subject, vars),
               template_id: 'sequence:' + seqId + ':step' + enrollment.current_step,
-              sent_at: now,
+              sent_at: new Date(),
               status: emailResult.success ? 'sent' : 'failed',
               source: 'sequence',
               sequence_id: seqId,
@@ -643,12 +646,12 @@ async function handleProcess() {
               stepHistory.sms_error = smsResult.error;
             }
 
-            // Log to sms_log
+            // Log to sms_log — use new Date() for consistency
             await db.collection('sms_log').add({
               lead_id: enrollment.lead_id,
               to: lead.phone,
               message: substituteVars(step.sms_message, vars),
-              sent_at: now,
+              sent_at: new Date(),
               status: smsResult.success ? 'sent' : 'failed',
               source: 'sequence',
               sequence_id: seqId,
