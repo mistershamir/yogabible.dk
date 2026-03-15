@@ -984,30 +984,43 @@ async function getMp4UrlForSession(sessionId, sess) {
       var tempAsset = await muxRequest('GET', '/video/v1/assets/' + tempAssetId);
       var tempRend = tempAsset.data && tempAsset.data.static_renditions;
 
+      var tempStatus = tempAsset.data && tempAsset.data.status;
+
       if (tempRend && tempRend.status === 'ready') {
         console.log('[ai-backfill] Temp asset MP4 is ready!');
         return { url: 'https://stream.mux.com/' + tempPlaybackId + '/low.mp4', action: 'mp4_ready' };
       }
-      if (tempRend && tempRend.status === 'errored') {
-        console.log('[ai-backfill] Temp asset MP4 errored — will create a new one');
+
+      // Asset or renditions errored — delete and recreate
+      if (tempStatus === 'errored' || (tempRend && tempRend.status === 'errored')) {
+        console.log('[ai-backfill] Temp asset errored (asset:', tempStatus, ', renditions:', tempRend ? tempRend.status : 'none', ') — deleting and creating new');
+        try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
+          console.log('[ai-backfill] Could not delete errored temp asset (non-fatal):', delErr.message);
+        }
         // Fall through to create new
       } else {
         // Check if temp asset is stale — if created > 30 min ago and still not ready, delete and recreate
-        var tempCreatedAt = sess.aiTempAssetCreatedAt
-          ? new Date(sess.aiTempAssetCreatedAt).getTime()
-          : (tempAsset.data && tempAsset.data.created_at ? new Date(tempAsset.data.created_at).getTime() : 0);
+        // Mux created_at can be a Unix timestamp (number) or ISO string — handle both
+        var rawCreatedAt = sess.aiTempAssetCreatedAt
+          || (tempAsset.data && tempAsset.data.created_at);
+        var tempCreatedAt = 0;
+        if (rawCreatedAt) {
+          tempCreatedAt = typeof rawCreatedAt === 'number'
+            ? rawCreatedAt * 1000  // Unix seconds → ms
+            : new Date(rawCreatedAt).getTime();
+          if (isNaN(tempCreatedAt)) tempCreatedAt = 0;
+        }
         var tempAgeMs = Date.now() - tempCreatedAt;
         var tempAgeMin = Math.round(tempAgeMs / 60000);
 
-        if (tempCreatedAt && tempAgeMs > 30 * 60 * 1000) {
-          // Stale temp asset — delete and recreate
-          console.log('[ai-backfill] Temp asset is stale (' + tempAgeMin + ' min old) — deleting and recreating');
+        // Treat missing timestamp (0) or stale (>30 min) as needing recreation
+        if (!tempCreatedAt || tempAgeMs > 30 * 60 * 1000) {
+          console.log('[ai-backfill] Temp asset is stale (' + (tempCreatedAt ? tempAgeMin + ' min old' : 'no timestamp') + ') — deleting and recreating');
           try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
             console.log('[ai-backfill] Could not delete stale temp asset (non-fatal):', delErr.message);
           }
           // Fall through to create new
         } else {
-          var tempStatus = tempAsset.data && tempAsset.data.status;
           var rendStatus = tempRend ? tempRend.status : 'none';
           console.log('[ai-backfill] Temp asset still processing (' + tempAgeMin + ' min old) — renditions:', rendStatus, 'asset:', tempStatus);
           await updateDoc(COLLECTION, sessionId, { aiStatus: 'mp4_pending', aiError: null });
