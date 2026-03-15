@@ -123,8 +123,8 @@ async function handleCreateStream(event, user) {
     },
     // Low-latency mode for better interactivity
     latency_mode: 'low',
-    // Reconnect window allows teacher to briefly disconnect without ending the stream
-    reconnect_window: 60,
+    // Reconnect window: 5 min to handle ATEM encoder hiccups without killing the stream
+    reconnect_window: 300,
     // Max continuous duration: 6 hours (for long workshops)
     max_continuous_duration: 21600
   });

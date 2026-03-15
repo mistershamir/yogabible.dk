@@ -241,7 +241,9 @@ async function handleStreamActive(streamData) {
    2. STREAM WENT IDLE — mark session as ended
    ══════════════════════════════════════════════════════════════ */
 // Streams shorter than this are treated as test runs — session resets to 'scheduled'
-var TEST_STREAM_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+// Keep low (30s) to only catch accidental pushes — real sessions with ATEM hiccups
+// are protected by the 5-min reconnect_window on the Mux stream itself
+var TEST_STREAM_THRESHOLD_MS = 30 * 1000; // 30 seconds
 
 async function handleStreamIdle(streamData) {
   if (!streamData || !streamData.id) return;
