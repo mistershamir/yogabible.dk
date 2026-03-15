@@ -46,6 +46,7 @@
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="billing">{{ t.tab_billing }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="email-lists">{{ t.tab_campaigns or "Campaigns" }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="knowledge">{{ t.tab_knowledge or "Knowledge" }}</button>
+        <button class="yb-profile__tab" type="button" data-yb-admin-tab="ads">{{ t.tab_ads or "Ads" }}</button>
       </div>
 
       {# ═══════════════════════════════════
@@ -659,6 +660,13 @@
         {% include "partials/admin-knowledge-panel.njk" %}
       </div>{# end knowledge tab panel #}
 
+      {# ═══════════════════════════════════
+         TAB: Meta Ads Manager
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="ads">
+        {% include "partials/admin-ads-panel.njk" %}
+      </div>{# end ads tab panel #}
+
     </div>{# end yb-admin-panel #}
 
     {# ═══════════════════════════════════
@@ -759,3 +767,4 @@
 <script src="/js/sequences-admin.js"></script>
 <script src="/js/nurture-admin.js"></script>
 <script src="/js/knowledge-admin.js"></script>
+<script src="/js/ads-admin.js"></script>
