@@ -997,6 +997,8 @@ async function getMp4UrlForSession(sessionId, sess) {
         try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
           console.log('[ai-backfill] Could not delete errored temp asset (non-fatal):', delErr.message);
         }
+        // Clear Firestore references before creating new
+        await updateDoc(COLLECTION, sessionId, { aiTempAssetId: null, aiTempPlaybackId: null, aiTempAssetCreatedAt: null });
         // Fall through to create new
       } else {
         // Check if temp asset is stale — if created > 30 min ago and still not ready, delete and recreate
@@ -1019,6 +1021,8 @@ async function getMp4UrlForSession(sessionId, sess) {
           try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
             console.log('[ai-backfill] Could not delete stale temp asset (non-fatal):', delErr.message);
           }
+          // Clear Firestore references before creating new
+          await updateDoc(COLLECTION, sessionId, { aiTempAssetId: null, aiTempPlaybackId: null, aiTempAssetCreatedAt: null });
           // Fall through to create new
         } else {
           var rendStatus = tempRend ? tempRend.status : 'none';
@@ -1034,7 +1038,13 @@ async function getMp4UrlForSession(sessionId, sess) {
         }
       }
     } catch (e) {
-      console.log('[ai-backfill] Error checking temp asset:', e.message, '— creating new one');
+      console.log('[ai-backfill] Error checking temp asset:', e.message, '— clearing from Firestore and creating new one');
+      // Clear stale temp asset reference so we don't keep retrying the same dead ID
+      await updateDoc(COLLECTION, sessionId, {
+        aiTempAssetId: null,
+        aiTempPlaybackId: null,
+        aiTempAssetCreatedAt: null
+      });
     }
   }
 
