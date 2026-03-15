@@ -989,10 +989,25 @@ async function getMp4UrlForSession(sessionId, sess) {
         console.log('[ai-backfill] Temp asset MP4 errored — will create a new one');
         // Fall through to create new
       } else {
-        var tempStatus = tempAsset.data && tempAsset.data.status;
-        console.log('[ai-backfill] Temp asset still processing — renditions:', tempRend ? tempRend.status : 'none', 'asset:', tempStatus);
-        await updateDoc(COLLECTION, sessionId, { aiStatus: 'mp4_pending', aiError: null });
-        return null; // Not ready yet
+        // Check if temp asset is stale — if created > 30 min ago and still not ready, delete and recreate
+        var tempCreatedAt = sess.aiTempAssetCreatedAt
+          ? new Date(sess.aiTempAssetCreatedAt).getTime()
+          : (tempAsset.data && tempAsset.data.created_at ? new Date(tempAsset.data.created_at).getTime() : 0);
+        var tempAgeMs = Date.now() - tempCreatedAt;
+
+        if (tempCreatedAt && tempAgeMs > 30 * 60 * 1000) {
+          // Stale temp asset — delete and recreate
+          console.log('[ai-backfill] Temp asset is stale (' + Math.round(tempAgeMs / 60000) + ' min old) — deleting and recreating');
+          try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
+            console.log('[ai-backfill] Could not delete stale temp asset (non-fatal):', delErr.message);
+          }
+          // Fall through to create new
+        } else {
+          var tempStatus = tempAsset.data && tempAsset.data.status;
+          console.log('[ai-backfill] Temp asset still processing (' + Math.round(tempAgeMs / 60000) + ' min old) — renditions:', tempRend ? tempRend.status : 'none', 'asset:', tempStatus);
+          await updateDoc(COLLECTION, sessionId, { aiStatus: 'mp4_pending', aiError: null });
+          return null; // Not ready yet — genuinely still processing
+        }
       }
     } catch (e) {
       console.log('[ai-backfill] Error checking temp asset:', e.message, '— creating new one');
@@ -1027,10 +1042,11 @@ async function getMp4UrlForSession(sessionId, sess) {
   var newPbIds = newAsset.data.playback_ids || [];
   var newPlaybackId = newPbIds.length > 0 ? newPbIds[0].id : playbackId;
 
-  // Save temp asset IDs so next call can pick up
+  // Save temp asset IDs so next call can pick up (+ timestamp for stale detection)
   await updateDoc(COLLECTION, sessionId, {
     aiTempAssetId: newAssetId,
     aiTempPlaybackId: newPlaybackId,
+    aiTempAssetCreatedAt: new Date().toISOString(),
     aiStatus: 'mp4_pending',
     aiError: null
   });
