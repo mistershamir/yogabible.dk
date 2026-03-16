@@ -619,18 +619,44 @@ async function handleProcess() {
           '{{unsubscribe_url}}': buildUnsubscribeUrl(lead.email || '')
         };
 
-        var stepHistory = { step: enrollment.current_step, sent_at: now, channel: step.channel, result: 'sent' };
+        var stepHistory = { step: enrollment.current_step, sent_at: now, channel: step.channel, result: 'skipped' };
+        var emailSent = false;
+        var smsSent = false;
+
+        // Check if step has sendable content — don't advance past empty steps
+        var wantsEmail = (step.channel === 'email' || step.channel === 'both');
+        var wantsSms = (step.channel === 'sms' || step.channel === 'both');
+        var hasEmailContent = !!(step.email_subject && step.email_body);
+        var hasSmsContent = !!step.sms_message;
+
+        if ((wantsEmail && !hasEmailContent) && (wantsSms && !hasSmsContent)) {
+          // Step has no sendable content at all — hold here, don't advance
+          console.log('[sequences] Step ' + enrollment.current_step + ' for enrollment ' + enrollId + ' has no content — holding');
+          continue;
+        }
+        if (wantsEmail && !wantsSms && !hasEmailContent) {
+          // Email-only step with no email content — hold
+          console.log('[sequences] Step ' + enrollment.current_step + ' for enrollment ' + enrollId + ' is email-only but email_body is empty — holding');
+          continue;
+        }
+        if (wantsSms && !wantsEmail && !hasSmsContent) {
+          // SMS-only step with no SMS content — hold
+          console.log('[sequences] Step ' + enrollment.current_step + ' for enrollment ' + enrollId + ' is sms-only but sms_message is empty — holding');
+          continue;
+        }
 
         // Send email
-        if (step.channel === 'email' || step.channel === 'both') {
-          if (lead.email && step.email_subject && step.email_body) {
+        if (wantsEmail) {
+          if (lead.email && hasEmailContent) {
             var emailResult = await sendSequenceEmail(
               lead.email,
               substituteVars(step.email_subject, vars),
               substituteVars(step.email_body, vars)
             );
 
-            if (!emailResult.success) {
+            if (emailResult.success) {
+              emailSent = true;
+            } else {
               stepHistory.result = 'email_failed';
               stepHistory.error = emailResult.error;
             }
@@ -652,15 +678,17 @@ async function handleProcess() {
         }
 
         // Send SMS
-        if (step.channel === 'sms' || step.channel === 'both') {
-          if (lead.phone && step.sms_message) {
+        if (wantsSms) {
+          if (lead.phone && hasSmsContent) {
             var smsResult = await sendSequenceSMS(
               lead.phone,
               substituteVars(step.sms_message, vars)
             );
 
-            if (!smsResult.success) {
-              stepHistory.result = step.channel === 'both' && stepHistory.result === 'sent' ? 'sms_failed' : 'failed';
+            if (smsResult.success) {
+              smsSent = true;
+            } else {
+              stepHistory.result = wantsEmail && emailSent ? 'sms_failed' : 'failed';
               stepHistory.sms_error = smsResult.error;
             }
 
@@ -676,6 +704,11 @@ async function handleProcess() {
               created_at: serverTimestamp()
             });
           }
+        }
+
+        // Set accurate step result
+        if (emailSent || smsSent) {
+          stepHistory.result = 'sent';
         }
 
         // Advance enrollment
