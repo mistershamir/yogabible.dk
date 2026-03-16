@@ -485,6 +485,45 @@
             <option value="other">Other</option>
           </select>
         </div>
+
+        {# Inline CSV upload — shown when source = "csv" #}
+        <div id="yb-el-inline-csv" class="yb-admin__field" hidden>
+          <label>{{ t.el_csv_file or "CSV File" }}</label>
+          <div class="yb-el__drop-zone yb-el__drop-zone--inline" id="yb-el-inline-drop">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p>{{ t.el_drop_csv or "Drop CSV file here or click to browse" }}</p>
+            <input type="file" id="yb-el-inline-file" accept=".csv,.txt" hidden>
+          </div>
+          <div id="yb-el-inline-preview" hidden>
+            <div class="yb-el__inline-file-info" id="yb-el-inline-file-info"></div>
+            <div class="yb-admin__table-wrap" style="max-height:180px;overflow-y:auto;">
+              <table class="yb-admin__table" id="yb-el-inline-table">
+                <thead><tr id="yb-el-inline-head"></tr></thead>
+                <tbody id="yb-el-inline-body"></tbody>
+              </table>
+            </div>
+            <div class="yb-admin__form-row" style="margin-top:8px;">
+              <div class="yb-admin__field">
+                <label>{{ t.el_col_email or "Email" }} *</label>
+                <select id="yb-el-inline-map-email" class="yb-admin__select"></select>
+              </div>
+              <div class="yb-admin__field">
+                <label>{{ t.el_col_first_name or "First Name" }}</label>
+                <select id="yb-el-inline-map-first" class="yb-admin__select"></select>
+              </div>
+              <div class="yb-admin__field">
+                <label>{{ t.el_col_last_name or "Last Name" }}</label>
+                <select id="yb-el-inline-map-last" class="yb-admin__select"></select>
+              </div>
+            </div>
+          </div>
+          <div id="yb-el-inline-progress" hidden>
+            <div class="yb-el__progress-bar">
+              <div class="yb-el__progress-fill" id="yb-el-inline-progress-fill"></div>
+            </div>
+            <p id="yb-el-inline-progress-text" style="text-align:center;color:#6F6A66;margin-top:6px;font-size:13px;"></p>
+          </div>
+        </div>
       </form>
     </div>
     <div class="yb-lead__modal-footer">
