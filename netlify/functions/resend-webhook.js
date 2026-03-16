@@ -211,13 +211,16 @@ exports.handler = async function (event) {
       }
 
       // 3. Flag email_list_contacts with this email
+      //    Complaints → 'unsubscribed' (user doesn't want emails)
+      //    Bounces    → 'bounced' (email address is invalid)
       var contactsSnap = await db.collection('email_list_contacts')
         .where('email', '==', email)
         .get();
 
+      var contactStatus = bounceType === 'complaint' ? 'unsubscribed' : 'bounced';
       for (var k = 0; k < contactsSnap.docs.length; k++) {
         await contactsSnap.docs[k].ref.update({
-          status: 'bounced',
+          status: contactStatus,
           bounce_type: bounceType,
           last_bounce_at: now
         });
