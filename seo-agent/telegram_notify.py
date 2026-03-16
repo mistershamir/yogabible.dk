@@ -114,6 +114,23 @@ def send_report(report):
             lines.append(f'  GSC Clicks (28d): {metrics["gsc_clicks_28d"]}')
             lines.append(f'  GSC Impressions (28d): {metrics["gsc_impressions_28d"]}')
 
+        # Indexing Coverage
+        if 'indexed_pages' in metrics:
+            idx = metrics['indexed_pages']
+            not_idx = metrics['not_indexed_pages']
+            pct = metrics.get('index_coverage_pct', 0)
+            emoji = '🟢' if pct == 100 else '🟡' if pct >= 80 else '🔴'
+            lines.append(f'  {emoji} Indexed: {idx}/{idx + not_idx} pages ({pct}%)')
+
+        # Sitemaps
+        if 'sitemaps_submitted' in metrics:
+            lines.append(f'  Sitemaps submitted: {metrics["sitemaps_submitted"]}')
+        if 'sitemap_urls_submitted' in metrics:
+            sub = metrics['sitemap_urls_submitted']
+            idxd = metrics.get('sitemap_urls_indexed', 0)
+            ratio = metrics.get('sitemap_index_ratio', 0)
+            lines.append(f'  Sitemap URLs: {idxd}/{sub} indexed ({ratio}%)')
+
         lines.append('')
 
     # Rankings

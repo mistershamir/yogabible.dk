@@ -246,21 +246,12 @@ def check_search_console():
     """
     result = {'errors': [], 'warnings': [], 'metrics': {}, 'rankings': {}}
 
-    sa_json = os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON', '')
-    if not sa_json:
-        result['warnings'].append('GOOGLE_SERVICE_ACCOUNT_JSON not set — skipping Search Console')
+    service, err = _get_gsc_service(scope='readonly')
+    if service is None:
+        result['warnings'].append(f'Search Console skipped — {err}')
         return result
 
     try:
-        from google.oauth2 import service_account
-        from googleapiclient.discovery import build
-
-        creds = service_account.Credentials.from_service_account_file(
-            sa_json,
-            scopes=['https://www.googleapis.com/auth/webmasters.readonly']
-        )
-        service = build('searchconsole', 'v1', credentials=creds)
-
         # Last 28 days performance
         from datetime import datetime, timedelta
         end_date = datetime.now().strftime('%Y-%m-%d')
@@ -298,8 +289,6 @@ def check_search_console():
         if total_clicks == 0:
             result['warnings'].append('Zero clicks in last 28 days')
 
-    except ImportError:
-        result['warnings'].append('google-api-python-client not installed — skipping Search Console')
     except Exception as e:
         result['warnings'].append(f'Search Console error: {str(e)[:100]}')
 
@@ -330,5 +319,223 @@ def check_keyword_rankings():
 
     else:
         result['errors'].append(f'Sitemap returned HTTP {status}')
+
+    return result
+
+
+def _get_gsc_service(scope='readonly'):
+    """
+    Build a Google Search Console API service.
+    scope: 'readonly' for search analytics/sitemaps, 'readwrite' for URL inspection.
+    Returns (service, error_message). service is None if auth fails.
+    """
+    sa_json = os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON', '')
+    if not sa_json:
+        return None, 'GOOGLE_SERVICE_ACCOUNT_JSON not set'
+
+    try:
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+
+        scopes = {
+            'readonly': ['https://www.googleapis.com/auth/webmasters.readonly'],
+            'readwrite': ['https://www.googleapis.com/auth/webmasters'],
+        }
+
+        creds = service_account.Credentials.from_service_account_file(
+            sa_json,
+            scopes=scopes.get(scope, scopes['readonly'])
+        )
+        service = build('searchconsole', 'v1', credentials=creds)
+        return service, None
+
+    except ImportError:
+        return None, 'google-api-python-client not installed'
+    except Exception as e:
+        return None, f'GSC auth error: {str(e)[:100]}'
+
+
+def check_indexing_coverage():
+    """
+    Check indexing status for all key pages via the URL Inspection API.
+    Catches issues like: not indexed, redirect, noindex, crawl errors, canonical mismatches.
+    Requires GOOGLE_SERVICE_ACCOUNT_JSON with webmasters (read-write) scope.
+    """
+    result = {'errors': [], 'warnings': [], 'metrics': {}}
+
+    service, err = _get_gsc_service(scope='readwrite')
+    if service is None:
+        result['warnings'].append(f'Indexing check skipped — {err}')
+        return result
+
+    # Only inspect HTML pages (skip sitemap.xml, robots.txt)
+    inspectable_pages = [p for p in KEY_PAGES if not p.endswith('.xml') and not p.endswith('.txt')]
+
+    indexed = 0
+    not_indexed = 0
+    issues = []
+
+    from urllib.parse import urljoin
+
+    for path in inspectable_pages:
+        url = urljoin(SITE_URL, path)
+        try:
+            response = service.urlInspection().index().inspect(
+                body={
+                    'inspectionUrl': url,
+                    'siteUrl': SITE_URL,
+                }
+            ).execute()
+
+            inspection = response.get('inspectionResult', {})
+            index_status = inspection.get('indexStatusResult', {})
+            verdict = index_status.get('verdict', 'UNKNOWN')
+            coverage_state = index_status.get('coverageState', '')
+            crawled_as = index_status.get('crawledAs', '')
+            robots_txt = index_status.get('robotsTxtState', '')
+            indexing_state = index_status.get('indexingState', '')
+            last_crawl = index_status.get('lastCrawlTime', '')
+            page_fetch = index_status.get('pageFetchState', '')
+            referring_urls = index_status.get('referringUrls', [])
+
+            # Check mobile usability from inspection result
+            mobile = inspection.get('mobileUsabilityResult', {})
+            mobile_verdict = mobile.get('verdict', 'UNKNOWN')
+
+            if verdict == 'PASS':
+                indexed += 1
+            else:
+                not_indexed += 1
+                reason = coverage_state or verdict
+                issues.append({
+                    'page': path,
+                    'reason': reason,
+                    'last_crawl': last_crawl[:10] if last_crawl else 'never',
+                    'page_fetch': page_fetch,
+                })
+
+            # Warn on mobile usability issues
+            if mobile_verdict not in ('PASS', 'VERDICT_UNSPECIFIED', 'UNKNOWN'):
+                mobile_issues = mobile.get('issues', [])
+                issue_types = [i.get('issueType', 'unknown') for i in mobile_issues]
+                result['warnings'].append(
+                    f'{path} — mobile usability: {", ".join(issue_types)}'
+                )
+
+            # Warn on canonical mismatch
+            canonical_url = index_status.get('googleCanonical', '')
+            user_canonical = index_status.get('userCanonical', '')
+            if canonical_url and user_canonical and canonical_url != user_canonical:
+                result['warnings'].append(
+                    f'{path} — canonical mismatch: Google chose {canonical_url} over {user_canonical}'
+                )
+
+            # Warn if robots.txt is blocking
+            if robots_txt == 'DISALLOWED':
+                result['errors'].append(f'{path} — blocked by robots.txt')
+
+        except Exception as e:
+            err_str = str(e)
+            # Rate limiting — back off gracefully
+            if '429' in err_str or 'quota' in err_str.lower():
+                result['warnings'].append(f'URL Inspection API rate limited after {indexed + not_indexed} pages')
+                break
+            result['warnings'].append(f'{path} — inspection failed: {err_str[:80]}')
+
+    result['metrics']['indexed_pages'] = indexed
+    result['metrics']['not_indexed_pages'] = not_indexed
+
+    # Report not-indexed pages as errors
+    for issue in issues:
+        result['errors'].append(
+            f'{issue["page"]} — NOT INDEXED: {issue["reason"]} '
+            f'(last crawl: {issue["last_crawl"]}, fetch: {issue["page_fetch"]})'
+        )
+
+    if indexed + not_indexed > 0:
+        result['metrics']['index_coverage_pct'] = round(
+            indexed / (indexed + not_indexed) * 100, 1
+        )
+
+    return result
+
+
+def check_sitemaps_status():
+    """
+    Check sitemap submission status via Search Console Sitemaps API.
+    Verifies sitemaps are submitted, processed without errors, and up to date.
+    """
+    result = {'errors': [], 'warnings': [], 'metrics': {}}
+
+    service, err = _get_gsc_service(scope='readonly')
+    if service is None:
+        result['warnings'].append(f'Sitemaps status check skipped — {err}')
+        return result
+
+    try:
+        response = service.sitemaps().list(siteUrl=SITE_URL).execute()
+        sitemaps = response.get('sitemap', [])
+
+        if not sitemaps:
+            result['errors'].append('No sitemaps submitted to Search Console')
+            return result
+
+        result['metrics']['sitemaps_submitted'] = len(sitemaps)
+
+        total_submitted = 0
+        total_indexed = 0
+
+        for sm in sitemaps:
+            path = sm.get('path', 'unknown')
+            sm_type = sm.get('type', 'unknown')
+            last_submitted = sm.get('lastSubmitted', '')
+            last_downloaded = sm.get('lastDownloaded', '')
+            is_pending = sm.get('isPending', False)
+            warnings_count = sm.get('warnings', 0)
+            errors_count = sm.get('errors', 0)
+
+            # Count URLs
+            contents = sm.get('contents', [])
+            for content in contents:
+                submitted = content.get('submitted', 0)
+                indexed = content.get('indexed', 0)
+                total_submitted += int(submitted) if submitted else 0
+                total_indexed += int(indexed) if indexed else 0
+
+            # Report issues
+            if errors_count and int(errors_count) > 0:
+                result['errors'].append(f'Sitemap {path} has {errors_count} error(s)')
+
+            if warnings_count and int(warnings_count) > 0:
+                result['warnings'].append(f'Sitemap {path} has {warnings_count} warning(s)')
+
+            if is_pending:
+                result['warnings'].append(f'Sitemap {path} is pending processing')
+
+            # Warn if sitemap hasn't been downloaded recently (>14 days)
+            if last_downloaded:
+                from datetime import datetime, timedelta
+                try:
+                    dl_date = datetime.fromisoformat(last_downloaded.replace('Z', '+00:00'))
+                    if (datetime.now(dl_date.tzinfo) - dl_date).days > 14:
+                        result['warnings'].append(
+                            f'Sitemap {path} last downloaded {dl_date.strftime("%Y-%m-%d")} (>14 days ago)'
+                        )
+                except (ValueError, TypeError):
+                    pass
+
+        result['metrics']['sitemap_urls_submitted'] = total_submitted
+        result['metrics']['sitemap_urls_indexed'] = total_indexed
+
+        if total_submitted > 0 and total_indexed > 0:
+            index_ratio = round(total_indexed / total_submitted * 100, 1)
+            result['metrics']['sitemap_index_ratio'] = index_ratio
+            if index_ratio < 80:
+                result['warnings'].append(
+                    f'Only {index_ratio}% of sitemap URLs are indexed ({total_indexed}/{total_submitted})'
+                )
+
+    except Exception as e:
+        result['warnings'].append(f'Sitemaps status error: {str(e)[:100]}')
 
     return result
