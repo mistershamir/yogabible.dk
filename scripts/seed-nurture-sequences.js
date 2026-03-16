@@ -94,7 +94,7 @@ const SEQUENCES = [
         delay_minutes: 2880, // +2 days (day 12)
         email_subject: '',
         email_body: '',
-        sms_message: 'Hi {{first_name}}, har du fundet det format der passer dig? Husk vores Forberedelsesfase (3.750 kr) er helt risikofri — fuld refusion, ingen spørgsmål. /Shamir',
+        sms_message: 'Hi {{first_name}}, har du fundet det format der passer dig? Husk vores Forberedelsesfase (3.750 kr) — beløbet trækkes fra den fulde pris. /Shamir',
         condition: null
       }
     ]
@@ -164,7 +164,7 @@ const SEQUENCES = [
         delay_minutes: 10080, // +7 days
         email_subject: '{{first_name}}, spots are filling for July',
         email_body: '', // Placeholder — Urgency + Prep Phase CTA
-        sms_message: 'Hi {{first_name}}, just a heads up — July spots are filling up. The Preparation Phase (3,750 DKK, fully refundable) secures your place. Any questions? /Shamir, Yoga Bible',
+        sms_message: 'Hi {{first_name}}, just a heads up — July spots are filling up. The Preparation Phase (3,750 DKK) secures your place — amount is deducted from the full price. Any questions? /Shamir, Yoga Bible',
         condition: null
       }
     ]
