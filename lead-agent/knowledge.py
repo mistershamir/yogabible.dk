@@ -185,10 +185,11 @@ REFERENCE: Email templates (what leads actually receive)
 
 ## Active Sequences
 - YTT Onboarding (auto-enrolled on new YTT lead): 5 steps over 14 days — welcome (sent by Netlify) → why become a teacher → SMS check-in → what happens in training → format self-selection + Prep Phase
-- April 4W Intensive Conversion: 2 steps — urgency + last chance (manual enrollment)
-- July Vinyasa Plus International: 4 steps — Copenhagen lifestyle → Vinyasa Plus explainer → accommodation logistics → urgency (manual enrollment)
-- 8W Semi-Intensive DK: 3 steps — same cert half time → SMS nudge → Prep Phase (manual enrollment)
-- 18W Flexible Aug-Dec: 3 steps — sold out social proof → how it works → Prep Phase (manual enrollment)
+- April 4W Intensive Conversion (auto-enrolled for ytt_program_type=4-week): 2 steps — urgency + last chance
+- July Vinyasa Plus International (auto-enrolled for ytt_program_type=4-week-jul): 4 steps — Copenhagen lifestyle → Vinyasa Plus explainer → accommodation logistics → urgency
+- 8W Semi-Intensive DK (auto-enrolled for ytt_program_type=8-week): 3 steps — same cert half time → SMS nudge → Prep Phase
+- 18W Flexible Aug-Dec (auto-enrolled for ytt_program_type=18-week-aug): 3 steps — sold out social proof → how it works → Prep Phase
+- NOTE: A lead can be in BOTH YTT Onboarding AND a program-specific sequence simultaneously. 48-hour throttling prevents message overload.
 
 ## System Architecture
 - All automated sends go through the Netlify sequence engine (sequences.js)
