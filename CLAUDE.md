@@ -444,6 +444,95 @@ Each tab has a partial in `src/_includes/partials/admin-{name}-panel.njk` and a 
 
 ---
 
+## Meta Ads CLI (for Claude Code sessions)
+
+**IMPORTANT:** When asked about Meta/Facebook ad campaigns, performance, or ad management — use this CLI tool. It gives you full read/write access to the Meta Marketing API.
+
+### Setup
+
+The CLI reads `META_ACCESS_TOKEN` from `ads-agent/.env` (already configured). No extra setup needed.
+
+### Usage
+
+```bash
+python3 scripts/meta-ads-cli.py <command> [args...]
+```
+
+### Available Commands
+
+| Command | Description |
+|---------|-------------|
+| **Read Operations** | |
+| `accounts` | List ad accounts (Yoga Bible + Hot Yoga CPH) |
+| `campaigns [brand]` | List campaigns (`yb` or `hyc`, default: yb) |
+| `campaigns yb --status=ACTIVE` | Filter by status (ACTIVE, PAUSED, ARCHIVED) |
+| `insights <campaign_id> [days]` | Campaign performance (spend, leads, CTR, CPL) |
+| `account-insights [brand] [days]` | Account-level summary |
+| `adsets <campaign_id>` | List ad sets in a campaign (with targeting summary) |
+| `adset-insights <adset_id> [days]` | Ad set performance |
+| `ads <adset_id>` | List ads in an ad set |
+| `ad-insights <ad_id> [days]` | Individual ad performance |
+| `creative <ad_id>` | Get ad creative details (primary text, headline, CTA, link, image) |
+| `audiences [brand]` | List custom audiences |
+| `leadforms [brand]` | List instant forms (lead gen forms) |
+| `leadform <form_id>` | Get form details + questions |
+| `page-posts [brand]` | List recent page posts |
+| **Modify Operations** | |
+| `pause <id>` | Pause a campaign, ad set, or ad |
+| `resume <id>` | Resume (activate) |
+| `archive <id>` | Archive |
+| `delete <id>` | Delete |
+| `budget <id> <daily_dkk>` | Update daily budget (in DKK) |
+| `lifetime-budget <id> <amount_dkk>` | Update lifetime budget |
+| `duplicate <id>` | Duplicate entity (created as PAUSED) |
+| `update-ad-text <ad_id> <field> <value>` | Update ad text (primary_text, headline, description, link, cta) |
+| **Create Operations** | |
+| `create-campaign <brand> <name> <objective> <daily_budget>` | Create campaign (PAUSED) |
+| `create-adset <campaign_id> <name> <budget> <targeting.json>` | Create ad set from targeting JSON |
+| `create-ad <adset_id> <name> <creative.json>` | Create ad from creative JSON |
+| `create-audience <brand> <name> <description>` | Create custom audience |
+| `create-leadform <brand> <form.json>` | Create instant form from JSON spec |
+
+### Workflow Examples
+
+**Check why a campaign isn't performing:**
+```bash
+python3 scripts/meta-ads-cli.py campaigns yb --status=ACTIVE
+python3 scripts/meta-ads-cli.py insights <campaign_id> 7
+python3 scripts/meta-ads-cli.py adsets <campaign_id>
+python3 scripts/meta-ads-cli.py creative <ad_id>
+```
+
+**Update ad copy:**
+```bash
+python3 scripts/meta-ads-cli.py update-ad-text <ad_id> primary_text "New primary text here..."
+python3 scripts/meta-ads-cli.py update-ad-text <ad_id> headline "New Headline"
+```
+
+**Create a new campaign:**
+```bash
+python3 scripts/meta-ads-cli.py create-campaign yb "YTT April 2026 - Leads" OUTCOME_LEADS 150
+# Then create ad set with targeting JSON file, then create ad with creative JSON file
+```
+
+### Ad Accounts
+
+| Brand | Account ID | Currency |
+|-------|-----------|----------|
+| Yoga Bible (`yb`) | `act_1137462911884203` | DKK |
+| Hot Yoga CPH (`hyc`) | `act_518096093802228` | DKK |
+
+### Notes
+
+- All budgets are in **DKK** (the CLI handles the ×100 conversion for the API)
+- Created entities default to **PAUSED** — activate manually after review
+- `days` parameter: 1, 7, 14, 28, 30, or 90
+- The `creative` command shows primary text, headline, description, CTA, and image URL
+- For create operations that need JSON files, the CLI prints example JSON when run without args
+- **Creatives can't be edited in-place** — `update-ad-text` creates a new creative and swaps it on the ad
+
+---
+
 ## AI Lead Management Agent
 
 The project includes a Python AI agent that manages YTT leads via Telegram. It lives in `lead-agent/` and runs 24/7 on a Mac Mini.
