@@ -182,19 +182,42 @@ exports.handler = async function (event) {
 
     console.log('[ai-process] Sending to Claude for summary + quiz...');
     var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor);
+    var primaryLang = aiResult.lang || 'da';
+    var secondaryLang = primaryLang === 'da' ? 'en' : 'da';
 
-    // ── Step 5: Save results ──
+    // ── Step 5: Translate to the other language ──
+    console.log('[ai-process] Translating summary + quiz from', primaryLang, 'to', secondaryLang + '...');
+    await updateDoc(COLLECTION, sessionId, { aiStatus: 'translating' });
+    var translated = { summary: '', quiz: [] };
+    try {
+      translated = await translateSummaryAndQuiz(aiResult.summary, aiResult.quiz, primaryLang);
+      console.log('[ai-process] Translation complete. Summary length:', (translated.summary || '').length);
+    } catch (err) {
+      console.error('[ai-process] Translation failed (non-fatal):', err.message);
+    }
+
+    // Build bilingual fields
+    var summary_da = primaryLang === 'da' ? aiResult.summary : (translated.summary || '');
+    var summary_en = primaryLang === 'en' ? aiResult.summary : (translated.summary || '');
+    var quiz_da = primaryLang === 'da' ? aiResult.quiz : (translated.quiz || []);
+    var quiz_en = primaryLang === 'en' ? aiResult.quiz : (translated.quiz || []);
+
+    // ── Step 6: Save results ──
     await updateDoc(COLLECTION, sessionId, {
       aiStatus: 'complete',
       aiTranscript: transcript.substring(0, 50000),
       aiSummary: aiResult.summary || '',
-      aiSummaryLang: aiResult.lang || 'da',
+      aiSummaryLang: primaryLang,
+      aiSummary_da: summary_da,
+      aiSummary_en: summary_en,
       aiQuiz: JSON.stringify(aiResult.quiz || []),
+      aiQuiz_da: JSON.stringify(quiz_da),
+      aiQuiz_en: JSON.stringify(quiz_en),
       aiProcessedAt: new Date().toISOString(),
       aiError: null
     });
 
-    console.log('[ai-process] Complete! Session:', sessionId, 'Lang:', aiResult.lang);
+    console.log('[ai-process] Complete! Session:', sessionId, 'Primary:', primaryLang);
 
     return jsonResponse(200, {
       ok: true,
@@ -742,5 +765,45 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang) {
         parsed = { summary: '', quiz: [] };
       }
       return { summary: parsed.summary || '', quiz: parsed.quiz || [], lang: lang };
+    });
+}
+
+// ═══════════════════════════════════════════════════
+// Claude API — translate summary + quiz to other language
+// ═══════════════════════════════════════════════════
+
+function translateSummaryAndQuiz(summary, quiz, sourceLang) {
+  var targetLang = sourceLang === 'da' ? 'en' : 'da';
+
+  var systemPrompt = targetLang === 'da'
+    ? 'Du er en professionel oversætter med ekspertise inden for yoga og yogalæreruddannelse. '
+      + 'Oversæt det følgende indhold til naturligt, flydende dansk. '
+      + 'Bevar al HTML-formatering (h3, p, ul, li, strong tags). '
+      + 'Brug korrekt dansk yogaterminologi. Svar KUN med valid JSON.'
+    : 'You are a professional translator with expertise in yoga and yoga teacher training. '
+      + 'Translate the following content into natural, fluent English. '
+      + 'Preserve all HTML formatting (h3, p, ul, li, strong tags). '
+      + 'Use standard English yoga terminology. Respond ONLY with valid JSON.';
+
+  var userPrompt = 'Translate this AI-generated yoga session summary and quiz from '
+    + (sourceLang === 'da' ? 'Danish' : 'English') + ' to '
+    + (targetLang === 'da' ? 'Danish' : 'English') + '.\n\n'
+    + 'IMPORTANT: Keep the exact same structure. Do NOT translate yoga pose names in Sanskrit (e.g., Adho Mukha Svanasana stays as-is). '
+    + 'Translate all explanatory text, questions, options, and explanations naturally — not literally.\n\n'
+    + 'Input JSON:\n'
+    + JSON.stringify({ summary: summary, quiz: quiz }, null, 2)
+    + '\n\nRespond ONLY with the raw JSON object containing "summary" (HTML string) and "quiz" (array with same structure).';
+
+  return claudeRequest([{ role: 'user', content: userPrompt }], systemPrompt)
+    .then(function (response) {
+      var cleaned = response.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '').trim();
+      var parsed;
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch (e) {
+        console.error('[ai-process] Failed to parse translation response:', response.substring(0, 500));
+        return { summary: '', quiz: [] };
+      }
+      return { summary: parsed.summary || '', quiz: parsed.quiz || [] };
     });
 }
