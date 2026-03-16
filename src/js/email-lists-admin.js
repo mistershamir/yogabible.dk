@@ -111,6 +111,12 @@
       case 'el-add-contact':    openContactModal(); break;
       case 'el-export-csv':     exportCSV(); break;
       case 'el-send-to-list':   sendToList(); break;
+      // MindBody sync
+      case 'el-mb-sync':        openMbSyncModal(); break;
+      case 'el-mb-sync-close':  closeMbSyncModal(); break;
+      // Lead sync
+      case 'el-lead-sync':       openLeadSyncModal(); break;
+      case 'el-lead-sync-close': closeLeadSyncModal(); break;
       // Sub-navigation
       case 'el-subnav':         switchSubnav(action.getAttribute('data-subnav')); break;
       // Campaign reports
@@ -1203,6 +1209,311 @@
     if (listView) listView.hidden = false;
     if (detailView) detailView.hidden = true;
     currentCampaign = null;
+  }
+
+  /* ═══════════════════════════════════════════
+     MINDBODY SYNC
+     ═══════════════════════════════════════════ */
+  var mbSyncState = 'idle'; // idle | previewing | syncing | enriching | done
+
+  function openMbSyncModal() {
+    var modal = $('yb-el-mb-sync-modal');
+    if (!modal) return;
+
+    mbSyncState = 'idle';
+    $('yb-el-mb-step-list').hidden = false;
+    $('yb-el-mb-step-progress').hidden = true;
+    $('yb-el-mb-step-results').hidden = true;
+    $('yb-el-mb-preview').hidden = true;
+    $('yb-el-mb-sync-btn').disabled = true;
+    $('yb-el-mb-sync-btn').textContent = 'Start Sync';
+
+    // Populate list dropdown
+    var select = $('yb-el-mb-list-select');
+    select.innerHTML = '<option value="_new">+ Create new list "MindBody Clients"</option>';
+    lists.forEach(function (l) {
+      var opt = document.createElement('option');
+      opt.value = l.id;
+      opt.textContent = l.name + ' (' + (l.contact_count || 0) + ' contacts)';
+      if (l.source === 'mindbody') opt.textContent += ' [MB synced]';
+      select.appendChild(opt);
+    });
+
+    // Auto-select existing MB list if one exists
+    var mbList = lists.find(function (l) { return l.source === 'mindbody'; });
+    if (mbList) select.value = mbList.id;
+
+    modal.hidden = false;
+
+    // Fetch preview
+    fetchMbPreview();
+
+    // Bind sync button
+    $('yb-el-mb-sync-btn').onclick = function () {
+      if (mbSyncState === 'done') {
+        // Enrich step
+        var doEnrich = $('yb-el-mb-enrich-check') && $('yb-el-mb-enrich-check').checked;
+        if (doEnrich) {
+          startMbEnrich();
+        } else {
+          closeMbSyncModal();
+          loadLists();
+        }
+      } else {
+        startMbSync();
+      }
+    };
+  }
+
+  function closeMbSyncModal() {
+    var modal = $('yb-el-mb-sync-modal');
+    if (modal) modal.hidden = true;
+    mbSyncState = 'idle';
+  }
+
+  function fetchMbPreview() {
+    mbSyncState = 'previewing';
+    $('yb-el-mb-sync-btn').disabled = true;
+    $('yb-el-mb-sync-btn').textContent = 'Loading preview...';
+
+    api('POST', 'mb-client-sync?action=preview').then(function (data) {
+      if (!data.ok) { toast('Preview failed: ' + data.error, true); return; }
+
+      $('yb-el-mb-total').textContent = (data.totalClients || 0).toLocaleString();
+
+      // Check selected list for existing count
+      var select = $('yb-el-mb-list-select');
+      var selectedId = select.value;
+      if (selectedId !== '_new') {
+        var list = lists.find(function (l) { return l.id === selectedId; });
+        $('yb-el-mb-existing').textContent = list ? (list.contact_count || 0).toLocaleString() : '0';
+      } else {
+        $('yb-el-mb-existing').textContent = '0';
+      }
+
+      $('yb-el-mb-preview').hidden = false;
+      $('yb-el-mb-sync-btn').disabled = false;
+      $('yb-el-mb-sync-btn').textContent = 'Start Sync';
+      mbSyncState = 'idle';
+    }).catch(function (err) {
+      toast('Error: ' + err.message, true);
+      $('yb-el-mb-sync-btn').disabled = false;
+      $('yb-el-mb-sync-btn').textContent = 'Start Sync';
+      mbSyncState = 'idle';
+    });
+  }
+
+  function startMbSync() {
+    var selectedId = $('yb-el-mb-list-select').value;
+    mbSyncState = 'syncing';
+
+    $('yb-el-mb-step-list').hidden = true;
+    $('yb-el-mb-step-progress').hidden = false;
+    $('yb-el-mb-sync-btn').disabled = true;
+    $('yb-el-mb-sync-btn').textContent = 'Syncing...';
+    $('yb-el-mb-progress-fill').style.width = '10%';
+    $('yb-el-mb-progress-text').textContent = 'Fetching clients from MindBody...';
+
+    function runSync(listId) {
+      $('yb-el-mb-progress-fill').style.width = '30%';
+      $('yb-el-mb-progress-text').textContent = 'Importing clients into list...';
+
+      api('POST', 'mb-client-sync?action=sync&listId=' + listId).then(function (data) {
+        if (!data.ok) { toast('Sync failed: ' + data.error, true); mbSyncState = 'idle'; return; }
+
+        $('yb-el-mb-progress-fill').style.width = '100%';
+        $('yb-el-mb-progress-text').textContent = 'Sync complete!';
+
+        // Show results
+        setTimeout(function () {
+          $('yb-el-mb-step-progress').hidden = true;
+          $('yb-el-mb-step-results').hidden = false;
+
+          $('yb-el-mb-results-stats').innerHTML =
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (data.totalMbClients || 0) + '</span><span class="yb-admin__stat-label">Total MB Clients</span></div>' +
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value" style="color:#2E7D32;">' + (data.imported || 0) + '</span><span class="yb-admin__stat-label">New Contacts</span></div>' +
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (data.updated || 0) + '</span><span class="yb-admin__stat-label">Updated</span></div>' +
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value" style="color:#6F6A66;">' + (data.skipped || 0) + '</span><span class="yb-admin__stat-label">Skipped</span></div>';
+
+          mbSyncState = 'done';
+          $('yb-el-mb-sync-btn').disabled = false;
+          var doEnrich = $('yb-el-mb-enrich-check') && $('yb-el-mb-enrich-check').checked;
+          $('yb-el-mb-sync-btn').textContent = doEnrich ? 'Enrich Contacts' : 'Done';
+
+          // Store listId for enrichment
+          $('yb-el-mb-sync-btn').setAttribute('data-sync-list-id', listId);
+        }, 500);
+      }).catch(function (err) {
+        toast('Sync error: ' + err.message, true);
+        mbSyncState = 'idle';
+        $('yb-el-mb-sync-btn').disabled = false;
+        $('yb-el-mb-sync-btn').textContent = 'Retry';
+      });
+    }
+
+    if (selectedId === '_new') {
+      // Create new list first
+      $('yb-el-mb-progress-text').textContent = 'Creating list...';
+      api('POST', 'email-lists', {
+        name: 'MindBody Clients',
+        description: 'Auto-synced from MindBody. New clients are added automatically.',
+        tags: ['mindbody', 'auto-sync'],
+        source: 'mindbody'
+      }).then(function (data) {
+        if (!data.ok) { toast('Failed to create list', true); return; }
+        runSync(data.listId || data.id);
+      }).catch(function (err) { toast('Error: ' + err.message, true); });
+    } else {
+      runSync(selectedId);
+    }
+  }
+
+  function startMbEnrich() {
+    var listId = $('yb-el-mb-sync-btn').getAttribute('data-sync-list-id');
+    if (!listId) { closeMbSyncModal(); loadLists(); return; }
+
+    mbSyncState = 'enriching';
+    $('yb-el-mb-step-results').hidden = true;
+    $('yb-el-mb-step-progress').hidden = false;
+    $('yb-el-mb-sync-btn').disabled = true;
+    $('yb-el-mb-sync-btn').textContent = 'Enriching...';
+    $('yb-el-mb-progress-fill').style.width = '10%';
+    $('yb-el-mb-progress-text').textContent = 'Fetching purchase history & memberships from MindBody...';
+
+    api('POST', 'mb-client-sync?action=enrich&listId=' + listId).then(function (data) {
+      $('yb-el-mb-progress-fill').style.width = '100%';
+
+      if (!data.ok) {
+        $('yb-el-mb-progress-text').textContent = 'Enrichment failed: ' + data.error;
+        toast('Enrichment failed', true);
+      } else {
+        $('yb-el-mb-progress-text').textContent = 'Enriched ' + data.enriched + ' contacts with purchase & membership data.' + (data.errors > 0 ? ' (' + data.errors + ' errors)' : '');
+        toast('Enrichment complete: ' + data.enriched + ' contacts updated');
+      }
+
+      $('yb-el-mb-sync-btn').disabled = false;
+      $('yb-el-mb-sync-btn').textContent = 'Done';
+      $('yb-el-mb-sync-btn').onclick = function () { closeMbSyncModal(); loadLists(); };
+    }).catch(function (err) {
+      $('yb-el-mb-progress-text').textContent = 'Error: ' + err.message;
+      toast('Enrichment error', true);
+      $('yb-el-mb-sync-btn').disabled = false;
+      $('yb-el-mb-sync-btn').textContent = 'Close';
+      $('yb-el-mb-sync-btn').onclick = function () { closeMbSyncModal(); loadLists(); };
+    });
+  }
+
+  /* ═══════════════════════════════════════════
+     LEAD SYNC
+     ═══════════════════════════════════════════ */
+  function openLeadSyncModal() {
+    var modal = $('yb-el-lead-sync-modal');
+    if (!modal) return;
+
+    $('yb-el-ls-step-list').hidden = false;
+    $('yb-el-ls-step-progress').hidden = true;
+    $('yb-el-ls-step-results').hidden = true;
+    $('yb-el-ls-preview').hidden = true;
+    $('yb-el-ls-sync-btn').disabled = true;
+    $('yb-el-ls-sync-btn').textContent = 'Start Sync';
+
+    // Populate list dropdown
+    var select = $('yb-el-ls-list-select');
+    select.innerHTML = '<option value="_new">+ Create new list "Leads &amp; Prospects"</option>';
+    lists.forEach(function (l) {
+      var opt = document.createElement('option');
+      opt.value = l.id;
+      opt.textContent = l.name + ' (' + (l.contact_count || 0) + ' contacts)';
+      if (l.lead_auto_sync) opt.textContent += ' [Lead synced]';
+      select.appendChild(opt);
+    });
+
+    // Auto-select existing lead-synced list
+    var leadList = lists.find(function (l) { return l.lead_auto_sync; });
+    if (leadList) select.value = leadList.id;
+
+    modal.hidden = false;
+
+    // Fetch preview
+    $('yb-el-ls-sync-btn').disabled = true;
+    $('yb-el-ls-sync-btn').textContent = 'Loading...';
+
+    api('POST', 'mb-client-sync?action=preview-leads').then(function (data) {
+      if (!data.ok) { toast('Preview failed', true); return; }
+      $('yb-el-ls-total').textContent = (data.totalLeads || 0).toLocaleString();
+      $('yb-el-ls-unconverted').textContent = (data.unconverted || 0).toLocaleString();
+      $('yb-el-ls-converted').textContent = (data.converted || 0).toLocaleString();
+      $('yb-el-ls-preview').hidden = false;
+      $('yb-el-ls-sync-btn').disabled = false;
+      $('yb-el-ls-sync-btn').textContent = 'Start Sync';
+    }).catch(function (err) {
+      toast('Error: ' + err.message, true);
+      $('yb-el-ls-sync-btn').disabled = false;
+      $('yb-el-ls-sync-btn').textContent = 'Start Sync';
+    });
+
+    $('yb-el-ls-sync-btn').onclick = function () { startLeadSync(); };
+  }
+
+  function closeLeadSyncModal() {
+    var modal = $('yb-el-lead-sync-modal');
+    if (modal) modal.hidden = true;
+  }
+
+  function startLeadSync() {
+    var selectedId = $('yb-el-ls-list-select').value;
+
+    $('yb-el-ls-step-list').hidden = true;
+    $('yb-el-ls-step-progress').hidden = false;
+    $('yb-el-ls-sync-btn').disabled = true;
+    $('yb-el-ls-sync-btn').textContent = 'Syncing...';
+    $('yb-el-ls-progress-fill').style.width = '10%';
+    $('yb-el-ls-progress-text').textContent = 'Preparing lead data...';
+
+    function runSync(listId) {
+      $('yb-el-ls-progress-fill').style.width = '40%';
+      $('yb-el-ls-progress-text').textContent = 'Importing leads with pipeline + funnel data...';
+
+      api('POST', 'mb-client-sync?action=sync-leads&listId=' + listId).then(function (data) {
+        if (!data.ok) { toast('Sync failed: ' + data.error, true); return; }
+
+        $('yb-el-ls-progress-fill').style.width = '100%';
+        $('yb-el-ls-progress-text').textContent = 'Done!';
+
+        setTimeout(function () {
+          $('yb-el-ls-step-progress').hidden = true;
+          $('yb-el-ls-step-results').hidden = false;
+
+          $('yb-el-ls-results-stats').innerHTML =
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (data.totalLeads || 0) + '</span><span class="yb-admin__stat-label">Total Leads</span></div>' +
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value" style="color:#2E7D32;">' + (data.imported || 0) + '</span><span class="yb-admin__stat-label">New Contacts</span></div>' +
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (data.updated || 0) + '</span><span class="yb-admin__stat-label">Updated</span></div>';
+
+          $('yb-el-ls-sync-btn').disabled = false;
+          $('yb-el-ls-sync-btn').textContent = 'Done';
+          $('yb-el-ls-sync-btn').onclick = function () { closeLeadSyncModal(); loadLists(); };
+        }, 500);
+      }).catch(function (err) {
+        toast('Sync error: ' + err.message, true);
+        $('yb-el-ls-sync-btn').disabled = false;
+        $('yb-el-ls-sync-btn').textContent = 'Retry';
+      });
+    }
+
+    if (selectedId === '_new') {
+      $('yb-el-ls-progress-text').textContent = 'Creating list...';
+      api('POST', 'email-lists', {
+        name: 'Leads & Prospects',
+        description: 'Auto-synced from lead pipeline. Includes funnel data, program interest, and pipeline status.',
+        tags: ['leads', 'auto-sync', 'prospects'],
+        source: 'leads'
+      }).then(function (data) {
+        if (!data.ok) { toast('Failed to create list', true); return; }
+        runSync(data.listId || data.id);
+      }).catch(function (err) { toast('Error: ' + err.message, true); });
+    } else {
+      runSync(selectedId);
+    }
   }
 
   function resendToCampaignAudience(audience) {

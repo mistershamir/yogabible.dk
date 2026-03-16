@@ -18,6 +18,8 @@
     <h2>{{ t.el_title or "Email Lists" }}</h2>
     <div>
       <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="el-new-list">+ {{ t.el_new_list or "New List" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-mb-sync">&#9741; {{ t.el_mb_sync or "Sync MindBody" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-lead-sync">&#9733; {{ t.el_lead_sync or "Sync Leads" }}</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="el-refresh">&#8635; {{ t.el_refresh or "Refresh" }}</button>
     </div>
   </div>
@@ -481,6 +483,7 @@
             <option value="squarespace">Squarespace</option>
             <option value="mailchimp">Mailchimp</option>
             <option value="csv">CSV Upload</option>
+            <option value="mindbody">MindBody</option>
             <option value="manual">Manual</option>
             <option value="other">Other</option>
           </select>
@@ -566,6 +569,131 @@
     <div class="yb-lead__modal-footer">
       <button type="button" class="yb-btn yb-btn--outline" data-action="el-contact-modal-close">{{ t.cancel or "Cancel" }}</button>
       <button type="button" class="yb-btn yb-btn--primary" id="yb-el-contact-save-btn">{{ t.el_add_contact or "Add Contact" }}</button>
+    </div>
+  </div>
+</div>
+
+{# MindBody Sync modal #}
+<div id="yb-el-mb-sync-modal" class="yb-lead__modal" hidden>
+  <div class="yb-lead__modal-overlay" data-action="el-mb-sync-close"></div>
+  <div class="yb-lead__modal-box" style="max-width:520px;">
+    <div class="yb-lead__modal-header">
+      <h3>{{ t.el_mb_sync_title or "Sync from MindBody" }}</h3>
+      <button type="button" class="yb-lead__modal-close" data-action="el-mb-sync-close">&times;</button>
+    </div>
+    <div class="yb-lead__modal-body">
+      <p style="color:#6F6A66;margin-bottom:12px;">
+        Import all MindBody clients into an email list. New clients will be auto-added as they sign up.
+      </p>
+
+      {# Step 1: Choose list #}
+      <div id="yb-el-mb-step-list">
+        <div class="yb-admin__field">
+          <label>{{ t.el_mb_target_list or "Target List" }}</label>
+          <select id="yb-el-mb-list-select" class="yb-admin__select">
+            <option value="_new">+ Create new list "MindBody Clients"</option>
+          </select>
+        </div>
+        <div id="yb-el-mb-preview" class="yb-el__mb-preview" hidden>
+          <div class="yb-admin__stats-grid" style="margin-bottom:12px;">
+            <div class="yb-admin__stat-card">
+              <span class="yb-admin__stat-value" id="yb-el-mb-total">&mdash;</span>
+              <span class="yb-admin__stat-label">MindBody Clients</span>
+            </div>
+            <div class="yb-admin__stat-card">
+              <span class="yb-admin__stat-value" id="yb-el-mb-existing">&mdash;</span>
+              <span class="yb-admin__stat-label">Already in List</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# Step 2: Progress #}
+      <div id="yb-el-mb-step-progress" hidden>
+        <div class="yb-el__mb-progress-status" id="yb-el-mb-status">
+          <div class="yb-el__progress-bar">
+            <div class="yb-el__progress-fill" id="yb-el-mb-progress-fill"></div>
+          </div>
+          <p id="yb-el-mb-progress-text" style="text-align:center;color:#6F6A66;margin-top:8px;font-size:13px;"></p>
+        </div>
+      </div>
+
+      {# Step 3: Results #}
+      <div id="yb-el-mb-step-results" hidden>
+        <div class="yb-admin__stats-grid" id="yb-el-mb-results-stats"></div>
+        <div style="margin-top:12px;">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#6F6A66;">
+            <input type="checkbox" id="yb-el-mb-enrich-check" checked>
+            Enrich contacts with purchase &amp; membership data (takes longer)
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="yb-lead__modal-footer">
+      <button type="button" class="yb-btn yb-btn--outline" data-action="el-mb-sync-close">{{ t.cancel or "Cancel" }}</button>
+      <button type="button" class="yb-btn yb-btn--primary" id="yb-el-mb-sync-btn" disabled>{{ t.el_mb_start_sync or "Start Sync" }}</button>
+    </div>
+  </div>
+</div>
+
+{# Lead Sync modal #}
+<div id="yb-el-lead-sync-modal" class="yb-lead__modal" hidden>
+  <div class="yb-lead__modal-overlay" data-action="el-lead-sync-close"></div>
+  <div class="yb-lead__modal-box" style="max-width:520px;">
+    <div class="yb-lead__modal-header">
+      <h3>{{ t.el_lead_sync_title or "Sync Leads" }}</h3>
+      <button type="button" class="yb-lead__modal-close" data-action="el-lead-sync-close">&times;</button>
+    </div>
+    <div class="yb-lead__modal-body">
+      <p style="color:#6F6A66;margin-bottom:12px;">
+        Import all leads (form submissions, abandoned checkouts, prospects) into an email list. New leads will be auto-added as they come in.
+      </p>
+
+      {# Step 1: Choose list + preview #}
+      <div id="yb-el-ls-step-list">
+        <div class="yb-admin__field">
+          <label>Target List</label>
+          <select id="yb-el-ls-list-select" class="yb-admin__select">
+            <option value="_new">+ Create new list "Leads &amp; Prospects"</option>
+          </select>
+        </div>
+        <div id="yb-el-ls-preview" class="yb-el__mb-preview" hidden>
+          <div class="yb-admin__stats-grid" style="margin-bottom:12px;">
+            <div class="yb-admin__stat-card">
+              <span class="yb-admin__stat-value" id="yb-el-ls-total">&mdash;</span>
+              <span class="yb-admin__stat-label">Total Leads</span>
+            </div>
+            <div class="yb-admin__stat-card">
+              <span class="yb-admin__stat-value" id="yb-el-ls-unconverted">&mdash;</span>
+              <span class="yb-admin__stat-label">Unconverted</span>
+            </div>
+            <div class="yb-admin__stat-card">
+              <span class="yb-admin__stat-value" id="yb-el-ls-converted">&mdash;</span>
+              <span class="yb-admin__stat-label">Converted</span>
+            </div>
+          </div>
+          <p style="font-size:12px;color:#6F6A66;">Includes: pipeline status, program interest, temperature, source, channel, funnel stage (abandoned checkout detection), and language.</p>
+        </div>
+      </div>
+
+      {# Step 2: Progress #}
+      <div id="yb-el-ls-step-progress" hidden>
+        <div class="yb-el__mb-progress-status">
+          <div class="yb-el__progress-bar">
+            <div class="yb-el__progress-fill" id="yb-el-ls-progress-fill"></div>
+          </div>
+          <p id="yb-el-ls-progress-text" style="text-align:center;color:#6F6A66;margin-top:8px;font-size:13px;"></p>
+        </div>
+      </div>
+
+      {# Step 3: Results #}
+      <div id="yb-el-ls-step-results" hidden>
+        <div class="yb-admin__stats-grid" id="yb-el-ls-results-stats"></div>
+      </div>
+    </div>
+    <div class="yb-lead__modal-footer">
+      <button type="button" class="yb-btn yb-btn--outline" data-action="el-lead-sync-close">{{ t.cancel or "Cancel" }}</button>
+      <button type="button" class="yb-btn yb-btn--primary" id="yb-el-ls-sync-btn" disabled>Start Sync</button>
     </div>
   </div>
 </div>

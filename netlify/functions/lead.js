@@ -79,6 +79,11 @@ exports.handler = async (event) => {
       console.error('[lead] Sequence enrollment error (non-blocking):', err.message);
     });
 
+    // Auto-add to lead-synced email lists (non-blocking)
+    autoAddLeadToLists(db, docRef.id, leadData).catch(err => {
+      console.error('[lead] Auto-add to email list error (non-blocking):', err.message);
+    });
+
     const response = jsonResponse(200, { ok: true, message: 'Request received successfully' });
     return wrapCallback(callback, response);
   } catch (error) {
@@ -130,6 +135,68 @@ function wrapCallback(callback, response) {
     headers: { 'Content-Type': 'application/javascript' },
     body: `${callback}(${response.body});`
   };
+}
+
+/**
+ * Auto-add new lead to email lists with lead_auto_sync enabled
+ */
+async function autoAddLeadToLists(db, leadId, leadData) {
+  const listSnap = await db.collection('email_lists')
+    .where('lead_auto_sync', '==', true)
+    .get();
+
+  if (listSnap.empty) return;
+
+  const email = (leadData.email || '').toLowerCase().trim();
+  if (!email) return;
+
+  const tags = ['lead', 'new-lead'];
+  if (leadData.type) tags.push(leadData.type);
+  if (leadData.temperature) tags.push(leadData.temperature);
+
+  for (const listDoc of listSnap.docs) {
+    // Check for duplicate
+    const existing = await db.collection('email_list_contacts')
+      .where('list_id', '==', listDoc.id)
+      .where('email', '==', email)
+      .limit(1)
+      .get();
+
+    if (!existing.empty) continue;
+
+    await db.collection('email_list_contacts').add({
+      list_id: listDoc.id,
+      email,
+      first_name: leadData.first_name || '',
+      last_name: leadData.last_name || '',
+      lead_id: leadId,
+      lead_data: {
+        status: leadData.status || 'New',
+        type: leadData.type || '',
+        program: leadData.program || leadData.ytt_program_type || '',
+        ytt_program_type: leadData.ytt_program_type || '',
+        temperature: leadData.temperature || '',
+        source: leadData.source || '',
+        channel: leadData.channel || '',
+        phone: leadData.phone || '',
+        lang: leadData.lang || 'da',
+        lead_created_at: new Date().toISOString()
+      },
+      lead_synced_at: new Date().toISOString(),
+      tags,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      engagement: {
+        emails_sent: 0, emails_opened: 0, emails_clicked: 0,
+        last_sent_at: null, last_opened_at: null, last_clicked_at: null
+      }
+    });
+
+    await db.collection('email_lists').doc(listDoc.id).update({
+      contact_count: (listDoc.data().contact_count || 0) + 1,
+      updated_at: new Date().toISOString()
+    });
+  }
 }
 
 function processLead(payload, action) {
