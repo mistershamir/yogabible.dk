@@ -63,19 +63,54 @@
   }
 
   /* ═══════════════════════════════════════
-     TAB SWITCHING
+     TAB SWITCHING (sidebar navigation)
      ═══════════════════════════════════════ */
   function initTabs() {
+    var sidebar = document.getElementById('yb-admin-sidebar');
+    var toggleBtn = document.getElementById('yb-admin-sidebar-toggle');
+
+    // Add overlay element for mobile
+    if (sidebar && !document.getElementById('yb-admin-sidebar-overlay')) {
+      var overlay = document.createElement('div');
+      overlay.className = 'yb-admin__sidebar-overlay';
+      overlay.id = 'yb-admin-sidebar-overlay';
+      sidebar.parentNode.insertBefore(overlay, sidebar);
+      overlay.addEventListener('click', closeSidebar);
+    }
+
+    // Mobile sidebar toggle
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function () {
+        if (sidebar.classList.contains('is-open')) {
+          closeSidebar();
+        } else {
+          sidebar.classList.add('is-open');
+          var ov = document.getElementById('yb-admin-sidebar-overlay');
+          if (ov) ov.classList.add('is-visible');
+        }
+      });
+    }
+
+    function closeSidebar() {
+      if (sidebar) sidebar.classList.remove('is-open');
+      var ov = document.getElementById('yb-admin-sidebar-overlay');
+      if (ov) ov.classList.remove('is-visible');
+    }
+
+    // Tab click handlers
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var tabName = btn.getAttribute('data-yb-admin-tab');
-        // Toggle active on buttons
+        // Toggle active on nav items
         document.querySelectorAll('[data-yb-admin-tab]').forEach(function (b) { b.classList.remove('is-active'); });
         btn.classList.add('is-active');
         // Toggle active on panels
         document.querySelectorAll('[data-yb-admin-panel]').forEach(function (p) { p.classList.remove('is-active'); });
         var panel = document.querySelector('[data-yb-admin-panel="' + tabName + '"]');
         if (panel) panel.classList.add('is-active');
+
+        // Close mobile sidebar after selection
+        closeSidebar();
 
         // Load users on first visit
         if (tabName === 'users' && !usersLoaded) {
@@ -90,6 +125,7 @@
         }
       });
     });
+
   }
 
   /* ═══════════════════════════════════════
@@ -3030,6 +3066,9 @@
       if (gateEl) gateEl.style.display = 'none';
       if (panelEl) panelEl.style.display = '';
       loadCourses();
+      // Analytics is now the default active tab — load on auth
+      loadAnalytics();
+      loadConversionAnalytics();
     });
   }
 
