@@ -229,6 +229,101 @@
   .yb-admin__sidebar-overlay.is-visible {
     display: block;
   }
+  /* Admin header on mobile */
+  .yb-admin__header {
+    padding: 0 16px;
+  }
+  .yb-admin__header h1 { font-size: 1.3rem; }
+  /* View heads: stack on mobile */
+  .yb-admin__view-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .yb-admin__view-head h2 { font-size: 1.1rem; }
+  .yb-admin__view-head-btns {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  /* Analytics conv-split: stack columns */
+  .yb-conv-split {
+    grid-template-columns: 1fr !important;
+  }
+  /* Admin tables: horizontal scroll */
+  .yb-admin__table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Ads campaign table: scroll */
+  .yb-ads__table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .yb-ads__table { min-width: 600px; }
+  /* Ads toolbar: stack on mobile */
+  .yb-ads__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 8px;
+  }
+  /* Forms: full width on mobile */
+  .yb-admin__form-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  /* Admin buttons: touch-friendly size */
+  .yb-admin__btn { padding: 8px 14px; }
+  .yb-admin__btn--sm { padding: 7px 12px; }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .yb-admin__main {
+    padding: 12px;
+    padding-top: 52px;
+  }
+  .yb-admin__header {
+    padding: 0 12px;
+    margin-bottom: 1rem;
+  }
+  .yb-admin__header h1 { font-size: 1.15rem; }
+  .yb-admin__header .yb-profile__subtitle { font-size: 0.82rem; }
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN BUTTONS (.yb-admin__btn)
+   ═══════════════════════════════════════════ */
+.yb-admin__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 14px;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  background: #FFFCF9;
+  font-family: var(--font-primary);
+  font-size: 0.82rem;
+  color: #6F6A66;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.yb-admin__btn:hover {
+  border-color: #f75c03;
+  color: #f75c03;
+  background: rgba(247,92,3,0.04);
+}
+.yb-admin__btn--sm {
+  padding: 5px 12px;
+  font-size: 0.78rem;
+}
+.yb-admin__btn--active,
+.yb-admin__btn--active:hover {
+  background: #f75c03;
+  border-color: #f75c03;
+  color: #fff;
+  font-weight: 600;
 }
 
 /* Section divider */
@@ -471,8 +566,13 @@
   position: fixed; bottom: 2rem; right: 2rem; padding: 0.75rem 1.25rem;
   background: #0F0F0F; color: white; border-radius: 10px; font-size: 0.9rem;
   font-weight: 600; z-index: 1000; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  animation: yb-toast-in 0.3s ease;
 }
 .yb-admin__toast--error { background: #dc2626; }
+@keyframes yb-toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 /* Knowledge Base Admin */
 .yb-kb__brand-tabs {
@@ -4873,12 +4973,12 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   gap: 4px;
   width: 30px;
   height: 30px;
-  border: 1px solid var(--yb-border, #E8E4E0);
+  border: 1px solid #d0ccc8;
   border-radius: 8px;
   background: #fff;
   cursor: pointer;
   transition: all 0.2s;
-  color: var(--yb-muted, #6F6A66);
+  color: #4a4642;
   font-size: 0.75rem;
 }
 .yb-ads__action-btn:hover {
@@ -4886,8 +4986,16 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   color: var(--yb-brand, #f75c03);
   background: rgba(247,92,3,0.05);
 }
-.yb-ads__action-btn--play:hover { border-color: #22c55e; color: #22c55e; background: rgba(34,197,94,0.05); }
-.yb-ads__action-btn--pause:hover { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.05); }
+.yb-ads__action-btn--play { border-color: #86efac; color: #16a34a; background: rgba(34,197,94,0.06); }
+.yb-ads__action-btn--play:hover { border-color: #22c55e; color: #15803d; background: rgba(34,197,94,0.12); }
+.yb-ads__action-btn--pause { border-color: #fde68a; color: #d97706; background: rgba(245,158,11,0.06); }
+.yb-ads__action-btn--pause:hover { border-color: #f59e0b; color: #b45309; background: rgba(245,158,11,0.12); }
+.yb-ads__action-btn--preview { border-color: #c4b5fd; color: #7c3aed; background: rgba(124,58,237,0.04); }
+.yb-ads__action-btn--preview:hover { border-color: #8b5cf6; color: #6d28d9; background: rgba(124,58,237,0.1); }
+.yb-ads__action-btn--budget { border-color: #93c5fd; color: #2563eb; background: rgba(37,99,235,0.04); }
+.yb-ads__action-btn--budget:hover { border-color: #3b82f6; color: #1d4ed8; background: rgba(37,99,235,0.1); }
+.yb-ads__action-btn--duplicate { border-color: #d0ccc8; color: #4a4642; background: rgba(0,0,0,0.02); }
+.yb-ads__action-btn--duplicate:hover { border-color: #f75c03; color: #f75c03; background: rgba(247,92,3,0.05); }
 
 /* ── Breadcrumb ── */
 .yb-ads__breadcrumb {

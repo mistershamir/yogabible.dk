@@ -287,12 +287,17 @@
     var method = id ? 'PUT' : 'POST';
     if (id) data.id = id;
 
+    var saveBtn = e.target.querySelector('[type="submit"]') || e.target.querySelector('.yb-btn--primary');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.classList.add('yb-btn--muted'); }
+
     apiCall(method, null, data).then(function (res) {
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('yb-btn--muted'); }
       if (!res.ok) { toast(res.error || t('error_save'), true); return; }
       toast(t('saved'));
       showCatalogList();
       loadCatalog();
     }).catch(function (err) {
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('yb-btn--muted'); }
       console.error('[catalog-admin] Save error:', err);
       toast(t('error_save'), true);
     });

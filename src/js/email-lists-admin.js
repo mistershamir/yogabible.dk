@@ -382,17 +382,24 @@
       source: $('yb-el-list-source').value
     };
 
+    var saveBtn = $('yb-el-list-save-btn');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.classList.add('yb-btn--muted'); }
+
+    function resetBtn() { if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('yb-btn--muted'); } }
+
     if (id) {
       body.id = id;
       api('PUT', 'email-lists', body).then(function (data) {
+        resetBtn();
         if (data.ok) { toast('List updated'); closeListModal(); loadLists(); }
         else toast('Error: ' + data.error, true);
-      });
+      }).catch(function () { resetBtn(); toast('Network error', true); });
     } else {
       api('POST', 'email-lists', body).then(function (data) {
+        resetBtn();
         if (data.ok) { toast('List created'); closeListModal(); loadLists(); }
         else toast('Error: ' + data.error, true);
-      });
+      }).catch(function () { resetBtn(); toast('Network error', true); });
     }
   }
 
