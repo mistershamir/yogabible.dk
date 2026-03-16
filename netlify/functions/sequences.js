@@ -124,6 +124,24 @@ exports.handler = async (event) => {
 async function getAll(db) {
   const snapshot = await db.collection(SEQUENCES_COL).orderBy('created_at', 'desc').get();
   const sequences = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  // Fetch all enrollments in one query and aggregate stats per sequence
+  const enrollSnap = await db.collection(ENROLLMENTS_COL).get();
+  var statsMap = {};
+  enrollSnap.docs.forEach(d => {
+    var data = d.data();
+    var seqId = data.sequence_id;
+    if (!seqId) return;
+    if (!statsMap[seqId]) statsMap[seqId] = { total: 0, active: 0, paused: 0, completed: 0, exited: 0 };
+    statsMap[seqId].total++;
+    var status = data.status || 'active';
+    if (statsMap[seqId][status] !== undefined) statsMap[seqId][status]++;
+  });
+
+  for (var i = 0; i < sequences.length; i++) {
+    sequences[i].enrollment_stats = statsMap[sequences[i].id] || { total: 0, active: 0, paused: 0, completed: 0, exited: 0 };
+  }
+
   return jsonResponse(200, { ok: true, sequences, count: sequences.length });
 }
 
@@ -342,12 +360,16 @@ async function handleUnenroll(db, event) {
 }
 
 async function handleGetEnrollments(db, params) {
-  if (!params.sequence_id) {
-    return jsonResponse(400, { ok: false, error: 'sequence_id query parameter is required' });
+  // Support ?all=true for fetching enrollments across all sequences (nurture dashboard)
+  if (!params.sequence_id && !params.all) {
+    return jsonResponse(400, { ok: false, error: 'sequence_id query parameter is required (or use all=true)' });
   }
 
-  var query = db.collection(ENROLLMENTS_COL)
-    .where('sequence_id', '==', params.sequence_id);
+  var query = db.collection(ENROLLMENTS_COL);
+
+  if (params.sequence_id) {
+    query = query.where('sequence_id', '==', params.sequence_id);
+  }
 
   if (params.status) {
     query = query.where('status', '==', params.status);
@@ -564,6 +586,29 @@ async function handleProcess() {
           }
         }
 
+        // Frequency throttle: check if lead received an email in the last 48 hours
+        // Uses Date object (not ISO string) to match Firestore Timestamp format
+        // used by lead-emails.js, email-service.js, and other senders.
+        if (step.channel === 'email' || step.channel === 'both') {
+          var throttleCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+          var recentEmailSnap = await db.collection('email_log')
+            .where('lead_id', '==', enrollment.lead_id)
+            .where('sent_at', '>=', throttleCutoff)
+            .where('status', '==', 'sent')
+            .limit(1)
+            .get();
+
+          if (!recentEmailSnap.empty) {
+            // Postpone this step by 24 hours
+            await db.collection(ENROLLMENTS_COL).doc(enrollId).update({
+              next_send_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              updated_at: now
+            });
+            console.log('[sequences] Throttled step for lead ' + enrollment.lead_id + ' — recent email within 48h');
+            continue;
+          }
+        }
+
         // Substitute template variables
         var vars = {
           '{{first_name}}': lead.first_name || '',
@@ -574,29 +619,56 @@ async function handleProcess() {
           '{{unsubscribe_url}}': buildUnsubscribeUrl(lead.email || '')
         };
 
-        var stepHistory = { step: enrollment.current_step, sent_at: now, channel: step.channel, result: 'sent' };
+        var stepHistory = { step: enrollment.current_step, sent_at: now, channel: step.channel, result: 'skipped' };
+        var emailSent = false;
+        var smsSent = false;
+
+        // Check if step has sendable content — don't advance past empty steps
+        var wantsEmail = (step.channel === 'email' || step.channel === 'both');
+        var wantsSms = (step.channel === 'sms' || step.channel === 'both');
+        var hasEmailContent = !!(step.email_subject && step.email_body);
+        var hasSmsContent = !!step.sms_message;
+
+        if ((wantsEmail && !hasEmailContent) && (wantsSms && !hasSmsContent)) {
+          // Step has no sendable content at all — hold here, don't advance
+          console.log('[sequences] Step ' + enrollment.current_step + ' for enrollment ' + enrollId + ' has no content — holding');
+          continue;
+        }
+        if (wantsEmail && !wantsSms && !hasEmailContent) {
+          // Email-only step with no email content — hold
+          console.log('[sequences] Step ' + enrollment.current_step + ' for enrollment ' + enrollId + ' is email-only but email_body is empty — holding');
+          continue;
+        }
+        if (wantsSms && !wantsEmail && !hasSmsContent) {
+          // SMS-only step with no SMS content — hold
+          console.log('[sequences] Step ' + enrollment.current_step + ' for enrollment ' + enrollId + ' is sms-only but sms_message is empty — holding');
+          continue;
+        }
 
         // Send email
-        if (step.channel === 'email' || step.channel === 'both') {
-          if (lead.email && step.email_subject && step.email_body) {
+        if (wantsEmail) {
+          if (lead.email && hasEmailContent) {
             var emailResult = await sendSequenceEmail(
               lead.email,
               substituteVars(step.email_subject, vars),
               substituteVars(step.email_body, vars)
             );
 
-            if (!emailResult.success) {
+            if (emailResult.success) {
+              emailSent = true;
+            } else {
               stepHistory.result = 'email_failed';
               stepHistory.error = emailResult.error;
             }
 
-            // Log to email_log
+            // Log to email_log — use new Date() to match Timestamp format
+            // used by lead-emails.js, email-service.js, etc.
             await db.collection('email_log').add({
               lead_id: enrollment.lead_id,
               to: lead.email,
               subject: substituteVars(step.email_subject, vars),
               template_id: 'sequence:' + seqId + ':step' + enrollment.current_step,
-              sent_at: now,
+              sent_at: new Date(),
               status: emailResult.success ? 'sent' : 'failed',
               source: 'sequence',
               sequence_id: seqId,
@@ -606,30 +678,37 @@ async function handleProcess() {
         }
 
         // Send SMS
-        if (step.channel === 'sms' || step.channel === 'both') {
-          if (lead.phone && step.sms_message) {
+        if (wantsSms) {
+          if (lead.phone && hasSmsContent) {
             var smsResult = await sendSequenceSMS(
               lead.phone,
               substituteVars(step.sms_message, vars)
             );
 
-            if (!smsResult.success) {
-              stepHistory.result = step.channel === 'both' && stepHistory.result === 'sent' ? 'sms_failed' : 'failed';
+            if (smsResult.success) {
+              smsSent = true;
+            } else {
+              stepHistory.result = wantsEmail && emailSent ? 'sms_failed' : 'failed';
               stepHistory.sms_error = smsResult.error;
             }
 
-            // Log to sms_log
+            // Log to sms_log — use new Date() for consistency
             await db.collection('sms_log').add({
               lead_id: enrollment.lead_id,
               to: lead.phone,
               message: substituteVars(step.sms_message, vars),
-              sent_at: now,
+              sent_at: new Date(),
               status: smsResult.success ? 'sent' : 'failed',
               source: 'sequence',
               sequence_id: seqId,
               created_at: serverTimestamp()
             });
           }
+        }
+
+        // Set accurate step result
+        if (emailSent || smsSent) {
+          stepHistory.result = 'sent';
         }
 
         // Advance enrollment
@@ -674,9 +753,16 @@ function calculateNextSendAt(fromISO, step) {
   var date = new Date(fromISO);
   var delayDays = (step && step.delay_days) || 0;
   var delayHours = (step && step.delay_hours) || 0;
+  var delayMinutes = (step && step.delay_minutes) || 0;
 
-  date.setDate(date.getDate() + delayDays);
-  date.setHours(date.getHours() + delayHours);
+  // Support delay_minutes (used by seed scripts & sequence-trigger.js)
+  // as well as delay_days + delay_hours (used by admin UI step builder)
+  if (delayMinutes > 0 && delayDays === 0 && delayHours === 0) {
+    date = new Date(date.getTime() + delayMinutes * 60 * 1000);
+  } else {
+    date.setDate(date.getDate() + delayDays);
+    date.setHours(date.getHours() + delayHours);
+  }
 
   return date.toISOString();
 }

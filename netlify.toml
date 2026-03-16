@@ -1,5 +1,5 @@
 [build]
-  command = "node scripts/write-firebase-key.js && npx @11ty/eleventy && node scripts/purge-css.js && node scripts/minify-js.js && node scripts/critical-css.js && node scripts/seo-validator.js"
+  command = "node scripts/write-firebase-key.js && npx @11ty/eleventy && node scripts/minify-js.js && node scripts/critical-css.js && node scripts/seo-validator.js"
   publish = "_site"
   functions = "netlify/functions"
 
@@ -9,6 +9,10 @@
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["firebase-admin"]
+
+# Scheduled function: process sequences every 30 minutes
+[functions."process-sequences"]
+  schedule = "*/30 * * * *"
 
 # Redirect www to non-www (301)
 [[redirects]]

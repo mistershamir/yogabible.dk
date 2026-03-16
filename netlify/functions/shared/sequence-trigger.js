@@ -41,9 +41,13 @@ function matchesTriggerConditions(conditions, leadData, skipKey) {
         break;
 
       case 'program':
-      case 'ytt_program_type':
-        if ((leadData.ytt_program_type || leadData.program) !== value) return false;
+      case 'ytt_program_type': {
+        // Multi-format leads have comma-separated values (e.g. "4-week,8-week")
+        // Use .includes() so "4-week,8-week" matches condition "4-week"
+        const leadProgram = leadData.ytt_program_type || leadData.program || '';
+        if (!leadProgram.includes(value)) return false;
         break;
+      }
 
       case 'status':
         if (leadData.status !== value) return false;

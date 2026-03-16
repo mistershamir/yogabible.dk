@@ -137,6 +137,7 @@
     calMonth = now.getMonth();
     renderCalendar();
 
+    modal.removeAttribute('style');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
 

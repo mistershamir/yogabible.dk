@@ -117,12 +117,14 @@ async function handleCreateStream(event, user) {
   var result = await muxFetch('/video/v1/live-streams', 'POST', {
     playback_policy: ['public'],
     new_asset_settings: {
-      playback_policy: ['public']
+      playback_policy: ['public'],
+      // Pre-create audio-only rendition for Deepgram transcription after stream ends
+      static_renditions: [{ resolution: 'audio-only' }]
     },
     // Low-latency mode for better interactivity
     latency_mode: 'low',
-    // Reconnect window allows teacher to briefly disconnect without ending the stream
-    reconnect_window: 60,
+    // Reconnect window: 5 min to handle ATEM encoder hiccups without killing the stream
+    reconnect_window: 300,
     // Max continuous duration: 6 hours (for long workshops)
     max_continuous_duration: 21600
   });

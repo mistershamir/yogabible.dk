@@ -4,9 +4,18 @@
  * Modes:
  *   ?debug=1    — Show status of all sessions (read-only)
  *   ?reconcile=1 — Find missing recordings from Mux and link them to Firestore sessions
- *   ?check=1    — Phase 2: find stuck sessions and re-trigger Deepgram transcription
- *   ?retranscribe=SESSION_ID — Reset and re-trigger full transcription pipeline (Deepgram + Claude)
+ *   ?enable-mp4=1 — Request MP4 static renditions on Mux assets
+ *   ?mp4-status=1 — Check if MP4 renditions are ready
+ *   ?generate-subtitles=1 — Request Mux auto-generated captions (fallback when MP4 unavailable)
+ *   ?subtitle-status=1 — Check if auto-generated subtitles are ready
+ *   ?check=1    — Find stuck sessions and re-trigger processing
+ *   ?retranscribe=SESSION_ID — Reset and re-trigger full pipeline (MP4→Deepgram→Claude, with subtitle fallback)
  *   ?retranscribe=all — Re-transcribe ALL sessions with recordings (batch mode)
+ *   ?deepgram-direct=SESSION_ID — Get MP4 from Mux (creates temp asset if needed), send to Deepgram async callback
+ *     Run 1: creates temp MP4 asset → "mp4_pending" (run again in 2-5 min)
+ *     Run 2: MP4 ready → sends to Deepgram callback → "deepgram_pending"
+ *     &url=CUSTOM_URL — skip MP4 creation, send this URL directly to Deepgram
+ *   ?reprocess=SESSION_ID — Re-run Claude on existing transcript (no re-transcription)
  *   (default)   — Phase 1: trigger caption requests for sessions with recordings but no AI data
  *
  * All modes require: ?secret=YOUR_AI_INTERNAL_SECRET
@@ -252,7 +261,9 @@ exports.handler = async function (event) {
     // ── Retranscribe mode: reset and re-trigger Deepgram transcription ──
     // ?retranscribe=SESSION_ID  — single session
     // ?retranscribe=all         — all sessions with recordings
+    // &transcript-only=1        — stop after transcription, skip Claude summary/quiz
     if (params.retranscribe) {
+      var isTranscriptOnly = params['transcript-only'] === '1';
       var retranscribeTargets = [];
 
       if (params.retranscribe === 'all') {
@@ -309,8 +320,8 @@ exports.handler = async function (event) {
             aiCaptionTrackId: null
           });
 
-          // Step 3: Trigger the background function (MP4 + Deepgram + Claude)
-          await callAiProcess(target.id, target.recordingAssetId);
+          // Step 3: Trigger the background function
+          await callAiProcess(target.id, target.recordingAssetId, { transcriptOnly: isTranscriptOnly });
 
           retranscribeResults.push({
             id: target.id,
@@ -327,9 +338,222 @@ exports.handler = async function (event) {
 
       return jsonResponse(200, {
         ok: true,
-        message: retranscribeResults.length + ' session(s) triggered for re-transcription (old Mux subtitles cleaned). Each runs MP4 → Deepgram → Claude in background.',
+        message: retranscribeResults.length + ' session(s) triggered for re-transcription (old Mux subtitles cleaned).'
+          + (isTranscriptOnly ? ' TRANSCRIPT-ONLY mode — will stop after Deepgram, no Claude.' : ' Full pipeline: MP4 → Deepgram → Claude.'),
         results: retranscribeResults
       });
+    }
+
+    // ── Deepgram Direct mode: get MP4 URL, send to Deepgram with async callback ──
+    // ?deepgram-direct=SESSION_ID  — creates MP4 temp asset if needed, sends MP4 URL to Deepgram
+    // &transcript-only=1           — stop after transcription, skip Claude summary/quiz
+    // &url=CUSTOM_URL              — override the audio URL (skip MP4 creation, send this URL directly)
+    //
+    // Idempotent 2-step flow:
+    //   Run 1: Creates Mux temp asset with MP4 → returns "mp4_pending", run again in a few minutes
+    //   Run 2: Checks MP4 ready → sends to Deepgram with callback → "deepgram_pending"
+    //   Deepgram webhook: receives result → "transcript_ready"
+    if (params['deepgram-direct']) {
+      var sessId = params['deepgram-direct'];
+      var isTranscriptOnly = params['transcript-only'] === '1';
+      var sess = all.find(function (item) { return item.id === sessId; });
+
+      if (!sess) {
+        return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessId });
+      }
+      if (!sess.recordingPlaybackId && !params.url) {
+        return jsonResponse(400, { ok: false, error: 'Session has no recordingPlaybackId and no ?url= provided' });
+      }
+
+      // If custom URL provided, skip MP4 creation and send directly
+      if (params.url) {
+        return await sendToDeepgramCallback(sessId, sess, params.url, isTranscriptOnly);
+      }
+
+      // Try to get an MP4 URL — check temp asset, original asset, or create new temp asset
+      var mp4Result = await getMp4UrlForSession(sessId, sess);
+
+      if (mp4Result.url) {
+        // MP4 ready — send to Deepgram with callback
+        return await sendToDeepgramCallback(sessId, sess, mp4Result.url, isTranscriptOnly);
+      } else {
+        // MP4 not ready yet — tell user to retry
+        return jsonResponse(202, {
+          ok: true,
+          status: 'mp4_pending',
+          message: mp4Result.detail || 'MP4 rendition is being created by Mux. Run this same command again in 2-5 minutes.',
+          id: sessId,
+          title: sess.title_da || sess.title_en || '',
+          aiStatus: 'mp4_pending',
+          tempAssetId: mp4Result.tempAssetId || null,
+          tempAgeMinutes: mp4Result.tempAgeMinutes || null,
+          action: mp4Result.action || null
+        });
+      }
+    }
+
+    // ── MP4 status check: query Mux directly to see if MP4 renditions are ready ──
+    if (params['mp4-status'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var mp4Results = [];
+      for (var m = 0; m < withRecordings.length; m++) {
+        var sess = withRecordings[m];
+        try {
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var renditions = asset.data && asset.data.static_renditions;
+          var mp4Support = asset.data && asset.data.mp4_support;
+          var duration = asset.data && asset.data.duration;
+          mp4Results.push({
+            id: sess.id,
+            title: (sess.title_da || sess.title_en || '').substring(0, 60),
+            assetId: sess.recordingAssetId,
+            mp4Support: mp4Support || 'none',
+            renditionStatus: getRenditionStatus(renditions),
+            renditions: Array.isArray(renditions) ? renditions.map(function (r) { return { resolution: r.resolution, status: r.status, name: r.name }; }) : null,
+            durationMinutes: duration ? Math.round(duration / 60) : null,
+            aiStatus: sess.aiStatus
+          });
+        } catch (err) {
+          mp4Results.push({ id: sess.id, title: sess.title_da || '', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, { ok: true, results: mp4Results });
+    }
+
+    // ── Enable MP4 only (no processing): request MP4 renditions without triggering pipeline ──
+    if (params['enable-mp4'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var enableResults = [];
+      for (var e2 = 0; e2 < withRecordings.length; e2++) {
+        var sess = withRecordings[e2];
+        try {
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var renditions = asset.data && asset.data.static_renditions;
+          var rStatus = getRenditionStatus(renditions);
+          if (rStatus === 'ready') {
+            enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'already_ready' });
+          } else if (rStatus === 'preparing') {
+            enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'already_preparing' });
+          } else {
+            // Use new static_renditions API (audio-only for Deepgram)
+            try {
+              await muxRequest('POST', '/video/v1/assets/' + sess.recordingAssetId + '/static-renditions', {
+                resolution: 'audio-only'
+              });
+              enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'rendition_requested', resolution: 'audio-only' });
+            } catch (rendErr) {
+              enableResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'error', error: rendErr.message });
+            }
+          }
+        } catch (err) {
+          enableResults.push({ id: sess.id, title: sess.title_da || '', status: 'error', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'MP4 renditions requested. Use ?mp4-status=1 to check when ready, then ?retranscribe=all to process.',
+        results: enableResults
+      });
+    }
+
+    // ── Generate subtitles mode: request Mux auto-generated captions (fallback when MP4 doesn't work) ──
+    if (params['generate-subtitles'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var subtitleResults = [];
+      for (var s2 = 0; s2 < withRecordings.length; s2++) {
+        var sess = withRecordings[s2];
+        try {
+          // Check existing tracks
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var tracks = (asset.data && asset.data.tracks) || [];
+          var hasAutoSubs = false;
+          for (var t = 0; t < tracks.length; t++) {
+            if (tracks[t].type === 'text' && tracks[t].text_type === 'subtitles' && tracks[t].status === 'ready') {
+              hasAutoSubs = true;
+              break;
+            }
+          }
+
+          if (hasAutoSubs) {
+            subtitleResults.push({ id: sess.id, title: (sess.title_da || '').substring(0, 60), status: 'already_has_subtitles' });
+          } else {
+            // Request auto-generated subtitles from Mux
+            var trackResult = await muxRequest('POST', '/video/v1/assets/' + sess.recordingAssetId + '/tracks', {
+              type: 'text',
+              text_type: 'subtitles',
+              language_code: 'en',
+              name: 'English CC',
+              closed_captions: true
+            });
+            var trackId = trackResult.data && trackResult.data.id;
+            subtitleResults.push({
+              id: sess.id,
+              title: (sess.title_da || '').substring(0, 60),
+              status: 'subtitles_requested',
+              trackId: trackId
+            });
+          }
+        } catch (err) {
+          subtitleResults.push({ id: sess.id, title: sess.title_da || '', status: 'error', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, {
+        ok: true,
+        message: 'Subtitle tracks requested. Use ?subtitle-status=1 to check when ready, then ?retranscribe=all to process.',
+        results: subtitleResults
+      });
+    }
+
+    // ── Subtitle status check: see if auto-generated subtitles are ready ──
+    if (params['subtitle-status'] === '1') {
+      var withRecordings = all.filter(function (item) {
+        return item.status === 'ended' && item.recordingAssetId;
+      });
+
+      var subStatusResults = [];
+      for (var ss = 0; ss < withRecordings.length; ss++) {
+        var sess = withRecordings[ss];
+        try {
+          var asset = await muxRequest('GET', '/video/v1/assets/' + sess.recordingAssetId);
+          var tracks = (asset.data && asset.data.tracks) || [];
+          var subtitleTracks = [];
+          for (var st = 0; st < tracks.length; st++) {
+            if (tracks[st].type === 'text') {
+              subtitleTracks.push({
+                id: tracks[st].id,
+                status: tracks[st].status,
+                name: tracks[st].name || '',
+                language: tracks[st].language_code || ''
+              });
+            }
+          }
+          var duration = asset.data && asset.data.duration;
+          subStatusResults.push({
+            id: sess.id,
+            title: (sess.title_da || sess.title_en || '').substring(0, 60),
+            assetId: sess.recordingAssetId,
+            durationMinutes: duration ? Math.round(duration / 60) : null,
+            subtitleTracks: subtitleTracks,
+            aiStatus: sess.aiStatus
+          });
+        } catch (err) {
+          subStatusResults.push({ id: sess.id, title: sess.title_da || '', error: err.message });
+        }
+      }
+
+      return jsonResponse(200, { ok: true, results: subStatusResults });
     }
 
     // ── Check mode (Phase 2): find stuck sessions and re-trigger processing ──
@@ -339,7 +563,8 @@ exports.handler = async function (event) {
           && item.recordingAssetId
           && (item.aiStatus === 'preparing_audio' || item.aiStatus === 'transcribing'
               || item.aiStatus === 'processing' || item.aiStatus === 'captions_requested'
-              || item.aiStatus === 'captions_pending');
+              || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending' || item.aiStatus === 'mp4_pending'
+              || item.aiStatus === 'deepgram_pending');
       });
 
       if (waiting.length === 0) {
@@ -426,7 +651,7 @@ exports.handler = async function (event) {
     var pending = all.filter(function (item) {
       return item.status === 'ended'
         && item.recordingAssetId
-        && (!item.aiStatus || item.aiStatus === 'error' || item.aiStatus === 'captions_pending');
+        && (!item.aiStatus || item.aiStatus === 'error' || item.aiStatus === 'captions_pending' || item.aiStatus === 'subtitle_pending' || item.aiStatus === 'mp4_pending');
     });
 
     console.log('[ai-backfill] Found', pending.length, 'recordings to process');
@@ -746,15 +971,254 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInte
     });
 }
 
+/* ── Rendition helpers (handle both old object and new array format) ── */
+
+function getReadyRenditionUrl(renditions, pbId) {
+  if (!renditions) return null;
+  // New array format: [{ status, name, resolution, ... }]
+  if (Array.isArray(renditions)) {
+    var ready = renditions.find(function (r) { return r.status === 'ready'; });
+    return ready ? 'https://stream.mux.com/' + pbId + '/' + ready.name : null;
+  }
+  // Old object format (deprecated mp4_support): { status: 'ready', files: [...] }
+  if (renditions.status === 'ready') {
+    return 'https://stream.mux.com/' + pbId + '/low.mp4';
+  }
+  return null;
+}
+
+function getRenditionStatus(renditions) {
+  if (!renditions) return 'none';
+  if (Array.isArray(renditions)) {
+    if (renditions.some(function (r) { return r.status === 'ready'; })) return 'ready';
+    if (renditions.some(function (r) { return r.status === 'errored'; })) return 'errored';
+    if (renditions.some(function (r) { return r.status === 'preparing'; })) return 'preparing';
+    return 'none';
+  }
+  return renditions.status || 'none';
+}
+
+/* ── Get downloadable audio/video URL for a session ── */
+// Strategy: static renditions → master_access download URL
+// Mux HLS streams (.m3u8) CANNOT be re-ingested as new assets — Mux rejects them
+// as "not a valid video or audio file". So we use master_access instead.
+
+async function getMp4UrlForSession(sessionId, sess) {
+  var playbackId = sess.recordingPlaybackId;
+  var assetId = sess.recordingAssetId;
+
+  // 1. Check existing temp asset (backward compat for in-progress ones)
+  if (sess.aiTempAssetId) {
+    var tempAssetId = sess.aiTempAssetId;
+    var tempPlaybackId = sess.aiTempPlaybackId || playbackId;
+    console.log('[ai-backfill] Found existing temp asset:', tempAssetId);
+
+    try {
+      var tempAsset = await muxRequest('GET', '/video/v1/assets/' + tempAssetId);
+      var tempRend = tempAsset.data && tempAsset.data.static_renditions;
+      var tempStatus = tempAsset.data && tempAsset.data.status;
+
+      var readyUrl = getReadyRenditionUrl(tempRend, tempPlaybackId);
+      if (readyUrl) {
+        console.log('[ai-backfill] Temp asset rendition ready!');
+        return { url: readyUrl, action: 'mp4_ready' };
+      }
+
+      // Not ready — clean up and fall through to master_access approach
+      console.log('[ai-backfill] Temp asset not usable (asset:', tempStatus, ', renditions:', getRenditionStatus(tempRend), ') — cleaning up, will use master_access');
+      try { await muxRequest('DELETE', '/video/v1/assets/' + tempAssetId); } catch (delErr) {
+        console.log('[ai-backfill] Could not delete temp asset (non-fatal):', delErr.message);
+      }
+      await updateDoc(COLLECTION, sessionId, { aiTempAssetId: null, aiTempPlaybackId: null, aiTempAssetCreatedAt: null });
+    } catch (e) {
+      console.log('[ai-backfill] Error checking temp asset:', e.message, '— clearing from Firestore');
+      await updateDoc(COLLECTION, sessionId, {
+        aiTempAssetId: null, aiTempPlaybackId: null, aiTempAssetCreatedAt: null
+      });
+    }
+  }
+
+  if (!assetId) {
+    throw new Error('Session has no recordingAssetId — cannot get download URL');
+  }
+
+  // 2. Check original asset for existing static renditions
+  var asset;
+  try {
+    asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
+    var renditions = asset.data && asset.data.static_renditions;
+
+    var readyUrl = getReadyRenditionUrl(renditions, playbackId);
+    if (readyUrl) {
+      console.log('[ai-backfill] Original asset rendition already ready');
+      return { url: readyUrl, action: 'original_mp4_ready' };
+    }
+  } catch (e) {
+    console.log('[ai-backfill] Error checking original asset:', e.message);
+    throw new Error('Cannot access original Mux asset ' + assetId + ': ' + e.message);
+  }
+
+  // 3. Check if master_access is already enabled and has a download URL
+  var master = asset.data && asset.data.master;
+  if (master) {
+    console.log('[ai-backfill] Master access status:', master.status);
+    if (master.status === 'ready' && master.url) {
+      console.log('[ai-backfill] Master download URL ready!');
+      return { url: master.url, action: 'master_ready' };
+    }
+    if (master.status === 'preparing') {
+      var reqAt = sess.aiMasterAccessRequestedAt;
+      var ageMs = reqAt ? Date.now() - new Date(reqAt).getTime() : 0;
+      var ageMin = Math.round(ageMs / 60000);
+      if (reqAt && ageMs < 60 * 60 * 1000) { // 60 min timeout for master
+        await updateDoc(COLLECTION, sessionId, { aiStatus: 'mp4_pending', aiError: null });
+        return {
+          url: null, action: 'waiting', tempAgeMinutes: ageMin,
+          detail: 'Master download URL preparing on original asset (' + ageMin + ' min). Try again in 2-5 min.'
+        };
+      }
+      console.log('[ai-backfill] Master access request stale (' + ageMin + ' min) — will re-request');
+    }
+    if (master.status === 'errored') {
+      console.log('[ai-backfill] Master access errored — will re-request');
+    }
+  }
+
+  // 4. Enable master_access on original asset to get a downloadable MP4 URL
+  console.log('[ai-backfill] Enabling master_access on original asset:', assetId);
+  try {
+    var masterResult = await muxRequest('PUT', '/video/v1/assets/' + assetId + '/master-access', {
+      master_access: 'temporary'
+    });
+
+    var newMaster = masterResult.data && masterResult.data.master;
+    console.log('[ai-backfill] Master access response:', JSON.stringify(newMaster));
+
+    // Check if master is immediately ready (unlikely but possible for small assets)
+    if (newMaster && newMaster.status === 'ready' && newMaster.url) {
+      console.log('[ai-backfill] Master URL immediately ready!');
+      return { url: newMaster.url, action: 'master_ready' };
+    }
+
+    await updateDoc(COLLECTION, sessionId, {
+      aiStatus: 'mp4_pending',
+      aiMasterAccessRequestedAt: new Date().toISOString(),
+      aiError: null
+    });
+
+    return {
+      url: null, action: 'master_requested',
+      detail: 'Enabled master_access on original asset ' + assetId + '. Master download URL will be ready in 2-10 min. Run again.'
+    };
+  } catch (masterErr) {
+    console.log('[ai-backfill] Failed to enable master_access:', masterErr.message);
+    throw new Error('Could not enable master_access on asset ' + assetId + ': ' + masterErr.message);
+  }
+}
+
+/* ── Send audio URL to Deepgram with callback ── */
+
+async function sendToDeepgramCallback(sessionId, sess, audioUrl, isTranscriptOnly) {
+  var callbackSecret = encodeURIComponent(process.env.AI_INTERNAL_SECRET || '');
+  var callbackMode = isTranscriptOnly ? 'transcript-only' : 'full';
+  var callbackUrl = 'https://yogabible.dk/.netlify/functions/deepgram-webhook'
+    + '?sessionId=' + sessionId
+    + '&secret=' + callbackSecret
+    + '&mode=' + callbackMode;
+
+  console.log('[ai-backfill] Sending to Deepgram async API');
+  console.log('[ai-backfill] Audio URL:', audioUrl);
+  console.log('[ai-backfill] Callback URL:', callbackUrl.replace(callbackSecret, '***'));
+
+  // Reset status
+  await updateDoc(COLLECTION, sessionId, {
+    aiStatus: 'deepgram_pending',
+    aiError: null,
+    aiTranscript: null,
+    aiSummary: null,
+    aiQuiz: null
+  });
+
+  // Send to Deepgram — returns immediately with request_id
+  var dgResult = await deepgramWithCallback(audioUrl, callbackUrl);
+
+  return jsonResponse(200, {
+    ok: true,
+    status: 'deepgram_pending',
+    message: 'Deepgram async transcription requested. Deepgram will POST the result to our webhook when done.'
+      + (isTranscriptOnly ? ' TRANSCRIPT-ONLY mode.' : ' Full pipeline: Deepgram → Claude.'),
+    id: sessionId,
+    title: sess.title_da || sess.title_en || '',
+    audioUrl: audioUrl,
+    deepgramRequestId: dgResult.request_id || null
+  });
+}
+
+/* ── Deepgram async transcription with callback ── */
+
+function deepgramWithCallback(audioUrl, callbackUrl) {
+  var apiKey = process.env.DEEPGRAM_API_KEY;
+  if (!apiKey) throw new Error('DEEPGRAM_API_KEY env var required');
+
+  return new Promise(function (resolve, reject) {
+    var body = JSON.stringify({ url: audioUrl });
+    var queryParams = 'model=nova-2&detect_language=true&smart_format=true&paragraphs=true'
+      + '&callback=' + encodeURIComponent(callbackUrl);
+
+    var opts = {
+      hostname: 'api.deepgram.com',
+      path: '/v1/listen?' + queryParams,
+      method: 'POST',
+      headers: {
+        'Authorization': 'Token ' + apiKey,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    };
+
+    var req = https.request(opts, function (res) {
+      var chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () {
+        var raw = Buffer.concat(chunks).toString();
+        console.log('[ai-backfill] Deepgram callback response:', res.statusCode, raw.substring(0, 300));
+        try {
+          var json = JSON.parse(raw);
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve(json);
+          } else {
+            reject(new Error('Deepgram API error ' + res.statusCode + ': ' + raw.substring(0, 300)));
+          }
+        } catch (e) {
+          reject(new Error('Deepgram parse error: ' + raw.substring(0, 300)));
+        }
+      });
+    });
+
+    req.setTimeout(30000, function () {
+      req.destroy();
+      reject(new Error('Deepgram callback request timed out'));
+    });
+
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
 /* ── Call ai-process-recording (Phase 1 trigger) ── */
 
-function callAiProcess(sessionId, assetId) {
+function callAiProcess(sessionId, assetId, extraOpts) {
+  extraOpts = extraOpts || {};
+  var payload = {
+    sessionId: sessionId,
+    assetId: assetId,
+    secret: process.env.AI_INTERNAL_SECRET || ''
+  };
+  if (extraOpts.transcriptOnly) payload.transcriptOnly = true;
+  if (extraOpts.directUrl) payload.directUrl = extraOpts.directUrl;
   return new Promise(function (resolve, reject) {
-    var body = JSON.stringify({
-      sessionId: sessionId,
-      assetId: assetId,
-      secret: process.env.AI_INTERNAL_SECRET || ''
-    });
+    var body = JSON.stringify(payload);
 
     var opts = {
       hostname: 'yogabible.dk',

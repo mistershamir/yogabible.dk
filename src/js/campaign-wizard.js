@@ -1831,8 +1831,96 @@
     var sendBtn = $('yb-campaign-send-all-btn');
     if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = t('campaign_send_complete') || 'Done!'; }
 
+    // Show sequence enrollment panel (post-send follow-up)
+    showSequenceEnrollmentPanel(results);
+
     if (bridge) bridge.toast(t('campaign_send_complete'));
     if (bridge && bridge.onCampaignSent) bridge.onCampaignSent(campaignState.type, results);
+  }
+
+  function showSequenceEnrollmentPanel(results) {
+    var total = (results.sent || 0) + (results.scheduled || 0);
+    if (total === 0) return;
+
+    // Load available sequences
+    if (!bridge) return;
+    bridge.getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/sequences', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(function (r) { return r.json(); });
+    }).then(function (data) {
+      if (!data.ok || !data.sequences || data.sequences.length === 0) return;
+
+      var activeSeqs = data.sequences.filter(function (s) { return s.active; });
+      if (activeSeqs.length === 0) return;
+
+      var resultsEl = $('yb-campaign-results');
+      if (!resultsEl) return;
+
+      // Build enrollment panel
+      var html = '<div class="yb-nur__post-send" style="margin-top:16px;padding:16px;background:#F5F3F0;border-radius:8px;border:1px solid #E8E4E0;">' +
+        '<p style="margin:0 0 8px;font-weight:600;">Campaign sent to ' + total + ' leads</p>' +
+        '<p style="margin:0 0 12px;color:#6F6A66;font-size:13px;">Want to enroll these leads in a follow-up sequence?</p>' +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
+          '<select id="yb-campaign-seq-select" class="yb-admin__select" style="max-width:280px;">' +
+            '<option value="">Select sequence...</option>';
+      activeSeqs.forEach(function (seq) {
+        html += '<option value="' + esc(seq.id) + '">' + esc(seq.name) + '</option>';
+      });
+      html += '</select>' +
+          '<button type="button" class="yb-btn yb-btn--primary yb-btn--sm" id="yb-campaign-enroll-btn" disabled>Enroll &rarr;</button>' +
+        '</div>' +
+        '<div id="yb-campaign-enroll-result" style="margin-top:8px;display:none;"></div>' +
+      '</div>';
+
+      resultsEl.insertAdjacentHTML('beforeend', html);
+
+      // Enable button when sequence selected
+      var seqSelect = $('yb-campaign-seq-select');
+      var enrollBtn = $('yb-campaign-enroll-btn');
+      if (seqSelect) {
+        seqSelect.addEventListener('change', function () {
+          if (enrollBtn) enrollBtn.disabled = !seqSelect.value;
+        });
+      }
+
+      if (enrollBtn) {
+        enrollBtn.addEventListener('click', function () {
+          var seqId = seqSelect.value;
+          if (!seqId) return;
+          enrollBtn.disabled = true;
+          enrollBtn.textContent = 'Enrolling...';
+
+          // Get selected recipient IDs
+          var leadIds = [];
+          campaignState.selectedIds.forEach(function (id) { leadIds.push(id); });
+
+          bridge.getAuthToken().then(function (token) {
+            return fetch('/.netlify/functions/sequences?action=enroll', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+              body: JSON.stringify({ sequence_id: seqId, lead_ids: leadIds })
+            }).then(function (r) { return r.json(); });
+          }).then(function (d) {
+            var resultEl = $('yb-campaign-enroll-result');
+            if (resultEl) {
+              resultEl.style.display = 'block';
+              if (d.ok) {
+                resultEl.innerHTML = '<span style="color:#27ae60;font-weight:600;">Enrolled ' + (d.enrolled || leadIds.length) + ' leads into sequence.</span>';
+              } else {
+                resultEl.innerHTML = '<span style="color:#C62828;">Error: ' + esc(d.error || 'Unknown') + '</span>';
+                enrollBtn.disabled = false;
+                enrollBtn.textContent = 'Enroll →';
+              }
+            }
+          }).catch(function (err) {
+            if (bridge) bridge.toast('Enrollment error: ' + err.message, true);
+            enrollBtn.disabled = false;
+            enrollBtn.textContent = 'Enroll →';
+          });
+        });
+      }
+    }).catch(function () { /* silently skip if sequences API unavailable */ });
   }
 
   function logCampaign(results, total) {

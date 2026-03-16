@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "npx @11ty/eleventy",
-    "postbuild": "node scripts/purge-css.js && node scripts/minify-js.js && node scripts/critical-css.js && node scripts/seo-validator.js",
+    "postbuild": "node scripts/minify-js.js && node scripts/seo-validator.js",
     "seo": "node scripts/seo-validator.js",
     "seo:strict": "node scripts/seo-validator.js --strict",
     "start": "npx @11ty/eleventy --serve",
@@ -24,6 +24,7 @@
     "terser": "^5.46.0"
   },
   "dependencies": {
+    "@11ty/eleventy-img": "^6.0.4",
     "firebase-admin": "^13.6.1",
     "markdown-it": "^14.1.0",
     "nodemailer": "^8.0.1"

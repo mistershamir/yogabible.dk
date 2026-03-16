@@ -943,65 +943,95 @@
   function renderProfileIframe(contentEl) {
     if (!currentUser) return;
 
-    var html = '';
-    html += '<div class="hyc-ua__iframe-wrap">';
-    html += '<div class="hyc-ua__iframe-loader" id="hyc-ua-iframe-loader">';
-    html += '<div class="hyc-ua__spinner"></div>';
-    html += '<span id="hyc-ua-iframe-loader-text">' + t('Henter din profil\u2026', 'Loading your profile\u2026') + '</span>';
-    html += '</div>';
-    html += '<iframe class="hyc-ua__iframe" id="hyc-ua-iframe" src="' + PROFILE_URL + '/" allow="payment" title="' + t('Min profil', 'My profile') + '"></iframe>';
-    html += '</div>';
+    // Get a fresh token FIRST, then load the iframe with it as a hash param.
+    // This is more reliable than postMessage across Framer's nested iframes
+    // because the profile page can read the token from its own URL on load.
+    currentUser.getIdToken(true).then(function (idToken) {
+      var profileSrc = PROFILE_URL + '/#auth=' + encodeURIComponent(idToken);
 
-    contentEl.innerHTML = html;
+      var html = '';
+      html += '<div class="hyc-ua__iframe-wrap">';
+      html += '<div class="hyc-ua__iframe-loader" id="hyc-ua-iframe-loader">';
+      html += '<div class="hyc-ua__spinner"></div>';
+      html += '<span id="hyc-ua-iframe-loader-text">' + t('Henter din profil\u2026', 'Loading your profile\u2026') + '</span>';
+      html += '</div>';
+      html += '<iframe class="hyc-ua__iframe" id="hyc-ua-iframe" src="' + profileSrc + '" allow="payment" title="' + t('Min profil', 'My profile') + '"></iframe>';
+      html += '</div>';
 
-    var iframe = $t('hyc-ua-iframe');
-    var loader = $t('hyc-ua-iframe-loader');
-    var loaderText = $t('hyc-ua-iframe-loader-text');
+      contentEl.innerHTML = html;
 
-    if (iframe) {
-      var authConfirmed = false;
+      var iframe = $t('hyc-ua-iframe');
+      var loader = $t('hyc-ua-iframe-loader');
+      var loaderText = $t('hyc-ua-iframe-loader-text');
 
-      // Listen for auth-ready confirmation from profile page
-      var onProfileMsg = function (e) {
-        if (e.data && e.data.type === 'hyc-profile-authenticated') {
-          authConfirmed = true;
+      if (iframe) {
+        var authConfirmed = false;
+
+        // Listen for auth-ready confirmation from profile page
+        var onProfileMsg = function (e) {
+          if (e.data && e.data.type === 'hyc-profile-authenticated') {
+            authConfirmed = true;
+            if (loader) loader.classList.add('is-hidden');
+            window.removeEventListener('message', onProfileMsg);
+          }
+        };
+        window.addEventListener('message', onProfileMsg);
+        // Also listen on parent window (message may bubble up from nested iframe)
+        try {
+          if (window.top !== window) {
+            window.top.addEventListener('message', onProfileMsg);
+          }
+        } catch (e) {}
+
+        // Also send via postMessage as a backup (profile page JS may load after hash is consumed)
+        iframe.addEventListener('load', function () {
+          sendAuthToIframe(iframe);
+          setTimeout(function () { sendAuthToIframe(iframe); }, 800);
+          setTimeout(function () { sendAuthToIframe(iframe); }, 2000);
+        });
+
+        // After 4s, hide loader regardless (profile page may not send confirmation)
+        setTimeout(function () {
           if (loader) loader.classList.add('is-hidden');
-          window.removeEventListener('message', onProfileMsg);
-        }
-      };
-      window.addEventListener('message', onProfileMsg);
+        }, 4000);
 
-      // Send auth token multiple times (profile page JS may not be ready on first attempt)
-      iframe.addEventListener('load', function () {
-        sendAuthToIframe(iframe);
-        setTimeout(function () { sendAuthToIframe(iframe); }, 800);
-        setTimeout(function () { sendAuthToIframe(iframe); }, 2000);
-      });
-
-      // After 4s, hide loader regardless (profile page may not send confirmation)
-      setTimeout(function () {
-        if (loader) loader.classList.add('is-hidden');
-      }, 4000);
-
-      // After 7s, if still no auth confirmation, show a fallback link
-      setTimeout(function () {
-        if (!authConfirmed && loaderText) {
-          loaderText.innerHTML =
-            '<a href="' + PROFILE_URL + '/" target="_blank" rel="noopener" style="color:' + BRAND + ';text-decoration:underline">' +
-            t('\u00c5bn profil i ny fane', 'Open profile in new tab') + '</a>';
-        }
-      }, 7000);
-    }
+        // After 7s, if still no auth confirmation, show a fallback link
+        setTimeout(function () {
+          if (!authConfirmed && loaderText) {
+            loaderText.innerHTML =
+              '<a href="' + PROFILE_URL + '/" target="_blank" rel="noopener" style="color:' + BRAND + ';text-decoration:underline">' +
+              t('\u00c5bn profil i ny fane', 'Open profile in new tab') + '</a>';
+          }
+        }, 7000);
+      }
+    }).catch(function (err) {
+      console.warn('Could not get token for profile iframe:', err);
+      // Fallback: load without token, will show logged-out state
+      contentEl.innerHTML =
+        '<div style="text-align:center;padding:40px">' +
+        '<a href="' + PROFILE_URL + '/" target="_blank" rel="noopener" style="color:' + BRAND + ';text-decoration:underline;font-size:16px">' +
+        t('\u00c5bn profil i ny fane', 'Open profile in new tab') + '</a></div>';
+    });
   }
 
   function sendAuthToIframe(iframe) {
     if (!currentUser || !iframe || !iframe.contentWindow) return;
 
     currentUser.getIdToken().then(function (idToken) {
-      iframe.contentWindow.postMessage(
-        { type: 'hyc-auth-bridge', idToken: idToken },
-        PROFILE_URL
-      );
+      // Try posting with specific origin first, then wildcard as fallback
+      try {
+        iframe.contentWindow.postMessage(
+          { type: 'hyc-auth-bridge', idToken: idToken },
+          PROFILE_URL
+        );
+      } catch (e) {}
+      // Wildcard fallback (Framer iframe nesting can cause origin mismatches)
+      try {
+        iframe.contentWindow.postMessage(
+          { type: 'hyc-auth-bridge', idToken: idToken },
+          '*'
+        );
+      } catch (e) {}
     }).catch(function (err) {
       console.warn('Could not send auth to profile iframe:', err);
     });
@@ -1287,6 +1317,7 @@
             _restoring = false;
             persistAuthToken(user);
             broadcastAuthChange(user);
+            broadcastAuthStateToFramer(user);
             resolveMbClient(user);
             renderLoggedIn(user);
             // If auth modal is open, close it — user just logged in
@@ -1301,6 +1332,7 @@
               clearAuthToken();
               broadcastAuthChange(null);
             }
+            broadcastAuthStateToFramer(null);
             renderLoggedOut();
             // Close user area modal if open
             if (modalMode === 'user-area') {
@@ -1341,35 +1373,83 @@
 
 
   // ═══════════════════════════════════════════════════════════════════
+  // FRAMER NATIVE BUTTON BRIDGE (postMessage)
+  // ═══════════════════════════════════════════════════════════════════
+  // When using a native Framer button instead of the HTML-rendered CTA,
+  // the Framer button sends { type: 'hyc-open-auth' } and this script
+  // responds by opening the appropriate modal. Auth state changes are
+  // broadcast back via { type: 'hyc-auth-state', loggedIn, displayName }
+  // so the Framer button can update its label.
+
+  function broadcastAuthStateToFramer(user) {
+    var msg = {
+      type: 'hyc-auth-state',
+      loggedIn: !!user,
+      displayName: user ? (user.displayName || user.email || '') : ''
+    };
+    // Post to parent (if we're in an iframe)
+    try { if (window.parent !== window) window.parent.postMessage(msg, '*'); } catch (e) {}
+    // Post to top (in case of nested iframes)
+    try { if (window.top !== window) window.top.postMessage(msg, '*'); } catch (e) {}
+    // Also post on own window (for same-frame listeners)
+    try { window.postMessage(msg, '*'); } catch (e) {}
+  }
+
+  function listenForFramerButton() {
+    // Listen on both the iframe's own window and try the parent
+    function handleMessage(e) {
+      try {
+        if (e.data && e.data.type === 'hyc-open-auth') {
+          if (currentUser) {
+            openModal('user-area');
+          } else {
+            openModal('auth-login');
+          }
+        }
+        // Framer button requesting current auth state on load
+        if (e.data && e.data.type === 'hyc-auth-state-request') {
+          broadcastAuthStateToFramer(currentUser);
+        }
+      } catch (ex) {}
+    }
+    window.addEventListener('message', handleMessage);
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
   // BOOT
   // ═══════════════════════════════════════════════════════════════════
 
   function boot() {
     injectCSS();
-    container = document.getElementById('hyc-login-cta');
-    if (!container) return;
-    container.className = 'hyc-cta';
 
-    // If we have a stored session token, show loading spinner instead
-    // of "Log ind" to avoid a logged-out → logged-in flash
-    var s = _parentStorage();
-    var hasStoredToken = s && s.getItem(SESSION_KEY);
-    if (hasStoredToken) {
-      container.innerHTML = '<span class="hyc-ua__loading" style="padding:6px 12px">' + ICON.spinner + '</span>';
-      notifyFramerHeight();
-    } else {
-      renderLoggedOut();
+    // Listen for postMessage from native Framer button
+    listenForFramerButton();
+
+    container = document.getElementById('hyc-login-cta');
+    if (container) {
+      container.className = 'hyc-cta';
+
+      // If we have a stored session token, show loading spinner instead
+      // of "Log ind" to avoid a logged-out → logged-in flash
+      var s = _parentStorage();
+      var hasStoredToken = s && s.getItem(SESSION_KEY);
+      if (hasStoredToken) {
+        container.innerHTML = '<span class="hyc-ua__loading" style="padding:6px 12px">' + ICON.spinner + '</span>';
+        notifyFramerHeight();
+      } else {
+        renderLoggedOut();
+      }
+
+      // Keep posting height to Framer every 500ms for 8 seconds.
+      if (_heightInterval) clearInterval(_heightInterval);
+      _heightInterval = setInterval(_sendHeight, 500);
+      setTimeout(function () { clearInterval(_heightInterval); }, 8000);
     }
 
+    // Always init auth — even without a visible container the modal
+    // still needs Firebase for the Framer-button bridge to work.
     initAuth();
-
-    // Keep posting height to Framer every 500ms for 8 seconds.
-    // Framer's ResizeObserver can report height:0 before our content
-    // renders, and once Framer collapses the iframe to 0px it won't
-    // recover unless it receives a new embedHeight message.
-    if (_heightInterval) clearInterval(_heightInterval);
-    _heightInterval = setInterval(_sendHeight, 500);
-    setTimeout(function () { clearInterval(_heightInterval); }, 8000);
   }
 
   if (document.readyState === 'loading') {

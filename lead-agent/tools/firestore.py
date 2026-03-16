@@ -516,3 +516,72 @@ def listen_new_appointments(callback):
     # Listen for appointments created from now on
     query = db.collection(APPT_COLLECTION).where('status', 'in', ['confirmed', 'pending_request'])
     query.on_snapshot(on_snapshot)
+
+
+# ── Sequence Monitoring Functions ──────────────────────────────────────────
+
+def get_leads_not_in_any_sequence():
+    """Find YTT leads with status 'New' or 'Contacted' who are NOT enrolled
+    in any active sequence. These are leads falling through the cracks."""
+    db = get_db()
+    leads = db.collection('leads') \
+        .where('type', '==', 'ytt') \
+        .stream()
+
+    unenrolled = []
+    for doc in leads:
+        lead = doc.to_dict()
+        if lead.get('converted') or lead.get('unsubscribed'):
+            continue
+        status = (lead.get('status') or '').lower()
+        if status not in ('new', 'contacted', 'no answer', ''):
+            continue
+        # Check if this lead has any active enrollment
+        enrollments = db.collection('sequence_enrollments') \
+            .where('lead_id', '==', doc.id) \
+            .where('status', 'in', ['active', 'paused']) \
+            .limit(1) \
+            .get()
+        if len(enrollments.docs) == 0:
+            lead['id'] = doc.id
+            unenrolled.append(lead)
+    return unenrolled
+
+
+def get_sequence_failures(hours=24):
+    """Find sequence step failures in the last N hours."""
+    db = get_db()
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+
+    failed_emails = db.collection('email_log') \
+        .where('source', '==', 'sequence') \
+        .where('status', '==', 'failed') \
+        .where('sent_at', '>=', cutoff) \
+        .stream()
+
+    return [{'id': doc.id, **doc.to_dict()} for doc in failed_emails]
+
+
+def get_completed_not_converted(days=7):
+    """Find leads who completed their sequence but didn't convert.
+    These need a personalized human touch — the agent drafts the message."""
+    db = get_db()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+
+    completed = db.collection('sequence_enrollments') \
+        .where('status', '==', 'completed') \
+        .where('updated_at', '>=', cutoff) \
+        .stream()
+
+    results = []
+    for doc in completed:
+        enrollment = doc.to_dict()
+        lead_doc = db.collection('leads').document(enrollment['lead_id']).get()
+        if lead_doc.exists:
+            lead = lead_doc.to_dict()
+            if not lead.get('converted') and not lead.get('unsubscribed'):
+                results.append({
+                    'enrollment': enrollment,
+                    'lead': {**lead, 'id': lead_doc.id}
+                })
+    return results

@@ -219,7 +219,7 @@ All YTT schedule pages include a **Conflict Finder** — an interactive tool tha
 - **Listing:** `src/yoga-journal.njk` → `/yoga-journal/`
 - **Posts:** `src/yoga-journal-post.njk` (Eleventy pagination, size:1)
 - **JS:** `src/js/journal.js` — language switching, search, progress bar, share
-- **CSS:** `src/css/main.css` — all journal styles prefixed `yj-`, all store/profile styles prefixed `yb-store__`, admin knowledge styles `yb-kb__`
+- **CSS:** Split across 4 files for performance (see **CSS Architecture** below)
 - **CMS:** Decap CMS at `/admin/` with Netlify Identity
 - **i18n:** Build-time via JSON files in `src/_data/i18n/`, path-based (`/en/` prefix). Journal uses `data-yj-da`/`data-yj-en` attributes toggled by path detection.
 - **Deploy:** Netlify from `main` branch
@@ -227,6 +227,36 @@ All YTT schedule pages include a **Conflict Finder** — an interactive tool tha
 - **Profile/Store:** `src/js/profile.js` — user profile, store catalog, checkout, waiver, schedule, membership
 - **Hot Yoga CPH:** `hot-yoga-cph/public/js/profile.js` + `hot-yoga-cph/public/css/profile.css` — mirrored store/profile for HYC site
 - **Apps Script:** `apps-script/` — legacy Google Sheets-based lead/application system (13 files). Being replaced by Netlify functions + Firestore.
+
+### CSS Architecture (MANDATORY)
+
+**IMPORTANT:** CSS is split into 4 files for performance. Each file serves specific pages. When adding or modifying styles, put them in the correct file — NEVER dump everything into `main.css`.
+
+| File | Loaded On | Contains | Prefix(es) |
+|------|-----------|----------|------------|
+| `src/css/main.css` | **Every page** | Global styles: header, footer, hero, typography, buttons, forms, cards, design system, glossary, schedule, landing pages, responsive base | Various global |
+| `src/css/journal.css` | Journal pages only | Blog listing, post layout, search, filters, tags, author card, related posts | `.yj-` |
+| `src/css/store.css` | Profile/store pages only | Store catalog, checkout modal, categories, badges, product cards, deposit items | `.yb-store__` |
+| `src/css/admin-panel.css` | Admin panel only | Admin tabs, lead management, campaigns, billing, documents, knowledge base, sequences | `.yb-admin__`, `.yb-kb__`, `.yb-lead__`, `.yb-billing__`, `.yb-doc-browser__`, `.yb-seq__` |
+
+**How conditional loading works:**
+
+Pages opt into extra CSS via front matter flags:
+- `includeJournal: true` → loads `journal.css`
+- `includeStore: true` → loads `store.css`
+- `includeAdmin: true` → loads `admin-panel.css`
+
+These flags are checked in `src/_includes/head.njk` with `{% if includeJournal %}` etc.
+
+**Rules for adding new CSS:**
+
+1. **Global components** (header, footer, hero, buttons, design system, new landing pages) → `main.css`
+2. **Journal/blog styles** (`.yj-` prefix) → `journal.css`
+3. **Store/checkout/profile styles** (`.yb-store__` prefix) → `store.css`
+4. **Admin panel styles** (`.yb-admin__`, `.yb-lead__`, `.yb-billing__`, `.yb-kb__`, `.yb-doc-browser__`, `.yb-seq__`) → `admin-panel.css`
+5. **New page-specific styles** that are large (500+ lines) → consider creating a new split file with a new front matter flag
+6. **When creating a new page** that needs store/journal/admin styles, add the appropriate front matter flag to both the DA and EN wrapper `.njk` files
+7. **Checkout flow modal** (`.ycf-` prefix) lives in `main.css` because it can appear on any page
 
 ### Netlify Functions Reference
 
@@ -411,6 +441,95 @@ Each tab has a partial in `src/_includes/partials/admin-{name}-panel.njk` and a 
 | `AGENT_MODEL` | Claude model ID (default: `claude-sonnet-4-6`) |
 | `DRIP_CHECK_INTERVAL_MINUTES` | Drip scheduler interval (default: 60) |
 | `SITE_URL` | Site URL (default: `https://yogabible.dk`) |
+
+---
+
+## Meta Ads CLI (for Claude Code sessions)
+
+**IMPORTANT:** When asked about Meta/Facebook ad campaigns, performance, or ad management — use this CLI tool. It gives you full read/write access to the Meta Marketing API.
+
+### Setup
+
+The CLI reads `META_ACCESS_TOKEN` from `ads-agent/.env` (already configured). No extra setup needed.
+
+### Usage
+
+```bash
+python3 scripts/meta-ads-cli.py <command> [args...]
+```
+
+### Available Commands
+
+| Command | Description |
+|---------|-------------|
+| **Read Operations** | |
+| `accounts` | List ad accounts (Yoga Bible + Hot Yoga CPH) |
+| `campaigns [brand]` | List campaigns (`yb` or `hyc`, default: yb) |
+| `campaigns yb --status=ACTIVE` | Filter by status (ACTIVE, PAUSED, ARCHIVED) |
+| `insights <campaign_id> [days]` | Campaign performance (spend, leads, CTR, CPL) |
+| `account-insights [brand] [days]` | Account-level summary |
+| `adsets <campaign_id>` | List ad sets in a campaign (with targeting summary) |
+| `adset-insights <adset_id> [days]` | Ad set performance |
+| `ads <adset_id>` | List ads in an ad set |
+| `ad-insights <ad_id> [days]` | Individual ad performance |
+| `creative <ad_id>` | Get ad creative details (primary text, headline, CTA, link, image) |
+| `audiences [brand]` | List custom audiences |
+| `leadforms [brand]` | List instant forms (lead gen forms) |
+| `leadform <form_id>` | Get form details + questions |
+| `page-posts [brand]` | List recent page posts |
+| **Modify Operations** | |
+| `pause <id>` | Pause a campaign, ad set, or ad |
+| `resume <id>` | Resume (activate) |
+| `archive <id>` | Archive |
+| `delete <id>` | Delete |
+| `budget <id> <daily_dkk>` | Update daily budget (in DKK) |
+| `lifetime-budget <id> <amount_dkk>` | Update lifetime budget |
+| `duplicate <id>` | Duplicate entity (created as PAUSED) |
+| `update-ad-text <ad_id> <field> <value>` | Update ad text (primary_text, headline, description, link, cta) |
+| **Create Operations** | |
+| `create-campaign <brand> <name> <objective> <daily_budget>` | Create campaign (PAUSED) |
+| `create-adset <campaign_id> <name> <budget> <targeting.json>` | Create ad set from targeting JSON |
+| `create-ad <adset_id> <name> <creative.json>` | Create ad from creative JSON |
+| `create-audience <brand> <name> <description>` | Create custom audience |
+| `create-leadform <brand> <form.json>` | Create instant form from JSON spec |
+
+### Workflow Examples
+
+**Check why a campaign isn't performing:**
+```bash
+python3 scripts/meta-ads-cli.py campaigns yb --status=ACTIVE
+python3 scripts/meta-ads-cli.py insights <campaign_id> 7
+python3 scripts/meta-ads-cli.py adsets <campaign_id>
+python3 scripts/meta-ads-cli.py creative <ad_id>
+```
+
+**Update ad copy:**
+```bash
+python3 scripts/meta-ads-cli.py update-ad-text <ad_id> primary_text "New primary text here..."
+python3 scripts/meta-ads-cli.py update-ad-text <ad_id> headline "New Headline"
+```
+
+**Create a new campaign:**
+```bash
+python3 scripts/meta-ads-cli.py create-campaign yb "YTT April 2026 - Leads" OUTCOME_LEADS 150
+# Then create ad set with targeting JSON file, then create ad with creative JSON file
+```
+
+### Ad Accounts
+
+| Brand | Account ID | Currency |
+|-------|-----------|----------|
+| Yoga Bible (`yb`) | `act_1137462911884203` | DKK |
+| Hot Yoga CPH (`hyc`) | `act_518096093802228` | DKK |
+
+### Notes
+
+- All budgets are in **DKK** (the CLI handles the ×100 conversion for the API)
+- Created entities default to **PAUSED** — activate manually after review
+- `days` parameter: 1, 7, 14, 28, 30, or 90
+- The `creative` command shows primary text, headline, description, CTA, and image URL
+- For create operations that need JSON files, the CLI prints example JSON when run without args
+- **Creatives can't be edited in-place** — `update-ad-text` creates a new creative and swaps it on the ad
 
 ---
 
@@ -616,18 +735,65 @@ Two-mode live streaming: one-way broadcast (Mux) + Zoom-style interactive (LiveK
 | `panel` | Expert panel with named speakers + audience |
 | `google-meet` | External Google Meet link |
 
-### AI Recording Processing
+### AI Recording Processing Pipeline
 
-After a live session ends, recordings are automatically processed:
+After a live session ends, recordings are automatically processed via **Deepgram transcription** (not Mux auto-captions):
 
-1. Mux webhook fires when asset is ready
-2. `ai-process-recording-background` requests captions from Mux
-3. Polls for caption readiness (up to 10 min)
-4. Downloads VTT transcript
-5. Claude generates summary + quiz
-6. Saved to Firestore `live-schedule` document
+1. Mux webhook fires when recording asset is ready
+2. `ai-process-recording-background` gets MP4 URL from Mux (via `master_access: "temporary"` download URL, or creates temp asset for live recordings)
+3. Sends MP4 audio to **Deepgram Nova-2** (`/v1/listen`) with `utterances=true`, `detect_language=true`, `smart_format=true`
+4. Generates VTT subtitles from Deepgram response, saves VTT to Firestore (`captionVtt` field)
+5. Uploads VTT to Mux as subtitle track via `serve-vtt` function (Mux fetches the VTT URL)
+6. Sends transcript to **Claude Sonnet 4.6** for summary + quiz generation
+7. Saves everything to Firestore `live-schedule` document
 
-**Fields:** `aiStatus` (`processing` → `captions_requested` → `captions_ready` → `summarizing` → `done`), `aiSummary`, `aiQuiz`, `aiSummaryLang`
+**Status flow:** `aiStatus`: `preparing_audio` → `transcribing` → `uploading_subtitles` → `generating_summary` → `complete`
+
+**Fields:** `aiStatus`, `aiError`, `aiSummary`, `aiSummaryLang`, `aiQuiz`, `aiTranscript`, `aiProcessedAt`, `captionVtt`, `captionLang`, `aiCaptionTrackId`
+
+#### Key Implementation Details (Deepgram + Subtitles)
+
+**Word-level fallback for VTT generation:** Deepgram can return a full transcript but an **empty utterances array** (especially for long recordings 3h+). The code handles this by building synthetic utterances from word-level timestamps in ~10-second chunks (`buildUtterancesFromWords()`). Without this fallback, the VTT generation silently skips and no subtitles appear on Mux. This was the root cause of a multi-week debugging effort — do NOT remove this fallback.
+
+**VTT URL must use canonical domain:** The `serve-vtt` URL passed to Mux must use `https://yogabible.dk` (hardcoded), NOT `process.env.URL` which resolves to `www.yogabible.dk` and causes a 301 redirect. Mux does not follow redirects when ingesting subtitle tracks, so the upload silently fails.
+
+**Deepgram API config:** Model `nova-2`, features: `detect_language`, `smart_format`, `paragraphs`, `utterances` (with `utt_split=0.8`). API key stored in Netlify env. ~$1.20 per 4.5h recording.
+
+#### Retranscribe / Reprocess Sessions
+
+Use `ai-backfill` function to retrigger processing for existing recordings:
+
+```bash
+# Single session (full pipeline: Deepgram → subtitles → Claude summary)
+curl "https://yogabible.dk/.netlify/functions/ai-backfill?retranscribe=SESSION_ID&secret=AI_INTERNAL_SECRET"
+
+# All sessions with recordings
+curl "https://yogabible.dk/.netlify/functions/ai-backfill?retranscribe=all&secret=AI_INTERNAL_SECRET"
+
+# Transcript only (skip Claude summary/quiz)
+curl "https://yogabible.dk/.netlify/functions/ai-backfill?retranscribe=SESSION_ID&transcript-only=1&secret=AI_INTERNAL_SECRET"
+
+# Check status of all sessions
+curl "https://yogabible.dk/.netlify/functions/ai-backfill?debug=1&secret=AI_INTERNAL_SECRET"
+
+# Check MP4 rendition status
+curl "https://yogabible.dk/.netlify/functions/ai-backfill?mp4-status=1&secret=AI_INTERNAL_SECRET"
+```
+
+**What retranscribe does:** Deletes old Mux subtitle tracks → resets Firestore AI fields → triggers `ai-process-recording-background` as a new invocation. Each session runs as a separate background function (15-min timeout).
+
+**IMPORTANT — Process sessions one at a time:** Do NOT retranscribe multiple sessions in parallel. Deepgram returns 504 timeouts when processing multiple long recordings simultaneously. Retranscribe one session, wait for `aiStatus` to reach `complete` (~5-10 min), then start the next.
+
+**Troubleshooting stuck sessions:** If `aiStatus` is stuck at `transcribing`, the Deepgram call likely timed out (504). Just retrigger with the same curl. Check Deepgram dashboard (console.deepgram.com → Usage → Logs) to see if the request completed (200 OK) or failed. Dashboard times are UTC.
+
+#### Key Files
+
+| File | Purpose |
+|------|---------|
+| `netlify/functions/ai-process-recording-background.js` | Main pipeline: MP4 → Deepgram → VTT → Mux subtitles → Claude summary |
+| `netlify/functions/ai-backfill.js` | Admin tool: debug, retranscribe, MP4 status, subtitle management |
+| `netlify/functions/serve-vtt.js` | Serves VTT from Firestore for Mux to ingest |
+| `netlify/functions/mux-webhook.js` | Triggers pipeline when recording asset is ready |
 
 ---
 
