@@ -875,6 +875,9 @@
     "ads_last_90d": "Sidste 90 dage",
     "ads_refresh": "Opdater",
     "ads_select_account": "Vælg en konto for at begynde",
+    "ads_filter_all": "Alle",
+    "ads_filter_active": "Aktive",
+    "ads_filter_paused": "Pausede",
 
     "tab_billing": "Fakturering",
     "billing_title": "Fakturering",
@@ -2067,6 +2070,9 @@
     "ads_last_90d": "Last 90 days",
     "ads_refresh": "Refresh",
     "ads_select_account": "Select an account to begin",
+    "ads_filter_all": "All",
+    "ads_filter_active": "Active",
+    "ads_filter_paused": "Paused",
 
     "tab_billing": "Billing",
     "billing_title": "Billing",

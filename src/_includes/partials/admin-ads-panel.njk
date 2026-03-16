@@ -18,11 +18,26 @@
         <option value="90">{{ t.ads_last_90d or "Sidste 90 dage" }}</option>
       </select>
       <button class="yb-btn yb-btn--outline yb-ads__refresh-btn" type="button" id="yb-ads-refresh">
-        ↻ {{ t.ads_refresh or "Opdater" }}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+        {{ t.ads_refresh or "Opdater" }}
       </button>
     </div>
   </div>
-  <div class="yb-admin__section-divider"></div>
+</div>
+
+{# Status filter tabs #}
+<div class="yb-ads__filter-bar" id="yb-ads-status-filter">
+  <button class="yb-ads__filter-btn yb-ads__filter--active" data-filter="ALL">
+    {{ t.ads_filter_all or "Alle" }}
+  </button>
+  <button class="yb-ads__filter-btn" data-filter="ACTIVE">
+    <span class="yb-ads__status-dot yb-ads__status-dot--active"></span>
+    {{ t.ads_filter_active or "Aktive" }}
+  </button>
+  <button class="yb-ads__filter-btn" data-filter="PAUSED">
+    <span class="yb-ads__status-dot yb-ads__status-dot--paused"></span>
+    {{ t.ads_filter_paused or "Pausede" }}
+  </button>
 </div>
 
 {# Breadcrumb #}

@@ -17,6 +17,9 @@
  *   GET  ?action=adset-insights&id=XXX&range=7       — ad set-level insights
  *   GET  ?action=ad-insights&id=XXX&range=7          — ad-level insights
  *   GET  ?action=ad-preview&id=XXX                   — ad preview/creative
+ *   GET  ?action=campaigns-with-insights&account=act_XXX&range=7 — campaigns + per-campaign insights (batch)
+ *   GET  ?action=adsets-with-insights&campaign_id=XXX&range=7    — ad sets + per-adset insights
+ *   GET  ?action=ads-with-insights&adset_id=XXX&range=7          — ads + per-ad insights + creative
  *
  *   POST ?action=update-status                       — pause/resume campaign/adset/ad
  *         body: { id, status: "PAUSED"|"ACTIVE" }
@@ -102,6 +105,12 @@ async function handleGet(action, params) {
       return getInsights(params.id, 'ad', params);
     case 'ad-preview':
       return getAdPreview(params.id);
+    case 'campaigns-with-insights':
+      return getCampaignsWithInsights(params);
+    case 'adsets-with-insights':
+      return getAdSetsWithInsights(params);
+    case 'ads-with-insights':
+      return getAdsWithInsights(params);
     default:
       return jsonResponse(400, { ok: false, error: 'Unknown GET action: ' + action });
   }
@@ -256,6 +265,126 @@ async function getAdPreview(adId) {
   const data = await graphFetch(url);
 
   return jsonResponse(200, { ok: true, ad: data });
+}
+
+
+// ── Campaigns + Per-Campaign Insights (batch) ───────────────────
+async function getCampaignsWithInsights(params) {
+  const account = params.account;
+  if (!account || !AD_ACCOUNTS[account]) {
+    return jsonResponse(400, { ok: false, error: 'Invalid or missing account parameter' });
+  }
+
+  const range = parseInt(params.range) || 7;
+  const datePreset = rangeToPreset(range);
+
+  // Fetch campaigns
+  const campFields = [
+    'name', 'status', 'effective_status', 'objective',
+    'daily_budget', 'lifetime_budget', 'budget_remaining',
+    'start_time', 'stop_time', 'created_time', 'updated_time',
+    'buying_type', 'bid_strategy'
+  ].join(',');
+  const campUrl = `${GRAPH_API}/${account}/campaigns?fields=${campFields}&limit=50&access_token=${TOKEN()}`;
+  const campData = await graphFetch(campUrl);
+  const campaigns = campData.data || [];
+
+  // Fetch per-campaign insights in parallel (max 10 concurrently)
+  const insightFields = 'campaign_id,impressions,reach,clicks,cpc,ctr,spend,actions,cost_per_action_type,frequency';
+  const insightUrl = `${GRAPH_API}/${account}/insights?fields=${insightFields}&date_preset=${datePreset}&level=campaign&limit=100&access_token=${TOKEN()}`;
+  let insightData;
+  try { insightData = await graphFetch(insightUrl); } catch (e) { insightData = { data: [] }; }
+
+  // Map insights by campaign_id
+  const insightMap = {};
+  (insightData.data || []).forEach(row => { insightMap[row.campaign_id] = row; });
+
+  // Merge
+  const merged = campaigns.map(c => ({
+    ...c,
+    insights: insightMap[c.id] || null
+  }));
+
+  return jsonResponse(200, { ok: true, campaigns: merged });
+}
+
+
+// ── Ad Sets + Per-AdSet Insights (batch) ────────────────────────
+async function getAdSetsWithInsights(params) {
+  const campaignId = params.campaign_id;
+  if (!campaignId) {
+    return jsonResponse(400, { ok: false, error: 'Missing campaign_id' });
+  }
+
+  const range = parseInt(params.range) || 7;
+  const datePreset = rangeToPreset(range);
+
+  const adsetFields = [
+    'name', 'status', 'effective_status', 'campaign_id',
+    'daily_budget', 'lifetime_budget', 'budget_remaining',
+    'bid_amount', 'bid_strategy', 'billing_event', 'optimization_goal',
+    'targeting', 'start_time', 'end_time', 'created_time', 'updated_time'
+  ].join(',');
+  const adsetUrl = `${GRAPH_API}/${campaignId}/adsets?fields=${adsetFields}&limit=50&access_token=${TOKEN()}`;
+  const adsetData = await graphFetch(adsetUrl);
+  const adsets = adsetData.data || [];
+
+  // Get insights at adset level for this campaign
+  const insightFields = 'adset_id,impressions,reach,clicks,cpc,ctr,spend,actions,cost_per_action_type,frequency';
+  const insightUrl = `${GRAPH_API}/${campaignId}/insights?fields=${insightFields}&date_preset=${datePreset}&level=adset&limit=100&access_token=${TOKEN()}`;
+  let insightData;
+  try { insightData = await graphFetch(insightUrl); } catch (e) { insightData = { data: [] }; }
+
+  const insightMap = {};
+  (insightData.data || []).forEach(row => { insightMap[row.adset_id] = row; });
+
+  const merged = adsets.map(a => ({
+    ...a,
+    insights: insightMap[a.id] || null
+  }));
+
+  return jsonResponse(200, { ok: true, adsets: merged });
+}
+
+
+// ── Ads + Per-Ad Insights + Creative (batch) ────────────────────
+async function getAdsWithInsights(params) {
+  const adsetId = params.adset_id;
+  const campaignId = params.campaign_id;
+  const parentId = adsetId || campaignId;
+  if (!parentId) {
+    return jsonResponse(400, { ok: false, error: 'Provide adset_id or campaign_id' });
+  }
+
+  const range = parseInt(params.range) || 7;
+  const datePreset = rangeToPreset(range);
+
+  // Fetch ads with creative
+  const adFields = [
+    'name', 'status', 'effective_status', 'adset_id', 'campaign_id',
+    'creative{title,body,image_url,thumbnail_url,object_story_spec,effective_object_story_id}',
+    'created_time', 'updated_time'
+  ].join(',');
+  const parentEdge = adsetId ? `${adsetId}/ads` : `${campaignId}/ads`;
+  const adUrl = `${GRAPH_API}/${parentEdge}?fields=${adFields}&limit=50&access_token=${TOKEN()}`;
+  const adData = await graphFetch(adUrl);
+  const ads = adData.data || [];
+
+  // Get insights at ad level
+  const insightFields = 'ad_id,impressions,reach,clicks,cpc,ctr,spend,actions,cost_per_action_type,frequency';
+  const insightUrl = `${GRAPH_API}/${parentId}/insights?fields=${insightFields}&date_preset=${datePreset}&level=ad&limit=100&access_token=${TOKEN()}`;
+  let insightData;
+  try { insightData = await graphFetch(insightUrl); } catch (e) { insightData = { data: [] }; }
+
+  const insightMap = {};
+  (insightData.data || []).forEach(row => { insightMap[row.ad_id] = row; });
+
+  const merged = ads.map(a => ({
+    ...a,
+    insights: insightMap[a.id] || null
+  }));
+
+  return jsonResponse(200, { ok: true, ads: merged });
 }
 
 
