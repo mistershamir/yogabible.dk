@@ -45,9 +45,20 @@ Commands:
 import os
 import sys
 import json
+import ssl
 import urllib.request
 import urllib.parse
 import urllib.error
+
+# Fix macOS SSL certificate issue — use certifi bundle if available
+try:
+    import certifi
+    SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+except ImportError:
+    SSL_CTX = ssl.create_default_context()
+HTTPS_HANDLER = urllib.request.HTTPSHandler(context=SSL_CTX)
+URL_OPENER = urllib.request.build_opener(HTTPS_HANDLER)
+urllib.request.install_opener(URL_OPENER)
 
 # ── Config ──────────────────────────────────────────────────
 
