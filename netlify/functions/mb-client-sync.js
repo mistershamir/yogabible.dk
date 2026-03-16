@@ -1,11 +1,13 @@
 /**
  * MindBody Client Sync — Yoga Bible
- * Syncs MindBody clients into an email list with enrichment data.
+ * Syncs MindBody clients and leads into email lists with enrichment data.
  *
- * POST ?action=preview          — Count total MB clients
- * POST ?action=sync&listId=X    — Full sync: all clients → email list
- * POST ?action=enrich&listId=X  — Enrich contacts with purchase/service data
- * POST ?action=auto-add         — Add a single new client (called internally)
+ * POST ?action=preview             — Count total MB clients
+ * POST ?action=sync&listId=X       — Full sync: all MB clients → email list
+ * POST ?action=enrich&listId=X     — Enrich contacts with purchase/service data
+ * POST ?action=auto-add            — Add a single new client (called internally)
+ * POST ?action=preview-leads       — Count total leads
+ * POST ?action=sync-leads&listId=X — Sync leads → email list with pipeline data
  */
 
 const { requireAuth } = require('./shared/auth');
@@ -25,11 +27,13 @@ exports.handler = async (event) => {
 
   try {
     switch (action) {
-      case 'preview':  return await handlePreview();
-      case 'sync':     return await handleSync(params);
-      case 'enrich':   return await handleEnrich(params);
-      case 'auto-add': return await handleAutoAdd(event);
-      default:         return jsonResponse(400, { ok: false, error: 'Unknown action' });
+      case 'preview':        return await handlePreview();
+      case 'sync':           return await handleSync(params);
+      case 'enrich':         return await handleEnrich(params);
+      case 'auto-add':       return await handleAutoAdd(event);
+      case 'preview-leads':  return await handlePreviewLeads();
+      case 'sync-leads':     return await handleSyncLeads(params);
+      default:               return jsonResponse(400, { ok: false, error: 'Unknown action' });
     }
   } catch (err) {
     console.error('[mb-client-sync] Error:', err);
@@ -416,4 +420,195 @@ async function handleAutoAdd(event) {
   }
 
   return jsonResponse(200, { ok: true, added });
+}
+
+// ─── LEAD SYNC ────────────────────────────────────────────────────────────────
+
+async function handlePreviewLeads() {
+  const db = getDb();
+  const snap = await db.collection('leads').select().get();
+
+  // Count by status bucket
+  let unconverted = 0;
+  let converted = 0;
+  const statusCounts = {};
+
+  // We need to re-query with data to count statuses
+  const fullSnap = await db.collection('leads').select('status', 'converted').get();
+  fullSnap.forEach(d => {
+    const data = d.data();
+    const status = data.status || 'New';
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+    if (data.converted) converted++;
+    else unconverted++;
+  });
+
+  return jsonResponse(200, {
+    ok: true,
+    totalLeads: snap.size,
+    unconverted,
+    converted,
+    statusCounts
+  });
+}
+
+async function handleSyncLeads(params) {
+  const listId = params.listId;
+  if (!listId) return jsonResponse(400, { ok: false, error: 'listId is required' });
+
+  const db = getDb();
+
+  // Verify list exists
+  const listDoc = await db.collection('email_lists').doc(listId).get();
+  if (!listDoc.exists) return jsonResponse(404, { ok: false, error: 'List not found' });
+
+  // Mark list as lead-synced
+  await db.collection('email_lists').doc(listId).update({
+    lead_auto_sync: true,
+    last_synced_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  });
+
+  // Fetch all leads
+  const leadSnap = await db.collection('leads').get();
+  const allLeads = [];
+  leadSnap.forEach(d => allLeads.push({ id: d.id, ...d.data() }));
+
+  // Fetch funnel data for abandoned checkout detection
+  const funnelSnap = await db.collection('lead_funnel').get();
+  const funnelByEmail = new Map();
+  funnelSnap.forEach(d => {
+    const data = d.data();
+    if (data.email) {
+      const email = data.email.toLowerCase();
+      if (!funnelByEmail.has(email)) funnelByEmail.set(email, []);
+      funnelByEmail.get(email).push(data);
+    }
+  });
+
+  // Get existing contacts in this list
+  const existingSnap = await db.collection('email_list_contacts')
+    .where('list_id', '==', listId)
+    .select('email', 'lead_id')
+    .get();
+  const existingByEmail = new Map();
+  const existingByLeadId = new Map();
+  existingSnap.forEach(d => {
+    const data = d.data();
+    if (data.email) existingByEmail.set(data.email.toLowerCase(), d.id);
+    if (data.lead_id) existingByLeadId.set(data.lead_id, d.id);
+  });
+
+  let imported = 0;
+  let updated = 0;
+  let skipped = 0;
+  const BATCH_SIZE = 400;
+
+  // Exclude leads with no email or unsubscribed
+  const validLeads = allLeads.filter(l => {
+    const email = (l.email || '').toLowerCase().trim();
+    return email && email.includes('@') && !l.unsubscribed;
+  });
+
+  for (let i = 0; i < validLeads.length; i += BATCH_SIZE) {
+    const chunk = validLeads.slice(i, i + BATCH_SIZE);
+    const batch = db.batch();
+
+    for (const lead of chunk) {
+      const email = lead.email.toLowerCase().trim();
+
+      // Build funnel info for this lead
+      const funnelEntries = funnelByEmail.get(email) || [];
+      const latestFunnel = funnelEntries.length > 0
+        ? funnelEntries.sort((a, b) => {
+            const ta = a.updatedAt ? new Date(a.updatedAt._seconds ? a.updatedAt._seconds * 1000 : a.updatedAt) : new Date(0);
+            const tb = b.updatedAt ? new Date(b.updatedAt._seconds ? b.updatedAt._seconds * 1000 : b.updatedAt) : new Date(0);
+            return tb - ta;
+          })[0]
+        : null;
+
+      // Build tags from lead data
+      const tags = ['lead'];
+      if (lead.type) tags.push(lead.type);
+      if (lead.temperature) tags.push(lead.temperature);
+      if (lead.converted) tags.push('converted');
+      if (latestFunnel && latestFunnel.funnel_stage === 'checkout_abandoned') tags.push('abandoned-checkout');
+      if (lead.status === 'New') tags.push('new-lead');
+
+      const contactData = {
+        email,
+        first_name: lead.first_name || '',
+        last_name: lead.last_name || '',
+        lead_id: lead.id,
+        lead_data: {
+          status: lead.status || 'New',
+          type: lead.type || '',
+          program: lead.program || lead.ytt_program_type || '',
+          ytt_program_type: lead.ytt_program_type || '',
+          temperature: lead.temperature || '',
+          source: lead.source || '',
+          channel: lead.channel || '',
+          converted: lead.converted || false,
+          converted_at: lead.converted_at || null,
+          phone: lead.phone || '',
+          city_country: lead.city_country || '',
+          lang: lead.lang || 'da',
+          lead_created_at: lead.created_at || null,
+          notes: lead.notes || '',
+          // Funnel data
+          funnel_stage: latestFunnel ? latestFunnel.funnel_stage : null,
+          funnel_product: latestFunnel ? latestFunnel.programName : null,
+          funnel_updated: latestFunnel && latestFunnel.updatedAt
+            ? new Date(latestFunnel.updatedAt._seconds ? latestFunnel.updatedAt._seconds * 1000 : latestFunnel.updatedAt).toISOString()
+            : null
+        },
+        lead_synced_at: new Date().toISOString()
+      };
+
+      // Check if contact already exists
+      const existingDocId = existingByLeadId.get(lead.id) || existingByEmail.get(email);
+
+      if (existingDocId) {
+        batch.update(db.collection('email_list_contacts').doc(existingDocId), {
+          ...contactData,
+          tags // update tags too
+        });
+        updated++;
+      } else {
+        const ref = db.collection('email_list_contacts').doc();
+        batch.set(ref, {
+          list_id: listId,
+          ...contactData,
+          tags,
+          status: lead.unsubscribed ? 'unsubscribed' : 'active',
+          created_at: new Date().toISOString(),
+          engagement: {
+            emails_sent: 0, emails_opened: 0, emails_clicked: 0,
+            last_sent_at: null, last_opened_at: null, last_clicked_at: null
+          }
+        });
+        imported++;
+      }
+    }
+
+    await batch.commit();
+  }
+
+  // Update list contact count
+  const newSnap = await db.collection('email_list_contacts')
+    .where('list_id', '==', listId)
+    .select()
+    .get();
+  await db.collection('email_lists').doc(listId).update({
+    contact_count: newSnap.size,
+    updated_at: new Date().toISOString()
+  });
+
+  return jsonResponse(200, {
+    ok: true,
+    totalLeads: validLeads.length,
+    imported,
+    updated,
+    skipped
+  });
 }

@@ -114,6 +114,9 @@
       // MindBody sync
       case 'el-mb-sync':        openMbSyncModal(); break;
       case 'el-mb-sync-close':  closeMbSyncModal(); break;
+      // Lead sync
+      case 'el-lead-sync':       openLeadSyncModal(); break;
+      case 'el-lead-sync-close': closeLeadSyncModal(); break;
       // Sub-navigation
       case 'el-subnav':         switchSubnav(action.getAttribute('data-subnav')); break;
       // Campaign reports
@@ -1398,6 +1401,119 @@
       $('yb-el-mb-sync-btn').textContent = 'Close';
       $('yb-el-mb-sync-btn').onclick = function () { closeMbSyncModal(); loadLists(); };
     });
+  }
+
+  /* ═══════════════════════════════════════════
+     LEAD SYNC
+     ═══════════════════════════════════════════ */
+  function openLeadSyncModal() {
+    var modal = $('yb-el-lead-sync-modal');
+    if (!modal) return;
+
+    $('yb-el-ls-step-list').hidden = false;
+    $('yb-el-ls-step-progress').hidden = true;
+    $('yb-el-ls-step-results').hidden = true;
+    $('yb-el-ls-preview').hidden = true;
+    $('yb-el-ls-sync-btn').disabled = true;
+    $('yb-el-ls-sync-btn').textContent = 'Start Sync';
+
+    // Populate list dropdown
+    var select = $('yb-el-ls-list-select');
+    select.innerHTML = '<option value="_new">+ Create new list "Leads &amp; Prospects"</option>';
+    lists.forEach(function (l) {
+      var opt = document.createElement('option');
+      opt.value = l.id;
+      opt.textContent = l.name + ' (' + (l.contact_count || 0) + ' contacts)';
+      if (l.lead_auto_sync) opt.textContent += ' [Lead synced]';
+      select.appendChild(opt);
+    });
+
+    // Auto-select existing lead-synced list
+    var leadList = lists.find(function (l) { return l.lead_auto_sync; });
+    if (leadList) select.value = leadList.id;
+
+    modal.hidden = false;
+
+    // Fetch preview
+    $('yb-el-ls-sync-btn').disabled = true;
+    $('yb-el-ls-sync-btn').textContent = 'Loading...';
+
+    api('POST', 'mb-client-sync?action=preview-leads').then(function (data) {
+      if (!data.ok) { toast('Preview failed', true); return; }
+      $('yb-el-ls-total').textContent = (data.totalLeads || 0).toLocaleString();
+      $('yb-el-ls-unconverted').textContent = (data.unconverted || 0).toLocaleString();
+      $('yb-el-ls-converted').textContent = (data.converted || 0).toLocaleString();
+      $('yb-el-ls-preview').hidden = false;
+      $('yb-el-ls-sync-btn').disabled = false;
+      $('yb-el-ls-sync-btn').textContent = 'Start Sync';
+    }).catch(function (err) {
+      toast('Error: ' + err.message, true);
+      $('yb-el-ls-sync-btn').disabled = false;
+      $('yb-el-ls-sync-btn').textContent = 'Start Sync';
+    });
+
+    $('yb-el-ls-sync-btn').onclick = function () { startLeadSync(); };
+  }
+
+  function closeLeadSyncModal() {
+    var modal = $('yb-el-lead-sync-modal');
+    if (modal) modal.hidden = true;
+  }
+
+  function startLeadSync() {
+    var selectedId = $('yb-el-ls-list-select').value;
+
+    $('yb-el-ls-step-list').hidden = true;
+    $('yb-el-ls-step-progress').hidden = false;
+    $('yb-el-ls-sync-btn').disabled = true;
+    $('yb-el-ls-sync-btn').textContent = 'Syncing...';
+    $('yb-el-ls-progress-fill').style.width = '10%';
+    $('yb-el-ls-progress-text').textContent = 'Preparing lead data...';
+
+    function runSync(listId) {
+      $('yb-el-ls-progress-fill').style.width = '40%';
+      $('yb-el-ls-progress-text').textContent = 'Importing leads with pipeline + funnel data...';
+
+      api('POST', 'mb-client-sync?action=sync-leads&listId=' + listId).then(function (data) {
+        if (!data.ok) { toast('Sync failed: ' + data.error, true); return; }
+
+        $('yb-el-ls-progress-fill').style.width = '100%';
+        $('yb-el-ls-progress-text').textContent = 'Done!';
+
+        setTimeout(function () {
+          $('yb-el-ls-step-progress').hidden = true;
+          $('yb-el-ls-step-results').hidden = false;
+
+          $('yb-el-ls-results-stats').innerHTML =
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (data.totalLeads || 0) + '</span><span class="yb-admin__stat-label">Total Leads</span></div>' +
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value" style="color:#2E7D32;">' + (data.imported || 0) + '</span><span class="yb-admin__stat-label">New Contacts</span></div>' +
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (data.updated || 0) + '</span><span class="yb-admin__stat-label">Updated</span></div>';
+
+          $('yb-el-ls-sync-btn').disabled = false;
+          $('yb-el-ls-sync-btn').textContent = 'Done';
+          $('yb-el-ls-sync-btn').onclick = function () { closeLeadSyncModal(); loadLists(); };
+        }, 500);
+      }).catch(function (err) {
+        toast('Sync error: ' + err.message, true);
+        $('yb-el-ls-sync-btn').disabled = false;
+        $('yb-el-ls-sync-btn').textContent = 'Retry';
+      });
+    }
+
+    if (selectedId === '_new') {
+      $('yb-el-ls-progress-text').textContent = 'Creating list...';
+      api('POST', 'email-lists', {
+        name: 'Leads & Prospects',
+        description: 'Auto-synced from lead pipeline. Includes funnel data, program interest, and pipeline status.',
+        tags: ['leads', 'auto-sync', 'prospects'],
+        source: 'leads'
+      }).then(function (data) {
+        if (!data.ok) { toast('Failed to create list', true); return; }
+        runSync(data.listId || data.id);
+      }).catch(function (err) { toast('Error: ' + err.message, true); });
+    } else {
+      runSync(selectedId);
+    }
   }
 
   function resendToCampaignAudience(audience) {
