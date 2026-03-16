@@ -14,6 +14,24 @@ const { jsonResponse, optionsResponse } = require('./shared/utils');
 
 var STEP_UPDATES = [
   {
+    name: 'April 4W Intensive (fix refund)',
+    id: 'ZwvSVLsqRZcIv8C0IG0y',
+    stepIndex: 0,
+    email_subject: 'Hej {{first_name}} \u2014 stadig interesseret?',
+    email_body:
+      '<p>Hej {{first_name}},</p>' +
+      '<p>Du kiggede p\u00e5 vores 4-ugers yogal\u00e6reruddannelse for et stykke tid siden, og jeg ville lige f\u00f8lge op.</p>' +
+      '<p>April-holdet starter om 3 uger, og vi har kun f\u00e5 pladser tilbage. Maks 12 elever \u2014 og vi er t\u00e6t p\u00e5.</p>' +
+      '<p>Kort om uddannelsen:<br>' +
+      '4 ugers fuldtids-intensiv i vores studio i Christianshavn<br>' +
+      'Yoga Alliance RYT-200 certificering<br>' +
+      'The Triangle Method \u2014 Hatha, Vinyasa, Yin + Hot Yoga + Meditation<br>' +
+      'Maks 12 elever pr. hold</p>' +
+      '<p>Du kan starte med <strong>Forberedelsesfasen</strong> \u2014 3.750 kr., som giver dig 30 yogaklasser i studiet med det samme. Bel\u00f8bet tr\u00e6kkes fra den fulde pris.</p>' +
+      '<p style="margin:24px 0;"><a href="https://yogabible.dk/200-hours-4-weeks-intensive-programs?product=100121" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:999px;font-weight:600;font-size:16px;">Start Forberedelsesfasen \u2192</a></p>' +
+      '<p>Ring eller skriv hvis du har sp\u00f8rgsm\u00e5l \u2014 jeg svarer gerne.</p>'
+  },
+  {
     name: '18W Flexible Aug–Dec',
     id: 'ab2dSOrmaQnneUyRojCf',
     stepIndex: 0,
@@ -27,7 +45,7 @@ var STEP_UPDATES = [
       'Hverdagshold ELLER weekendhold (du kan skifte mellem dem undervejs)<br>' +
       'Hatha, Vinyasa, Yin + Hot Yoga + Meditation<br>' +
       'Maks 24 elever fordelt p\u00e5 begge hold</p>' +
-      '<p>Du kan starte med <strong>Forberedelsesfasen</strong> \u2014 3.750 kr., som giver dig 30 yogaklasser med det samme. Bel\u00f8bet tr\u00e6kkes fra den fulde pris, og du f\u00e5r fuld refusion hvis du ombestemmer dig.</p>' +
+      '<p>Du kan starte med <strong>Forberedelsesfasen</strong> \u2014 3.750 kr., som giver dig 30 yogaklasser med det samme. Bel\u00f8bet tr\u00e6kkes fra den fulde pris.</p>' +
       '<p style="margin:24px 0;"><a href="https://yogabible.dk/200-hours-18-weeks-flexible-programs?product=100210" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:999px;font-weight:600;font-size:16px;">Start Forberedelsesfasen \u2192</a></p>' +
       '<p>Skriv eller ring hvis du har sp\u00f8rgsm\u00e5l \u2014 jeg svarer gerne.</p>'
   },
@@ -45,7 +63,7 @@ var STEP_UPDATES = [
       '8-ugers semi-intensiv (maj\u2013juni) \u2014 weekender, ved siden af dit job<br>' +
       '4-ugers Vinyasa Plus (juli) \u2014 70% Vinyasa, sommer i K\u00f8benhavn<br>' +
       '18-ugers fleksibelt (august\u2013december) \u2014 hverdag eller weekend, du v\u00e6lger</p>' +
-      '<p>Alle er Yoga Alliance RYT-200. Alle starter med <strong>Forberedelsesfasen</strong> (3.750 kr., fuld refusion, 30 yogaklasser).</p>' +
+      '<p>Alle er Yoga Alliance RYT-200. Alle starter med <strong>Forberedelsesfasen</strong> (3.750 kr., 30 yogaklasser).</p>' +
       '<p>Ikke sikker p\u00e5 hvilken der passer dig? Vi har lavet en side der sammenligner dem:</p>' +
       '<p style="margin:24px 0;"><a href="https://yogabible.dk/sammenlign-yogalreruddannelser" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:999px;font-weight:600;font-size:16px;">Sammenlign programmer \u2192</a></p>' +
       '<p>Ring eller skriv hvis du vil snakke det igennem \u2014 jeg hj\u00e6lper gerne.</p>'
@@ -64,7 +82,7 @@ var STEP_UPDATES = [
       'Yoga Alliance RYT-200 certificering<br>' +
       'The Triangle Method \u2014 Hatha, Vinyasa, Yin + Hot Yoga + Meditation<br>' +
       'Maks 12 elever</p>' +
-      '<p>Du kan starte med <strong>Forberedelsesfasen</strong> \u2014 3.750 kr., som giver dig 30 yogaklasser med det samme. Bel\u00f8bet tr\u00e6kkes fra den fulde pris, og du f\u00e5r fuld refusion hvis du ombestemmer dig.</p>' +
+      '<p>Du kan starte med <strong>Forberedelsesfasen</strong> \u2014 3.750 kr., som giver dig 30 yogaklasser med det samme. Bel\u00f8bet tr\u00e6kkes fra den fulde pris.</p>' +
       '<p style="margin:24px 0;"><a href="https://yogabible.dk/200-hours-8-weeks-semi-intensive-programs?product=100209" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:999px;font-weight:600;font-size:16px;">Start Forberedelsesfasen \u2192</a></p>' +
       '<p>Skriv eller ring hvis du har sp\u00f8rgsm\u00e5l.</p>'
   }
