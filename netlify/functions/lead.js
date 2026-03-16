@@ -169,9 +169,9 @@ function processLead(payload, action) {
         ...base,
         type: 'ytt',
         ytt_program_type: '18-week',
-        program: payload.program || '18-Week Flexible YTT (Feb–June 2026)',
+        program: payload.program || '18-Week Flexible YTT (March–June 2026)',
         course_id: '',
-        cohort_label: 'Feb–June 2026',
+        cohort_label: 'March–June 2026',
         preferred_month: '',
         accommodation: normalizeYesNo(payload.housing || payload.accommodation || 'No'),
         city_country: payload.origin || payload.cityCountry || '',
@@ -265,7 +265,7 @@ function processLead(payload, action) {
         '4-week': '4-Week Intensive (April 2026)',
         '4-week-jul': '4-Week Vinyasa Plus (July 2026)',
         '8-week': '8-Week Semi-Intensive (May–June 2026)',
-        '18-week': '18-Week Flexible (Feb–June 2026)',
+        '18-week': '18-Week Flexible (March–June 2026)',
         '18-week-aug': '18-Week Flexible (August–December 2026)'
       };
       const displayNames = programTypes.map(t => displayMap[t] || t);
