@@ -14,6 +14,8 @@
   var currentContacts = [];
   var csvData = null; // parsed CSV rows
   var csvHeaders = []; // CSV column headers
+  var inlineCsvData = null; // CSV data for inline (new list) upload
+  var inlineCsvHeaders = []; // headers for inline upload
   var contactPage = 0;
   var CONTACTS_PER_PAGE = 50;
   var contactSearch = '';
@@ -149,6 +151,9 @@
     if (e.target.id === 'yb-el-select-all') {
       var boxes = document.querySelectorAll('.yb-el__contact-cb');
       boxes.forEach(function (cb) { cb.checked = e.target.checked; });
+    }
+    if (e.target.id === 'yb-el-list-source') {
+      toggleInlineCsv(e.target.value === 'csv');
     }
   }
 
@@ -344,6 +349,10 @@
     $('yb-el-list-source').value = 'squarespace';
     $('yb-el-list-modal-title').textContent = 'New List';
 
+    // Reset inline CSV state
+    resetInlineCsv();
+    toggleInlineCsv(false);
+
     if (editId) {
       var list = lists.find(function (l) { return l.id === editId; });
       if (list) {
@@ -353,6 +362,7 @@
         $('yb-el-list-tags').value = (list.tags || []).join(', ');
         $('yb-el-list-source').value = list.source || 'manual';
         $('yb-el-list-modal-title').textContent = 'Edit List';
+        toggleInlineCsv(list.source === 'csv');
       }
     }
 
@@ -395,10 +405,76 @@
         else toast('Error: ' + data.error, true);
       }).catch(function () { resetBtn(); toast('Network error', true); });
     } else {
+      // Check if we have inline CSV to import after creation
+      var inlineContacts = (body.source === 'csv' && inlineCsvData) ? buildInlineContacts() : null;
+
       api('POST', 'email-lists', body).then(function (data) {
-        resetBtn();
-        if (data.ok) { toast('List created'); closeListModal(); loadLists(); }
-        else toast('Error: ' + data.error, true);
+        if (!data.ok) { resetBtn(); toast('Error: ' + data.error, true); return; }
+
+        var newListId = data.listId || data.id;
+
+        // If no CSV data, just close
+        if (!inlineContacts || inlineContacts.length === 0) {
+          resetBtn();
+          toast('List created');
+          closeListModal();
+          resetInlineCsv();
+          loadLists();
+          return;
+        }
+
+        // Import CSV contacts into the newly created list
+        toast('List created — importing ' + inlineContacts.length + ' contacts...');
+        var progressDiv = $('yb-el-inline-progress');
+        var progressFill = $('yb-el-inline-progress-fill');
+        var progressText = $('yb-el-inline-progress-text');
+        if (progressDiv) progressDiv.hidden = false;
+
+        var CHUNK = 500;
+        var totalImported = 0;
+        var totalSkipped = 0;
+        var totalInvalid = 0;
+        var chunks = [];
+        for (var i = 0; i < inlineContacts.length; i += CHUNK) {
+          chunks.push(inlineContacts.slice(i, i + CHUNK));
+        }
+
+        var idx = 0;
+        function sendChunk() {
+          if (idx >= chunks.length) {
+            if (progressFill) progressFill.style.width = '100%';
+            if (progressText) progressText.textContent = 'Done! Imported: ' + totalImported + ', Skipped: ' + totalSkipped + ', Invalid: ' + totalInvalid;
+            resetBtn();
+            setTimeout(function () {
+              closeListModal();
+              resetInlineCsv();
+              loadLists();
+              toast('Import complete: ' + totalImported + ' contacts added');
+            }, 1200);
+            return;
+          }
+
+          api('POST', 'email-lists?action=import', {
+            listId: newListId,
+            contacts: chunks[idx]
+          }).then(function (res) {
+            if (res.ok) {
+              totalImported += res.imported || 0;
+              totalSkipped += res.skipped || 0;
+              totalInvalid += res.invalid || 0;
+            }
+            idx++;
+            var pct = Math.round((idx / chunks.length) * 100);
+            if (progressFill) progressFill.style.width = pct + '%';
+            if (progressText) progressText.textContent = 'Importing... (' + idx + '/' + chunks.length + ' batches)';
+            sendChunk();
+          }).catch(function (err) {
+            resetBtn();
+            toast('Import error: ' + err.message, true);
+          });
+        }
+        sendChunk();
+
       }).catch(function () { resetBtn(); toast('Network error', true); });
     }
   }
@@ -490,7 +566,131 @@
   }
 
   /* ═══════════════════════════════════════════
-     CSV IMPORT
+     INLINE CSV (New List modal)
+     ═══════════════════════════════════════════ */
+  function toggleInlineCsv(show) {
+    var section = $('yb-el-inline-csv');
+    if (!section) return;
+    section.hidden = !show;
+    if (show) setupInlineDrop();
+    if (!show) { inlineCsvData = null; inlineCsvHeaders = []; }
+  }
+
+  var _inlineDropBound = false;
+  function setupInlineDrop() {
+    if (_inlineDropBound) return;
+    _inlineDropBound = true;
+
+    var drop = $('yb-el-inline-drop');
+    var fileInput = $('yb-el-inline-file');
+    if (!drop || !fileInput) return;
+
+    drop.onclick = function () { fileInput.click(); };
+    drop.ondragover = function (e) { e.preventDefault(); drop.classList.add('yb-el__drop-zone--active'); };
+    drop.ondragleave = function () { drop.classList.remove('yb-el__drop-zone--active'); };
+    drop.ondrop = function (e) {
+      e.preventDefault();
+      drop.classList.remove('yb-el__drop-zone--active');
+      if (e.dataTransfer.files.length > 0) handleInlineFile(e.dataTransfer.files[0]);
+    };
+    fileInput.onchange = function () {
+      if (fileInput.files.length > 0) handleInlineFile(fileInput.files[0]);
+    };
+  }
+
+  function handleInlineFile(file) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      parseInlineCsv(e.target.result, file.name);
+    };
+    reader.readAsText(file);
+  }
+
+  function parseInlineCsv(text, filename) {
+    var lines = text.split(/\r?\n/).filter(function (l) { return l.trim(); });
+    if (lines.length < 2) { toast('CSV must have a header row + at least 1 data row', true); return; }
+
+    var firstLine = lines[0];
+    var delimiter = ',';
+    if (firstLine.indexOf(';') > -1 && firstLine.indexOf(',') === -1) delimiter = ';';
+    if (firstLine.indexOf('\t') > -1 && firstLine.indexOf(',') === -1 && firstLine.indexOf(';') === -1) delimiter = '\t';
+
+    inlineCsvHeaders = parseLine(firstLine, delimiter).map(function (h) { return h.trim().toLowerCase(); });
+    inlineCsvData = [];
+    for (var i = 1; i < lines.length; i++) {
+      var vals = parseLine(lines[i], delimiter);
+      if (vals.length === 0) continue;
+      var row = {};
+      inlineCsvHeaders.forEach(function (h, idx) { row[h] = (vals[idx] || '').trim(); });
+      inlineCsvData.push(row);
+    }
+
+    // Show preview
+    var drop = $('yb-el-inline-drop');
+    if (drop) drop.hidden = true;
+    var preview = $('yb-el-inline-preview');
+    if (preview) preview.hidden = false;
+
+    // File info
+    var info = $('yb-el-inline-file-info');
+    if (info) info.innerHTML = '<strong>' + esc(filename) + '</strong> — ' + inlineCsvData.length + ' rows &nbsp;<a href="#" id="yb-el-inline-reset" style="color:#f75c03;">Change file</a>';
+    var resetLink = document.getElementById('yb-el-inline-reset');
+    if (resetLink) resetLink.onclick = function (e) { e.preventDefault(); resetInlineCsv(); };
+
+    // Preview table (first 3 rows)
+    var headRow = $('yb-el-inline-head');
+    headRow.innerHTML = inlineCsvHeaders.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('');
+    var body = $('yb-el-inline-body');
+    body.innerHTML = inlineCsvData.slice(0, 3).map(function (row) {
+      return '<tr>' + inlineCsvHeaders.map(function (h) { return '<td>' + esc(row[h] || '') + '</td>'; }).join('') + '</tr>';
+    }).join('');
+
+    // Column mapping
+    var opts = '<option value="">(skip)</option>' +
+      inlineCsvHeaders.map(function (h) { return '<option value="' + esc(h) + '">' + esc(h) + '</option>'; }).join('');
+    $('yb-el-inline-map-email').innerHTML = opts;
+    $('yb-el-inline-map-first').innerHTML = opts;
+    $('yb-el-inline-map-last').innerHTML = opts;
+
+    var emailGuesses = ['email', 'e-mail', 'email_address', 'emailaddress', 'mail'];
+    var firstGuesses = ['first_name', 'firstname', 'first name', 'fornavn', 'first', 'name'];
+    var lastGuesses = ['last_name', 'lastname', 'last name', 'efternavn', 'last', 'surname'];
+    autoSelect('yb-el-inline-map-email', emailGuesses);
+    autoSelect('yb-el-inline-map-first', firstGuesses);
+    autoSelect('yb-el-inline-map-last', lastGuesses);
+  }
+
+  function resetInlineCsv() {
+    inlineCsvData = null;
+    inlineCsvHeaders = [];
+    var drop = $('yb-el-inline-drop');
+    if (drop) drop.hidden = false;
+    var preview = $('yb-el-inline-preview');
+    if (preview) preview.hidden = true;
+    var prog = $('yb-el-inline-progress');
+    if (prog) prog.hidden = true;
+    var fileInput = $('yb-el-inline-file');
+    if (fileInput) fileInput.value = '';
+  }
+
+  function buildInlineContacts() {
+    if (!inlineCsvData) return null;
+    var emailCol = $('yb-el-inline-map-email').value;
+    var firstCol = $('yb-el-inline-map-first').value;
+    var lastCol = $('yb-el-inline-map-last').value;
+    if (!emailCol) { toast('Email column mapping is required', true); return null; }
+
+    return inlineCsvData.map(function (row) {
+      return {
+        email: row[emailCol] || '',
+        first_name: firstCol ? (row[firstCol] || '') : '',
+        last_name: lastCol ? (row[lastCol] || '') : ''
+      };
+    }).filter(function (c) { return c.email && c.email.includes('@'); });
+  }
+
+  /* ═══════════════════════════════════════════
+     CSV IMPORT (detail view modal)
      ═══════════════════════════════════════════ */
   function openImportModal() {
     if (!currentList) { toast('Open a list first', true); return; }

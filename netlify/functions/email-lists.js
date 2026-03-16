@@ -70,7 +70,6 @@ async function handleGet(db, params) {
     if (params.contacts === '1') {
       const contactSnap = await db.collection('email_list_contacts')
         .where('list_id', '==', params.id)
-        .orderBy('created_at', 'desc')
         .limit(10000)
         .get();
       list.contacts = [];

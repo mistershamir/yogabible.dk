@@ -653,6 +653,9 @@
   border-color: #f75c03; background: rgba(247,92,3,0.03);
 }
 .yb-el__drop-zone p { margin: 8px 0 0; color: #6F6A66; }
+.yb-el__drop-zone--inline { padding: 1.2rem; }
+.yb-el__drop-zone--inline p { font-size: 13px; }
+.yb-el__inline-file-info { background: #F5F3F0; border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; color: #0F0F0F; }
 .yb-el__progress-bar {
   height: 8px; background: #E8E4E0; border-radius: 4px; overflow: hidden;
 }
