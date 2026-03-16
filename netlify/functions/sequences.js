@@ -16,38 +16,15 @@
  * POST   /.netlify/functions/sequences?action=process                 — process all due sequence steps (scheduler)
  */
 
-const nodemailer = require('nodemailer');
 const { getDb, serverTimestamp } = require('./shared/firestore');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse, buildUnsubscribeUrl } = require('./shared/utils');
-const { getSignatureHtml, getEnglishNoteHtml, getUnsubscribeFooterHtml } = require('./shared/email-service');
+const { sendSingleViaResend } = require('./shared/resend-service');
 
 const SEQUENCES_COL = 'sequences';
 const ENROLLMENTS_COL = 'sequence_enrollments';
 const ALLOWED_FIELDS = ['name', 'description', 'active', 'trigger', 'exit_conditions', 'steps'];
 const GATEWAYAPI_ENDPOINT = 'https://gatewayapi.eu/rest/mtsms';
-
-// ── Gmail transporter (lazy singleton) ──────────────────────────────────────
-
-let transporter = null;
-
-function getTransporter() {
-  if (transporter) return transporter;
-
-  const user = process.env.GMAIL_USER;
-  const pass = process.env.GMAIL_APP_PASSWORD;
-
-  if (!user || !pass) {
-    throw new Error('GMAIL_USER / GMAIL_APP_PASSWORD env vars not set');
-  }
-
-  transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user, pass }
-  });
-
-  return transporter;
-}
 
 // ── Handler ─────────────────────────────────────────────────────────────────
 
@@ -777,33 +754,15 @@ function substituteVars(template, vars) {
 
 async function sendSequenceEmail(to, subject, bodyHtml) {
   try {
-    var transport = getTransporter();
-    var from = process.env.GMAIL_USER;
-
-    // Wrap body with English note, signature, and unsubscribe footer
-    // This ensures every sequence email has an unsubscribe link,
-    // even if the admin-authored HTML doesn't include one.
-    var wrappedHtml = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#1a1a1a;">' +
-      bodyHtml +
-      getEnglishNoteHtml() +
-      getSignatureHtml() +
-      getUnsubscribeFooterHtml(to) +
-      '</div>';
-
-    var unsubUrl = buildUnsubscribeUrl(to);
-
-    await transport.sendMail({
-      from: '"Yoga Bible" <' + from + '>',
-      to: to,
-      subject: subject,
-      html: wrappedHtml,
-      headers: {
-        'List-Unsubscribe': '<' + unsubUrl + '>',
-        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
-      }
+    // sendSingleViaResend auto-wraps with English note, signature,
+    // unsubscribe footer, and List-Unsubscribe headers.
+    var result = await sendSingleViaResend({
+      to,
+      subject,
+      bodyHtml,
+      bodyPlain: ''
     });
-
-    return { success: true };
+    return { success: true, messageId: result.messageId };
   } catch (err) {
     console.error('[sequences] Email send error:', err.message);
     return { success: false, error: err.message };
