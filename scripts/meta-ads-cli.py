@@ -86,7 +86,14 @@ TOKEN = None
 
 
 def load_token():
-    """Load META_ACCESS_TOKEN from ads-agent/.env or repo .env."""
+    """Load META_ACCESS_TOKEN from multiple locations (first match wins).
+
+    Search order:
+      1. META_ACCESS_TOKEN environment variable
+      2. ~/.config/meta-ads/token  (global — works across all Claude sessions)
+      3. ads-agent/.env  (repo-local)
+      4. .env  (repo-local)
+    """
     global TOKEN
     if TOKEN:
         return TOKEN
@@ -96,7 +103,16 @@ def load_token():
     if TOKEN:
         return TOKEN
 
-    # Try ads-agent/.env
+    # Try global config file (~/.config/meta-ads/token)
+    global_token_path = os.path.join(os.path.expanduser('~'), '.config', 'meta-ads', 'token')
+    if os.path.exists(global_token_path):
+        with open(global_token_path) as f:
+            val = f.read().strip()
+            if val and val != '...':
+                TOKEN = val
+                return TOKEN
+
+    # Try repo-local .env files
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     for env_path in [
         os.path.join(repo_root, 'ads-agent', '.env'),
@@ -112,7 +128,10 @@ def load_token():
                             return TOKEN
 
     print('ERROR: META_ACCESS_TOKEN not found.')
-    print('Set it in ads-agent/.env or as environment variable.')
+    print('Set it in one of these locations:')
+    print('  1. ~/.config/meta-ads/token  (global, recommended)')
+    print('  2. ads-agent/.env            (repo-local)')
+    print('  3. META_ACCESS_TOKEN env var')
     sys.exit(1)
 
 
