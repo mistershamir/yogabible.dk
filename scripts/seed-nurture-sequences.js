@@ -103,9 +103,9 @@ const SEQUENCES = [
   // ── 2. April 4W Intensive — Conversion Push ─────────────────────────────
   {
     name: 'April 4W Intensive — Conversion Push',
-    description: 'Urgency sequence for April 4-week intensive. Manual enrollment for interested leads.',
+    description: 'Urgency sequence for April 4-week intensive. Auto-enrolled for 4-week leads.',
     active: true,
-    trigger: { type: 'manual', conditions: {} },
+    trigger: { type: 'new_lead', conditions: { ytt_program_type: '4-week' } },
     exit_conditions: ['converted', 'unsubscribed', 'lost', 'enrolled'],
     steps: [
       {
@@ -132,7 +132,7 @@ const SEQUENCES = [
     name: 'July Vinyasa Plus — International Nurture',
     description: 'Summer lifestyle + logistics nurture for July Vinyasa Plus international leads.',
     active: true,
-    trigger: { type: 'manual', conditions: {} },
+    trigger: { type: 'new_lead', conditions: { ytt_program_type: '4-week-jul' } },
     exit_conditions: ['converted', 'unsubscribed', 'lost', 'enrolled'],
     steps: [
       {
@@ -173,9 +173,9 @@ const SEQUENCES = [
   // ── 4. 8W Semi-Intensive — DK Nurture ──────────────────────────────────
   {
     name: '8W Semi-Intensive May–Jun — DK Nurture',
-    description: 'Denmark-focused nurture for 8-week semi-intensive. "Same cert, half the time" angle.',
+    description: 'Denmark-focused nurture for 8-week semi-intensive. Auto-enrolled for 8-week leads.',
     active: true,
-    trigger: { type: 'manual', conditions: {} },
+    trigger: { type: 'new_lead', conditions: { ytt_program_type: '8-week' } },
     exit_conditions: ['converted', 'unsubscribed', 'lost', 'enrolled'],
     steps: [
       {
@@ -208,9 +208,9 @@ const SEQUENCES = [
   // ── 5. 18W Flexible Aug–Dec — DK Nurture ───────────────────────────────
   {
     name: '18W Flexible Aug–Dec — DK Nurture',
-    description: 'Denmark-focused nurture for 18-week flexible. "March SOLD OUT" social proof.',
+    description: 'Denmark-focused nurture for 18-week flexible. Auto-enrolled for 18-week-aug leads.',
     active: true,
-    trigger: { type: 'manual', conditions: {} },
+    trigger: { type: 'new_lead', conditions: { ytt_program_type: '18-week-aug' } },
     exit_conditions: ['converted', 'unsubscribed', 'lost', 'enrolled'],
     steps: [
       {
