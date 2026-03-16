@@ -628,14 +628,21 @@
       'Are you sure you want to change status to ' + newStatus + '?'
     ))) return;
 
+    var btn = document.querySelector('[data-status-action][data-entity-id="' + entityId + '"]');
+    if (btn) { btn.disabled = true; btn.classList.add('yb-btn--muted'); }
+
     api('POST', { action: 'update-status' }, { id: entityId, status: newStatus }).then(function (data) {
       if (data.ok) {
         toast(t('Status opdateret', 'Status updated'));
         refreshCurrentView();
       } else {
         toast(data.error || t('Fejl', 'Error'), true);
+        if (btn) { btn.disabled = false; btn.classList.remove('yb-btn--muted'); }
       }
-    }).catch(function () { toast(t('Netværksfejl', 'Network error'), true); });
+    }).catch(function () {
+      toast(t('Netværksfejl', 'Network error'), true);
+      if (btn) { btn.disabled = false; btn.classList.remove('yb-btn--muted'); }
+    });
   }
 
   function handleBudgetEdit(entityId, level, currentDaily, currentLifetime) {
@@ -658,19 +665,29 @@
     if (isDaily) body.daily_budget = num;
     else body.lifetime_budget = num;
 
+    var budgetBtn = document.querySelector('[data-budget-action][data-entity-id="' + entityId + '"]');
+    if (budgetBtn) { budgetBtn.disabled = true; budgetBtn.classList.add('yb-btn--muted'); }
+
     api('POST', { action: 'update-budget' }, body).then(function (data) {
       if (data.ok) {
         toast(t('Budget opdateret', 'Budget updated'));
         refreshCurrentView();
       } else {
         toast(data.error || t('Fejl', 'Error'), true);
+        if (budgetBtn) { budgetBtn.disabled = false; budgetBtn.classList.remove('yb-btn--muted'); }
       }
-    }).catch(function () { toast(t('Netværksfejl', 'Network error'), true); });
+    }).catch(function () {
+      toast(t('Netværksfejl', 'Network error'), true);
+      if (budgetBtn) { budgetBtn.disabled = false; budgetBtn.classList.remove('yb-btn--muted'); }
+    });
   }
 
   function handleDuplicate(entityId, level) {
     if (!confirm(t('Dupliker denne ' + (level === 'campaign' ? 'kampagne' : 'annoncegruppe') + '?',
       'Duplicate this ' + level + '?'))) return;
+
+    var dupBtn = document.querySelector('[data-duplicate-action][data-entity-id="' + entityId + '"]');
+    if (dupBtn) { dupBtn.disabled = true; dupBtn.classList.add('yb-btn--muted'); }
 
     api('POST', { action: 'duplicate' }, { id: entityId, level: level }).then(function (data) {
       if (data.ok) {
@@ -678,8 +695,12 @@
         refreshCurrentView();
       } else {
         toast(data.error || t('Fejl', 'Error'), true);
+        if (dupBtn) { dupBtn.disabled = false; dupBtn.classList.remove('yb-btn--muted'); }
       }
-    }).catch(function () { toast(t('Netværksfejl', 'Network error'), true); });
+    }).catch(function () {
+      toast(t('Netværksfejl', 'Network error'), true);
+      if (dupBtn) { dupBtn.disabled = false; dupBtn.classList.remove('yb-btn--muted'); }
+    });
   }
 
   function handleAdPreview(adId) {
