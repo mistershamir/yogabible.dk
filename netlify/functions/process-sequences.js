@@ -8,7 +8,7 @@
 const FETCH_TIMEOUT = 55000; // 55s timeout (function has 60s)
 
 exports.handler = async (event) => {
-  const url = process.env.URL || 'https://yogabible.dk';
+  const url = 'https://yogabible.dk';
   const secret = process.env.AI_INTERNAL_SECRET;
 
   if (!secret) {
