@@ -79,7 +79,7 @@ function resendPost(path, body) {
 
 // ─── Build a single Resend message payload ───────────────────────────────────
 
-function buildResendMessage({ to, subject, html, text, fromEmail, campaignId }) {
+function buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc }) {
   var senderEmail = fromEmail || process.env.GMAIL_USER || CONFIG.EMAIL_FROM;
   var senderName = fromEmail && fromEmail.includes('hotyogacph') ? 'Hot Yoga CPH' : CONFIG.FROM_NAME;
   const from = fromEmail
@@ -103,6 +103,11 @@ function buildResendMessage({ to, subject, html, text, fromEmail, campaignId }) 
       'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
     }
   };
+
+  // BCC for owner copy
+  if (bcc) {
+    message.bcc = Array.isArray(bcc) ? bcc : [bcc];
+  }
 
   // Attach campaign ID as tag so Resend webhooks can link events back
   if (campaignId) {
@@ -158,11 +163,11 @@ function wrapText(bodyPlain, recipientEmail) {
 
 // ─── Send a single email via Resend ──────────────────────────────────────────
 
-async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, campaignId, fromEmail }) {
+async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, campaignId, fromEmail, bcc }) {
   const html = wrapHtml(bodyHtml, to, campaignId);
   const text = wrapText(bodyPlain || '', to);
 
-  const message = buildResendMessage({ to, subject, html, text, fromEmail, campaignId });
+  const message = buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc });
   const result = await resendPost('/emails', message);
 
   await logResendEmail({ to, subject, leadId, messageId: result.id, campaignId });

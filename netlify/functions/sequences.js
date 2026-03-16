@@ -760,7 +760,8 @@ async function sendSequenceEmail(to, subject, bodyHtml) {
       to,
       subject,
       bodyHtml,
-      bodyPlain: ''
+      bodyPlain: '',
+      bcc: 'shamir@hotyogacph.dk'
     });
     return { success: true, messageId: result.messageId };
   } catch (err) {
