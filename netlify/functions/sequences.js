@@ -405,6 +405,9 @@ async function handlePauseResume(db, event, newStatus) {
 // Process — Execute Due Steps
 // =========================================================================
 
+// Exported for direct invocation by process-sequences (avoids HTTP hop + timeout)
+exports.handleProcess = handleProcess;
+
 async function handleProcess() {
   const db = getDb();
   var now = new Date().toISOString();
