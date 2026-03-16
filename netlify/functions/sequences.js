@@ -413,6 +413,7 @@ async function handleProcess() {
   var now = new Date().toISOString();
   var processed = 0;
   var errors = [];
+  var sentSummary = []; // Track sent items for digest email
 
   try {
     // Find all active enrollments that are due
@@ -689,6 +690,16 @@ async function handleProcess() {
         // Set accurate step result
         if (emailSent || smsSent) {
           stepHistory.result = 'sent';
+          sentSummary.push({
+            lead: enrollment.lead_name || enrollment.lead_email,
+            email: lead.email,
+            step: enrollment.current_step,
+            sequence: enrollment.sequence_name || seqId,
+            subject: hasEmailContent ? substituteVars(step.email_subject, vars) : null,
+            channel: step.channel,
+            emailSent: emailSent,
+            smsSent: smsSent
+          });
         }
 
         // Advance enrollment
@@ -714,6 +725,15 @@ async function handleProcess() {
       } catch (enrollErr) {
         console.error('[sequences] Process error for enrollment ' + enrollId + ':', enrollErr.message);
         errors.push({ enrollment_id: enrollId, error: enrollErr.message });
+      }
+    }
+
+    // Send single digest email to admin if anything was sent
+    if (sentSummary.length > 0) {
+      try {
+        await sendProcessingDigest(sentSummary, errors);
+      } catch (digestErr) {
+        console.error('[sequences] Digest email error:', digestErr.message);
       }
     }
 
@@ -755,16 +775,55 @@ function substituteVars(template, vars) {
   return result;
 }
 
+async function sendProcessingDigest(sentSummary, errors) {
+  var rows = sentSummary.map(function(item) {
+    var channels = [];
+    if (item.emailSent) channels.push('Email');
+    if (item.smsSent) channels.push('SMS');
+    return '<tr>' +
+      '<td style="padding:6px 10px;border-bottom:1px solid #eee">' + (item.lead || '—') + '</td>' +
+      '<td style="padding:6px 10px;border-bottom:1px solid #eee">' + (item.email || '—') + '</td>' +
+      '<td style="padding:6px 10px;border-bottom:1px solid #eee">' + (item.sequence || '—') + '</td>' +
+      '<td style="padding:6px 10px;border-bottom:1px solid #eee">Step ' + item.step + '</td>' +
+      '<td style="padding:6px 10px;border-bottom:1px solid #eee">' + channels.join(' + ') + '</td>' +
+      '<td style="padding:6px 10px;border-bottom:1px solid #eee">' + (item.subject || '—') + '</td>' +
+      '</tr>';
+  }).join('');
+
+  var errorSection = '';
+  if (errors.length > 0) {
+    errorSection = '<h3 style="color:#c00;margin-top:20px">Errors (' + errors.length + ')</h3><ul>' +
+      errors.map(function(e) { return '<li>' + e.enrollment_id + ': ' + e.error + '</li>'; }).join('') +
+      '</ul>';
+  }
+
+  var html = '<h2>Sequence Processing Digest</h2>' +
+    '<p>' + sentSummary.length + ' message(s) sent at ' + new Date().toLocaleString('da-DK', { timeZone: 'Europe/Copenhagen' }) + '</p>' +
+    '<table style="border-collapse:collapse;width:100%;font-size:14px">' +
+    '<tr style="background:#f5f3f0">' +
+    '<th style="padding:8px 10px;text-align:left">Lead</th>' +
+    '<th style="padding:8px 10px;text-align:left">Email</th>' +
+    '<th style="padding:8px 10px;text-align:left">Sequence</th>' +
+    '<th style="padding:8px 10px;text-align:left">Step</th>' +
+    '<th style="padding:8px 10px;text-align:left">Channel</th>' +
+    '<th style="padding:8px 10px;text-align:left">Subject</th>' +
+    '</tr>' + rows + '</table>' + errorSection;
+
+  await sendSingleViaResend({
+    to: 'shamir@hotyogacph.dk',
+    subject: 'Sequence Digest: ' + sentSummary.length + ' sent',
+    bodyHtml: html,
+    bodyPlain: sentSummary.length + ' messages sent'
+  });
+}
+
 async function sendSequenceEmail(to, subject, bodyHtml) {
   try {
-    // sendSingleViaResend auto-wraps with English note, signature,
-    // unsubscribe footer, and List-Unsubscribe headers.
     var result = await sendSingleViaResend({
       to,
       subject,
       bodyHtml,
-      bodyPlain: '',
-      bcc: 'shamir@hotyogacph.dk'
+      bodyPlain: ''
     });
     return { success: true, messageId: result.messageId };
   } catch (err) {
