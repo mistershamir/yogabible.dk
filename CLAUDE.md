@@ -137,6 +137,12 @@ Every page follows this pattern — **no exceptions**:
 
 **IMPORTANT:** ALL automated emails and SMS messages MUST exist in both Danish and English. When creating or modifying any email template, drip sequence step, or SMS message, you MUST build both the DA and EN versions. English leads must receive the same level of detail as Danish leads — never a "generic" fallback.
 
+### Email Provider Policy
+
+- **Resend** (`resend-service.js`) is the **primary email provider** for all automated emails: sequences, nurture drips, welcome emails, and any new email features. Always use `sendSingleViaResend` or `sendBulkViaResend`.
+- **Gmail SMTP** (`email-service.js` / nodemailer) is only used occasionally for quick one-off bulk sends. Do NOT use Gmail for new automated email features.
+- Resend env vars: `RESEND_API_KEY`, `RESEND_FROM` (e.g., `"Yoga Bible <hej@yogabible.dk>"`)
+
 ### How It Works
 
 - **Translation data:** `netlify/functions/shared/lead-email-i18n.js` — central i18n file with `SHARED`, `PROGRAMS`, `SCHEDULE_PATHS`, `PROGRAM_PAGES` objects, each containing `da` and `en` keys
@@ -949,10 +955,10 @@ Current products:
 - **Workshop (1):** 100075 — 975 DKK (individual YTT workshop pass, redirects to `/weekly-schedule/?filter=ytt`)
 
 **Active YTT Cohorts (as of March 2026):**
-- 100078 — 4-Week Intensive (April 2026)
-- 100121 — 8-Week Semi-Intensive (April–May 2026)
+- 100078 — 18-Week Flexible (March–June 2026)
+- 100121 — 4-Week Intensive (April 2026)
 - 100211 — 4-Week Vinyasa Plus (July 2026, 70% Vinyasa / 30% Yin + Hot Yoga)
-- 100209 — 18-Week Flexible (April–August 2026)
+- 100209 — 8-Week Semi-Intensive (May–June 2026)
 - 100210 — 18-Week Flexible (August–December 2026)
 
 **WARNING:** `ytt-funnel.js` line 33 contains a test product (`100203: Test Klippekort`) marked "REMOVE before production". Do NOT use in live checkout flows.
