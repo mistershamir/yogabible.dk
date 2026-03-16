@@ -241,8 +241,8 @@ def check_pagespeed():
 def check_search_console():
     """
     Check Google Search Console for ranking data.
-    Requires GOOGLE_SERVICE_ACCOUNT_JSON env var pointing to a service account
-    with Search Console access.
+    Pulls 500 queries, saves weekly snapshot for trend tracking,
+    and detects position movers / new / lost queries.
     """
     result = {'errors': [], 'warnings': [], 'metrics': {}, 'rankings': {}}
 
@@ -252,18 +252,20 @@ def check_search_console():
         return result
 
     try:
-        # Last 28 days performance
         from datetime import datetime, timedelta
+        from keyword_history import save_snapshot, compare_with_previous
+
         end_date = datetime.now().strftime('%Y-%m-%d')
         start_date = (datetime.now() - timedelta(days=28)).strftime('%Y-%m-%d')
 
+        # Pull 500 queries (up from 25) for comprehensive tracking
         response = service.searchanalytics().query(
             siteUrl=SITE_URL,
             body={
                 'startDate': start_date,
                 'endDate': end_date,
                 'dimensions': ['query'],
-                'rowLimit': 25,
+                'rowLimit': 500,
             }
         ).execute()
 
@@ -285,6 +287,48 @@ def check_search_console():
                         'clicks': row.get('clicks', 0),
                         'impressions': row.get('impressions', 0),
                     }
+
+        # Identify "striking distance" keywords (positions 8-20, worth pushing)
+        striking = []
+        for row in rows:
+            pos = row.get('position', 0)
+            if 8 <= pos <= 20 and row.get('impressions', 0) >= 10:
+                striking.append({
+                    'query': row['keys'][0],
+                    'position': round(pos, 1),
+                    'impressions': row.get('impressions', 0),
+                    'clicks': row.get('clicks', 0),
+                })
+        striking.sort(key=lambda x: x['impressions'], reverse=True)
+        result['metrics']['striking_distance_keywords'] = striking[:15]
+
+        # Save snapshot for weekly comparison
+        all_queries = [{
+            'query': row['keys'][0],
+            'position': round(row.get('position', 0), 1),
+            'clicks': row.get('clicks', 0),
+            'impressions': row.get('impressions', 0),
+        } for row in rows]
+
+        save_snapshot(all_queries)
+
+        # Compare with previous week
+        comparison = compare_with_previous()
+        result['metrics']['keyword_comparison'] = comparison
+
+        if comparison['movers_up']:
+            top_mover = comparison['movers_up'][0]
+            result['metrics']['top_mover_up'] = (
+                f'"{top_mover["query"]}" moved up {top_mover["delta"]} positions '
+                f'to #{top_mover["position"]}'
+            )
+
+        if comparison['movers_down']:
+            top_drop = comparison['movers_down'][0]
+            result['metrics']['top_mover_down'] = (
+                f'"{top_drop["query"]}" dropped {abs(top_drop["delta"])} positions '
+                f'to #{top_drop["position"]}'
+            )
 
         if total_clicks == 0:
             result['warnings'].append('Zero clicks in last 28 days')
@@ -319,6 +363,122 @@ def check_keyword_rankings():
 
     else:
         result['errors'].append(f'Sitemap returned HTTP {status}')
+
+    return result
+
+
+def check_keyword_trends():
+    """
+    Monitor Google Trends for target keywords.
+    Detects rising/falling search interest so we can adjust content proactively.
+    Uses pytrends (unofficial Google Trends API).
+    """
+    result = {'errors': [], 'warnings': [], 'metrics': {}}
+
+    try:
+        from pytrends.request import TrendReq
+    except ImportError:
+        result['warnings'].append('pytrends not installed — skipping Trends check')
+        return result
+
+    try:
+        pytrends = TrendReq(hl='da', tz=60, timeout=(10, 30))
+
+        # Danish keywords (geo=DK)
+        da_keywords = [
+            'yogalæreruddannelse',
+            'yoga uddannelse',
+            'yoga kursus',
+            'hot yoga københavn',
+        ]
+
+        # English keywords (geo=DK for Denmark-specific interest)
+        en_keywords = [
+            'yoga teacher training',
+            'yoga certification',
+            'hot yoga copenhagen',
+        ]
+
+        trends_data = {}
+
+        # Check Danish keywords
+        for batch_start in range(0, len(da_keywords), 5):
+            batch = da_keywords[batch_start:batch_start + 5]
+            try:
+                pytrends.build_payload(batch, cat=0, timeframe='today 3-m', geo='DK')
+                interest = pytrends.interest_over_time()
+
+                if not interest.empty:
+                    for kw in batch:
+                        if kw in interest.columns:
+                            values = interest[kw].tolist()
+                            if len(values) >= 4:
+                                recent = sum(values[-4:]) / 4
+                                older = sum(values[:4]) / 4
+                                trend = 'rising' if recent > older * 1.2 else (
+                                    'falling' if recent < older * 0.8 else 'stable'
+                                )
+                                trends_data[kw] = {
+                                    'trend': trend,
+                                    'current_interest': round(recent, 1),
+                                    'previous_interest': round(older, 1),
+                                    'lang': 'da',
+                                }
+            except Exception as e:
+                logger.debug(f'Trends batch error (DA): {e}')
+
+        # Check English keywords
+        for batch_start in range(0, len(en_keywords), 5):
+            batch = en_keywords[batch_start:batch_start + 5]
+            try:
+                pytrends.build_payload(batch, cat=0, timeframe='today 3-m', geo='DK')
+                interest = pytrends.interest_over_time()
+
+                if not interest.empty:
+                    for kw in batch:
+                        if kw in interest.columns:
+                            values = interest[kw].tolist()
+                            if len(values) >= 4:
+                                recent = sum(values[-4:]) / 4
+                                older = sum(values[:4]) / 4
+                                trend = 'rising' if recent > older * 1.2 else (
+                                    'falling' if recent < older * 0.8 else 'stable'
+                                )
+                                trends_data[kw] = {
+                                    'trend': trend,
+                                    'current_interest': round(recent, 1),
+                                    'previous_interest': round(older, 1),
+                                    'lang': 'en',
+                                }
+            except Exception as e:
+                logger.debug(f'Trends batch error (EN): {e}')
+
+        # Also fetch related queries for top keyword
+        try:
+            pytrends.build_payload(['yogalæreruddannelse'], cat=0, timeframe='today 3-m', geo='DK')
+            related = pytrends.related_queries()
+            if 'yogalæreruddannelse' in related:
+                rising = related['yogalæreruddannelse'].get('rising')
+                if rising is not None and not rising.empty:
+                    result['metrics']['related_rising_queries'] = rising['query'].tolist()[:10]
+        except Exception:
+            pass
+
+        result['metrics']['keyword_trends'] = trends_data
+
+        # Flag notable trend changes
+        rising_kws = [kw for kw, d in trends_data.items() if d['trend'] == 'rising']
+        falling_kws = [kw for kw, d in trends_data.items() if d['trend'] == 'falling']
+
+        if rising_kws:
+            result['metrics']['trends_rising'] = rising_kws
+        if falling_kws:
+            result['warnings'].append(
+                f'Falling search interest: {", ".join(falling_kws)}'
+            )
+
+    except Exception as e:
+        result['warnings'].append(f'Google Trends error: {str(e)[:100]}')
 
     return result
 

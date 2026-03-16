@@ -34,6 +34,7 @@ from checks import (
     check_price_consistency,
     check_indexing_coverage,
     check_sitemaps_status,
+    check_keyword_trends,
 )
 from api_health import check_api_health
 from ai_analysis import analyze_with_ai
@@ -58,6 +59,7 @@ def run_all_checks():
         ('Search Console', check_search_console),
         ('Indexing Coverage', check_indexing_coverage),
         ('Sitemaps Status', check_sitemaps_status),
+        ('Keyword Trends', check_keyword_trends),
         ('Keyword Rankings', check_keyword_rankings),
         ('API Health', check_api_health),
     ]

@@ -142,6 +142,83 @@ def send_report(report):
             lines.append(f'  #{pos} — "{_escape(query)}" ({clicks} clicks)')
         lines.append('')
 
+    # Keyword movers (week-over-week)
+    comparison = metrics.get('keyword_comparison', {})
+    if comparison and not is_daily:
+        movers_up = comparison.get('movers_up', [])
+        movers_down = comparison.get('movers_down', [])
+        new_queries = comparison.get('new_queries', [])
+        lost_queries = comparison.get('lost_queries', [])
+        weeks = comparison.get('weeks_of_data', 0)
+
+        if movers_up or movers_down or new_queries:
+            lines.append(f'<b>Keyword Movement</b> (week {weeks}):')
+
+            if movers_up:
+                lines.append('  <b>Climbers:</b>')
+                for m in movers_up[:5]:
+                    lines.append(
+                        f'  ⬆️ "{_escape(m["query"])}" '
+                        f'+{m["delta"]} → #{m["position"]} ({m["clicks"]} clicks)'
+                    )
+
+            if movers_down:
+                lines.append('  <b>Drops:</b>')
+                for m in movers_down[:5]:
+                    lines.append(
+                        f'  ⬇️ "{_escape(m["query"])}" '
+                        f'{m["delta"]} → #{m["position"]}'
+                    )
+
+            if new_queries:
+                lines.append('  <b>New queries:</b>')
+                for q in new_queries[:5]:
+                    lines.append(
+                        f'  🆕 "{_escape(q["query"])}" #{q["position"]} '
+                        f'({q["impressions"]} imp)'
+                    )
+
+            if lost_queries:
+                lines.append('  <b>Lost:</b>')
+                for q in lost_queries[:3]:
+                    lines.append(
+                        f'  ❌ "{_escape(q["query"])}" (was #{q["last_position"]})'
+                    )
+
+            lines.append('')
+
+    # Striking distance keywords
+    striking = metrics.get('striking_distance_keywords', [])
+    if striking and not is_daily:
+        lines.append('<b>Striking Distance (pos 8-20):</b>')
+        for kw in striking[:5]:
+            lines.append(
+                f'  🎯 #{kw["position"]} — "{_escape(kw["query"])}" '
+                f'({kw["impressions"]} imp, {kw["clicks"]} clicks)'
+            )
+        lines.append('')
+
+    # Google Trends
+    trends = metrics.get('keyword_trends', {})
+    if trends and not is_daily:
+        rising = [k for k, v in trends.items() if v['trend'] == 'rising']
+        falling = [k for k, v in trends.items() if v['trend'] == 'falling']
+
+        if rising or falling:
+            lines.append('<b>Google Trends (3 months):</b>')
+            for kw in rising:
+                lines.append(f'  📈 "{_escape(kw)}" — rising interest')
+            for kw in falling:
+                lines.append(f'  📉 "{_escape(kw)}" — falling interest')
+            lines.append('')
+
+    # Related rising queries
+    related = metrics.get('related_rising_queries', [])
+    if related and not is_daily:
+        lines.append('<b>Related Rising Queries:</b>')
+        lines.append(f'  {", ".join(_escape(q) for q in related[:8])}')
+        lines.append('')
+
     text = '\n'.join(lines)
 
     # Telegram max message length is 4096

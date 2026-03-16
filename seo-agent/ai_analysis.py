@@ -178,7 +178,17 @@ Provide a concise, actionable weekly SEO briefing. Structure it exactly like thi
 - Which keywords are close to page 1 (positions 8-20) and worth pushing
 - Any surprising queries you're ranking for that deserve dedicated content
 
-Keep it concise — this goes to a Telegram message. Use plain text, no markdown. Max 600 words. Be specific and actionable, not generic SEO advice. Every suggestion should reference a specific page and give exact text to change."""
+**KEYWORD TRENDS & MARKET SIGNALS:**
+- Striking distance keywords: {json.dumps(metrics.get('striking_distance_keywords', [])[:10], ensure_ascii=False)}
+- Google Trends data: {json.dumps(metrics.get('keyword_trends', {}), ensure_ascii=False)}
+- Related rising queries: {json.dumps(metrics.get('related_rising_queries', []), ensure_ascii=False)}
+- Week-over-week keyword movement: top mover up: {metrics.get('top_mover_up', 'N/A')}, top drop: {metrics.get('top_mover_down', 'N/A')}
+- Based on trend and movement data, recommend specific content actions:
+  * Which rising queries deserve new blog posts or FAQ entries
+  * Which falling keywords need content refresh
+  * Which striking-distance keywords to prioritize in existing page optimization
+
+Keep it concise — this goes to a Telegram message. Use plain text, no markdown. Max 800 words. Be specific and actionable, not generic SEO advice. Every suggestion should reference a specific page and give exact text to change."""
 
 
 def _format_pages(pages):
