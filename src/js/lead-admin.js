@@ -332,6 +332,7 @@
     }).join('');
 
     modal.hidden = false;
+    positionModalInIframe(modal);
 
     function close() {
       modal.hidden = true;
@@ -2130,8 +2131,7 @@
     if (prog) prog.hidden = true;
 
     modal.hidden = false;
-    // In iframe context, scroll to top so fixed modal is visible
-    if (window.self !== window.top) window.scrollTo(0, 0);
+    positionModalInIframe(modal);
     modal._recipients = recipients;
     modal._isBulk = isBulk;
 
@@ -2267,8 +2267,7 @@
     if (prog) prog.hidden = true;
 
     modal.hidden = false;
-    // In iframe context, scroll to top so fixed modal is visible
-    if (window.self !== window.top) window.scrollTo(0, 0);
+    positionModalInIframe(modal);
     modal._recipients = recipients;
     modal._isBulk = isBulk;
 
@@ -3215,6 +3214,7 @@
     html += '</div>';
     body.innerHTML = html;
     modal.hidden = false;
+    positionModalInIframe(modal);
   }
 
   function appInvoiceDownloadPdf(bookedNumber) {
@@ -4717,6 +4717,51 @@
         sendSMSReply();
       }
     });
+  }
+
+  /* ══════════════════════════════════════════
+     IFRAME MODAL POSITIONING
+     In auto-sized iframes (member area), position:fixed doesn't work
+     because the iframe viewport equals the full document height.
+     We switch to position:absolute + calculate the visible offset.
+     ══════════════════════════════════════════ */
+  var isInIframe = window.self !== window.top;
+
+  function positionModalInIframe(modal) {
+    if (!isInIframe) return;
+    // In an auto-sized iframe, position:fixed is effectively position:absolute
+    // relative to the full iframe document. We need to calculate where the
+    // user's visible viewport is within the iframe document.
+    modal.style.position = 'absolute';
+    try {
+      // Same-origin: get parent scroll position and iframe offset
+      var iframeEl = null;
+      var parentIframes = parent.document.querySelectorAll('iframe');
+      for (var i = 0; i < parentIframes.length; i++) {
+        try {
+          if (parentIframes[i].contentWindow === window) {
+            iframeEl = parentIframes[i];
+            break;
+          }
+        } catch (e) { /* cross-origin */ }
+      }
+      if (iframeEl) {
+        var parentScrollY = parent.window.scrollY || parent.window.pageYOffset || 0;
+        var iframeRect = iframeEl.getBoundingClientRect();
+        var iframeTopInDoc = parentScrollY + iframeRect.top;
+        // The visible top within the iframe document
+        var visibleTop = Math.max(0, parentScrollY - iframeTopInDoc);
+        var viewportH = parent.window.innerHeight;
+        modal.style.top = visibleTop + 'px';
+        modal.style.height = viewportH + 'px';
+        modal.style.left = '0';
+        modal.style.right = '0';
+        modal.style.bottom = 'auto';
+      }
+    } catch (e) {
+      // Cross-origin fallback: just scroll to top
+      window.scrollTo(0, 0);
+    }
   }
 
   /* ══════════════════════════════════════════
