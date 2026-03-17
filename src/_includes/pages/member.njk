@@ -207,6 +207,11 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           {{ t.tab_profile }}
         </button>
+        {# Leads — marketing & admin only #}
+        <button class="yb-ma-tabs__btn" type="button" data-yb-ma-tab="leads" data-yb-role="marketing,admin" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          {{ t.tab_leads }}
+        </button>
       </div>
     </div>
   </nav>
@@ -561,6 +566,11 @@
   {# ── TAB: Profile (iframe — bare embed page, no site chrome) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-profile" data-yb-ma-panel="profile" hidden>
     <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/profile/#profile" title="{{ t.hub_profile_title }}"></iframe>
+  </div>
+
+  {# ── TAB: Leads (iframe — marketing & admin only) ── #}
+  <div class="yb-ma-tp" id="yb-ma-tp-leads" data-yb-ma-panel="leads" hidden data-yb-role="marketing,admin" style="display:none">
+    <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/leads/" title="{{ t.tab_leads }}"></iframe>
   </div>
 
 </div>

@@ -104,7 +104,13 @@
     "set_draft": "Sæt som kladde",
     "set_published": "Publicer",
     "status_published": "Publiceret",
-    "status_draft": "Kladde"
+    "status_draft": "Kladde",
+
+    "leads_notes": "Noter",
+    "leads_no_notes": "Ingen noter endnu",
+    "leads_note_placeholder": "Tilføj en note...",
+    "leads_add_note_btn": "Tilføj",
+    "leads_note_added": "Note tilføjet!"
   },
   "en": {
     "page_title": "Administration",
@@ -211,6 +217,12 @@
     "set_draft": "Set as Draft",
     "set_published": "Publish",
     "status_published": "Published",
-    "status_draft": "Draft"
+    "status_draft": "Draft",
+
+    "leads_notes": "Notes",
+    "leads_no_notes": "No notes yet",
+    "leads_note_placeholder": "Add a note...",
+    "leads_add_note_btn": "Add",
+    "leads_note_added": "Note added!"
   }
 }
