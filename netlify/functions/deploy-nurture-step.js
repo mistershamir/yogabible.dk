@@ -77,7 +77,18 @@ var STEP_UPDATES = [
       '<p>Alle er Yoga Alliance RYT-200. Alle starter med <strong>Forberedelsesfasen</strong> (3.750 kr., 30 yogaklasser).</p>' +
       '<p>Ikke sikker p\u00e5 hvilken der passer dig? Vi har lavet en side der sammenligner dem:</p>' +
       '<p style="margin:24px 0;"><a href="https://yogabible.dk/sammenlign-yogalreruddannelser" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:999px;font-weight:600;font-size:16px;">Sammenlign programmer \u2192</a></p>' +
-      '<p>Ring eller skriv hvis du vil snakke det igennem \u2014 jeg hj\u00e6lper gerne.</p>'
+      '<p>Ring eller skriv hvis du vil snakke det igennem \u2014 jeg hj\u00e6lper gerne.</p>',
+    email_subject_en: '{{first_name}}, a lot has been happening',
+    email_body_en:
+      '<p>Hi {{first_name}},</p>' +
+      '<p>Thanks for your interest in our yoga teacher education. There\u2019s a lot of exciting things happening right now.</p>' +
+      '<p>Our March cohort is <strong>SOLD OUT</strong> \u2014 20 students are in full training as we speak. That means there\u2019s real momentum here, and we have four programs open for the rest of the year:</p>' +
+      '<p>\u{1F538} <a href="https://yogabible.dk/200-hours-4-weeks-intensive-programs/" style="color:#f75c03;text-decoration:none;font-weight:600;">4-week intensive \u2014 April</a> \u2014 full-time in our Christianshavn studio<br>' +
+      '\u{1F538} <a href="https://yogabible.dk/200-hours-8-weeks-semi-intensive-programs/" style="color:#f75c03;text-decoration:none;font-weight:600;">8-week semi-intensive \u2014 May</a> \u2014 weekend format alongside your job<br>' +
+      '\u{1F538} <a href="https://yogabible.dk/200-hours-4-weeks-intensive-programs/" style="color:#f75c03;text-decoration:none;font-weight:600;">4-week Vinyasa Plus \u2014 July</a> \u2014 international summer cohort, taught in English<br>' +
+      '\u{1F538} <a href="https://yogabible.dk/200-hours-18-weeks-flexible-programs/" style="color:#f75c03;text-decoration:none;font-weight:600;">18-week flexible \u2014 August</a> \u2014 weekday or weekend, you choose</p>' +
+      '<p>All programs lead to Yoga Alliance RYT-200 certification and start with a Preparation Phase \u2014 the cost is deducted from the full program price.</p>' +
+      '<p>Have a look and write me back if anything catches your eye. I\u2019m happy to help you figure out which one fits.</p>'
   },
   {
     name: '8W Semi-Intensive May\u2013Jun',
@@ -133,6 +144,8 @@ var NEW_SEQUENCE = {
     delay_minutes: 150,
     email_subject: 'Fik du det hele, {{first_name}}?',
     email_body: '<p>Hej {{first_name}},</p><p>Det er Shamir fra Yoga Bible. Jeg ville lige sikre mig at du modtog skemaet og informationen vi sendte?</p><p>Hvis du har sp\u00f8rgsm\u00e5l om uddannelsen, s\u00e5 skriv endelig tilbage her \u2014 eller ring mig direkte p\u00e5 53 88 12 09.</p>',
+    email_subject_en: 'Did you get everything, {{first_name}}?',
+    email_body_en: '<p>Hi {{first_name}},</p><p>It\u2019s Shamir from Yoga Bible. Just wanted to make sure you received the schedule and information we sent?</p><p>If you have any questions about the education, just reply here \u2014 or call me directly at +45 53 88 12 09.</p>',
     sms_message: '',
     condition: null
   }],

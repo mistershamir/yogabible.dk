@@ -114,6 +114,7 @@
     submitBtn.textContent = isDa ? 'Sender...' : 'Sending...';
 
     var p = new URLSearchParams();
+    p.append('lang', isDa ? 'da' : 'en');
     p.append('action', 'lead_schedule_300h');
     p.append('firstName', fn);
     p.append('lastName', ln);
