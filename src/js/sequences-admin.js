@@ -681,7 +681,7 @@
             '<input type="text" class="yb-seq__condition-input" value="' + esc(step.condition || '') + '" placeholder="Leave blank to always send">' +
           '</div>' +
 
-          // Email section
+          // Email section (Danish — default)
           '<div class="yb-seq__step-email"' + (showEmail ? '' : ' hidden') + '>' +
             '<div class="yb-admin__field">' +
               '<label>Email Subject</label>' +
@@ -692,6 +692,21 @@
               '<textarea class="yb-seq__email-body" rows="8" placeholder="Email content...">' + esc(step.email_body || '') + '</textarea>' +
             '</div>' +
             '<p class="yb-seq__var-hints">Variables: ' + VAR_HINTS + '</p>' +
+            // English version (collapsible)
+            '<details class="yb-seq__en-section" style="margin-top:12px;border:1px solid #E8E4E0;border-radius:8px;padding:0 12px;">' +
+              '<summary style="cursor:pointer;padding:10px 0;color:#6F6A66;font-size:13px;">English Version <small>(international leads)</small>' +
+                (step.email_subject_en ? ' <span style="color:#f75c03;font-weight:600;">&#x2713;</span>' : '') +
+              '</summary>' +
+              '<div class="yb-admin__field" style="margin-top:8px;">' +
+                '<label>English Subject</label>' +
+                '<input type="text" class="yb-seq__email-subject-en" value="' + esc(step.email_subject_en || '') + '" placeholder="English subject line...">' +
+              '</div>' +
+              '<div class="yb-admin__field">' +
+                '<label>English Body <small style="color:#6F6A66;">(HTML)</small></label>' +
+                '<textarea class="yb-seq__email-body-en" rows="8" placeholder="English email content...">' + esc(step.email_body_en || '') + '</textarea>' +
+              '</div>' +
+              '<p class="yb-seq__var-hints" style="margin-bottom:12px;">Falls back to Danish if empty. Variables: ' + VAR_HINTS + '</p>' +
+            '</details>' +
           '</div>' +
 
           // SMS section
@@ -722,9 +737,11 @@
       var condInput = stepEl.querySelector('.yb-seq__condition-input');
       var emailSubject = stepEl.querySelector('.yb-seq__email-subject');
       var emailBody = stepEl.querySelector('.yb-seq__email-body');
+      var emailSubjectEn = stepEl.querySelector('.yb-seq__email-subject-en');
+      var emailBodyEn = stepEl.querySelector('.yb-seq__email-body-en');
       var smsText = stepEl.querySelector('.yb-seq__sms-text');
 
-      collected.push({
+      var stepData = {
         delay_days: delayDays ? parseInt(delayDays.value) || 0 : 0,
         delay_hours: delayHours ? parseInt(delayHours.value) || 0 : 0,
         channel: channelSel ? channelSel.value : 'email',
@@ -732,7 +749,15 @@
         email_subject: emailSubject ? emailSubject.value.trim() : '',
         email_body: emailBody ? emailBody.value.trim() : '',
         sms_message: smsText ? smsText.value.trim() : ''
-      });
+      };
+
+      // Include English fields only if they have content
+      var enSubject = emailSubjectEn ? emailSubjectEn.value.trim() : '';
+      var enBody = emailBodyEn ? emailBodyEn.value.trim() : '';
+      if (enSubject) stepData.email_subject_en = enSubject;
+      if (enBody) stepData.email_body_en = enBody;
+
+      collected.push(stepData);
     });
 
     return collected;

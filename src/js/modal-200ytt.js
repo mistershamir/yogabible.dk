@@ -153,9 +153,11 @@
       }
 
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Sender…';
+      var isDa = window.location.pathname.indexOf('/en/') !== 0;
+      submitBtn.textContent = isDa ? 'Sender…' : 'Sending…';
 
       const p = new URLSearchParams();
+      p.append('lang', isDa ? 'da' : 'en');
       if (fmts.length > 1) {
         p.append('action', 'lead_schedule_multi');
         p.append('allFormats', fmts.join(','));
