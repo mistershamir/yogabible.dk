@@ -23,7 +23,7 @@ const { sendSingleViaResend } = require('./shared/resend-service');
 
 const SEQUENCES_COL = 'sequences';
 const ENROLLMENTS_COL = 'sequence_enrollments';
-const ALLOWED_FIELDS = ['name', 'description', 'active', 'trigger', 'exit_conditions', 'steps'];
+const ALLOWED_FIELDS = ['name', 'description', 'active', 'trigger', 'exit_conditions', 'steps', 'enrollment_closes'];
 const GATEWAYAPI_ENDPOINT = 'https://gatewayapi.eu/rest/mtsms';
 
 // ── Handler ─────────────────────────────────────────────────────────────────

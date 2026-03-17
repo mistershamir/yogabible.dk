@@ -98,6 +98,15 @@ async function triggerNewLeadSequences(leadId, leadData) {
         continue;
       }
 
+      // Check enrollment_closes — skip if enrollment window has passed
+      if (sequence.enrollment_closes) {
+        const closesDate = new Date(sequence.enrollment_closes);
+        if (new Date() > closesDate) {
+          console.log(`[sequence-trigger] Skipping sequence "${sequence.name}" — enrollment closed on ${sequence.enrollment_closes}`);
+          continue;
+        }
+      }
+
       // Check for existing active/paused enrollment in this sequence
       const existingSnap = await db.collection('sequence_enrollments')
         .where('sequence_id', '==', sequence.id)
@@ -185,6 +194,15 @@ async function triggerStatusChangeSequences(leadId, leadData, oldStatus, newStat
       // Check remaining conditions (skip new_status since we handled it)
       if (!matchesTriggerConditions(conditions, leadData, 'new_status')) {
         continue;
+      }
+
+      // Check enrollment_closes — skip if enrollment window has passed
+      if (sequence.enrollment_closes) {
+        const closesDate = new Date(sequence.enrollment_closes);
+        if (new Date() > closesDate) {
+          console.log(`[sequence-trigger] Skipping sequence "${sequence.name}" — enrollment closed on ${sequence.enrollment_closes}`);
+          continue;
+        }
       }
 
       // Check for existing active/paused enrollment in this sequence

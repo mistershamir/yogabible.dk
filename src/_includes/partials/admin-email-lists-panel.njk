@@ -261,6 +261,18 @@
         <textarea id="yb-seq-desc" rows="2" placeholder="What does this sequence do?"></textarea>
       </div>
 
+      {# Enrollment Closes #}
+      <div class="yb-admin__form-row" style="align-items:flex-end;">
+        <div class="yb-admin__field" style="flex:1">
+          <label for="yb-seq-enrollment-closes">Enrollment closes</label>
+          <input type="date" id="yb-seq-enrollment-closes" class="yb-admin__input" style="max-width:200px;">
+        </div>
+        <div id="yb-seq-enrollment-status" style="flex:1;padding-bottom:10px;font-size:13px;"></div>
+        <div style="flex:0 0 auto;padding-bottom:10px;">
+          <button type="button" class="yb-btn yb-btn--outline yb-btn--xs" data-action="seq-clear-enrollment-closes" style="font-size:12px;">Clear date</button>
+        </div>
+      </div>
+
       {# Trigger Configuration #}
       <fieldset class="yb-seq__fieldset">
         <legend>{{ t.seq_trigger or "Trigger" }}</legend>
