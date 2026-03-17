@@ -9,6 +9,7 @@
  * Usage:
  *   node scripts/audit-and-fix-sequences.js              # Audit only (no changes)
  *   node scripts/audit-and-fix-sequences.js --fix         # Audit + apply fixes
+ *   node scripts/audit-and-fix-sequences.js --fix-urls    # Audit + fix English email URLs only
  *
  * Requires firebase-service-account.json in project root or lead-agent/ dir.
  */
@@ -83,6 +84,50 @@ var QUICK_FOLLOWUP_EN = {
   email_subject_en: 'Did you get everything, {{first_name}}?',
   email_body_en: '<p>Hi {{first_name}},</p><p>It\u2019s Shamir from Yoga Bible. Just wanted to make sure you received the schedule and information we sent?</p><p>If you have any questions about the education, just reply here \u2014 or call me directly at +45 53 88 12 09.</p>'
 };
+
+// ── English URL fix: schedule path mapping ──────────────────────────────────
+
+var SCHEDULE_MAP = {
+  '/skema/4-uger/': '/en/schedule/4-weeks/',
+  '/skema/4-uger-juli/': '/en/schedule/4-weeks-july/',
+  '/skema/8-uger/': '/en/schedule/8-weeks/',
+  '/skema/18-uger/': '/en/schedule/18-weeks/',
+  '/skema/18-uger-august/': '/en/schedule/18-weeks-august/',
+  '/tidsplan/4-uger/': '/en/schedule/4-weeks/',
+  '/tidsplan/4-uger-juli/': '/en/schedule/4-weeks-july/',
+  '/tidsplan/8-uger/': '/en/schedule/8-weeks/',
+  '/tidsplan/18-uger/': '/en/schedule/18-weeks/',
+  '/tidsplan/18-uger-august/': '/en/schedule/18-weeks-august/'
+};
+
+var URL_SKIP_PREFIXES = ['/assets/', '/images/', '/.netlify/', '/admin/', '/api/'];
+
+function fixUrlsInHtml(html) {
+  var changes = [];
+  var result = html.replace(
+    /https?:\/\/(www\.)?yogabible\.dk(\/[^"'\s<>]*)/g,
+    function (fullMatch, www, path) {
+      if (path.indexOf('/en/') === 0) return fullMatch;
+      for (var i = 0; i < URL_SKIP_PREFIXES.length; i++) {
+        if (path.indexOf(URL_SKIP_PREFIXES[i]) === 0) return fullMatch;
+      }
+      var pathOnly = path.split('?')[0];
+      var query = path.indexOf('?') !== -1 ? path.substring(path.indexOf('?')) : '';
+      for (var schedDa in SCHEDULE_MAP) {
+        if (pathOnly === schedDa || pathOnly === schedDa.replace(/\/$/, '')) {
+          var newPath = SCHEDULE_MAP[schedDa] + query;
+          var newUrl = 'https://yogabible.dk' + newPath;
+          changes.push({ original: fullMatch, fixed: newUrl, type: 'schedule_path_mapped' });
+          return newUrl;
+        }
+      }
+      var fixedUrl = 'https://yogabible.dk/en' + path;
+      changes.push({ original: fullMatch, fixed: fixedUrl, type: 'en_prefix_added' });
+      return fixedUrl;
+    }
+  );
+  return { html: result, changes: changes };
+}
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -304,6 +349,59 @@ async function main() {
     console.log('');
   }
 
+  // ── Fix English email URLs (--fix-urls or --fix) ───────────────────────
+  var urlFixes = [];
+  var doFixUrls = process.argv.includes('--fix-urls') || doFix;
+
+  if (doFixUrls) {
+    console.log('Scanning English email URLs...');
+    // Re-load sequences to pick up any earlier fixes
+    var urlSeqSnap = await db.collection('sequences').get();
+    for (var u = 0; u < urlSeqSnap.docs.length; u++) {
+      var urlDoc = urlSeqSnap.docs[u];
+      var urlData = urlDoc.data();
+      var urlSteps = urlData.steps || [];
+      var urlSeqChanged = false;
+      var urlSeqName = urlData.name || urlDoc.id;
+
+      for (var us = 0; us < urlSteps.length; us++) {
+        if (!urlSteps[us].email_body_en) continue;
+        var urlResult = fixUrlsInHtml(urlSteps[us].email_body_en);
+        if (urlResult.changes.length > 0) {
+          urlSteps[us].email_body_en = urlResult.html;
+          urlSeqChanged = true;
+          urlFixes.push({
+            sequence: urlSeqName,
+            step_index: us,
+            urls_fixed: urlResult.changes.length,
+            details: urlResult.changes
+          });
+        }
+        // Also check email_subject_en
+        if (urlSteps[us].email_subject_en) {
+          var subjResult = fixUrlsInHtml(urlSteps[us].email_subject_en);
+          if (subjResult.changes.length > 0) {
+            urlSteps[us].email_subject_en = subjResult.html;
+            urlSeqChanged = true;
+            urlFixes.push({
+              sequence: urlSeqName,
+              step_index: us,
+              field: 'email_subject_en',
+              urls_fixed: subjResult.changes.length,
+              details: subjResult.changes
+            });
+          }
+        }
+      }
+
+      if (urlSeqChanged) {
+        await urlDoc.ref.update({ steps: urlSteps, updated_at: new Date().toISOString() });
+        console.log('💾 URL fix: ' + urlSeqName);
+      }
+    }
+    console.log('');
+  }
+
   // ── Summary ─────────────────────────────────────────────────────────────
   console.log('═'.repeat(70));
   console.log('');
@@ -363,6 +461,24 @@ async function main() {
     console.log('');
   }
 
+  // URL fixes
+  if (doFixUrls) {
+    if (urlFixes.length === 0) {
+      console.log('✅ English URLs: All yogabible.dk URLs in email_body_en already have /en/ prefix');
+    } else {
+      var totalUrls = urlFixes.reduce(function (sum, f) { return sum + f.urls_fixed; }, 0);
+      console.log('💾 English URL fixes: ' + totalUrls + ' URLs fixed across ' + urlFixes.length + ' steps');
+      urlFixes.forEach(function (f) {
+        console.log('   ' + f.sequence + ' step ' + f.step_index + ':');
+        f.details.forEach(function (d) {
+          console.log('     ' + d.original);
+          console.log('     → ' + d.fixed + ' (' + d.type + ')');
+        });
+      });
+    }
+    console.log('');
+  }
+
   // Enrollment counts
   console.log('ENROLLMENT COUNTS');
   console.log('─'.repeat(40));
@@ -377,8 +493,11 @@ async function main() {
 
   console.log('');
   if (!doFix && (exitConditionFixes.length > 0 || channelFixes.length > 0)) {
-    console.log('Run with --fix to apply changes:');
+    console.log('Run with --fix to apply ALL changes (incl. URLs):');
     console.log('  node scripts/audit-and-fix-sequences.js --fix');
+    console.log('');
+    console.log('Or fix only English URLs:');
+    console.log('  node scripts/audit-and-fix-sequences.js --fix-urls');
     console.log('');
   }
 
