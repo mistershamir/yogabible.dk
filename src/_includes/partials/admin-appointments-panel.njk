@@ -1,3 +1,32 @@
+{# ── Booking Links ── #}
+<details class="yb-admin__booking-links" style="margin-bottom:1.5rem;border:1px solid #E8E4E0;border-radius:12px;background:#FFFCF9;">
+  <summary style="padding:14px 20px;cursor:pointer;font-weight:700;font-size:0.95rem;display:flex;align-items:center;gap:8px;list-style:none;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    {{ t.appt_booking_links }}
+    <span style="font-weight:400;font-size:0.82rem;color:#6F6A66;margin-left:auto;">{{ t.appt_booking_links_desc }}</span>
+  </summary>
+  <div style="padding:0 20px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;">
+    {% set bookingTypes = [
+      { key: "info-session", label: t.appt_info_session, icon: "&#127963;", dur: "30 min" },
+      { key: "consultation", label: t.appt_consultation, icon: "&#128187;", dur: "30 min" },
+      { key: "intro-class", label: t.appt_intro_class, icon: "&#129495;", dur: "60 min" },
+      { key: "photo-session", label: t.appt_photo_session, icon: "&#128248;", dur: "60 min" }
+    ] %}
+    {% for bt in bookingTypes %}
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #E8E4E0;border-radius:8px;background:#fff;">
+      <span style="font-size:1.2rem;">{{ bt.icon }}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:0.85rem;">{{ bt.label }}</div>
+        <code id="yb-bl-{{ bt.key }}" style="font-size:0.72rem;color:#6F6A66;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">yogabible.dk/?booking={{ bt.key }}</code>
+      </div>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-admin__copy-link-btn" data-copy-booking="{{ bt.key }}" style="flex-shrink:0;font-size:0.78rem;padding:6px 12px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>{{ t.appt_copy_link }}
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+</details>
+
 {# ── Appointment List View ── #}
 <div id="yb-admin-v-appt-list">
   <div class="yb-admin__view-head">
