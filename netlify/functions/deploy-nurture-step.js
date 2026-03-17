@@ -179,6 +179,13 @@ exports.handler = async (event) => {
       if (update.delay_minutes !== null) {
         steps[update.stepIndex].delay_minutes = update.delay_minutes;
       }
+      // English version (optional — for international leads)
+      if (update.email_subject_en !== undefined) {
+        steps[update.stepIndex].email_subject_en = update.email_subject_en;
+      }
+      if (update.email_body_en !== undefined) {
+        steps[update.stepIndex].email_body_en = update.email_body_en;
+      }
 
       await docRef.update({
         steps: steps,

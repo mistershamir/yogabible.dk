@@ -604,10 +604,18 @@ async function handleProcess() {
         var emailSent = false;
         var smsSent = false;
 
+        // Language branching — determine lead language for content selection
+        var leadLang = (lead.lang || lead.meta_lang || lead.language || 'da').toLowerCase().substring(0, 2);
+        var isDanish = ['da', 'dk'].includes(leadLang);
+
+        // Select language-appropriate email content (English if available, else fallback to Danish)
+        var selectedSubject = (!isDanish && step.email_subject_en) ? step.email_subject_en : step.email_subject;
+        var selectedBody = (!isDanish && step.email_body_en) ? step.email_body_en : step.email_body;
+
         // Check if step has sendable content — don't advance past empty steps
         var wantsEmail = (step.channel === 'email' || step.channel === 'both');
         var wantsSms = (step.channel === 'sms' || step.channel === 'both');
-        var hasEmailContent = !!(step.email_subject && step.email_body);
+        var hasEmailContent = !!(selectedSubject && selectedBody);
         var hasSmsContent = !!step.sms_message;
 
         if ((wantsEmail && !hasEmailContent) && (wantsSms && !hasSmsContent)) {
@@ -631,8 +639,8 @@ async function handleProcess() {
           if (lead.email && hasEmailContent) {
             var emailResult = await sendSequenceEmail(
               lead.email,
-              substituteVars(step.email_subject, vars),
-              substituteVars(step.email_body, vars)
+              substituteVars(selectedSubject, vars),
+              substituteVars(selectedBody, vars)
             );
 
             if (emailResult.success) {
@@ -647,12 +655,13 @@ async function handleProcess() {
             await db.collection('email_log').add({
               lead_id: enrollment.lead_id,
               to: lead.email,
-              subject: substituteVars(step.email_subject, vars),
+              subject: substituteVars(selectedSubject, vars),
               template_id: 'sequence:' + seqId + ':step' + enrollment.current_step,
               sent_at: new Date(),
               status: emailResult.success ? 'sent' : 'failed',
               source: 'sequence',
               sequence_id: seqId,
+              lang: isDanish ? 'da' : leadLang,
               created_at: serverTimestamp()
             });
           }
