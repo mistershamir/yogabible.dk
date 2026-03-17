@@ -12,6 +12,12 @@
   max-width: 100%;
   padding: 0;
 }
+/* In embed context (member area iframe), constrain to site width */
+.yb-embed .yb-admin > .container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
 
 /* Header */
 .yb-admin__header {
@@ -1815,6 +1821,28 @@
   max-width: 480px;
   width: 90%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+.yb-lead__modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6F6A66;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s, color 0.2s;
+}
+.yb-lead__modal-close:hover {
+  background: rgba(0,0,0,0.08);
+  color: #0F0F0F;
 }
 .yb-lead__modal-box--wide { max-width: 640px; }
 .yb-lead__modal-box h3 { font-size: 1.1rem; margin-bottom: 0.75rem; }
@@ -3465,6 +3493,43 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
   margin-top: 0.5rem;
   padding-top: 0.5rem;
   border-top: 1px solid rgba(232,228,224,0.6);
+}
+/* Inline status row in quick view */
+.yb-lead__exp-status-row {
+  gap: 0.75rem;
+}
+.yb-lead__exp-status-select {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  min-width: 120px;
+}
+/* Notes section in quick view */
+.yb-lead__exp-notes-section {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(232,228,224,0.5);
+}
+.yb-lead__exp-notes-header {
+  margin-bottom: 0.35rem;
+}
+.yb-lead__exp-add-note {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+.yb-lead__exp-note-input {
+  flex: 1;
+  padding: 5px 10px;
+  border: 1px solid #E8E4E0;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  background: #fff;
+}
+.yb-lead__exp-note-input:focus {
+  border-color: #f75c03;
+  outline: none;
 }
 
 /* ── Enhanced Table Columns ── */
