@@ -15,7 +15,7 @@ var TEST_LEAD = {
   email: 'shamir@hotyogacph.dk',
   first_name: 'Shamir',
   last_name: '(Test)',
-  phone: '',
+  phone: '4553622923',
   lead_type: 'ytt',
   ytt_program_type: 'undecided',
   status: 'New',
@@ -46,7 +46,9 @@ exports.handler = async (event) => {
 
   if (!existingLead.empty) {
     leadId = existingLead.docs[0].id;
-    results.lead = { id: leadId, status: 'found_existing' };
+    // Ensure phone is up to date
+    await db.collection('leads').doc(leadId).update({ phone: TEST_LEAD.phone });
+    results.lead = { id: leadId, status: 'found_existing', phone_updated: true };
   } else {
     var newLead = await db.collection('leads').add(TEST_LEAD);
     leadId = newLead.id;
