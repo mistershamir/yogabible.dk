@@ -207,6 +207,10 @@
       case 'seq-back-list':     showListView(); break;
       case 'seq-add-step':      addStep(); break;
       case 'seq-save':          saveSequence(); break;
+      case 'seq-clear-enrollment-closes':
+        $('yb-seq-enrollment-closes').value = '';
+        updateEnrollmentStatus('');
+        break;
     }
 
     // Sequence card actions
@@ -238,6 +242,12 @@
   }
 
   function handleChange(e) {
+    // Enrollment closes date change
+    if (e.target.id === 'yb-seq-enrollment-closes') {
+      var val = e.target.value;
+      updateEnrollmentStatus(val ? new Date(val + 'T00:00:00Z').toISOString() : '');
+    }
+
     // Trigger type change — show/hide conditions panel
     if (e.target.id === 'yb-seq-trigger-type') {
       var val = e.target.value;
@@ -413,9 +423,10 @@
             '<h3>' + esc(seq.name) + '</h3>' +
             (seq.description ? '<p style="color:#6F6A66;font-size:13px;margin:4px 0 0;">' + esc(seq.description) + '</p>' : '') +
           '</div>' +
-          '<div style="display:flex;gap:6px;align-items:center;">' +
+          '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' +
             '<span class="' + triggerCls + '">' + esc(TRIGGER_LABELS[seq.trigger_type] || seq.trigger_type || 'Manual') + '</span>' +
             '<span class="yb-seq__badge ' + statusCls + '">' + (seq.active ? 'Active' : 'Paused') + '</span>' +
+            enrollmentStatusBadge(seq.enrollment_closes) +
           '</div>' +
         '</div>' +
         '<div class="yb-seq__card-body">' +
@@ -535,6 +546,49 @@
   }
 
   /* ═══════════════════════════════════════════
+     ENROLLMENT CLOSES INDICATOR
+     ═══════════════════════════════════════════ */
+  function updateEnrollmentStatus(isoDate) {
+    var el = $('yb-seq-enrollment-status');
+    if (!el) return;
+
+    if (!isoDate) {
+      el.innerHTML = '<span style="color:#6F6A66;">No enrollment deadline — accepts leads indefinitely</span>';
+      return;
+    }
+
+    var closes = new Date(isoDate);
+    var now = new Date();
+    var diff = closes.getTime() - now.getTime();
+    var days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    var dateStr = closes.toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    if (diff > 0) {
+      el.innerHTML = '<span style="color:#155724;font-weight:600;">&#9679;</span> ' +
+        '<span style="color:#155724;">Enrollment open</span> — closes in <strong>' + days + ' day' + (days !== 1 ? 's' : '') + '</strong> (' + dateStr + ')';
+    } else {
+      var agoD = Math.abs(days);
+      el.innerHTML = '<span style="color:#c62828;font-weight:600;">&#9679;</span> ' +
+        '<span style="color:#c62828;">Enrollment closed</span> since ' + dateStr + ' (' + agoD + ' day' + (agoD !== 1 ? 's' : '') + ' ago)';
+    }
+  }
+
+  function enrollmentStatusBadge(isoDate) {
+    if (!isoDate) return '';
+    var closes = new Date(isoDate);
+    var now = new Date();
+    var diff = closes.getTime() - now.getTime();
+    var days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    var dateStr = closes.toLocaleDateString('da-DK', { day: 'numeric', month: 'short' });
+
+    if (diff > 0) {
+      return '<span class="yb-seq__badge" style="background:#d4edda;color:#155724;font-size:11px;">Closes ' + dateStr + ' (' + days + 'd)</span>';
+    } else {
+      return '<span class="yb-seq__badge" style="background:#f8d7da;color:#721c24;font-size:11px;">Closed ' + dateStr + '</span>';
+    }
+  }
+
+  /* ═══════════════════════════════════════════
      SEQUENCE BUILDER
      ═══════════════════════════════════════════ */
   var builderSteps = []; // working copy of steps while editing
@@ -547,6 +601,8 @@
     $('yb-seq-name').value = '';
     $('yb-seq-desc').value = '';
     $('yb-seq-active').checked = true;
+    $('yb-seq-enrollment-closes').value = '';
+    updateEnrollmentStatus('');
     $('yb-seq-trigger-type').value = 'manual';
     $('yb-seq-conditions-panel').hidden = true;
     $('yb-seq-cond-status-field').hidden = true;
@@ -577,6 +633,18 @@
       $('yb-seq-name').value = seq.name || '';
       $('yb-seq-desc').value = seq.description || '';
       $('yb-seq-active').checked = !!seq.active;
+
+      // Enrollment closes date
+      var ecVal = seq.enrollment_closes || '';
+      if (ecVal) {
+        // Convert ISO string to YYYY-MM-DD for date input
+        var ecDate = new Date(ecVal);
+        $('yb-seq-enrollment-closes').value = ecDate.toISOString().split('T')[0];
+      } else {
+        $('yb-seq-enrollment-closes').value = '';
+      }
+      updateEnrollmentStatus(ecVal);
+
       $('yb-seq-trigger-type').value = seq.trigger_type || 'manual';
 
       // Trigger conditions
@@ -856,10 +924,15 @@
       cbs.forEach(function (cb) { exitConditions.push(cb.value); });
     }
 
+    // Enrollment closes — convert date input to ISO string
+    var ecInput = $('yb-seq-enrollment-closes').value;
+    var enrollmentCloses = ecInput ? new Date(ecInput + 'T00:00:00Z').toISOString() : '';
+
     var body = {
       name: name,
       description: $('yb-seq-desc').value.trim(),
       active: $('yb-seq-active').checked,
+      enrollment_closes: enrollmentCloses,
       trigger: { type: triggerType, conditions: conditions },
       exit_conditions: exitConditions,
       steps: builderSteps
