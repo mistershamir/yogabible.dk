@@ -63,6 +63,27 @@ var REFUND_TERMS = [
   'pengene tilbage'
 ];
 
+// ── SMS overrides (clean versions — no refund language) ─────────────────────
+
+var SMS_FIXES = {
+  // Onboarding step 5 (index 4)
+  'Un1xmmriIpUyy2Kui97N': {
+    stepIndex: 4,
+    sms_message: 'Hi {{first_name}}, har du fundet det format der passer dig? Husk vores Forberedelsesfase (3.750 kr) \u2014 bel\u00F8bet tr\u00E6kkes fra den fulde pris. /Shamir'
+  },
+  // July step 4 (index 3)
+  'Yoq6RCVqTYlF10OPmkSw': {
+    stepIndex: 3,
+    sms_message: 'Hi {{first_name}}, just a heads up \u2014 July spots are filling up. The Preparation Phase (3,750 DKK) secures your place \u2014 the amount is deducted from the full price. Any questions? /Shamir, Yoga Bible'
+  }
+};
+
+// Quick Follow-up English content
+var QUICK_FOLLOWUP_EN = {
+  email_subject_en: 'Did you get everything, {{first_name}}?',
+  email_body_en: '<p>Hi {{first_name}},</p><p>It\u2019s Shamir from Yoga Bible. Just wanted to make sure you received the schedule and information we sent?</p><p>If you have any questions about the education, just reply here \u2014 or call me directly at +45 53 88 12 09.</p>'
+};
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function stripHtml(html) {
@@ -240,6 +261,49 @@ async function main() {
     console.log('');
   }
 
+  // ── Fix SMS messages + Quick Follow-up English (--fix only) ─────────────
+  var smsFixes = [];
+  var qfFix = null;
+
+  if (doFix) {
+    // SMS overrides
+    for (var seqId in SMS_FIXES) {
+      var fix = SMS_FIXES[seqId];
+      var smsDocRef = db.collection('sequences').doc(seqId);
+      var smsDocSnap = await smsDocRef.get();
+      if (smsDocSnap.exists) {
+        var smsData = smsDocSnap.data();
+        var smsSteps = smsData.steps || [];
+        if (smsSteps.length > fix.stepIndex) {
+          var oldSms = smsSteps[fix.stepIndex].sms_message || '';
+          smsSteps[fix.stepIndex].sms_message = fix.sms_message;
+          await smsDocRef.update({ steps: smsSteps, updated_at: new Date().toISOString() });
+          smsFixes.push({ id: seqId, name: smsData.name, step: fix.stepIndex, old: oldSms, new: fix.sms_message });
+          console.log('💾 SMS fix: ' + smsData.name + ' step ' + fix.stepIndex);
+        }
+      }
+    }
+
+    // Quick Follow-up English
+    var qfSnap = await db.collection('sequences')
+      .where('name', '==', 'YTT Quick Follow-up').limit(1).get();
+    if (!qfSnap.empty) {
+      var qfDoc = qfSnap.docs[0];
+      var qfData = qfDoc.data();
+      var qfSteps = qfData.steps || [];
+      if (qfSteps.length > 0) {
+        var oldEnSub = qfSteps[0].email_subject_en || '';
+        var oldEnBody = qfSteps[0].email_body_en || '';
+        qfSteps[0].email_subject_en = QUICK_FOLLOWUP_EN.email_subject_en;
+        qfSteps[0].email_body_en = QUICK_FOLLOWUP_EN.email_body_en;
+        await qfDoc.ref.update({ steps: qfSteps, updated_at: new Date().toISOString() });
+        qfFix = { id: qfDoc.id, old_subject: oldEnSub || '(empty)', old_body: oldEnBody ? 'had content' : '(empty)', new_subject: QUICK_FOLLOWUP_EN.email_subject_en };
+        console.log('💾 Quick Follow-up EN: added/updated English content');
+      }
+    }
+    console.log('');
+  }
+
   // ── Summary ─────────────────────────────────────────────────────────────
   console.log('═'.repeat(70));
   console.log('');
@@ -282,6 +346,22 @@ async function main() {
     });
   }
   console.log('');
+
+  // SMS fixes
+  if (doFix && smsFixes.length > 0) {
+    console.log('💾 SMS messages cleaned: ' + smsFixes.length);
+    smsFixes.forEach(function (f) {
+      console.log('   - ' + f.name + ' step ' + f.step + ': ' + (f.old === f.new ? '(no change)' : 'UPDATED'));
+    });
+    console.log('');
+  }
+
+  // Quick Follow-up
+  if (doFix && qfFix) {
+    console.log('💾 Quick Follow-up EN: ' + qfFix.new_subject);
+    console.log('   Previous EN subject: ' + qfFix.old_subject);
+    console.log('');
+  }
 
   // Enrollment counts
   console.log('ENROLLMENT COUNTS');
