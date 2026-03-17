@@ -817,7 +817,7 @@
   /* ── Expandable inline row ── */
   function buildExpandedRow(l) {
     var notes = Array.isArray(l.notes) ? l.notes : [];
-    var lastTwoNotes = notes.slice(-2).reverse();
+    var lastFiveNotes = notes.slice(-5).reverse();
 
     var lcColor = lcRecencyColor(l.last_contact);
 
@@ -825,8 +825,23 @@
       ? '<span class="yb-lead__app-badge--inline" style="color:#155724">\u2713 App</span>'
       : '<span style="color:#6F6A66">\u2014</span>';
 
+    // Status options for inline dropdown
+    var statusOptions = [
+      { v: 'New', l: '\u2728 New' }, { v: 'Contacted', l: '\ud83d\udce7 Contacted' },
+      { v: 'No Answer', l: '\ud83d\udd14 No Answer' }, { v: 'Follow-up', l: '\ud83d\udd04 Follow-up' },
+      { v: 'Engaged', l: '\ud83d\udcac Engaged' }, { v: 'Strongly Interested', l: '\u2b50 Strongly Interested' },
+      { v: 'Qualified', l: '\u2705 Qualified' }, { v: 'Negotiating', l: '\ud83e\udd1d Negotiating' },
+      { v: 'Converted', l: '\ud83c\udf89 Converted' }, { v: 'On Hold', l: '\u23f8\ufe0f On Hold' },
+      { v: 'Interested In Next Round', l: '\ud83d\udcc5 Next Round' },
+      { v: 'Not too keen', l: '\ud83d\ude10 Not too keen' },
+      { v: 'Lost', l: '\ud83d\udc4e Lost' }, { v: 'Closed', l: '\u2716 Closed' }
+    ];
+    var statusOpts = statusOptions.map(function (o) {
+      return '<option value="' + esc(o.v) + '"' + (l.status === o.v ? ' selected' : '') + '>' + o.l + '</option>';
+    }).join('');
+
     var html = '<tr class="yb-lead__expanded-row" data-expanded-for="' + l.id + '">' +
-      '<td colspan="15" class="yb-lead__expanded-cell">' +
+      '<td colspan="16" class="yb-lead__expanded-cell">' +
       '<div class="yb-lead__expanded-panel">' +
 
       // Row 1: Quick stats
@@ -855,7 +870,36 @@
         '</div>' +
       '</div>';
 
-    // Row 2: Location + Accommodation
+    // Row 2: Inline status change
+    html += '<div class="yb-lead__exp-row yb-lead__exp-status-row">' +
+      '<div class="yb-lead__exp-stat" style="flex:0 0 auto">' +
+        '<span class="yb-lead__exp-label">' + t('leads_col_status') + '</span>' +
+        '<select class="yb-admin__select yb-lead__exp-status-select" data-lead-id="' + l.id + '" data-field="status">' +
+          statusOpts +
+        '</select>' +
+      '</div>' +
+      '<div class="yb-lead__exp-stat" style="flex:0 0 auto">' +
+        '<span class="yb-lead__exp-label">' + t('leads_temperature') + '</span>' +
+        '<select class="yb-admin__select yb-lead__exp-status-select" data-lead-id="' + l.id + '" data-field="temperature">' +
+          '<option value=""' + (!l.temperature ? ' selected' : '') + '>\u2014</option>' +
+          '<option value="hot"' + (l.temperature === 'hot' ? ' selected' : '') + '>\ud83d\udd25 Hot</option>' +
+          '<option value="warm"' + (l.temperature === 'warm' ? ' selected' : '') + '>\u2600\ufe0f Warm</option>' +
+          '<option value="cold"' + (l.temperature === 'cold' ? ' selected' : '') + '>\u2744\ufe0f Cold</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="yb-lead__exp-stat" style="flex:0 0 auto">' +
+        '<span class="yb-lead__exp-label">' + t('leads_priority') + '</span>' +
+        '<select class="yb-admin__select yb-lead__exp-status-select" data-lead-id="' + l.id + '" data-field="priority">' +
+          '<option value=""' + (!l.priority ? ' selected' : '') + '>\u2014</option>' +
+          '<option value="urgent"' + (l.priority === 'urgent' ? ' selected' : '') + '>\ud83d\udd34 Urgent</option>' +
+          '<option value="high"' + (l.priority === 'high' ? ' selected' : '') + '>\ud83d\udfe0 High</option>' +
+          '<option value="normal"' + (l.priority === 'normal' ? ' selected' : '') + '>\ud83d\udfe2 Normal</option>' +
+          '<option value="low"' + (l.priority === 'low' ? ' selected' : '') + '>\u26aa Low</option>' +
+        '</select>' +
+      '</div>' +
+    '</div>';
+
+    // Row 3: Location + Accommodation
     if (l.city_country || (l.accommodation && l.accommodation !== 'No')) {
       html += '<div class="yb-lead__exp-row">';
       if (l.city_country) {
@@ -867,21 +911,33 @@
       html += '</div>';
     }
 
-    // Row 3: Notes preview
-    if (lastTwoNotes.length) {
+    // Row 4: Notes timeline (show last 5 + add note input)
+    html += '<div class="yb-lead__exp-notes-section">' +
+      '<div class="yb-lead__exp-notes-header">' +
+        '<span class="yb-lead__exp-label">\ud83d\udcdd ' + t('leads_notes') + ' (' + notes.length + ')</span>' +
+      '</div>';
+    if (lastFiveNotes.length) {
       html += '<div class="yb-lead__exp-notes">';
-      lastTwoNotes.forEach(function (n) {
+      lastFiveNotes.forEach(function (n) {
         var noteIcons = { call: '\ud83d\udcde', email: '\u2709\ufe0f', sms: '\ud83d\udcf1', note: '\ud83d\udcdd', system: '\u2699\ufe0f' };
         html += '<div class="yb-lead__exp-note">' +
           '<span class="yb-lead__exp-note-icon">' + (noteIcons[n.type] || '\ud83d\udcdd') + '</span>' +
           '<span class="yb-lead__exp-note-time">' + relativeTime(n.timestamp) + '</span>' +
-          '<span class="yb-lead__exp-note-text">' + esc((n.text || '').substring(0, 120)) + (n.text && n.text.length > 120 ? '\u2026' : '') + '</span>' +
+          '<span class="yb-lead__exp-note-text">' + esc((n.text || '').substring(0, 200)) + (n.text && n.text.length > 200 ? '\u2026' : '') + '</span>' +
         '</div>';
       });
       html += '</div>';
+    } else {
+      html += '<div style="color:#6F6A66;font-size:0.82rem;padding:0.25rem 0">' + t('leads_no_notes') + '</div>';
     }
+    // Add note inline
+    html += '<div class="yb-lead__exp-add-note">' +
+      '<input type="text" class="yb-lead__exp-note-input" data-lead-id="' + l.id + '" placeholder="' + t('leads_note_placeholder') + '">' +
+      '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="add-note-inline" data-id="' + l.id + '">' + t('leads_add_note_btn') + '</button>' +
+    '</div>';
+    html += '</div>';
 
-    // Row 4: Message excerpt
+    // Row 5: Message excerpt
     if (l.message) {
       html += '<div class="yb-lead__exp-message">\ud83d\udcac ' + esc(l.message.substring(0, 200)) + (l.message.length > 200 ? '\u2026' : '') + '</div>';
     }
@@ -2074,6 +2130,8 @@
     if (prog) prog.hidden = true;
 
     modal.hidden = false;
+    // In iframe context, scroll to top so fixed modal is visible
+    if (window.self !== window.top) window.scrollTo(0, 0);
     modal._recipients = recipients;
     modal._isBulk = isBulk;
 
@@ -2209,6 +2267,8 @@
     if (prog) prog.hidden = true;
 
     modal.hidden = false;
+    // In iframe context, scroll to top so fixed modal is visible
+    if (window.self !== window.top) window.scrollTo(0, 0);
     modal._recipients = recipients;
     modal._isBulk = isBulk;
 
@@ -4103,6 +4163,19 @@
   function bindLeadEvents() {
     // Delegated click handler
     document.addEventListener('click', function (e) {
+      // Close modals on overlay click (must run BEFORE the data-action guard)
+      if (e.target.classList.contains('yb-lead__modal-overlay')) {
+        var parentModal = e.target.closest('.yb-lead__modal');
+        if (parentModal) parentModal.hidden = true;
+        return;
+      }
+      // Close modal via X button
+      if (e.target.closest('.yb-lead__modal-close')) {
+        var parentM = e.target.closest('.yb-lead__modal');
+        if (parentM) parentM.hidden = true;
+        return;
+      }
+
       var btn = e.target.closest('[data-action]');
       if (!btn) return;
       var action = btn.getAttribute('data-action');
@@ -4150,6 +4223,32 @@
             currentLeadId = id;
             currentLead = leads.find(function (l) { return l.id === id; });
             logCall();
+          }
+          break;
+        case 'add-note-inline':
+          if (id) {
+            var noteInput = document.querySelector('.yb-lead__exp-note-input[data-lead-id="' + id + '"]');
+            if (noteInput && noteInput.value.trim()) {
+              var inlineLead = leads.find(function (ll) { return ll.id === id; });
+              if (inlineLead) {
+                var inlineNote = {
+                  text: noteInput.value.trim(),
+                  timestamp: new Date().toISOString(),
+                  author: (firebase.auth().currentUser || {}).email || 'admin',
+                  type: 'note'
+                };
+                var existingNotes = Array.isArray(inlineLead.notes) ? inlineLead.notes.slice() : [];
+                existingNotes.push(inlineNote);
+                db.collection('leads').doc(id).update({
+                  notes: existingNotes,
+                  updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(function () {
+                  inlineLead.notes = existingNotes;
+                  toast(t('leads_note_added'));
+                  renderLeadTable();
+                }).catch(function (err) { toast('Error: ' + err.message, true); });
+              }
+            }
           }
           break;
         case 'leads-export-csv': exportCSV(); break;
@@ -4212,15 +4311,28 @@
           break;
       }
 
-      // Close modals on overlay click
-      if (e.target.classList.contains('yb-lead__modal-overlay')) {
-        var parentModal = e.target.closest('.yb-lead__modal');
-        if (parentModal) parentModal.hidden = true;
-      }
     });
 
-    // Checkbox changes
+    // Checkbox and inline status changes
     document.addEventListener('change', function (e) {
+      // Inline status/temperature/priority change from quick view
+      if (e.target.classList.contains('yb-lead__exp-status-select')) {
+        var selLeadId = e.target.getAttribute('data-lead-id');
+        var selField = e.target.getAttribute('data-field');
+        var selValue = e.target.value;
+        if (selLeadId && selField) {
+          var updateData = {};
+          updateData[selField] = selValue;
+          updateData.updated_at = firebase.firestore.FieldValue.serverTimestamp();
+          db.collection('leads').doc(selLeadId).update(updateData).then(function () {
+            var ll = leads.find(function (x) { return x.id === selLeadId; });
+            if (ll) ll[selField] = selValue;
+            toast(selField + ' updated');
+            renderLeadView();
+          }).catch(function (err) { toast('Error: ' + err.message, true); });
+        }
+        return;
+      }
       if (e.target.classList.contains('yb-lead__cb')) {
         toggleSelectLead(e.target.getAttribute('data-lead-id'));
       }
@@ -4620,6 +4732,7 @@
       sms.innerHTML =
         '<div class="yb-lead__modal-overlay"></div>' +
         '<div class="yb-lead__modal-box">' +
+          '<button type="button" class="yb-lead__modal-close" aria-label="Close">&times;</button>' +
           '<h3>\ud83d\udcf1 Send SMS</h3>' +
           '<div class="yb-lead__modal-to">' +
             'Til: <strong id="yb-sms-recipient-info"></strong>' +
@@ -4661,6 +4774,7 @@
       email.innerHTML =
         '<div class="yb-lead__modal-overlay"></div>' +
         '<div class="yb-lead__modal-box">' +
+          '<button type="button" class="yb-lead__modal-close" aria-label="Close">&times;</button>' +
           '<h3>\u2709\ufe0f Send Email</h3>' +
           '<div class="yb-lead__modal-to">' +
             'Til: <strong id="yb-email-recipient-info"></strong>' +
