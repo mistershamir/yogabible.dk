@@ -46,7 +46,7 @@
     <div class="yb-hero__ctas">
       <a href="?product=100212" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100212">{{ t.hero_cta_prep }}</a>
       <button class="yb-btn yb-btn--outline-white yb-btn--large" onclick="openP300ScheduleModal()">{{ t.hero_cta_schedule }}</button>
-      <button class="yb-btn yb-btn--outline-white yb-btn--large" data-open-booking="info-session">{{ t.hero_cta_info }}</button>
+      <a class="yb-btn yb-btn--outline-white yb-btn--large" href="{% if lang == 'en' %}/en/300h-advanced-ytt?booking=info-session{% else %}/300h-ytt?booking=info-session{% endif %}" data-open-booking="info-session">{{ t.hero_cta_info }}</a>
     </div>
     <p class="p300-hero__refund">{{ t.hero_refund_note }}</p>
     <div class="yb-hero__trust">
@@ -636,7 +636,7 @@
     <div class="p300-final__ctas">
       <a href="?product=100212" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100212">{{ t.final_cta_prep }}</a>
       <button class="yb-btn yb-btn--outline-white yb-btn--large" onclick="openP300ScheduleModal()">{{ t.final_cta_schedule }}</button>
-      <button class="yb-btn yb-btn--outline-white yb-btn--large" data-open-booking="info-session">{{ t.final_cta_info }}</button>
+      <a class="yb-btn yb-btn--outline-white yb-btn--large" href="{% if lang == 'en' %}/en/300h-advanced-ytt?booking=info-session{% else %}/300h-ytt?booking=info-session{% endif %}" data-open-booking="info-session">{{ t.final_cta_info }}</a>
     </div>
     <p class="p300-final__refund">{{ t.final_cta_refund }}</p>
   </div>

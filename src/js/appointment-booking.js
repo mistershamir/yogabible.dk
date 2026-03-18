@@ -487,103 +487,8 @@
      INIT
      ══════════════════════════════════════════ */
 
-  /* ── Copy-link helper ── */
-  function buildBookingUrl(type) {
-    var base = window.location.origin + window.location.pathname;
-    return base + '?booking=' + (type || 'info-session');
-  }
-
-  function copyBookingLink(type, feedbackEl) {
-    var url = buildBookingUrl(type);
-    navigator.clipboard.writeText(url).then(function () {
-      if (feedbackEl) {
-        feedbackEl.textContent = t('Kopieret!', 'Copied!');
-        feedbackEl.classList.add('yb-book-copy--done');
-        setTimeout(function () {
-          feedbackEl.textContent = '';
-          feedbackEl.classList.remove('yb-book-copy--done');
-        }, 1800);
-      }
-    }).catch(function () {
-      // Fallback for older browsers
-      var ta = document.createElement('textarea');
-      ta.value = url;
-      ta.style.position = 'fixed';
-      ta.style.left = '-9999px';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      if (feedbackEl) {
-        feedbackEl.textContent = t('Kopieret!', 'Copied!');
-        feedbackEl.classList.add('yb-book-copy--done');
-        setTimeout(function () {
-          feedbackEl.textContent = '';
-          feedbackEl.classList.remove('yb-book-copy--done');
-        }, 1800);
-      }
-    });
-  }
-
-  function injectCopyButtons() {
-    document.querySelectorAll('[data-open-booking]').forEach(function (btn) {
-      // Skip if already injected or inside samples page
-      if (btn.dataset.bookCopyInjected) return;
-      if (btn.closest('#design-system') || btn.closest('.ds-section')) return;
-      btn.dataset.bookCopyInjected = '1';
-
-      var type = btn.getAttribute('data-open-booking') || 'info-session';
-
-      // Create copy icon button
-      var copyBtn = document.createElement('button');
-      copyBtn.type = 'button';
-      copyBtn.className = 'yb-book-copy-btn';
-      copyBtn.title = t('Kopiér link', 'Copy link');
-      copyBtn.setAttribute('aria-label', t('Kopiér bookinglink', 'Copy booking link'));
-      copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-
-      var feedback = document.createElement('span');
-      feedback.className = 'yb-book-copy-feedback';
-
-      copyBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        copyBookingLink(type, feedback);
-      });
-
-      // Wrap in a container that sits next to the button
-      var wrap = document.createElement('span');
-      wrap.className = 'yb-book-copy-wrap';
-      wrap.appendChild(copyBtn);
-      wrap.appendChild(feedback);
-
-      // Insert after the button
-      if (btn.nextSibling) {
-        btn.parentNode.insertBefore(wrap, btn.nextSibling);
-      } else {
-        btn.parentNode.appendChild(wrap);
-      }
-    });
-  }
-
-  // Expose for admin panel usage
-  window.copyBookingLink = function (type) {
-    var url = window.location.origin + '/?booking=' + (type || 'info-session');
-    navigator.clipboard.writeText(url).then(function () {}).catch(function () {
-      var ta = document.createElement('textarea');
-      ta.value = url;
-      ta.style.position = 'fixed';
-      ta.style.left = '-9999px';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    });
-    return url;
-  };
-
   function init() {
-    // Open triggers
+    // Open triggers — works on both <button> and <a> with data-open-booking
     document.querySelectorAll('[data-open-booking]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
@@ -591,9 +496,6 @@
         openModal(type);
       });
     });
-
-    // Inject copy-link buttons next to all booking CTAs
-    injectCopyButtons();
 
     // Close triggers
     document.querySelectorAll('[data-close-book]').forEach(function (el) {
