@@ -20,10 +20,15 @@ const { getDb, serverTimestamp } = require('./shared/firestore');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse, buildUnsubscribeUrl } = require('./shared/utils');
 const { sendSingleViaResend } = require('./shared/resend-service');
+const { detectLeadCountry } = require('./shared/country-detect');
 
 const SEQUENCES_COL = 'sequences';
 const ENROLLMENTS_COL = 'sequence_enrollments';
 const ALLOWED_FIELDS = ['name', 'description', 'active', 'trigger', 'exit_conditions', 'steps', 'enrollment_closes'];
+const BROADCAST_SEQUENCE_ID = 'Ma2caW2hiQqtkPFesK27';
+// Educational sequence ID — set after creating in Firestore (Task 3).
+// Until created, auto-enrollment is a no-op.
+var EDUCATIONAL_SEQUENCE_ID = null;
 const GATEWAYAPI_ENDPOINT = 'https://gatewayapi.eu/rest/mtsms';
 
 // ── Handler ─────────────────────────────────────────────────────────────────
@@ -612,6 +617,19 @@ async function handleProcess() {
         var selectedSubject = (!isDanish && step.email_subject_en) ? step.email_subject_en : step.email_subject;
         var selectedBody = (!isDanish && step.email_body_en) ? step.email_body_en : step.email_body;
 
+        // Replace {{country_block}} with country-specific content (EN emails only)
+        if (selectedBody && selectedBody.includes('{{country_block}}')) {
+          if (!isDanish && step.country_blocks) {
+            var leadCountry = detectLeadCountry(lead);
+            var countryCode = (leadCountry === 'OTHER' || leadCountry === 'DK') ? 'UK' : leadCountry;
+            var block = step.country_blocks[countryCode] || step.country_blocks['UK'] || '';
+            selectedBody = selectedBody.replace('{{country_block}}', block);
+          } else {
+            // DA emails or no country_blocks — remove placeholder
+            selectedBody = selectedBody.replace('{{country_block}}', '');
+          }
+        }
+
         // Check if step has sendable content — don't advance past empty steps
         var wantsEmail = (step.channel === 'email' || step.channel === 'both');
         var wantsSms = (step.channel === 'sms' || step.channel === 'both');
@@ -731,6 +749,15 @@ async function handleProcess() {
         await db.collection(ENROLLMENTS_COL).doc(enrollId).update(updateData);
         processed++;
 
+        // Auto-enroll in educational sequence when broadcast completes
+        if (updateData.status === 'completed' && seqId === BROADCAST_SEQUENCE_ID) {
+          try {
+            await enrollInEducationalSequence(db, enrollment.lead_id, lead, now);
+          } catch (eduErr) {
+            console.error('[sequences] Educational auto-enroll error for lead ' + enrollment.lead_id + ':', eduErr.message);
+          }
+        }
+
       } catch (enrollErr) {
         console.error('[sequences] Process error for enrollment ' + enrollId + ':', enrollErr.message);
         errors.push({ enrollment_id: enrollId, error: enrollErr.message });
@@ -757,6 +784,81 @@ async function handleProcess() {
 // =========================================================================
 // Helpers
 // =========================================================================
+
+/**
+ * Auto-enroll a lead into the educational nurture sequence after broadcast completion.
+ * Checks: educational sequence exists + is active, lead not already enrolled, exit conditions.
+ */
+async function enrollInEducationalSequence(db, leadId, lead, now) {
+  if (!EDUCATIONAL_SEQUENCE_ID) {
+    // Educational sequence not yet created — look it up by name
+    var eduSnap = await db.collection(SEQUENCES_COL)
+      .where('name', '==', 'YTT Educational Nurture — 2026')
+      .where('active', '==', true)
+      .limit(1)
+      .get();
+
+    if (eduSnap.empty) {
+      console.log('[sequences] Educational sequence not found or not active — skipping auto-enroll');
+      return;
+    }
+    EDUCATIONAL_SEQUENCE_ID = eduSnap.docs[0].id;
+  }
+
+  // Load the educational sequence
+  var seqDoc = await db.collection(SEQUENCES_COL).doc(EDUCATIONAL_SEQUENCE_ID).get();
+  if (!seqDoc.exists || !seqDoc.data().active) {
+    console.log('[sequences] Educational sequence not active — skipping');
+    return;
+  }
+
+  var sequence = seqDoc.data();
+
+  // Check exit conditions before enrolling
+  var leadStatus = (lead.status || '').toLowerCase();
+  var exitConditions = sequence.exit_conditions || [];
+  for (var i = 0; i < exitConditions.length; i++) {
+    var condition = exitConditions[i].toLowerCase();
+    if (leadStatus === condition || (condition === 'converted' && lead.converted) || (condition === 'unsubscribed' && lead.unsubscribed)) {
+      console.log('[sequences] Lead ' + leadId + ' has exit status "' + lead.status + '" — not enrolling in educational');
+      return;
+    }
+  }
+
+  // Check not already enrolled
+  var existingSnap = await db.collection(ENROLLMENTS_COL)
+    .where('sequence_id', '==', EDUCATIONAL_SEQUENCE_ID)
+    .where('lead_id', '==', leadId)
+    .where('status', 'in', ['active', 'paused'])
+    .get();
+
+  if (!existingSnap.empty) {
+    console.log('[sequences] Lead ' + leadId + ' already enrolled in educational sequence');
+    return;
+  }
+
+  // Calculate first step send time
+  var firstStep = sequence.steps && sequence.steps[0];
+  var nextSendAt = calculateNextSendAt(now, firstStep);
+
+  await db.collection(ENROLLMENTS_COL).add({
+    sequence_id: EDUCATIONAL_SEQUENCE_ID,
+    sequence_name: sequence.name || 'YTT Educational Nurture — 2026',
+    lead_id: leadId,
+    lead_email: lead.email || '',
+    lead_name: ((lead.first_name || '') + ' ' + (lead.last_name || '')).trim(),
+    current_step: 1,
+    status: 'active',
+    exit_reason: null,
+    next_send_at: nextSendAt,
+    started_at: now,
+    updated_at: now,
+    step_history: [],
+    trigger: 'broadcast_completed'
+  });
+
+  console.log('[sequences] Auto-enrolled lead ' + leadId + ' into educational sequence');
+}
 
 function calculateNextSendAt(fromISO, step) {
   var date = new Date(fromISO);
