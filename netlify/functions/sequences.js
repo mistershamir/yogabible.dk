@@ -26,8 +26,9 @@ const SEQUENCES_COL = 'sequences';
 const ENROLLMENTS_COL = 'sequence_enrollments';
 const ALLOWED_FIELDS = ['name', 'description', 'active', 'trigger', 'exit_conditions', 'steps', 'enrollment_closes'];
 const BROADCAST_SEQUENCE_ID = 'Ma2caW2hiQqtkPFesK27';
-// Educational sequence ID — set after creating in Firestore (Task 3).
-// Until created, auto-enrollment is a no-op.
+// July International Conversion — looked up by name on first use
+var JULY_INTL_SEQUENCE_ID = null;
+// Educational sequence ID — looked up by name on first use
 var EDUCATIONAL_SEQUENCE_ID = null;
 const GATEWAYAPI_ENDPOINT = 'https://gatewayapi.eu/rest/mtsms';
 
@@ -421,6 +422,9 @@ async function handleProcess() {
   var sentSummary = []; // Track sent items for digest email
 
   try {
+    // Resolve July International sequence ID (for completion → educational chaining)
+    await resolveJulyIntlSequenceId(db);
+
     // Find all active enrollments that are due
     const snapshot = await db.collection(ENROLLMENTS_COL)
       .where('status', '==', 'active')
@@ -762,12 +766,15 @@ async function handleProcess() {
         await db.collection(ENROLLMENTS_COL).doc(enrollId).update(updateData);
         processed++;
 
-        // Auto-enroll in educational sequence when broadcast completes
-        if (updateData.status === 'completed' && seqId === BROADCAST_SEQUENCE_ID) {
-          try {
-            await enrollInEducationalSequence(db, enrollment.lead_id, lead, now);
-          } catch (eduErr) {
-            console.error('[sequences] Educational auto-enroll error for lead ' + enrollment.lead_id + ':', eduErr.message);
+        // Auto-enroll in educational sequence when broadcast or July International completes
+        if (updateData.status === 'completed') {
+          var shouldEnrollEducational = seqId === BROADCAST_SEQUENCE_ID || isJulyInternationalSequence(seqId);
+          if (shouldEnrollEducational) {
+            try {
+              await enrollInEducationalSequence(db, enrollment.lead_id, lead, now);
+            } catch (eduErr) {
+              console.error('[sequences] Educational auto-enroll error for lead ' + enrollment.lead_id + ':', eduErr.message);
+            }
           }
         }
 
@@ -797,6 +804,36 @@ async function handleProcess() {
 // =========================================================================
 // Helpers
 // =========================================================================
+
+/**
+ * Check if a sequence ID is the July International Conversion sequence.
+ * Looks up by name on first call and caches the ID.
+ */
+function isJulyInternationalSequence(seqId) {
+  // If already resolved, compare directly
+  if (JULY_INTL_SEQUENCE_ID) return seqId === JULY_INTL_SEQUENCE_ID;
+  // Not yet resolved — will be resolved lazily below
+  return false;
+}
+
+/**
+ * Resolve the July International sequence ID from Firestore (called once).
+ */
+async function resolveJulyIntlSequenceId(db) {
+  if (JULY_INTL_SEQUENCE_ID) return;
+  try {
+    var snap = await db.collection(SEQUENCES_COL)
+      .where('name', '==', 'July Vinyasa Plus — International Conversion 2026')
+      .where('active', '==', true)
+      .limit(1)
+      .get();
+    if (!snap.empty) {
+      JULY_INTL_SEQUENCE_ID = snap.docs[0].id;
+    }
+  } catch (e) {
+    // Silently ignore — sequence may not exist yet
+  }
+}
 
 /**
  * Auto-enroll a lead into the educational nurture sequence after broadcast completion.

@@ -199,7 +199,22 @@ Every page follows this pattern — **no exceptions**:
 | April 4W Intensive — Conversion Push | `ZwvSVLsqRZcIv8C0IG0y` | 2 | Convert April 4-week leads | `enrollment_closes: Apr 10` |
 | 8W Semi-Intensive May–Jun — DK Nurture | `uDST1Haj1dMyQy0Qifhu` | 3 | Convert 8-week leads | `enrollment_closes: May 1` |
 | 18W Flexible Aug–Dec — DK Nurture | `ab2dSOrmaQnneUyRojCf` | 3 | Convert 18-week Aug leads | `enrollment_closes: Aug 15` |
-| July Vinyasa Plus — International Nurture | `Yoq6RCVqTYlF10OPmkSw` | 4 | Convert July Vinyasa Plus leads | `enrollment_closes: Jul 1` |
+| July Vinyasa Plus — International Nurture | `Yoq6RCVqTYlF10OPmkSw` | 4 | Convert July Vinyasa Plus leads (DK flow) | `enrollment_closes: Jul 1` |
+| July Vinyasa Plus — International Conversion 2026 | `{PENDING_ID}` | 8 | Convert July international leads (EN+DE+country blocks, no DA). Replaces Broadcast+Onboarding+existing July for non-DK leads | `enrollment_closes: Jul 4` |
+
+### 4-week-jul Trigger Routing (Country-Based Split)
+
+When a new lead signs up for the `4-week-jul` cohort, `sequence-trigger.js` splits the enrollment flow based on country:
+
+| Lead Country | Quick Follow-up | Broadcast | Onboarding | Existing July | July Intl Conversion |
+|-------------|:-:|:-:|:-:|:-:|:-:|
+| **DK** (Danish) | ✓ | ✓ | ✓ | ✓ | — |
+| **Non-DK** (International) | ✓ | — | — | — | ✓ |
+
+- Country detection uses `detectLeadCountry()` from `country-detect.js` (waterfall: country field → phone prefix → lang → OTHER)
+- International leads get a dedicated 8-email conversion sequence with EN + DE bodies and country-specific blocks (NO, SE, DE, FI, NL, UK)
+- When July International Conversion completes step 8, the lead auto-enrolls into Educational Nurture (same pattern as Broadcast completion)
+- All other cohorts follow the standard flow unchanged
 
 ### Key Files
 
@@ -212,6 +227,8 @@ Every page follows this pattern — **no exceptions**:
 | `netlify/functions/fix-english-urls.js` | POST endpoint — add `/en/` prefix to EN email URLs |
 | `netlify/functions/scan-sequence-language.js` | POST endpoint — find/remove course language references |
 | `netlify/functions/fix-sms-and-quickfollowup.js` | POST endpoint — fix SMS refund language, add EN to Quick Follow-up |
+| `netlify/functions/seed-july-international-sequence.js` | One-time: create July International Conversion sequence with placeholder steps |
+| `netlify/functions/populate-july-international-content.js` | Populate July International steps from `data/july-international-content.json` |
 | `src/js/sequences-admin.js` | Admin UI for sequence management |
 | `src/js/nurture-admin.js` | Admin UI for nurture monitoring |
 

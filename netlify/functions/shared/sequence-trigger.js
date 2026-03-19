@@ -10,6 +10,19 @@
  */
 
 const { getDb } = require('./firestore');
+const { detectLeadCountry } = require('./country-detect');
+
+// =========================================================================
+// Known Sequence IDs
+// =========================================================================
+
+const QUICK_FOLLOWUP_ID = 'Ue0CYOsPJlnj5SF9PtA0';
+const BROADCAST_ID = 'Ma2caW2hiQqtkPFesK27';
+const ONBOARDING_ID = 'Un1xmmriIpUyy2Kui97N';
+const EXISTING_JULY_ID = 'Yoq6RCVqTYlF10OPmkSw';
+
+// July International Conversion — looked up by name on first use
+var JULY_INTL_SEQUENCE_ID = null;
 
 // =========================================================================
 // Condition Matching
@@ -78,20 +91,40 @@ async function triggerNewLeadSequences(leadId, leadData) {
   try {
     const db = getDb();
 
+    // ── 4-week-jul international routing ──────────────────────────────────
+    // International leads for the July Vinyasa Plus cohort get a dedicated
+    // conversion sequence instead of Broadcast + Onboarding + existing July.
+    // Danish leads follow the standard flow unchanged.
+    const leadProgram = leadData.ytt_program_type || leadData.program || '';
+    const isJulyLead = leadProgram.includes('4-week-jul');
+    const leadCountry = isJulyLead ? detectLeadCountry(leadData) : null;
+    const isJulyInternational = isJulyLead && leadCountry !== 'DK';
+
+    // Sequences to skip for July international leads (they get July Intl Conversion instead)
+    const julyIntlSkipIds = isJulyInternational
+      ? new Set([BROADCAST_ID, ONBOARDING_ID, EXISTING_JULY_ID])
+      : null;
+
     // Find active sequences with new_lead trigger
     const sequencesSnap = await db.collection('sequences')
       .where('active', '==', true)
       .where('trigger.type', '==', 'new_lead')
       .get();
 
-    if (sequencesSnap.empty) {
+    if (sequencesSnap.empty && !isJulyInternational) {
       return { enrolled: 0, sequences: [] };
     }
 
     const enrolledNames = [];
 
-    for (const seqDoc of sequencesSnap.docs) {
+    for (const seqDoc of (sequencesSnap.docs || [])) {
       const sequence = { id: seqDoc.id, ...seqDoc.data() };
+
+      // Skip Broadcast/Onboarding/existing July for international July leads
+      if (julyIntlSkipIds && julyIntlSkipIds.has(sequence.id)) {
+        console.log(`[sequence-trigger] Skipping "${sequence.name}" for July international lead ${leadId} (country: ${leadCountry})`);
+        continue;
+      }
 
       // Check trigger conditions against lead data
       if (!matchesTriggerConditions(sequence.trigger?.conditions, leadData)) {
@@ -143,6 +176,18 @@ async function triggerNewLeadSequences(leadId, leadData) {
 
       enrolledNames.push(sequence.name || sequence.id);
       console.log(`[sequence-trigger] Enrolled lead ${leadId} into "${sequence.name}"`);
+    }
+
+    // ── Enroll July international leads in dedicated conversion sequence ──
+    if (isJulyInternational) {
+      try {
+        const julyIntlName = await enrollInJulyInternationalSequence(db, leadId, leadData);
+        if (julyIntlName) {
+          enrolledNames.push(julyIntlName);
+        }
+      } catch (julyErr) {
+        console.error(`[sequence-trigger] July International enrollment error for lead ${leadId}:`, julyErr.message);
+      }
     }
 
     return { enrolled: enrolledNames.length, sequences: enrolledNames };
@@ -318,6 +363,87 @@ async function checkExitConditions(db, leadId, newStatus) {
   } catch (err) {
     console.error(`[sequence-trigger] Error in checkExitConditions for lead ${leadId}:`, err);
   }
+}
+
+// =========================================================================
+// July International Conversion — Manual Enrollment
+// =========================================================================
+
+/**
+ * Enroll an international July lead into the dedicated conversion sequence.
+ * Looks up the sequence by name on first call, then caches the ID.
+ *
+ * @param {Object} db - Firestore database instance
+ * @param {string} leadId - Lead document ID
+ * @param {Object} leadData - Lead document data
+ * @returns {Promise<string|null>} Sequence name if enrolled, null if skipped
+ */
+async function enrollInJulyInternationalSequence(db, leadId, leadData) {
+  if (!JULY_INTL_SEQUENCE_ID) {
+    var snap = await db.collection('sequences')
+      .where('name', '==', 'July Vinyasa Plus — International Conversion 2026')
+      .where('active', '==', true)
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      console.log('[sequence-trigger] July International Conversion sequence not found or not active — skipping');
+      return null;
+    }
+    JULY_INTL_SEQUENCE_ID = snap.docs[0].id;
+  }
+
+  var seqDoc = await db.collection('sequences').doc(JULY_INTL_SEQUENCE_ID).get();
+  if (!seqDoc.exists || !seqDoc.data().active) {
+    console.log('[sequence-trigger] July International Conversion sequence not active — skipping');
+    return null;
+  }
+
+  var sequence = seqDoc.data();
+
+  // Check enrollment_closes
+  if (sequence.enrollment_closes) {
+    var closesDate = new Date(sequence.enrollment_closes);
+    if (new Date() > closesDate) {
+      console.log('[sequence-trigger] July International Conversion enrollment closed on ' + sequence.enrollment_closes);
+      return null;
+    }
+  }
+
+  // Check not already enrolled
+  var existingSnap = await db.collection('sequence_enrollments')
+    .where('sequence_id', '==', JULY_INTL_SEQUENCE_ID)
+    .where('lead_id', '==', leadId)
+    .where('status', 'in', ['active', 'paused'])
+    .get();
+
+  if (!existingSnap.empty) {
+    console.log('[sequence-trigger] Lead ' + leadId + ' already enrolled in July International Conversion');
+    return null;
+  }
+
+  var firstStepDelay = sequence.steps && sequence.steps[0] ? (sequence.steps[0].delay_minutes || 0) : 0;
+  var now = new Date();
+  var nextSendAt = new Date(now.getTime() + firstStepDelay * 60 * 1000);
+
+  await db.collection('sequence_enrollments').add({
+    sequence_id: JULY_INTL_SEQUENCE_ID,
+    sequence_name: sequence.name || 'July Vinyasa Plus — International Conversion 2026',
+    lead_id: leadId,
+    lead_email: leadData.email || '',
+    lead_name: leadData.name || leadData.first_name || '',
+    current_step: 1,
+    status: 'active',
+    exit_reason: null,
+    next_send_at: nextSendAt,
+    started_at: now,
+    updated_at: now,
+    step_history: [],
+    trigger: 'new_lead_july_international'
+  });
+
+  console.log('[sequence-trigger] Enrolled international lead ' + leadId + ' into July International Conversion');
+  return sequence.name;
 }
 
 module.exports = {
