@@ -23,6 +23,8 @@ const {
   getSignaturePlain,
   getEnglishNoteHtml,
   getEnglishNotePlain,
+  getGermanPsLineHtml,
+  getGermanPsLinePlain,
   getUnsubscribeFooterHtml,
   getUnsubscribeFooterPlain,
   getAccommodationSectionHtml,
@@ -185,12 +187,49 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
   }
 
   try {
-    // Determine language: 'da' for Danish website/ads, otherwise English
+    // Determine language: 'da' for Danish website/ads, 'de' for German, otherwise English
     const lang = (leadData.lang || leadData.meta_lang || '').toLowerCase().substring(0, 2);
-    const isEnglish = lang !== 'da';
+    const isDanish = lang === 'da';
+    const isGerman = lang === 'de' || ['at', 'ch'].includes(lang);
+
+    // German leads get DE templates (falling back to EN via i18n lookups)
+    if (isGerman) {
+      let result;
+      const programKeyMap = {
+        'lead_schedule_4w': '4-week', 'lead_schedule_4w-apr': '4-week',
+        'lead_schedule_4w-jul': '4-week-jul', 'lead_schedule_8w': '8-week',
+        'lead_schedule_18w': '18-week', 'lead_schedule_18w-mar': '18-week',
+        'lead_schedule_18w-aug': '18-week-aug', 'lead_schedule_300h': '300h',
+        'lead_schedule_50h': 'specialty', 'lead_schedule_30h': 'specialty'
+      };
+
+      if (leadData.multi_format === 'Yes' && leadData.all_formats) {
+        result = await sendMultiFormatEmail(leadData, 'de', tokenData);
+      } else if (action === 'lead_schedule_multi') {
+        result = await sendMultiFormatEmail(leadData, 'de', tokenData);
+      } else if (action === 'lead_undecided') {
+        result = await sendUndecidedEmail(leadData, 'de', tokenData);
+      } else if (action === 'lead_courses') {
+        result = await sendCoursesEmail(leadData, 'de');
+      } else if (action === 'lead_mentorship') {
+        result = await sendMentorshipEmail(leadData, 'de');
+      } else if (programKeyMap[action]) {
+        result = await sendProgramEmail(leadData, programKeyMap[action], 'de', tokenData);
+      } else if (action === 'lead_meta' && leadData.type === 'ytt') {
+        var metaKey = leadData.ytt_program_type || '4-week';
+        if (!i18n.PROGRAMS[metaKey]) metaKey = '4-week';
+        result = await sendProgramEmail(leadData, metaKey, 'de', tokenData);
+      } else {
+        result = await sendEmailGenericBilingual(leadData, 'de');
+      }
+      if (result && result.success) {
+        await logWelcomeEmail(leadData.email, result.subject || 'Welcome email (DE)');
+      }
+      return result;
+    }
 
     // English leads get full English email templates matching Danish detail
-    if (isEnglish) {
+    if (!isDanish) {
       let result;
       const programKeyMap = {
         'lead_schedule_4w': '4-week', 'lead_schedule_4w-apr': '4-week',
@@ -1230,7 +1269,8 @@ function i18nAccommodationHtml(lang, cityCountry) {
   var html = '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-radius:6px;border-left:3px solid #4CAF50;">';
   html += '<strong style="color:#2E7D32;">' + t.accommodationTitle + '</strong> ';
   html += t.accommodationIntro;
-  if (cityCountry) html += t.accommodationFromCity + escapeHtml(cityCountry) + (lang === 'da' ? ' og' : ' and');
+  var accommodationConnector = lang === 'da' ? ' og' : lang === 'de' ? '' : ' and';
+  if (cityCountry) html += t.accommodationFromCity + escapeHtml(cityCountry) + accommodationConnector;
   html += t.accommodationNeedHousing + '<br><br>';
   html += '<strong><a href="' + t.accommodationLinkUrl + '" style="color:#f75c03;">' + t.accommodationLink + '</a></strong><br>';
   html += '<span style="color:#666;">' + t.accommodationQuestion + '</span>';
@@ -1266,9 +1306,11 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   bodyHtml += '<p>' + p.intro + '</p>';
 
   if (sUrl) {
-    bodyHtml += '<p>' + (lang === 'da' ? 'Her finder du alle tr\u00e6ningsdage og tidspunkter:' : 'Here are all the training days and times:') + '</p>';
+    var schedIntro = lang === 'da' ? 'Her finder du alle tr\u00e6ningsdage og tidspunkter:' : lang === 'de' ? 'Hier findest du alle Trainingstage und Zeiten:' : 'Here are all the training days and times:';
+    var calNote = lang === 'da' ? 'Du kan tilf\u00f8je alle datoer direkte til din kalender.' : lang === 'de' ? 'Du kannst alle Termine direkt in deinen Kalender eintragen.' : 'You can add all dates directly to your calendar.';
+    bodyHtml += '<p>' + schedIntro + '</p>';
     bodyHtml += '<p style="margin:20px 0;"><a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">' + t.viewScheduleBtn + '</a></p>';
-    bodyHtml += '<p style="font-size:14px;color:#666;">' + (lang === 'da' ? 'Du kan tilf\u00f8je alle datoer direkte til din kalender.' : 'You can add all dates directly to your calendar.') + '</p>';
+    bodyHtml += '<p style="font-size:14px;color:#666;">' + calNote + '</p>';
   }
 
   bodyHtml += '<p style="margin-top:16px;">' + p.description + '</p>';
@@ -1294,12 +1336,14 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   bodyHtml += ' \u00b7 <a href="' + about200hUrl + '" style="color:#f75c03;">' + t.compareFormats + '</a></p>';
   bodyHtml += i18nBookingCta(lang) + i18nQuestionPrompt(lang);
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
   bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   // ---- Plain text ----
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
   bodyPlain += p.intro.replace(/<[^>]+>/g, '') + '\n\n';
-  if (sUrl) bodyPlain += (lang === 'da' ? 'Skema og datoer: ' : 'Schedule and dates: ') + sUrl + '\n\n';
+  var schedLabel = lang === 'da' ? 'Skema og datoer: ' : lang === 'de' ? 'Stundenplan und Termine: ' : 'Schedule and dates: ';
+  if (sUrl) bodyPlain += schedLabel + sUrl + '\n\n';
   bodyPlain += p.description + '\n\n';
   bodyPlain += i18nHighlightsPlain(lang, p.extras);
   bodyPlain += '\n' + t.priceLabel + ': ' + (lang === 'da' ? '23.750 kr.' : '23,750 DKK') + '\n';
@@ -1308,6 +1352,7 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += t.lookingForward;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
   bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   var result = await sendRawEmail({
@@ -1390,6 +1435,7 @@ async function sendMultiFormatEmail(leadData, lang, tokenData) {
   bodyHtml += i18nBookingCta(lang);
   bodyHtml += '<p>' + t.lookingForward + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
   bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   // ---- Plain text ----
@@ -1403,13 +1449,14 @@ async function sendMultiFormatEmail(leadData, lang, tokenData) {
     var sUrl = sPath ? i18n.scheduleUrl(sPath, lang, tokenData) : '';
     bodyPlain += '--- ' + info.name + ' (' + info.period + ') ---\n';
     bodyPlain += info.desc + '\n';
-    if (sUrl) bodyPlain += (lang === 'da' ? 'Skema: ' : 'Schedule: ') + sUrl + '\n';
+    if (sUrl) bodyPlain += (lang === 'da' ? 'Skema: ' : lang === 'de' ? 'Stundenplan: ' : 'Schedule: ') + sUrl + '\n';
     bodyPlain += '\n';
   });
   bodyPlain += i18nHighlightsPlain(lang);
   bodyPlain += '\n' + t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += t.lookingForward;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
   bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   var result = await sendRawEmail({
@@ -1477,6 +1524,7 @@ async function sendUndecidedEmail(leadData, lang, tokenData) {
   bodyHtml += i18nBookingCta(lang);
   bodyHtml += '<p>' + u.replyOk + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
   bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   // Plain text
@@ -1489,6 +1537,7 @@ async function sendUndecidedEmail(leadData, lang, tokenData) {
   });
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
   bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });
@@ -1509,16 +1558,18 @@ async function sendEmailGenericBilingual(leadData, lang) {
   bodyHtml += '<p>' + g.body + '</p>';
   bodyHtml += '<p>' + g.meanwhile + '</p>';
   bodyHtml += '<ul style="margin:10px 0;padding-left:20px;">';
-  bodyHtml += '<li>' + g.bookLink + ': <a href="' + CONFIG.MEETING_LINK + '" style="color:#f75c03;">' + (lang === 'da' ? 'Klik her' : 'Click here') + '</a></li>';
+  bodyHtml += '<li>' + g.bookLink + ': <a href="' + CONFIG.MEETING_LINK + '" style="color:#f75c03;">' + (lang === 'da' ? 'Klik her' : lang === 'de' ? 'Hier klicken' : 'Click here') + '</a></li>';
   bodyHtml += '<li>' + g.visitLink + ': <a href="' + g.visitUrl + '" style="color:#f75c03;">yogabible.dk</a></li>';
   bodyHtml += '</ul>';
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
   bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + g.intro.replace(/<[^>]+>/g, '') + '\n\n' +
     g.body + '\n\n' + g.bookLink + ': ' + CONFIG.MEETING_LINK + '\n' + g.visitLink + ': ' + g.visitUrl;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
   bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });
@@ -1541,11 +1592,13 @@ async function sendMentorshipEmail(leadData, lang) {
   bodyHtml += i18nBookingCta(lang);
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
   bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + p.intro.replace(/<[^>]+>/g, '').replace('{{service}}', service) + '\n\n' +
     p.description + '\n\n' + t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
   bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });
@@ -1586,11 +1639,13 @@ async function sendCoursesEmail(leadData, lang) {
   bodyHtml += i18nBookingCta(lang);
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
   bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + (isBundle ? c.introBundle : c.introSingle).replace(/<[^>]+>/g, '').replace('{{courses}}', courses) + '\n\n';
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
   bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });

@@ -89,6 +89,15 @@ function getEnglishNotePlain() {
   return '\n\nAre you an English speaker? No problem \u2014 just reply in English and I will be happy to help.\n';
 }
 
+function getGermanPsLineHtml() {
+  return '<p style="margin-top:16px;font-size:13px;color:#6F6A66;font-style:italic;">' +
+    'PS: Wir schreiben dir auf Deutsch, weil wir möchten, dass du dich bei uns willkommen fühlst — noch bevor du in Kopenhagen ankommst. Antworte gerne auf Deutsch oder Englisch, wir verstehen beides.</p>';
+}
+
+function getGermanPsLinePlain() {
+  return '\n\nPS: Wir schreiben dir auf Deutsch, weil wir möchten, dass du dich bei uns willkommen fühlst — noch bevor du in Kopenhagen ankommst. Antworte gerne auf Deutsch oder Englisch, wir verstehen beides.\n';
+}
+
 function getUnsubscribeFooterHtml(email) {
   const url = buildUnsubscribeUrl(email);
   return '<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;">' +
@@ -305,6 +314,8 @@ module.exports = {
   getSignaturePlain,
   getEnglishNoteHtml,
   getEnglishNotePlain,
+  getGermanPsLineHtml,
+  getGermanPsLinePlain,
   getUnsubscribeFooterHtml,
   getUnsubscribeFooterPlain,
   getAccommodationSectionHtml,

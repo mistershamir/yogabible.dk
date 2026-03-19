@@ -111,8 +111,9 @@ async function sendWelcomeSMS(leadData, leadDocId) {
   }
 
   // Determine language: use lang field (set by website modal or meta_lang from ads)
-  // Danish if lang === 'da' or meta_lang === 'da', otherwise English
-  const lang = (leadData.lang || leadData.meta_lang || 'en').toLowerCase().substring(0, 2);
+  // Danish if lang === 'da', German if lang === 'de' or country is AT/CH, otherwise English
+  var rawLang = (leadData.lang || leadData.meta_lang || 'en').toLowerCase().substring(0, 2);
+  const lang = (rawLang === 'de' || ['at', 'ch'].includes(rawLang)) ? 'de' : rawLang;
 
   // Select template based on lead type
   const program = String(leadData.program || '').toLowerCase();

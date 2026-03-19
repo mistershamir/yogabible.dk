@@ -1,0 +1,14 @@
+{
+  "sequence_id": "REPLACE_WITH_FIRESTORE_SEQUENCE_ID",
+  "steps": [
+    {
+      "step_index": 0,
+      "email_subject": "Danish subject for step 1",
+      "email_body": "<p>Danish HTML body for step 1</p>",
+      "email_subject_en": "English subject for step 1",
+      "email_body_en": "<p>English HTML body for step 1</p>",
+      "email_subject_de": "German subject for step 1",
+      "email_body_de": "<p>German HTML body for step 1</p>"
+    }
+  ]
+}

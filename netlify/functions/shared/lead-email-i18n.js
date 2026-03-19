@@ -100,6 +100,51 @@ const SHARED = {
     smallCohort: 'Max 12 students per cohort \u2014 personal feedback',
     classesIncluded: '60 yoga classes at the studio included',
     chooseTrack: 'Choose weekday or weekend track \u2014 switch freely'
+  },
+  de: {
+    greeting: 'Hallo',
+    bookingCta: 'Möchtest du mehr erfahren oder hast du Fragen? Buche ein kostenloses Infogespräch — online oder vor Ort:',
+    bookingBtn: 'Kostenloses Infogespräch buchen',
+    questionPrompt: 'Ich würde auch gerne wissen: <strong>Was hat dich dazu gebracht, über eine Yogalehrer-Ausbildung nachzudenken?</strong> Antworte einfach auf diese E-Mail.',
+    lookingForward: 'Ich freue mich, von dir zu hören!',
+    highlightsIntro: 'Über die Ausbildung:',
+    highlights: [
+      '200 Stunden · Yoga Alliance zertifiziert (RYT-200)',
+      'Hatha, Vinyasa, Yin, Hot Yoga & Meditation',
+      'Anatomie, Philosophie, Sequenzierung & Unterrichtsmethodik',
+      'Alle Level willkommen',
+      'Die Ausbildung findet auf Englisch statt'
+    ],
+    alumniNote: 'Wir bilden seit 2014 Yogalehrer aus. Unsere Absolventen unterrichten in ganz Europa und darüber hinaus.',
+    prepPhaseTitle: '\ud83d\udca1 Wusstest du?',
+    prepPhaseIntro: 'Die meisten internationalen Studierenden starten ihre Vorbereitungsphase früh — und das hat gute Gründe:',
+    prepPhaseBullets: [
+      'Sichere deinen Platz in der Juli-Gruppe',
+      'Erhalte Zugang zu Online-Vorbereitungsmaterialien im Mitgliederbereich',
+      'Wir helfen dir bei Unterkunft und Logistik in Kopenhagen',
+      'Starte deine Vorbereitung von zu Hause aus'
+    ],
+    prepPhaseBtn: 'Vorbereitungsphase starten — 3.750 DKK',
+    prepPhaseSmart: '\ud83d\udca1 Kluger Schritt: Starte jetzt deine Vorbereitungsphase',
+    priceLabel: 'Preis',
+    prepLabel: 'Vorbereitungsphase',
+    remainLabel: 'Restbetrag',
+    noFees: 'keine versteckten Gebühren',
+    accommodationTitle: '\ud83c\udfe0 Unterkunft:',
+    accommodationIntro: 'Ich sehe, dass du',
+    accommodationFromCity: ' aus ',
+    accommodationNeedHousing: ' kommst und Unterkunft in Kopenhagen brauchst.',
+    accommodationLink: 'Unterkunftsmöglichkeiten ansehen →',
+    accommodationLinkUrl: 'https://yogabible.dk/en/accommodation',
+    accommodationQuestion: 'Fragen zur Unterkunft? Antworte einfach auf diese E-Mail.',
+    replyInvite: 'Antworte gerne auf diese E-Mail, wenn du Fragen hast.',
+    viewScheduleBtn: 'Stundenplan ansehen →',
+    readMore: 'Mehr über das Programm erfahren →',
+    compareFormats: 'Alle Formate vergleichen',
+    onlineBackup: 'Online-Backup, falls du einen Tag nicht teilnehmen kannst',
+    smallCohort: 'Max. 12 Studierende pro Gruppe — persönliches Feedback',
+    classesIncluded: '60 Yogaklassen im Studio inklusive',
+    chooseTrack: 'Wähle Wochentags- oder Wochenendkurs — wechsle frei'
   }
 };
 
@@ -200,6 +245,19 @@ const PROGRAMS = {
       period: 'July 2026',
       extras: [],
       rateNote: 'flexible instalments'
+    },
+    de: {
+      subject: '{{name}}, hier sind alle Termine für die 4-Wochen Vinyasa Plus Ausbildung (Juli)',
+      intro: 'Danke für dein Interesse an unserer <strong>4-Wochen Vinyasa Plus Yogalehrer-Ausbildung</strong> (Juli 2026).',
+      description: 'Vinyasa Plus ist ein spezialisiertes Format mit Fokus auf Flow-basiertem Unterricht. Du trainierst in unserem eigenen Studio in Christianshavn — einem der schönsten Viertel Kopenhagens.',
+      vinyasaDetail: true,
+      vinyasaTitle: 'Was ist das Vinyasa Plus Format?',
+      vinyasaFlow: '<strong>70% Vinyasa Flow</strong> — kreative Sequenzierung, Klassenleitung und fortgeschrittene Unterrichtstechniken',
+      vinyasaYin: '<strong>30% Yin Yoga + Hot Yoga</strong> — Erholung, tiefe Dehnungen und Unterricht in beheizter Umgebung',
+      vinyasaCert: 'Du wirst zertifiziert, sowohl beheizte als auch nicht-beheizte Vinyasa + Yin Klassen zu unterrichten.',
+      period: 'Juli 2026',
+      extras: [],
+      rateNote: 'flexible Ratenzahlung'
     }
   },
   '8-week': {
@@ -355,6 +413,15 @@ const PROGRAMS = {
       meanwhile: 'In the meantime:',
       bookLink: 'Book a consultation',
       visitLink: 'Visit our website',
+      visitUrl: 'https://www.yogabible.dk/en/'
+    },
+    de: {
+      subject: 'Danke für deine Anfrage — Yoga Bible',
+      intro: 'Danke, dass du dich an <strong>Yoga Bible</strong> gewandt hast!',
+      body: 'Wir haben deine Anfrage erhalten und melden uns schnellstmöglich bei dir.',
+      meanwhile: 'In der Zwischenzeit:',
+      bookLink: 'Infogespräch buchen',
+      visitLink: 'Besuche unsere Website',
       visitUrl: 'https://www.yogabible.dk/en/'
     }
   }

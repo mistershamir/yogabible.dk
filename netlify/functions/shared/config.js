@@ -40,6 +40,13 @@ const AUTO_SMS_CONFIG = {
       'course': "Hej {{first_name}}! Tak for din interesse i vores {{program}} kursus. Vi har sendt detaljer til din e-mail (tjek ogs\u00e5 spam). Book en gratis konsultation: https://yogabible.dk/?booking=1 — K\u00e6rlig hilsen, Yoga Bible",
       'mentorship': "Hej {{first_name}}! Tak for din interesse i vores Mentorship-program. Vi har sendt detaljer til din e-mail (tjek ogs\u00e5 spam). Book en gratis konsultation: https://yogabible.dk/?booking=1 — K\u00e6rlig hilsen, Yoga Bible",
       'default': "Hej {{first_name}}! Tak fordi du kontaktede Yoga Bible. Vi har sendt info til din e-mail (tjek ogs\u00e5 spam). Book en konsultation: https://yogabible.dk/?booking=1 — K\u00e6rlig hilsen, Yoga Bible"
+    },
+    de: {
+      'ytt': "Hallo {{first_name}}, hier ist Shamir von Yoga Bible! Danke für dein Interesse an der Yogalehrer-Ausbildung. Schau dir den Stundenplan an und melde dich, wenn du Fragen hast — per E-Mail oder unter +45 53 88 12 09. Bis bald in Kopenhagen!",
+      'ytt_multi': "Hallo {{first_name}}, hier ist Shamir von Yoga Bible! Danke für deine Anfrage zu unseren {{program}}. Wir haben alle Stundenpläne an deine E-Mail geschickt (check auch den Spam-Ordner). Infogespräch buchen: https://yogabible.dk/?booking=1 — Yoga Bible",
+      'course': "Hallo {{first_name}}! Danke für dein Interesse an unserem {{program}} Kurs. Wir haben die Details an deine E-Mail geschickt (check auch den Spam-Ordner). Buche eine Beratung: https://yogabible.dk/?booking=1 — Yoga Bible",
+      'mentorship': "Hallo {{first_name}}! Danke für dein Interesse an unserem Mentorship-Programm. Wir haben die Details an deine E-Mail geschickt (check auch den Spam-Ordner). Buche eine Beratung: https://yogabible.dk/?booking=1 — Yoga Bible",
+      'default': "Hallo {{first_name}}! Danke, dass du dich an Yoga Bible gewandt hast. Wir haben Infos an deine E-Mail geschickt (check auch den Spam-Ordner). Buche eine Beratung: https://yogabible.dk/?booking=1 — Yoga Bible"
     }
   }
 };
