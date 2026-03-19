@@ -1,0 +1,5 @@
+{
+  "sequence_id": "REPLACE_WITH_FIRESTORE_SEQUENCE_ID",
+  "note": "Replace sequence_id with the actual Firestore document ID after running seed-july-international-sequence.js. Each step needs: step_index (0-based), email_subject (null for DA), email_body (null for DA), email_subject_en, email_body_en, email_subject_de, email_body_de, country_blocks (NO, SE, DE, FI, NL, UK).",
+  "steps": []
+}
