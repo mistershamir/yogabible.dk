@@ -173,6 +173,205 @@ Every page follows this pattern — **no exceptions**:
 
 ---
 
+## Nurture Sequence System (MANDATORY)
+
+**IMPORTANT:** Yoga Bible runs a multi-layered email/SMS nurture system for YTT leads. Built on Firestore + Netlify Functions. All sequence content is bilingual (DA + EN). When creating or modifying sequences, follow the architecture and content rules below exactly.
+
+### Architecture — 3 Layers Running in Parallel
+
+| Layer | Purpose | Audience | Cadence |
+|-------|---------|----------|---------|
+| **Broadcast Nurture** | Universal evergreen content — builds trust, educates | ALL leads | 6 steps over ~28 days |
+| **New Lead Onboarding** | Orients undecided leads toward a format choice | Undecided leads on form submission | 5 steps over ~12 days |
+| **Program-Specific Conversion** | Targeted push for leads interested in a specific format | Leads matched to a program | 2-4 steps, varies by program |
+
+**Plus:**
+- **Quick Follow-up** — plain text check-in 2.5 hours after signup (1 step)
+- **Educational/Lifestyle Nurture** — planned 4th layer for post-broadcast ongoing engagement (NOT YET BUILT — see below)
+
+### All Sequence IDs in Firestore
+
+| Sequence | Firestore ID | Steps | Purpose | Auto-Deactivation |
+|----------|-------------|-------|---------|-------------------|
+| YTT Broadcast Nurture — 2026 | `Ma2caW2hiQqtkPFesK27` | 6 | Evergreen trust-building for all leads | None (evergreen) |
+| YTT Quick Follow-up | `Ue0CYOsPJlnj5SF9PtA0` | 1 | Plain text check-in 2.5h after signup | None |
+| YTT Onboarding — 2026 | `Un1xmmriIpUyy2Kui97N` | 5 | Orient undecided leads toward a format | None |
+| April 4W Intensive — Conversion Push | `ZwvSVLsqRZcIv8C0IG0y` | 2 | Convert April 4-week leads | `enrollment_closes: Apr 10` |
+| 8W Semi-Intensive May–Jun — DK Nurture | `uDST1Haj1dMyQy0Qifhu` | 3 | Convert 8-week leads | `enrollment_closes: May 1` |
+| 18W Flexible Aug–Dec — DK Nurture | `ab2dSOrmaQnneUyRojCf` | 3 | Convert 18-week Aug leads | `enrollment_closes: Aug 15` |
+| July Vinyasa Plus — International Nurture | `Yoq6RCVqTYlF10OPmkSw` | 4 | Convert July Vinyasa Plus leads | `enrollment_closes: Jul 1` |
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `netlify/functions/process-sequences.js` | Cron processor (runs `*/30 * * * *`) — sends due emails/SMS |
+| `netlify/functions/shared/sequence-trigger.js` | Enrolls leads into sequences on form submission |
+| `netlify/functions/audit-sequences.js` | GET endpoint — full Firestore state audit |
+| `netlify/functions/fix-sequences.js` | POST endpoint — fix exit conditions, channel mismatches |
+| `netlify/functions/fix-english-urls.js` | POST endpoint — add `/en/` prefix to EN email URLs |
+| `netlify/functions/scan-sequence-language.js` | POST endpoint — find/remove course language references |
+| `netlify/functions/fix-sms-and-quickfollowup.js` | POST endpoint — fix SMS refund language, add EN to Quick Follow-up |
+| `src/js/sequences-admin.js` | Admin UI for sequence management |
+| `src/js/nurture-admin.js` | Admin UI for nurture monitoring |
+
+**Firestore collections:** `sequences`, `sequence_enrollments`, `email_log`, `sms_log`
+
+### Language Branching Logic
+
+The processor in `process-sequences.js` determines email language per lead:
+
+1. Reads `lead.lang || lead.meta_lang || lead.language || 'da'`
+2. Danish leads (`da`, `dk`) receive `email_subject` / `email_body` fields from the step
+3. All other languages receive `email_subject_en` / `email_body_en` (falls back to DA if EN fields missing)
+4. Email log includes `lang` field for analytics
+5. All links in `email_body_en` must use `/en/` prefix for Weglot translation
+
+**Website form language detection:** `modal-200ytt.js` and `modal-300ytt.js` append a `lang` field based on Weglot detection. Without this, website form leads had empty `lang` fields, causing Danish visitors to get English emails.
+
+### Auto-Deactivation with `enrollment_closes`
+
+Program-specific sequences have an `enrollment_closes` date field in Firestore:
+
+- **Trigger checks this date** before enrolling new leads — if past, no new enrollments
+- **Existing leads continue** their journey regardless (already-enrolled leads finish their steps)
+- **July trigger condition** uses `"4-week"` (not `"4-week-jul"`) so it catches generic 4-week leads after April closes
+- **No manual toggling needed** — the system handles cohort transitions automatically
+
+### Exit Conditions (All 7 Sequences)
+
+```json
+["Converted", "Existing Applicant", "Unsubscribed", "Lost", "Closed", "Archived"]
+```
+
+**Deliberately KEPT in sequences** (these leads still need nurturing):
+- `"Not too keen"`
+- `"On Hold"`
+- `"Interested In Next Round"`
+
+### 48-Hour Throttle
+
+- Processor checks last email sent to a lead
+- If within 48 hours, postpones the next email by 24 hours
+- Prevents pile-ups when a lead is enrolled in multiple sequences simultaneously
+- Emails are bumped, never dropped
+
+### Broadcast Sequence Content (Evergreen)
+
+No dates, no specific cohort references — works for any enrollment period.
+
+| Step | Delay | DA Subject | EN Subject | Theme |
+|------|-------|-----------|------------|-------|
+| 1 | 2 days | 20 mennesker sagde ja | 20 people said yes | Social proof / seed |
+| 2 | +5 days | Du behøver ikke kunne stå på hovedet | You don't need to touch your toes | Kill fear / Prep Phase intro |
+| 3 | +5 days | Det her er ikke et yoga retreat | This isn't a yoga retreat | Differentiation / Triangle Method + video |
+| 4 | +6 days | Hvilken passer til dit liv? | Which one fits your life? | Self-select format |
+| 5 | +5 days | Det smarteste første skridt | The smartest first step | Prep Phase deep dive |
+| 6 | +5 days | Din plads venter | Your spot is waiting | Convert |
+
+### Onboarding Sequence Content (Undecided Leads)
+
+| Step | Delay | DA Subject | EN Subject |
+|------|-------|-----------|------------|
+| 1 | 3 days | {{first_name}}, der er sket en del | {{first_name}}, a lot has been happening |
+| 2 | +2 days | Hvilken uddannelse passer til dig? | Which education fits you? |
+| 3 | +2 days | "Jeg troede ikke det var noget for mig" | "I didn't think it was for me" |
+| 4 | +3 days | Hvad holder dig tilbage? | What's holding you back? |
+| 5 | +2 days | Stadig her hvis du har brug for mig | Still here if you need me |
+
+Steps 2, 4, 5 include booking link: `yogabible.dk/?booking=info-session` (DA) / `yogabible.dk/en/?booking=info-session` (EN)
+
+### Program-Specific Sequence Content
+
+**April 4W** (2 steps): Step 1 "stadig interesseret?" → Step 2 "de sidste pladser"
+
+**8W Semi** (3 steps): Step 1 "Samme certificering, halv tid" → Step 2 "Din hverdag behøver ikke stoppe" → Step 3 "Maj nærmer sig"
+
+**18W Flexible** (3 steps): Step 1 "Marts-holdet er udsolgt" → Step 2 "Hverdag eller weekend" → Step 3 "Start din forberedelse"
+
+**July Vinyasa Plus** (4 steps): Step 1 "Din sommer i København" → Step 2 "Vinyasa Plus metoden" → Step 3 "Vi hjælper med det praktiske" → Step 4 "Juli-holdet fylder op"
+
+### Content Rules (MANDATORY for All Nurture Emails)
+
+1. **Never mention course language.** All YTT courses are taught in English, but this must NEVER appear in marketing emails, ads, or content. Only discuss if a lead asks directly.
+2. **Never mention refunds.** Prep Phase (3,750 DKK) is ONLY refundable if Yoga Bible cancels the course. If the student changes their mind, no refund. Never include refund promises.
+3. **Email tone:** Warm, personal, from Shamir. Not newsletter-style. Plain text with occasional orange links. No fancy HTML design.
+4. **EN URLs must use `/en/` prefix.** All links in `email_body_en` must go to `yogabible.dk/en/...` for Weglot translation.
+5. **Prep Phase description:** "3.750 kr. / 3,750 DKK — beløbet trækkes fra den fulde pris / the amount is deducted from the full price." No mention of class count (avoid "30 classes" — creates fear about time commitment).
+6. **DA and EN are NOT literal translations** — Danish is practical/local, English is aspirational/international. Both must read naturally in their own language.
+
+### Shamir's Email Signature (All Nurture Emails)
+
+```
+Shamir, Kursusdirektør · Yoga Bible
++45 53 88 12 09
+Torvegade 66, 1400 København K
+```
+
+### Audit & Fix Endpoints
+
+All protected by `X-Internal-Secret` header (`AI_INTERNAL_SECRET` env var).
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/.netlify/functions/audit-sequences` | GET | Full Firestore state: all sequences, enrollments, content status, language scan |
+| `/.netlify/functions/fix-sequences` | POST | Update exit conditions, fix channel mismatches |
+| `/.netlify/functions/fix-english-urls` | POST | Add `/en/` prefix to all `yogabible.dk` URLs in `email_body_en` fields |
+| `/.netlify/functions/scan-sequence-language` | POST | Find and remove "taught in English" / "undervises på engelsk" references |
+| `/.netlify/functions/fix-sms-and-quickfollowup` | POST | Remove refund language from SMS, add EN to Quick Follow-up |
+
+### Planned: Educational/Lifestyle Nurture Sequence (4th Layer)
+
+**Status:** Content designed, first 4 emails drafted, NOT yet built in Firestore.
+
+**Design:** 12 emails, weekly cadence (10,080 min delay), auto-enrolls when broadcast completes.
+
+**Key innovation — DA and EN have different angles:**
+- **DA:** Practical, "this is viable in Denmark", DKK earnings, local market
+- **EN:** Aspirational, "imagine your life in Copenhagen", destination dream + practical proof
+
+**Planned innovation — Country-specific snippets:** Each EN email gets a `{{country_block}}` paragraph that changes based on lead's country (Norway, Sweden, Germany, Finland, Netherlands, UK). Includes local currency earnings, flight time/cost to Copenhagen, country-specific angles, and cost-of-living comparison.
+
+**12-email arc:**
+
+| # | Topic | DA Angle | EN Angle | Type |
+|---|-------|----------|----------|------|
+| 1 | Money | What yoga teachers earn in DK | The global yoga economy + local earnings | Dream |
+| 2 | Revenue streams | 3 ways to build income | Build a location-independent career | Business |
+| 3 | Student story | "Jeg sagde mit job op" | "I flew to Copenhagen and everything changed" | Story |
+| 4 | Soft CTA | Døren er åben | Your Copenhagen chapter is waiting | Nudge |
+| 5 | Hot yoga | Hot yoga booming in Scandinavia | Hot yoga cert: the skill most teachers don't have | Differentiator |
+| 6 | Studio ownership | How to open a studio in DK | From training to your own studio | Dream big |
+| 7 | Day in the life | A Tuesday as a yoga teacher in CPH | 24 hours in Copenhagen as a YTT student | Lifestyle |
+| 8 | Soft CTA | Start when you're ready | This summer could be the one | Nudge |
+| 9 | Wellness angle | Teaching changed my relationship with my body | The transformation nobody warns you about | Personal |
+| 10 | Industry growth | Scandinavian yoga market exploding | Why CPH is becoming Europe's yoga capital | Industry |
+| 11 | The certification | What RYT-200 means for your career | A certification that works anywhere | Practical |
+| 12 | Final CTA | Din plads venter | See you in Copenhagen | Convert |
+
+**Timing:** First leads complete broadcast ~April 14. Build and deploy by April 10. Do NOT launch while broadcast is active — 91% of leads would hit 48h throttle conflicts.
+
+### Creating New Sequences — Checklist
+
+1. Create sequence document in Firestore `sequences` collection with: `name`, `steps` array (each with `delay_minutes`, `email_subject`, `email_body`, `email_subject_en`, `email_body_en`, `channel`), `exit_conditions`, optionally `enrollment_closes`
+2. All step content must have both DA and EN versions
+3. Add trigger logic in `sequence-trigger.js` for auto-enrollment
+4. Verify all EN URLs use `/en/` prefix
+5. Run `audit-sequences` endpoint to verify content completeness
+6. Scan for forbidden content (course language mentions, refund promises)
+7. For program sequences: set `enrollment_closes` date so enrollment auto-stops
+
+### Creating Future Cohort Sequences
+
+When a new cohort is announced (e.g., October 8W):
+
+1. Create a new program-specific sequence in Firestore with fresh content
+2. Set `enrollment_closes` to the appropriate date
+3. Update trigger conditions in `sequence-trigger.js` if needed
+4. The auto-deactivation system handles transitions — no manual toggling of old sequences needed
+
+---
+
 ## Schedule Pages & Conflict Finder
 
 All YTT schedule pages include a **Conflict Finder** — an interactive tool that lets prospective students check which training days clash with their busy schedule.
