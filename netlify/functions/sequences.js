@@ -612,20 +612,33 @@ async function handleProcess() {
         // Language branching — determine lead language for content selection
         var leadLang = (lead.lang || lead.meta_lang || lead.language || 'da').toLowerCase().substring(0, 2);
         var isDanish = ['da', 'dk'].includes(leadLang);
+        var leadCountry = detectLeadCountry(lead);
+        // German-speaking leads: explicit de lang OR Austrian/Swiss by country
+        var isGerman = leadLang === 'de' || ['AT', 'CH'].includes(leadCountry);
 
-        // Select language-appropriate email content (English if available, else fallback to Danish)
-        var selectedSubject = (!isDanish && step.email_subject_en) ? step.email_subject_en : step.email_subject;
-        var selectedBody = (!isDanish && step.email_body_en) ? step.email_body_en : step.email_body;
+        // Select language-appropriate email content
+        // Priority: DE (if available) → EN (non-Danish) → DA (default)
+        var selectedSubject, selectedBody;
+        if (isGerman && step.email_subject_de) {
+          selectedSubject = step.email_subject_de;
+          selectedBody = step.email_body_de || step.email_body_en || step.email_body;
+        } else if (!isDanish) {
+          selectedSubject = step.email_subject_en || step.email_subject;
+          selectedBody = step.email_body_en || step.email_body;
+        } else {
+          selectedSubject = step.email_subject;
+          selectedBody = step.email_body;
+        }
 
         // Replace {{country_block}} with country-specific content (EN emails only)
+        // German and Danish leads never see country blocks — their content is baked in
         if (selectedBody && selectedBody.includes('{{country_block}}')) {
-          if (!isDanish && step.country_blocks) {
-            var leadCountry = detectLeadCountry(lead);
+          if (!isDanish && !isGerman && step.country_blocks) {
             var countryCode = (leadCountry === 'OTHER' || leadCountry === 'DK') ? 'UK' : leadCountry;
             var block = step.country_blocks[countryCode] || step.country_blocks['UK'] || '';
             selectedBody = selectedBody.replace('{{country_block}}', block);
           } else {
-            // DA emails or no country_blocks — remove placeholder
+            // DA/DE emails or no country_blocks — remove placeholder
             selectedBody = selectedBody.replace('{{country_block}}', '');
           }
         }
