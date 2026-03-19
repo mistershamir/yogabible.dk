@@ -218,6 +218,12 @@ All YTT schedule pages include a **Conflict Finder** — an interactive tool tha
 
 ---
 
+## Content Rules (MANDATORY)
+
+- **All YTT courses are taught in English.** Never mention the language of instruction in marketing emails, ads, or content. Only discuss if a lead asks directly.
+
+---
+
 ## Architecture Reference
 
 - **Framework:** Eleventy v3.1.2, Nunjucks templates
