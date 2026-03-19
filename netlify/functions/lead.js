@@ -17,6 +17,7 @@ const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
+const { detectLeadCountry } = require('./shared/country-detect');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
@@ -50,6 +51,11 @@ exports.handler = async (event) => {
 
     // Process the lead
     const leadData = processLead(payload, action);
+
+    // Detect and normalize country for nurture sequence country blocks
+    if (!leadData.country) {
+      leadData.country = detectLeadCountry(leadData);
+    }
 
     // Check for existing applicant in Firestore
     const existingAppId = await getExistingApplicationId(leadData.email);

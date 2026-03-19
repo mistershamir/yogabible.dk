@@ -31,6 +31,13 @@ exports.handler = async (event) => {
 
   var db = getDb();
 
+  // ── Load all leads for country breakdown ──────────────────────────────
+  var leadsSnap = await db.collection('leads').get();
+  var leadsById = {};
+  leadsSnap.forEach(function (doc) {
+    leadsById[doc.id] = doc.data();
+  });
+
   // ── Load all sequences ──────────────────────────────────────────────────
   var seqSnap = await db.collection('sequences').get();
   var sequences = [];
@@ -52,7 +59,7 @@ exports.handler = async (event) => {
     if (!sid) return;
     totalEnrollments++;
     if (!enrollmentsBySeq[sid]) {
-      enrollmentsBySeq[sid] = { total: 0, active: 0, paused: 0, completed: 0, exited: 0, at_step_1: 0, at_step_2_plus: 0 };
+      enrollmentsBySeq[sid] = { total: 0, active: 0, paused: 0, completed: 0, exited: 0, at_step_1: 0, at_step_2_plus: 0, country_breakdown: {} };
     }
     enrollmentsBySeq[sid].total++;
     var status = d.status || 'active';
@@ -60,6 +67,13 @@ exports.handler = async (event) => {
     var step = d.current_step || 1;
     if (step <= 1) enrollmentsBySeq[sid].at_step_1++;
     else enrollmentsBySeq[sid].at_step_2_plus++;
+
+    // Country breakdown for active enrollments
+    if (status === 'active' && d.lead_id && leadsById[d.lead_id]) {
+      var leadData = leadsById[d.lead_id];
+      var country = leadData.country || 'unknown';
+      enrollmentsBySeq[sid].country_breakdown[country] = (enrollmentsBySeq[sid].country_breakdown[country] || 0) + 1;
+    }
   });
 
   // ── Build report ────────────────────────────────────────────────────────
@@ -99,6 +113,13 @@ exports.handler = async (event) => {
         }
       }
 
+      // Country block coverage
+      var countryBlockCoverage = null;
+      if (step.country_blocks) {
+        countryBlockCoverage = Object.keys(step.country_blocks);
+      }
+      var hasCountryBlockPlaceholder = !!(enBody && enBody.includes('{{country_block}}'));
+
       stepsReport.push({
         index: s,
         channel: step.channel || 'email',
@@ -114,7 +135,9 @@ exports.handler = async (event) => {
         en_body_preview: enBody ? enBody.replace(/<[^>]+>/g, '').substring(0, 80) : null,
         has_sms: !!smsMsg,
         sms_preview: smsMsg ? smsMsg.substring(0, 80) : null,
-        refund_language_found: refundFound
+        refund_language_found: refundFound,
+        has_country_block_placeholder: hasCountryBlockPlaceholder,
+        country_block_countries: countryBlockCoverage
       });
     }
 

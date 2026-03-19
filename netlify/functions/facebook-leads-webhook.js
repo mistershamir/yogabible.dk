@@ -29,6 +29,7 @@ const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
 const { sendLeadEvent } = require('./shared/meta-events');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
+const { detectLeadCountry } = require('./shared/country-detect');
 
 const GRAPH_API_VERSION = 'v25.0';
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
@@ -231,6 +232,9 @@ async function processLeadgenChange(value) {
     created_at: new Date(),
     updated_at: new Date()
   };
+
+  // Detect and normalize country for nurture sequence country blocks
+  lead.country = detectLeadCountry(lead);
 
   // Save to Firestore leads collection
   const docRef = await db.collection('leads').add(lead);
