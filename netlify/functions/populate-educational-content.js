@@ -52,7 +52,7 @@ exports.handler = async (event) => {
     if (idx < 0 || idx >= steps.length) continue;
     if (stepFilter && (idx < stepFilter.from || idx > stepFilter.to)) continue;
 
-    const fields = ['email_subject', 'email_body', 'email_subject_en', 'email_body_en', 'email_subject_de', 'email_body_de'];
+    const fields = ['email_subject', 'email_body', 'email_subject_en', 'email_body_en', 'email_subject_de', 'email_body_de', 'country_blocks'];
     const changed = {};
     for (const f of fields) {
       if (entry[f] !== undefined) {
