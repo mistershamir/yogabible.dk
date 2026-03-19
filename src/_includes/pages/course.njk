@@ -48,7 +48,7 @@
     <div class="yb-hero__ctas">
       <a href="#ybc-{{ courseId }}-months" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_primary }}</a>
       <button type="button" data-ybc-open="brochure" data-ybc-course="{{ courseId | capitalize }}" data-ybc-source="{{ courseId | capitalize }} – hero" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_btn_schedule }}</button>
-      <button class="yb-btn yb-btn--outline-white yb-btn--large" data-open-booking="info-session">{{ tc.cta_info_session }}</button>
+      <a class="yb-btn yb-btn--outline-white yb-btn--large" href="{% if lang == 'en' %}/en/courses/{{ courseId }}?booking=info-session{% else %}/kurser/{{ courseId }}?booking=info-session{% endif %}" data-open-booking="info-session">{{ tc.cta_info_session }}</a>
     </div>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>

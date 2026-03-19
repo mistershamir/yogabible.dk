@@ -411,13 +411,13 @@
 
     <div class="yb-modal-visit__booking" style="text-align:center;padding:32px 16px;">
       <p style="font-size:18px;margin-bottom:20px;">{{ t.visit_modal_subtitle }}</p>
-      <button class="yb-btn yb-btn--primary" data-open-booking="info-session" data-close style="font-size:16px;padding:14px 32px;">
+      <a class="yb-btn yb-btn--primary" href="{% if lang == 'en' %}/en/8-week-ytt?booking=info-session{% else %}/8-ugers-ytt?booking=info-session{% endif %}" data-open-booking="info-session" data-close style="font-size:16px;padding:14px 32px;">
         &#127963; {% if lang == 'en' %}Book Free Info Session{% else %}Book et gratis infomøde{% endif %}
-      </button>
+      </a>
       <div style="margin-top:16px;">
-        <button class="yb-btn yb-btn--outline" data-open-booking="consultation" data-close style="font-size:14px;padding:10px 24px;">
+        <a class="yb-btn yb-btn--outline" href="{% if lang == 'en' %}/en/8-week-ytt?booking=consultation{% else %}/8-ugers-ytt?booking=consultation{% endif %}" data-open-booking="consultation" data-close style="font-size:14px;padding:10px 24px;">
           &#128187; {% if lang == 'en' %}Online Consultation{% else %}Online konsultation{% endif %}
-        </button>
+        </a>
       </div>
     </div>
   </div>

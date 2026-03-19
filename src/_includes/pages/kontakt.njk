@@ -161,9 +161,9 @@
   <p style="color:#6F6A66;font-size:0.95rem;margin-bottom:0.75rem;">
     {% if lang == 'en' %}Prefer to talk in person? Book a free, no-obligation info session at our studio.{% else %}Foretrækker du at tale personligt? Book et gratis og uforpligtende infomøde i vores studie.{% endif %}
   </p>
-  <button class="yb-btn yb-btn--primary" data-open-booking="info-session">
+  <a class="yb-btn yb-btn--primary" href="{% if lang == 'en' %}/en/kontakt?booking=info-session{% else %}/kontakt?booking=info-session{% endif %}" data-open-booking="info-session">
     &#127963; {% if lang == 'en' %}Book a Free Info Session{% else %}Book et Gratis Infomøde{% endif %}
-  </button>
+  </a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
