@@ -7,7 +7,7 @@
  *   3. Language field fallback
  *   4. Default → 'OTHER' (treated as UK for content purposes)
  *
- * Returns a 2-letter code: DK, NO, SE, DE, FI, NL, UK, OTHER
+ * Returns a 2-letter code: DK, NO, SE, DE, AT, CH, FI, NL, UK, OTHER
  */
 
 // ── Phone prefix → country code ─────────────────────────────────────────────
@@ -18,7 +18,9 @@ const PHONE_PREFIX_MAP = {
   '+49':  'DE',
   '+358': 'FI',
   '+31':  'NL',
-  '+44':  'UK'
+  '+44':  'UK',
+  '+43':  'AT',
+  '+41':  'CH'
 };
 
 // Sorted longest-first so +358 matches before +3
@@ -57,7 +59,12 @@ const COUNTRY_NAME_MAP = {
   'england':        'UK',
   'scotland':       'UK',
   'wales':          'UK',
-  'great britain':  'UK'
+  'great britain':  'UK',
+  'austria':        'AT',
+  'österreich':     'AT',
+  'switzerland':    'CH',
+  'schweiz':        'CH',
+  'suisse':         'CH'
 };
 
 /**
@@ -70,7 +77,7 @@ function normalizeCountryName(raw) {
   var lower = String(raw).toLowerCase().trim();
 
   // Already a known 2-letter code?
-  if (lower === 'dk' || lower === 'no' || lower === 'se' || lower === 'de' || lower === 'fi' || lower === 'nl' || lower === 'uk') {
+  if (lower === 'dk' || lower === 'no' || lower === 'se' || lower === 'de' || lower === 'fi' || lower === 'nl' || lower === 'uk' || lower === 'at' || lower === 'ch') {
     return lower.toUpperCase();
   }
 
@@ -129,7 +136,7 @@ function detectCountryFromLang(lang) {
  * Priority: explicit country → phone prefix → lang field → 'OTHER'
  *
  * @param {Object} lead - Lead data object
- * @returns {string} 2-letter country code (DK, NO, SE, DE, FI, NL, UK, OTHER)
+ * @returns {string} 2-letter country code (DK, NO, SE, DE, AT, CH, FI, NL, UK, OTHER)
  */
 function detectLeadCountry(lead) {
   if (!lead) return 'OTHER';
