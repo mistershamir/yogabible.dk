@@ -478,7 +478,7 @@
     var heading = $('yb-appt-detail-heading');
     if (heading) heading.textContent = a.client_name + ' — ' + formatDate(a.date);
 
-    var locationLabel = a.location === 'online' ? (isDa() ? 'Online' : 'Online') : 'Yoga Bible, Torvegade 66';
+    var locationLabel = a.location === 'online' ? 'Online' : (isDa() ? 'Christianshavn, Torvegade 66, 1400 København K' : 'Christianshavn, Torvegade 66, 1400 Copenhagen');
 
     el.innerHTML = '<div class="yb-lead__detail-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;padding:20px;background:#F5F3F0;border-radius:8px;margin-bottom:16px;">' +
       '<div><span style="color:#999;font-size:12px;">' + t('appt_col_date') + '</span><br><strong>' + formatDate(a.date) + '</strong></div>' +
@@ -780,7 +780,7 @@
             '<div style="background:#F5F3F0;padding:16px;border-radius:8px;margin:16px 0;">' +
             '<p style="margin:4px 0;"><strong>' + (currentAppt.type_name_da || currentAppt.type) + '</strong></p>' +
             '<p style="margin:4px 0;">&#128197; ' + currentAppt.date + ' kl. ' + currentAppt.time + '</p>' +
-            '<p style="margin:4px 0;">&#128205; ' + (currentAppt.location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66') + '</p></div>',
+            '<p style="margin:4px 0;">&#128205; ' + (currentAppt.location === 'online' ? 'Online' : 'Christianshavn, Torvegade 66, 1400 København K') + '</p></div>',
           mode: 'custom'
         })
       });
@@ -841,7 +841,7 @@
     var endH = String(Math.floor(endMin / 60)).padStart(2, '0');
     var endM = String(endMin % 60).padStart(2, '0');
     var endTime = endH + endM + '00';
-    var loc = a.location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 Copenhagen K';
+    var loc = a.location === 'online' ? 'Online' : 'Yoga Bible, Christianshavn, Torvegade 66, 1400 København K';
 
     var ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//YogaBible//Appt//DA\r\nBEGIN:VEVENT\r\n' +
       'DTSTART;TZID=Europe/Copenhagen:' + dateClean + 'T' + timeClean + '\r\n' +
