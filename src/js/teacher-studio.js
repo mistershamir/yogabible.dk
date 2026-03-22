@@ -898,6 +898,15 @@
     }
     goLiveBtn.style.display = '';
 
+    // Clear hand alert + remote tiles (same as doEndStream)
+    if (handNotifTimer) { clearTimeout(handNotifTimer); handNotifTimer = null; }
+    if (handAlert) handAlert.style.display = 'none';
+    raisedHands = [];
+    if (remoteContainer) {
+      while (remoteContainer.firstChild) remoteContainer.removeChild(remoteContainer.firstChild);
+    }
+    if (participantsOverlay) participantsOverlay.style.display = 'none';
+
     if (livekitRoom) {
       livekitRoom.disconnect();
       livekitRoom = null;
@@ -1001,6 +1010,7 @@
 
       room.on(LivekitClient.RoomEvent.DataReceived, function (payload, participant) {
         try {
+          if (!participant) return; // broadcast messages have no participant
           var msg = JSON.parse(new TextDecoder().decode(payload));
           if (msg.type === 'hand') {
             var tile = document.getElementById('yts-remote-' + participant.identity);
@@ -1014,7 +1024,9 @@
               showHandNotification(pName);
             }
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn('[teacher-studio] DataReceived error:', e);
+        }
       });
 
       // Connect to the room
@@ -1080,6 +1092,19 @@
     goLiveBtn.style.display = '';
     goLiveBtn.disabled = true;
     if (testStreamBtn) testStreamBtn.style.display = '';
+
+    // Clear hand alert timer
+    if (handNotifTimer) { clearTimeout(handNotifTimer); handNotifTimer = null; }
+    if (handAlert) handAlert.style.display = 'none';
+    raisedHands = [];
+
+    // Clean up remote participant tiles
+    if (remoteContainer) {
+      while (remoteContainer.firstChild) remoteContainer.removeChild(remoteContainer.firstChild);
+    }
+    // Reset participant count overlay
+    if (participantsOverlay) participantsOverlay.style.display = 'none';
+    if (remoteCountEl) remoteCountEl.textContent = '0 participants';
 
     if (livekitRoom) {
       livekitRoom.disconnect();
@@ -1333,6 +1358,7 @@
   // ═══════════════════════════════════════════════════════
 
   var handNotifTimer = null;
+  var raisedHands = []; // track all currently raised hand names
 
   function showHandNotification(name) {
     // Play a short notification sound
@@ -1350,16 +1376,22 @@
       osc.stop(ctx.currentTime + 0.3);
     } catch (e) {}
 
+    // Track raised hands — add if not already present
+    if (raisedHands.indexOf(name) === -1) raisedHands.push(name);
+
     // Show hand alert pill on the preview overlay
     if (handAlert && handAlertName) {
-      handAlertName.textContent = name;
+      handAlertName.textContent = raisedHands.length > 1
+        ? raisedHands.join(', ')
+        : name;
       handAlert.style.display = '';
       handAlert.style.animation = 'none';
       handAlert.offsetHeight;
       handAlert.style.animation = 'yts-hand-pop 0.3s ease-out';
-      if (handAlertTimer) clearTimeout(handAlertTimer);
-      handAlertTimer = setTimeout(function () {
+      if (handNotifTimer) clearTimeout(handNotifTimer);
+      handNotifTimer = setTimeout(function () {
         handAlert.style.display = 'none';
+        raisedHands = [];
       }, 8000);
     }
   }
