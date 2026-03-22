@@ -149,6 +149,24 @@
     if (recBadgeInteractive) recBadgeInteractive.classList.remove('yb-live-rec--visible');
   }
 
+  function detectOrientation(videoEl, tile) {
+    // When video metadata loads, check if portrait and adjust tile
+    function check() {
+      var w = videoEl.videoWidth;
+      var h = videoEl.videoHeight;
+      if (w && h) {
+        if (h > w) {
+          tile.classList.add('yb-live-tile--portrait');
+        } else {
+          tile.classList.remove('yb-live-tile--portrait');
+        }
+      }
+    }
+    videoEl.addEventListener('loadedmetadata', check);
+    videoEl.addEventListener('resize', check); // fires when resolution changes (orientation flip)
+    check(); // in case already loaded
+  }
+
   function esc(s) {
     var d = document.createElement('div');
     d.textContent = s || '';
@@ -623,10 +641,10 @@
       var videoEl = localVideoTrack.attach();
       videoEl.style.width = '100%';
       videoEl.style.height = '100%';
-      videoEl.style.objectFit = 'cover';
       videoEl.muted = true;
       tile.insertBefore(videoEl, tile.firstChild);
       tile.classList.remove('yb-live-tile--no-video');
+      detectOrientation(videoEl, tile);
     }
 
     participantTiles[localParticipant.identity] = tile;
@@ -665,9 +683,9 @@
       var el = track.attach();
       el.style.width = '100%';
       el.style.height = '100%';
-      el.style.objectFit = 'cover';
       tile.insertBefore(el, tile.firstChild);
       tile.classList.remove('yb-live-tile--no-video');
+      detectOrientation(el, tile);
     } else if (track.kind === 'audio') {
       var audioEl = track.attach();
       audioEl.id = 'yb-live-audio-' + participant.identity;
@@ -772,9 +790,9 @@
               var videoEl = camPub.track.attach();
               videoEl.style.width = '100%';
               videoEl.style.height = '100%';
-              videoEl.style.objectFit = 'cover';
               videoEl.muted = true;
               localTile.insertBefore(videoEl, localTile.firstChild);
+              detectOrientation(videoEl, localTile);
             }
           } else {
             existingVid.style.display = '';
