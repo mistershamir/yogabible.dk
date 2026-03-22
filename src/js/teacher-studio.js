@@ -73,7 +73,11 @@
   // AUTH GATE — show studio only for teacher/admin
   // ═══════════════════════════════════════════════════════
   function checkAuth() {
-    if (typeof firebase === 'undefined' || !firebase.auth) return;
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+      // Firebase not loaded yet — retry shortly (script may load before Firebase SDK)
+      setTimeout(checkAuth, 200);
+      return;
+    }
 
     firebase.auth().onAuthStateChanged(function (user) {
       if (!user) {
