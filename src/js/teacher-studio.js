@@ -565,6 +565,10 @@
       '</button>' +
       '<button class="yts-live-controls__btn" id="yts-ctrl-flip" title="' + (isDa ? 'Skift kamera' : 'Flip camera') + '">' +
         '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>' +
+      '</button>' +
+      '<button class="yts-live-controls__btn" id="yts-ctrl-chat" title="Chat" style="position:relative">' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' +
+        '<span id="yts-ctrl-chat-badge" class="yts-live-controls__badge" style="display:none">0</span>' +
       '</button>';
 
     viewport.appendChild(controlsBar);
@@ -572,6 +576,7 @@
     document.getElementById('yts-ctrl-cam').addEventListener('click', toggleCamera);
     document.getElementById('yts-ctrl-mic').addEventListener('click', toggleMic);
     document.getElementById('yts-ctrl-flip').addEventListener('click', flipCamera);
+    document.getElementById('yts-ctrl-chat').addEventListener('click', toggleTeacherChat);
   }
 
   function removeLiveControls() {
@@ -919,14 +924,8 @@
     }
     goLiveBtn.style.display = '';
 
-    // Clear hand alert + remote tiles (same as doEndStream)
-    if (handNotifTimer) { clearTimeout(handNotifTimer); handNotifTimer = null; }
-    if (handAlert) handAlert.style.display = 'none';
-    raisedHands = [];
-    if (remoteContainer) {
-      while (remoteContainer.firstChild) remoteContainer.removeChild(remoteContainer.firstChild);
-    }
-    if (participantsOverlay) participantsOverlay.style.display = 'none';
+    // Clear hand alert + remote tiles + chat (same as doEndStream)
+    cleanupInteractiveUI();
 
     if (livekitRoom) {
       livekitRoom.disconnect();
@@ -1009,6 +1008,7 @@
       // Subscribe to remote participant tracks (for interactive sessions)
       room.on(LivekitClient.RoomEvent.TrackSubscribed, function (track, pub, participant) {
         console.log('[teacher-studio] Remote track:', track.kind, 'from', participant.identity);
+        if (isEgressOrDuplicate(participant)) return;
         ensureRemoteTile(participant);
         attachRemoteTrack(track, participant);
       });
@@ -1019,14 +1019,41 @@
 
       room.on(LivekitClient.RoomEvent.ParticipantConnected, function (participant) {
         console.log('[teacher-studio] Participant joined:', participant.identity);
+        if (isEgressOrDuplicate(participant)) return;
         ensureRemoteTile(participant);
         updateRemoteCount();
+        var pName = getParticipantDisplayName(participant);
+        addTeacherChatSystemMessage(pName + (isDa ? ' deltager' : ' joined'));
       });
 
       room.on(LivekitClient.RoomEvent.ParticipantDisconnected, function (participant) {
         console.log('[teacher-studio] Participant left:', participant.identity);
         removeRemoteTile(participant);
         updateRemoteCount();
+        var pName = getParticipantDisplayName(participant);
+        addTeacherChatSystemMessage(pName + (isDa ? ' forlod' : ' left'));
+      });
+
+      // Active speaker detection — highlight who's talking
+      room.on(LivekitClient.RoomEvent.ActiveSpeakersChanged, function (speakers) {
+        // Clear all speaking highlights
+        var allTiles = document.querySelectorAll('[id^="yts-remote-"]');
+        for (var ti = 0; ti < allTiles.length; ti++) {
+          allTiles[ti].classList.remove('yts-remote--speaking');
+        }
+        // Highlight active speakers
+        for (var si = 0; si < speakers.length; si++) {
+          var sTile = document.getElementById('yts-remote-' + speakers[si].identity);
+          if (sTile) sTile.classList.add('yts-remote--speaking');
+        }
+      });
+
+      // Track muted/unmuted for remote tiles
+      room.on(LivekitClient.RoomEvent.TrackMuted, function (pub, participant) {
+        updateRemoteMuteState(participant);
+      });
+      room.on(LivekitClient.RoomEvent.TrackUnmuted, function (pub, participant) {
+        updateRemoteMuteState(participant);
       });
 
       room.on(LivekitClient.RoomEvent.DataReceived, function (payload, participant) {
@@ -1038,12 +1065,23 @@
             if (tile) {
               var hand = tile.querySelector('.yts-remote__hand');
               if (hand) hand.style.display = msg.raised ? 'block' : 'none';
+              // Add/remove orange stroke for raised hand
+              if (msg.raised) {
+                tile.classList.add('yts-remote--hand-raised');
+              } else {
+                tile.classList.remove('yts-remote--hand-raised');
+              }
             }
             // Show prominent notification to teacher when hand is raised
             if (msg.raised) {
               var pName = getParticipantDisplayName(participant);
-              showHandNotification(pName);
+              showHandNotification(pName, participant.identity);
             }
+          } else if (msg.type === 'chat') {
+            var chatName = getParticipantDisplayName(participant);
+            addTeacherChatMessage(chatName, msg.text, false);
+            teacherUnreadChat++;
+            updateTeacherChatBadge();
           }
         } catch (e) {
           console.warn('[teacher-studio] DataReceived error:', e);
@@ -1083,6 +1121,19 @@
         return Promise.all(publishPromises);
       }).then(function () {
         console.log('[teacher-studio] Tracks published to LiveKit room');
+
+        // Enumerate existing remote participants (fixes disappearing after refresh)
+        room.remoteParticipants.forEach(function (participant) {
+          if (isEgressOrDuplicate(participant)) return;
+          ensureRemoteTile(participant);
+          participant.trackPublications.forEach(function (pub) {
+            if (pub.track && pub.isSubscribed) {
+              attachRemoteTrack(pub.track, participant);
+            }
+          });
+        });
+        updateRemoteCount();
+
         resolve();
       }).catch(function (err) {
         room.disconnect();
@@ -1114,18 +1165,8 @@
     goLiveBtn.disabled = true;
     if (testStreamBtn) testStreamBtn.style.display = '';
 
-    // Clear hand alert timer
-    if (handNotifTimer) { clearTimeout(handNotifTimer); handNotifTimer = null; }
-    if (handAlert) handAlert.style.display = 'none';
-    raisedHands = [];
-
-    // Clean up remote participant tiles
-    if (remoteContainer) {
-      while (remoteContainer.firstChild) remoteContainer.removeChild(remoteContainer.firstChild);
-    }
-    // Reset participant count overlay
-    if (participantsOverlay) participantsOverlay.style.display = 'none';
-    if (remoteCountEl) remoteCountEl.textContent = '0 participants';
+    // Clean up interactive UI (hand alerts, remote tiles, chat)
+    cleanupInteractiveUI();
 
     if (livekitRoom) {
       livekitRoom.disconnect();
@@ -1261,33 +1302,43 @@
   });
 
   // ═══════════════════════════════════════════════════════
-  // REMOTE PARTICIPANTS (for interactive sessions)
+  // REMOTE PARTICIPANTS — overlaid on teacher video
   // ═══════════════════════════════════════════════════════
 
   var remoteContainer = null;
   var remoteCountEl = null;
+  var teacherChatOpen = false;
+  var teacherUnreadChat = 0;
+  var teacherChatPanel = null;
+  var teacherChatMessages = null;
+  var teacherChatInput = null;
+  var teacherChatBadge = null;
+  var MIC_MUTED_SVG_SM = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/></svg>';
 
   function getRemoteContainer() {
     if (remoteContainer) return remoteContainer;
-    var studioEl = document.getElementById('yts-studio');
-    if (!studioEl) return null;
+    var viewport = document.getElementById('yts-viewport');
+    if (!viewport) return null;
 
+    // Overlay container on top of the video
     var wrap = document.createElement('div');
     wrap.id = 'yts-remotes';
-    wrap.style.cssText = 'margin-top:1rem;';
+    wrap.className = 'yts-remotes-overlay';
 
-    var header = document.createElement('div');
-    header.style.cssText = 'display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;color:#FFFCF9;font-size:0.85rem;font-weight:700';
-    header.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> <span id="yts-remote-count">0 participants</span>';
-    wrap.appendChild(header);
+    // Participant count pill
+    var countPill = document.createElement('div');
+    countPill.className = 'yts-remotes-overlay__count';
+    countPill.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> <span id="yts-remote-count">0</span>';
+    wrap.appendChild(countPill);
 
-    var grid = document.createElement('div');
-    grid.id = 'yts-remote-grid';
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;';
-    wrap.appendChild(grid);
+    // Scrollable tile strip
+    var strip = document.createElement('div');
+    strip.id = 'yts-remote-grid';
+    strip.className = 'yts-remotes-overlay__strip';
+    wrap.appendChild(strip);
 
-    studioEl.appendChild(wrap);
-    remoteContainer = grid;
+    viewport.appendChild(wrap);
+    remoteContainer = strip;
     remoteCountEl = document.getElementById('yts-remote-count');
     return remoteContainer;
   }
@@ -1298,6 +1349,21 @@
     return meta.name || participant.name || participant.identity.split('-')[0] || 'Participant';
   }
 
+  /**
+   * Filter out egress bots and the teacher's own viewer connection.
+   * Egress identities contain 'EG_' or start with 'egress'.
+   * The teacher's own identity starts with 'teacher-' — if another participant
+   * has the same uid suffix, it's the teacher viewing from /live (skip it).
+   */
+  function isEgressOrDuplicate(participant) {
+    var id = participant.identity || '';
+    // Egress bot
+    if (id.indexOf('EG_') !== -1 || id.indexOf('egress') === 0) return true;
+    // The teacher themselves (teacher-{uid}) — don't show teacher as remote
+    if (id.indexOf('teacher-') === 0) return true;
+    return false;
+  }
+
   function ensureRemoteTile(participant) {
     var container = getRemoteContainer();
     if (!container) return;
@@ -1306,24 +1372,35 @@
     var name = getParticipantDisplayName(participant);
     var tile = document.createElement('div');
     tile.id = 'yts-remote-' + participant.identity;
-    tile.style.cssText = 'position:relative;background:#1a1a1a;border-radius:8px;overflow:hidden;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;';
+    tile.className = 'yts-remote-tile';
+    tile.dataset.identity = participant.identity;
 
     var avatar = document.createElement('div');
-    avatar.className = 'yts-remote__avatar';
-    avatar.style.cssText = 'width:48px;height:48px;border-radius:50%;background:rgba(247,92,3,0.15);color:#f75c03;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;';
+    avatar.className = 'yts-remote-tile__avatar';
     avatar.textContent = name.charAt(0).toUpperCase();
     tile.appendChild(avatar);
 
     var nameEl = document.createElement('div');
-    nameEl.style.cssText = 'position:absolute;bottom:4px;left:6px;background:rgba(0,0,0,0.65);color:#FFFCF9;font-size:0.65rem;padding:2px 6px;border-radius:3px;';
+    nameEl.className = 'yts-remote-tile__name';
     nameEl.textContent = name;
     tile.appendChild(nameEl);
 
     var hand = document.createElement('div');
     hand.className = 'yts-remote__hand';
-    hand.style.cssText = 'position:absolute;top:4px;right:6px;font-size:1rem;display:none;';
     hand.textContent = '✋';
     tile.appendChild(hand);
+
+    var mutedEl = document.createElement('div');
+    mutedEl.className = 'yts-remote-tile__muted';
+    mutedEl.innerHTML = MIC_MUTED_SVG_SM;
+    tile.appendChild(mutedEl);
+
+    // Click on tile with raised hand → dismiss the hand
+    tile.addEventListener('click', function () {
+      if (tile.classList.contains('yts-remote--hand-raised')) {
+        dismissRaisedHand(tile.dataset.identity);
+      }
+    });
 
     container.appendChild(tile);
   }
@@ -1331,6 +1408,9 @@
   function removeRemoteTile(participant) {
     var tile = document.getElementById('yts-remote-' + participant.identity);
     if (tile && tile.parentNode) tile.parentNode.removeChild(tile);
+    // Remove from raisedHands tracking
+    var idx = raisedHandIdentities.indexOf(participant.identity);
+    if (idx !== -1) raisedHandIdentities.splice(idx, 1);
   }
 
   function attachRemoteTrack(track, participant) {
@@ -1341,12 +1421,26 @@
       var existing = tile.querySelector('video');
       if (existing) existing.remove();
       var el = track.attach();
-      el.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;';
+      el.className = 'yts-remote-tile__video';
       tile.insertBefore(el, tile.firstChild);
+      tile.classList.remove('yts-remote-tile--no-video');
     } else if (track.kind === 'audio') {
       var audioEl = track.attach();
-      audioEl.style.display = 'none';
+      audioEl.style.position = 'absolute';
+      audioEl.style.width = '1px';
+      audioEl.style.height = '1px';
+      audioEl.style.opacity = '0';
       tile.appendChild(audioEl);
+      var playPromise = audioEl.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function () {
+          function resumeAudio() {
+            audioEl.play().catch(function () {});
+            document.removeEventListener('click', resumeAudio);
+          }
+          document.addEventListener('click', resumeAudio);
+        });
+      }
     }
   }
 
@@ -1355,13 +1449,30 @@
     for (var i = 0; i < elements.length; i++) {
       if (elements[i].parentNode) elements[i].parentNode.removeChild(elements[i]);
     }
+    if (track.kind === 'video') {
+      var tile = document.getElementById('yts-remote-' + participant.identity);
+      if (tile) tile.classList.add('yts-remote-tile--no-video');
+    }
+  }
+
+  function updateRemoteMuteState(participant) {
+    var tile = document.getElementById('yts-remote-' + participant.identity);
+    if (!tile) return;
+    var isMicMuted = true;
+    participant.audioTrackPublications.forEach(function (pub) {
+      if (pub.track && !pub.isMuted) isMicMuted = false;
+    });
+    var mutedEl = tile.querySelector('.yts-remote-tile__muted');
+    if (mutedEl) {
+      mutedEl.style.display = isMicMuted ? 'flex' : 'none';
+    }
   }
 
   function updateRemoteCount() {
     if (!livekitRoom) return;
     var count = livekitRoom.remoteParticipants.size;
     if (remoteCountEl) {
-      remoteCountEl.textContent = count + ' participant' + (count !== 1 ? 's' : '');
+      remoteCountEl.textContent = count;
     }
     // Update the preview overlay
     if (participantsOverlay) {
@@ -1372,16 +1483,20 @@
         participantsOverlay.style.display = 'none';
       }
     }
+    // Show/hide the remote overlay
+    var wrap = document.getElementById('yts-remotes');
+    if (wrap) wrap.style.display = count > 0 ? '' : 'none';
   }
 
   // ═══════════════════════════════════════════════════════
-  // HAND RAISE NOTIFICATION
+  // HAND RAISE NOTIFICATION + DISMISS
   // ═══════════════════════════════════════════════════════
 
   var handNotifTimer = null;
   var raisedHands = []; // track all currently raised hand names
+  var raisedHandIdentities = []; // track identities for dismiss
 
-  function showHandNotification(name) {
+  function showHandNotification(name, identity) {
     // Play a short notification sound
     try {
       var ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1399,6 +1514,7 @@
 
     // Track raised hands — add if not already present
     if (raisedHands.indexOf(name) === -1) raisedHands.push(name);
+    if (identity && raisedHandIdentities.indexOf(identity) === -1) raisedHandIdentities.push(identity);
 
     // Show hand alert pill on the preview overlay
     if (handAlert && handAlertName) {
@@ -1410,11 +1526,172 @@
       handAlert.offsetHeight;
       handAlert.style.animation = 'yts-hand-pop 0.3s ease-out';
       if (handNotifTimer) clearTimeout(handNotifTimer);
-      handNotifTimer = setTimeout(function () {
-        handAlert.style.display = 'none';
-        raisedHands = [];
-      }, 8000);
+      // Don't auto-hide — teacher must dismiss by clicking the tile
     }
+  }
+
+  /**
+   * Teacher dismisses a raised hand by clicking the participant tile.
+   * Sends a 'lower-hand' message to the participant so their hand icon clears.
+   */
+  function dismissRaisedHand(identity) {
+    var tile = document.getElementById('yts-remote-' + identity);
+    if (tile) {
+      tile.classList.remove('yts-remote--hand-raised');
+      var hand = tile.querySelector('.yts-remote__hand');
+      if (hand) hand.style.display = 'none';
+    }
+
+    // Remove from tracking
+    var idx = raisedHandIdentities.indexOf(identity);
+    if (idx !== -1) {
+      raisedHands.splice(idx, 1);
+      raisedHandIdentities.splice(idx, 1);
+    }
+
+    // Send lower-hand message to the specific participant
+    if (livekitRoom) {
+      var data = new TextEncoder().encode(JSON.stringify({ type: 'lower-hand' }));
+      // Find the participant and send targeted data
+      var participant = livekitRoom.remoteParticipants.get(identity);
+      if (participant) {
+        try {
+          livekitRoom.localParticipant.publishData(data, { reliable: true, destinationIdentities: [identity] });
+        } catch (e) {
+          console.warn('[teacher-studio] Failed to send lower-hand:', e);
+        }
+      }
+    }
+
+    // Update hand alert
+    if (raisedHands.length === 0) {
+      if (handAlert) handAlert.style.display = 'none';
+    } else if (handAlertName) {
+      handAlertName.textContent = raisedHands.join(', ');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // TEACHER CHAT — overlay panel
+  // ═══════════════════════════════════════════════════════
+
+  function createTeacherChat() {
+    if (teacherChatPanel) return;
+    var viewport = document.getElementById('yts-viewport');
+    if (!viewport) return;
+
+    var panel = document.createElement('div');
+    panel.id = 'yts-chat';
+    panel.className = 'yts-chat';
+    panel.innerHTML =
+      '<div class="yts-chat__header">' +
+        '<span class="yts-chat__title">Chat</span>' +
+        '<button class="yts-chat__close" id="yts-chat-close">&times;</button>' +
+      '</div>' +
+      '<div class="yts-chat__messages" id="yts-chat-messages"></div>' +
+      '<div class="yts-chat__input-wrap">' +
+        '<input class="yts-chat__input" id="yts-chat-input" type="text" placeholder="' + (isDa ? 'Skriv en besked…' : 'Type a message…') + '" autocomplete="off">' +
+        '<button class="yts-chat__send" id="yts-chat-send">&#10148;</button>' +
+      '</div>';
+
+    viewport.appendChild(panel);
+    teacherChatPanel = panel;
+    teacherChatMessages = document.getElementById('yts-chat-messages');
+    teacherChatInput = document.getElementById('yts-chat-input');
+
+    document.getElementById('yts-chat-close').addEventListener('click', toggleTeacherChat);
+    document.getElementById('yts-chat-send').addEventListener('click', sendTeacherChat);
+    teacherChatInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') sendTeacherChat();
+    });
+  }
+
+  function toggleTeacherChat() {
+    teacherChatOpen = !teacherChatOpen;
+    if (!teacherChatPanel) createTeacherChat();
+    if (teacherChatOpen) {
+      teacherChatPanel.classList.add('yts-chat--open');
+      teacherUnreadChat = 0;
+      updateTeacherChatBadge();
+      if (teacherChatInput) teacherChatInput.focus();
+    } else {
+      teacherChatPanel.classList.remove('yts-chat--open');
+    }
+    // Update chat control button state
+    var chatBtn = document.getElementById('yts-ctrl-chat');
+    if (chatBtn) chatBtn.classList.toggle('yts-live-controls__btn--active', teacherChatOpen);
+  }
+
+  function sendTeacherChat() {
+    if (!teacherChatInput) return;
+    var text = teacherChatInput.value.trim();
+    if (!text || !livekitRoom) return;
+    teacherChatInput.value = '';
+
+    var data = new TextEncoder().encode(JSON.stringify({ type: 'chat', text: text }));
+    try {
+      livekitRoom.localParticipant.publishData(data, { reliable: true });
+    } catch (e) {
+      console.warn('[teacher-studio] Failed to send chat:', e);
+    }
+    addTeacherChatMessage(isDa ? 'Dig' : 'You', text, true);
+  }
+
+  function addTeacherChatMessage(name, text, isSelf) {
+    if (!teacherChatPanel) createTeacherChat();
+    if (!teacherChatMessages) return;
+    var div = document.createElement('div');
+    div.className = 'yts-chat__msg';
+    div.innerHTML = '<span class="yts-chat__msg-name" style="' + (isSelf ? 'color:#FFFCF9' : '') + '">' + esc(name) + '</span> <span class="yts-chat__msg-text">' + esc(text) + '</span>';
+    teacherChatMessages.appendChild(div);
+    teacherChatMessages.scrollTop = teacherChatMessages.scrollHeight;
+  }
+
+  function addTeacherChatSystemMessage(text) {
+    if (!teacherChatPanel) createTeacherChat();
+    if (!teacherChatMessages) return;
+    var div = document.createElement('div');
+    div.className = 'yts-chat__msg yts-chat__msg--system';
+    div.textContent = text;
+    teacherChatMessages.appendChild(div);
+    teacherChatMessages.scrollTop = teacherChatMessages.scrollHeight;
+  }
+
+  function updateTeacherChatBadge() {
+    if (!teacherChatBadge) teacherChatBadge = document.getElementById('yts-ctrl-chat-badge');
+    if (!teacherChatBadge) return;
+    if (teacherUnreadChat > 0 && !teacherChatOpen) {
+      teacherChatBadge.textContent = teacherUnreadChat > 9 ? '9+' : String(teacherUnreadChat);
+      teacherChatBadge.style.display = 'flex';
+    } else {
+      teacherChatBadge.style.display = 'none';
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // CLEANUP — shared cleanup for end stream / end test
+  // ═══════════════════════════════════════════════════════
+
+  function cleanupInteractiveUI() {
+    if (handNotifTimer) { clearTimeout(handNotifTimer); handNotifTimer = null; }
+    if (handAlert) handAlert.style.display = 'none';
+    raisedHands = [];
+    raisedHandIdentities = [];
+    if (remoteContainer) {
+      while (remoteContainer.firstChild) remoteContainer.removeChild(remoteContainer.firstChild);
+    }
+    if (participantsOverlay) participantsOverlay.style.display = 'none';
+    if (remoteCountEl) remoteCountEl.textContent = '0';
+    var remotesWrap = document.getElementById('yts-remotes');
+    if (remotesWrap) remotesWrap.style.display = 'none';
+
+    // Clean up chat
+    teacherChatOpen = false;
+    teacherUnreadChat = 0;
+    if (teacherChatPanel) {
+      teacherChatPanel.classList.remove('yts-chat--open');
+    }
+    if (teacherChatMessages) teacherChatMessages.innerHTML = '';
   }
 
   // ═══════════════════════════════════════════════════════

@@ -621,6 +621,18 @@
     box-shadow: 0 0 12px rgba(247, 92, 3, 0.3);
   }
 
+  /* Hand raised — orange stroke + hand icon visible */
+  .yb-live-tile--hand-raised {
+    border: 2px solid #f75c03;
+    box-shadow: 0 0 16px rgba(247, 92, 3, 0.4);
+    animation: yb-live-hand-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes yb-live-hand-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(247, 92, 3, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(247, 92, 3, 0.6); }
+  }
+
   /* Role badge in name label */
   .yb-live-tile__role-badge {
     display: inline-block;
