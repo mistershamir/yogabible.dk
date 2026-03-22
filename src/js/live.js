@@ -493,6 +493,7 @@
     // Track subscribed — remote participant's track
     room.on(LivekitClient.RoomEvent.TrackSubscribed, function (track, publication, participant) {
       console.log('[live-i] Track subscribed:', track.kind, participant.identity);
+      if (isEgressParticipant(participant)) return;
       ensureParticipantTile(participant);
       attachTrackToTile(track, participant);
     });
@@ -528,6 +529,7 @@
     // Participant connected/disconnected
     room.on(LivekitClient.RoomEvent.ParticipantConnected, function (participant) {
       console.log('[live-i] Participant connected:', participant.identity);
+      if (isEgressParticipant(participant)) return;
       ensureParticipantTile(participant);
       updateParticipantCount();
       addChatSystemMessage(getParticipantName(participant) + (isDa ? ' deltager' : ' joined'));
@@ -571,6 +573,7 @@
 
       // Create tiles for existing participants
       room.remoteParticipants.forEach(function (participant) {
+        if (isEgressParticipant(participant)) return;
         ensureParticipantTile(participant);
         participant.trackPublications.forEach(function (pub) {
           if (pub.track && pub.isSubscribed) {
@@ -586,6 +589,15 @@
   }
 
   // ── Participant tile management ──
+
+  /**
+   * Filter out LiveKit egress bots (recording participants) from the grid.
+   * These are server-side participants used for recording, not real people.
+   */
+  function isEgressParticipant(participant) {
+    var id = participant.identity || '';
+    return id.indexOf('EG_') !== -1 || id.indexOf('egress') === 0;
+  }
 
   function getParticipantName(participant) {
     if (!participant) return 'Unknown';
@@ -960,6 +972,26 @@
         if (handEl) {
           if (msg.raised) handEl.classList.add('yb-live-tile__hand--visible');
           else handEl.classList.remove('yb-live-tile__hand--visible');
+        }
+        // Add/remove orange stroke for raised hand
+        if (msg.raised) {
+          tile.classList.add('yb-live-tile--hand-raised');
+        } else {
+          tile.classList.remove('yb-live-tile--hand-raised');
+        }
+      }
+    } else if (msg.type === 'lower-hand') {
+      // Teacher dismissed our raised hand
+      if (handRaised) {
+        handRaised = false;
+        updateControlStates();
+        if (livekitRoom) {
+          var localTile = participantTiles[livekitRoom.localParticipant.identity];
+          if (localTile) {
+            var handEl = localTile.querySelector('.yb-live-tile__hand');
+            if (handEl) handEl.classList.remove('yb-live-tile__hand--visible');
+            localTile.classList.remove('yb-live-tile--hand-raised');
+          }
         }
       }
     }
