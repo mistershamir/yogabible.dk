@@ -137,6 +137,9 @@ function createToken(opts) {
   if (opts.roomAdmin) {
     payload.video.roomAdmin = true;
   }
+  if (opts.roomRecord) {
+    payload.video.roomRecord = true;
+  }
 
   var segments = base64url(JSON.stringify(header)) + '.' + base64url(JSON.stringify(payload));
   var signature = crypto.createHmac('sha256', apiSecret).update(segments).digest();
@@ -168,6 +171,7 @@ async function livekitApi(method, body, service) {
     canSubscribe: false,
     roomCreate: true,
     roomAdmin: true,
+    roomRecord: true,
     ttl: 60
   });
 
@@ -278,10 +282,13 @@ async function handleCreateRoom(event) {
     var rtmpUrl = 'rtmps://global-live.mux.com:443/app/' + muxStream.stream_key;
     await livekitApi('StartRoomCompositeEgress', {
       room_name: roomName,
-      stream_urls: [rtmpUrl],
       layout: 'grid',
       audio_only: false,
-      video_only: false
+      video_only: false,
+      stream_outputs: [{
+        urls: [rtmpUrl],
+        protocol: 0
+      }]
     }, 'livekit.Egress');
 
     console.log('[livekit-token] Recording egress started → Mux stream:', muxStreamId);
