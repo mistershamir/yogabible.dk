@@ -246,7 +246,7 @@ async function handleEnroll(db, event) {
   var errors = [];
   var now = new Date().toISOString();
 
-  // Calculate first step send time
+  // Calculate first step send time (returns Date object for Firestore Timestamp)
   var firstStep = sequence.steps && sequence.steps[0];
   var nextSendAt = calculateNextSendAt(now, firstStep);
 
@@ -392,7 +392,7 @@ async function handlePauseResume(db, event, newStatus) {
       var sequence = seqDoc.data();
       var currentStepIndex = (enrollment.current_step || 1) - 1;
       var step = sequence.steps && sequence.steps[currentStepIndex];
-      updateData.next_send_at = calculateNextSendAt(new Date().toISOString(), step);
+      updateData.next_send_at = calculateNextSendAt(new Date(), step);
     }
   }
 
@@ -410,16 +410,20 @@ exports.handleProcess = handleProcess;
 
 async function handleProcess() {
   const db = getDb();
-  var now = new Date().toISOString();
+  var nowDate = new Date();
+  var now = nowDate.toISOString();
   var processed = 0;
   var errors = [];
   var sentSummary = []; // Track sent items for digest email
 
   try {
     // Find all active enrollments that are due
+    // IMPORTANT: Use Date object (not ISO string) for the query so Firestore
+    // matches Timestamp fields. sequence-trigger.js and fix scripts store
+    // next_send_at as Date objects (→ Firestore Timestamps).
     const snapshot = await db.collection(ENROLLMENTS_COL)
       .where('status', '==', 'active')
-      .where('next_send_at', '<=', now)
+      .where('next_send_at', '<=', nowDate)
       .get();
 
     if (snapshot.empty) {
@@ -584,7 +588,7 @@ async function handleProcess() {
           if (!recentEmailSnap.empty) {
             // Postpone this step by 24 hours
             await db.collection(ENROLLMENTS_COL).doc(enrollId).update({
-              next_send_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              next_send_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
               updated_at: now
             });
             console.log('[sequences] Throttled step for lead ' + enrollment.lead_id + ' — recent email within 48h');
@@ -775,7 +779,9 @@ function calculateNextSendAt(fromISO, step) {
     date.setHours(date.getHours() + delayHours);
   }
 
-  return date.toISOString();
+  // Return Date object so Firestore stores it as a Timestamp.
+  // The processor query uses a Date object for comparison — types must match.
+  return date;
 }
 
 function substituteVars(template, vars) {
