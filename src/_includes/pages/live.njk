@@ -71,6 +71,36 @@
     50% { opacity: 0.4; transform: scale(0.7); }
   }
 
+  .yb-live-rec {
+    display: none;
+    align-items: center;
+    gap: 0.4rem;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    background: rgba(220, 38, 38, 0.85);
+    color: #fff;
+    padding: 0.3rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .yb-live-rec--visible {
+    display: inline-flex;
+  }
+  .yb-live-rec__dot {
+    width: 7px;
+    height: 7px;
+    background: #fff;
+    border-radius: 50%;
+    animation: yb-live-pulse 1.5s ease-in-out infinite;
+  }
+
   .yb-live-player {
     max-width: 960px;
     margin: 0 auto;
@@ -1005,6 +1035,10 @@
 
   <div class="yb-live-player" id="yb-live-player-section">
     <div class="yb-live-player__wrap">
+      <div class="yb-live-rec" id="yb-live-rec">
+        <span class="yb-live-rec__dot"></span>
+        REC
+      </div>
       <div class="yb-live-player__checking" id="yb-live-checking">
         <div class="yb-live-spinner"></div>
         <span>{{ t.checking_text }}</span>
@@ -1073,7 +1107,11 @@
 
   {# Interactive: Video grid + controls + chat #}
   <div class="yb-live-interactive" id="yb-live-interactive">
-    <div class="yb-live-interactive__main">
+    <div class="yb-live-interactive__main" style="position:relative">
+      <div class="yb-live-rec" id="yb-live-rec-interactive">
+        <span class="yb-live-rec__dot"></span>
+        REC
+      </div>
       <div class="yb-live-grid" id="yb-live-grid" data-count="0"></div>
       <div class="yb-live-participants" id="yb-live-participants"></div>
       <div class="yb-live-controls" id="yb-live-controls">
