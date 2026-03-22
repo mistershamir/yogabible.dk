@@ -64,6 +64,8 @@ exports.handler = async function (event) {
         return handleCloseRoom(event);
       case 'room-status':
         return handleRoomStatus(params);
+      case 'stop-all-egresses':
+        return handleStopAllEgresses(event);
       default:
         return jsonResponse(400, { ok: false, error: 'Unknown action: ' + action });
     }
@@ -548,6 +550,43 @@ async function handleCloseRoom(event) {
   }
 
   return jsonResponse(200, { ok: true });
+}
+
+// ═══════════════════════════════════════════════════════
+// Stop all active egresses (admin only)
+// ═══════════════════════════════════════════════════════
+async function handleStopAllEgresses(event) {
+  var user = await requireAuth(event, ['admin']);
+  if (user.error) return user.error;
+
+  try {
+    var egressList = await livekitApi('ListEgress', {}, 'livekit.Egress');
+    var egresses = egressList.items || egressList.egresses || [];
+    var stopped = [];
+
+    for (var i = 0; i < egresses.length; i++) {
+      var eg = egresses[i];
+      // Status 0 = EGRESS_STARTING, 1 = EGRESS_ACTIVE
+      if (eg.status === 0 || eg.status === 1 || eg.status === 'EGRESS_ACTIVE' || eg.status === 'EGRESS_STARTING') {
+        try {
+          await livekitApi('StopEgress', { egress_id: eg.egress_id }, 'livekit.Egress');
+          stopped.push(eg.egress_id);
+          console.log('[livekit-token] Egress stopped:', eg.egress_id);
+        } catch (stopErr) {
+          console.log('[livekit-token] Failed to stop egress:', eg.egress_id, stopErr.message);
+        }
+      }
+    }
+
+    return jsonResponse(200, {
+      ok: true,
+      total: egresses.length,
+      stopped: stopped.length,
+      stoppedIds: stopped
+    });
+  } catch (err) {
+    return jsonResponse(500, { ok: false, error: err.message });
+  }
 }
 
 // ═══════════════════════════════════════════════════════
