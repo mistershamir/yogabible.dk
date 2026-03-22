@@ -491,11 +491,13 @@ async function handleCloseRoom(event) {
     var egressList = await livekitApi('ListEgress', { room_name: roomName }, 'livekit.Egress');
     var egresses = egressList.items || egressList.egresses || [];
     for (var e = 0; e < egresses.length; e++) {
+      var eid = egresses[e].egress_id || egresses[e].egressId;
+      if (!eid) continue;
       try {
-        await livekitApi('StopEgress', { egress_id: egresses[e].egress_id }, 'livekit.Egress');
-        console.log('[livekit-token] Egress stopped:', egresses[e].egress_id);
+        await livekitApi('StopEgress', { egress_id: eid }, 'livekit.Egress');
+        console.log('[livekit-token] Egress stopped:', eid);
       } catch (stopErr) {
-        console.log('[livekit-token] Egress stop failed:', egresses[e].egress_id, stopErr.message);
+        console.log('[livekit-token] Egress stop failed:', eid, stopErr.message);
       }
     }
   } catch (listErr) {
@@ -577,11 +579,13 @@ async function handleStartEgress(event) {
     var egressList = await livekitApi('ListEgress', {}, 'livekit.Egress');
     var egresses = egressList.items || egressList.egresses || [];
     for (var i = 0; i < egresses.length; i++) {
+      var eid = egresses[i].egress_id || egresses[i].egressId;
+      if (!eid) continue;
       try {
-        await livekitApi('StopEgress', { egress_id: egresses[i].egress_id }, 'livekit.Egress');
-        console.log('[livekit-token] Egress stopped:', egresses[i].egress_id);
+        await livekitApi('StopEgress', { egress_id: eid }, 'livekit.Egress');
+        console.log('[livekit-token] Egress stopped:', eid);
       } catch (stopErr) {
-        console.log('[livekit-token] Egress stop skipped:', egresses[i].egress_id, stopErr.message);
+        console.log('[livekit-token] Egress stop skipped:', eid, stopErr.message);
       }
     }
   } catch (listErr) {
@@ -671,13 +675,13 @@ async function handleStopAllEgresses(event) {
 
     for (var i = 0; i < egresses.length; i++) {
       var eg = egresses[i];
-      // Try to stop every egress regardless of status — status format varies
+      var eid = eg.egress_id || eg.egressId;
+      if (!eid) continue;
       try {
-        await livekitApi('StopEgress', { egress_id: eg.egress_id }, 'livekit.Egress');
-        stopped.push(eg.egress_id);
-        console.log('[livekit-token] Egress stopped:', eg.egress_id, '(was status:', eg.status, ')');
+        await livekitApi('StopEgress', { egress_id: eid }, 'livekit.Egress');
+        stopped.push(eid);
       } catch (stopErr) {
-        console.log('[livekit-token] Egress stop failed:', eg.egress_id, '(status:', eg.status, ')', stopErr.message);
+        console.log('[livekit-token] Egress stop failed:', eid, stopErr.message);
       }
     }
 
