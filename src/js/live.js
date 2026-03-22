@@ -792,8 +792,9 @@
       cameraEnabled = false;
       var localTile = participantTiles[livekitRoom.localParticipant.identity];
       if (localTile) {
+        // Remove old video element entirely (track is stopped)
         var vid = localTile.querySelector('video');
-        if (vid) vid.style.display = 'none';
+        if (vid) vid.remove();
         localTile.classList.add('yb-live-tile--no-video');
       }
     } else {
@@ -803,20 +804,19 @@
         // Attach the new video track to the local tile
         var localTile = participantTiles[livekitRoom.localParticipant.identity];
         if (localTile) {
-          var existingVid = localTile.querySelector('video');
-          if (!existingVid) {
-            // LiveKit creates the track — find it and attach
-            var camPub = livekitRoom.localParticipant.getTrackPublication(LivekitClient.Track.Source.Camera);
-            if (camPub && camPub.track) {
-              var videoEl = camPub.track.attach();
-              videoEl.style.width = '100%';
-              videoEl.style.height = '100%';
-              videoEl.muted = true;
-              localTile.insertBefore(videoEl, localTile.firstChild);
-              detectOrientation(videoEl, localTile);
-            }
-          } else {
-            existingVid.style.display = '';
+          // Always remove old video first — it's attached to a dead track
+          var oldVid = localTile.querySelector('video');
+          if (oldVid) oldVid.remove();
+
+          // Find the newly published camera track and attach it
+          var camPub = livekitRoom.localParticipant.getTrackPublication(LivekitClient.Track.Source.Camera);
+          if (camPub && camPub.track) {
+            var videoEl = camPub.track.attach();
+            videoEl.style.width = '100%';
+            videoEl.style.height = '100%';
+            videoEl.muted = true;
+            localTile.insertBefore(videoEl, localTile.firstChild);
+            detectOrientation(videoEl, localTile);
           }
           localTile.classList.remove('yb-live-tile--no-video');
         }
