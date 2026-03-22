@@ -109,6 +109,13 @@
     return el ? el.getAttribute('content') : '';
   })();
 
+  var GOOGLE_ADS_ID = (function () {
+    var el = document.querySelector('meta[name="yb-google-ads-id"]');
+    return el ? el.getAttribute('content') : '';
+  })();
+
+  var gtagLoaded = false;
+
   function loadGTM() {
     if (gtmLoaded || !GTM_ID) return;
     gtmLoaded = true;
@@ -160,6 +167,22 @@
     })(window, document, 'clarity', 'script', CLARITY_ID);
   }
 
+  /** Google Ads gtag.js — loaded when marketing consent is granted */
+  function loadGtag() {
+    if (gtagLoaded || !GOOGLE_ADS_ID) return;
+    gtagLoaded = true;
+
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GOOGLE_ADS_ID;
+    document.head.appendChild(script);
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', GOOGLE_ADS_ID, { allow_enhanced_conversions: true });
+  }
+
   /** Load tracking.js — dataLayer events + Meta CAPI relay */
   function loadTracking() {
     if (trackingLoaded) return;
@@ -185,6 +208,7 @@
     if (!consent) return;
     if (consent.marketing) {
       loadMetaPixel();
+      loadGtag();
     }
     if (consent.statistics || consent.marketing) {
       loadGTM();

@@ -24,7 +24,7 @@ KEY_PAGES = [
     '/200-hours-8-weeks-semi-intensive-programs/',
     '/200-hours-18-weeks-flexible-programs/',
     '/300-hours-advanced-teacher-training/',
-    '/om-200hrs-yogalreruddannelser/',
+    '/om-200hrs-yogalaereruddannelser/',
     '/en/200-hours-4-weeks-intensive-programs/',
     '/en/200-hours-8-weeks-semi-intensive-programs/',
     '/en/200-hours-18-weeks-flexible-programs/',
@@ -32,8 +32,8 @@ KEY_PAGES = [
     '/yoga-glossary/',
     '/hot-yoga-copenhagen/',
     '/vibro-yoga/',
-    '/sammenlign-yogalreruddannelser/',
-    '/ansog/',
+    '/sammenlign-yogalaereruddannelser/',
+    '/apply/',
     '/kontakt/',
     '/sitemap.xml',
     '/robots.txt',
@@ -134,19 +134,26 @@ def check_structured_data():
     result['metrics']['jsonld_blocks'] = len(blocks)
 
     schema_types = set()
+    def _add_type(t):
+        """Safely add a @type which may be a string or list of strings."""
+        if isinstance(t, list):
+            for item in t:
+                schema_types.add(item)
+        elif isinstance(t, str):
+            schema_types.add(t)
+
     for i, block in enumerate(blocks):
         try:
             data = json.loads(block)
             # Collect types
             if isinstance(data, dict):
-                t = data.get('@type', 'unknown')
-                schema_types.add(t)
+                _add_type(data.get('@type', 'unknown'))
                 if '@graph' in data:
                     for item in data['@graph']:
-                        schema_types.add(item.get('@type', 'unknown'))
+                        _add_type(item.get('@type', 'unknown'))
             elif isinstance(data, list):
                 for item in data:
-                    schema_types.add(item.get('@type', 'unknown'))
+                    _add_type(item.get('@type', 'unknown'))
         except json.JSONDecodeError as e:
             result['errors'].append(f'Invalid JSON-LD block #{i+1}: {str(e)[:60]}')
 
@@ -234,38 +241,31 @@ def check_pagespeed():
 def check_search_console():
     """
     Check Google Search Console for ranking data.
-    Requires GOOGLE_SERVICE_ACCOUNT_JSON env var pointing to a service account
-    with Search Console access.
+    Pulls 500 queries, saves weekly snapshot for trend tracking,
+    and detects position movers / new / lost queries.
     """
     result = {'errors': [], 'warnings': [], 'metrics': {}, 'rankings': {}}
 
-    sa_json = os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON', '')
-    if not sa_json:
-        result['warnings'].append('GOOGLE_SERVICE_ACCOUNT_JSON not set — skipping Search Console')
+    service, err = _get_gsc_service(scope='readonly')
+    if service is None:
+        result['warnings'].append(f'Search Console skipped — {err}')
         return result
 
     try:
-        from google.oauth2 import service_account
-        from googleapiclient.discovery import build
+        from datetime import datetime, timedelta
+        from keyword_history import save_snapshot, compare_with_previous
 
-        creds = service_account.Credentials.from_service_account_file(
-            sa_json,
-            scopes=['https://www.googleapis.com/auth/webmasters.readonly']
-        )
-        service = build('searchconsole', 'v1', credentials=creds)
-
-        # Last 28 days performance
-        from datetime import timedelta
         end_date = datetime.now().strftime('%Y-%m-%d')
         start_date = (datetime.now() - timedelta(days=28)).strftime('%Y-%m-%d')
 
+        # Pull 500 queries (up from 25) for comprehensive tracking
         response = service.searchanalytics().query(
             siteUrl=SITE_URL,
             body={
                 'startDate': start_date,
                 'endDate': end_date,
                 'dimensions': ['query'],
-                'rowLimit': 25,
+                'rowLimit': 500,
             }
         ).execute()
 
@@ -288,11 +288,51 @@ def check_search_console():
                         'impressions': row.get('impressions', 0),
                     }
 
+        # Identify "striking distance" keywords (positions 8-20, worth pushing)
+        striking = []
+        for row in rows:
+            pos = row.get('position', 0)
+            if 8 <= pos <= 20 and row.get('impressions', 0) >= 10:
+                striking.append({
+                    'query': row['keys'][0],
+                    'position': round(pos, 1),
+                    'impressions': row.get('impressions', 0),
+                    'clicks': row.get('clicks', 0),
+                })
+        striking.sort(key=lambda x: x['impressions'], reverse=True)
+        result['metrics']['striking_distance_keywords'] = striking[:15]
+
+        # Save snapshot for weekly comparison
+        all_queries = [{
+            'query': row['keys'][0],
+            'position': round(row.get('position', 0), 1),
+            'clicks': row.get('clicks', 0),
+            'impressions': row.get('impressions', 0),
+        } for row in rows]
+
+        save_snapshot(all_queries)
+
+        # Compare with previous week
+        comparison = compare_with_previous()
+        result['metrics']['keyword_comparison'] = comparison
+
+        if comparison['movers_up']:
+            top_mover = comparison['movers_up'][0]
+            result['metrics']['top_mover_up'] = (
+                f'"{top_mover["query"]}" moved up {top_mover["delta"]} positions '
+                f'to #{top_mover["position"]}'
+            )
+
+        if comparison['movers_down']:
+            top_drop = comparison['movers_down'][0]
+            result['metrics']['top_mover_down'] = (
+                f'"{top_drop["query"]}" dropped {abs(top_drop["delta"])} positions '
+                f'to #{top_drop["position"]}'
+            )
+
         if total_clicks == 0:
             result['warnings'].append('Zero clicks in last 28 days')
 
-    except ImportError:
-        result['warnings'].append('google-api-python-client not installed — skipping Search Console')
     except Exception as e:
         result['warnings'].append(f'Search Console error: {str(e)[:100]}')
 
@@ -323,5 +363,339 @@ def check_keyword_rankings():
 
     else:
         result['errors'].append(f'Sitemap returned HTTP {status}')
+
+    return result
+
+
+def check_keyword_trends():
+    """
+    Monitor Google Trends for target keywords.
+    Detects rising/falling search interest so we can adjust content proactively.
+    Uses pytrends (unofficial Google Trends API).
+    """
+    result = {'errors': [], 'warnings': [], 'metrics': {}}
+
+    try:
+        from pytrends.request import TrendReq
+    except ImportError:
+        result['warnings'].append('pytrends not installed — skipping Trends check')
+        return result
+
+    try:
+        pytrends = TrendReq(hl='da', tz=60, timeout=(10, 30))
+
+        # Danish keywords (geo=DK)
+        da_keywords = [
+            'yogalæreruddannelse',
+            'yoga uddannelse',
+            'yoga kursus',
+            'hot yoga københavn',
+        ]
+
+        # English keywords (geo=DK for Denmark-specific interest)
+        en_keywords = [
+            'yoga teacher training',
+            'yoga certification',
+            'hot yoga copenhagen',
+        ]
+
+        trends_data = {}
+
+        # Check Danish keywords
+        for batch_start in range(0, len(da_keywords), 5):
+            batch = da_keywords[batch_start:batch_start + 5]
+            try:
+                pytrends.build_payload(batch, cat=0, timeframe='today 3-m', geo='DK')
+                interest = pytrends.interest_over_time()
+
+                if not interest.empty:
+                    for kw in batch:
+                        if kw in interest.columns:
+                            values = interest[kw].tolist()
+                            if len(values) >= 4:
+                                recent = sum(values[-4:]) / 4
+                                older = sum(values[:4]) / 4
+                                trend = 'rising' if recent > older * 1.2 else (
+                                    'falling' if recent < older * 0.8 else 'stable'
+                                )
+                                trends_data[kw] = {
+                                    'trend': trend,
+                                    'current_interest': round(recent, 1),
+                                    'previous_interest': round(older, 1),
+                                    'lang': 'da',
+                                }
+            except Exception as e:
+                logger.debug(f'Trends batch error (DA): {e}')
+
+        # Check English keywords
+        for batch_start in range(0, len(en_keywords), 5):
+            batch = en_keywords[batch_start:batch_start + 5]
+            try:
+                pytrends.build_payload(batch, cat=0, timeframe='today 3-m', geo='DK')
+                interest = pytrends.interest_over_time()
+
+                if not interest.empty:
+                    for kw in batch:
+                        if kw in interest.columns:
+                            values = interest[kw].tolist()
+                            if len(values) >= 4:
+                                recent = sum(values[-4:]) / 4
+                                older = sum(values[:4]) / 4
+                                trend = 'rising' if recent > older * 1.2 else (
+                                    'falling' if recent < older * 0.8 else 'stable'
+                                )
+                                trends_data[kw] = {
+                                    'trend': trend,
+                                    'current_interest': round(recent, 1),
+                                    'previous_interest': round(older, 1),
+                                    'lang': 'en',
+                                }
+            except Exception as e:
+                logger.debug(f'Trends batch error (EN): {e}')
+
+        # Also fetch related queries for top keyword
+        try:
+            pytrends.build_payload(['yogalæreruddannelse'], cat=0, timeframe='today 3-m', geo='DK')
+            related = pytrends.related_queries()
+            if 'yogalæreruddannelse' in related:
+                rising = related['yogalæreruddannelse'].get('rising')
+                if rising is not None and not rising.empty:
+                    result['metrics']['related_rising_queries'] = rising['query'].tolist()[:10]
+        except Exception:
+            pass
+
+        result['metrics']['keyword_trends'] = trends_data
+
+        # Flag notable trend changes
+        rising_kws = [kw for kw, d in trends_data.items() if d['trend'] == 'rising']
+        falling_kws = [kw for kw, d in trends_data.items() if d['trend'] == 'falling']
+
+        if rising_kws:
+            result['metrics']['trends_rising'] = rising_kws
+        if falling_kws:
+            result['warnings'].append(
+                f'Falling search interest: {", ".join(falling_kws)}'
+            )
+
+    except Exception as e:
+        result['warnings'].append(f'Google Trends error: {str(e)[:100]}')
+
+    return result
+
+
+def _get_gsc_service(scope='readonly'):
+    """
+    Build a Google Search Console API service.
+    scope: 'readonly' for search analytics/sitemaps, 'readwrite' for URL inspection.
+    Returns (service, error_message). service is None if auth fails.
+    """
+    sa_json = os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON', '')
+    if not sa_json:
+        return None, 'GOOGLE_SERVICE_ACCOUNT_JSON not set'
+
+    try:
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+
+        scopes = {
+            'readonly': ['https://www.googleapis.com/auth/webmasters.readonly'],
+            'readwrite': ['https://www.googleapis.com/auth/webmasters'],
+        }
+
+        creds = service_account.Credentials.from_service_account_file(
+            sa_json,
+            scopes=scopes.get(scope, scopes['readonly'])
+        )
+        service = build('searchconsole', 'v1', credentials=creds)
+        return service, None
+
+    except ImportError:
+        return None, 'google-api-python-client not installed'
+    except Exception as e:
+        return None, f'GSC auth error: {str(e)[:100]}'
+
+
+def check_indexing_coverage():
+    """
+    Check indexing status for all key pages via the URL Inspection API.
+    Catches issues like: not indexed, redirect, noindex, crawl errors, canonical mismatches.
+    Requires GOOGLE_SERVICE_ACCOUNT_JSON with webmasters (read-write) scope.
+    """
+    result = {'errors': [], 'warnings': [], 'metrics': {}}
+
+    service, err = _get_gsc_service(scope='readwrite')
+    if service is None:
+        result['warnings'].append(f'Indexing check skipped — {err}')
+        return result
+
+    # Only inspect HTML pages (skip sitemap.xml, robots.txt)
+    inspectable_pages = [p for p in KEY_PAGES if not p.endswith('.xml') and not p.endswith('.txt')]
+
+    indexed = 0
+    not_indexed = 0
+    issues = []
+
+    from urllib.parse import urljoin
+
+    for path in inspectable_pages:
+        url = urljoin(SITE_URL, path)
+        try:
+            response = service.urlInspection().index().inspect(
+                body={
+                    'inspectionUrl': url,
+                    'siteUrl': SITE_URL,
+                }
+            ).execute()
+
+            inspection = response.get('inspectionResult', {})
+            index_status = inspection.get('indexStatusResult', {})
+            verdict = index_status.get('verdict', 'UNKNOWN')
+            coverage_state = index_status.get('coverageState', '')
+            crawled_as = index_status.get('crawledAs', '')
+            robots_txt = index_status.get('robotsTxtState', '')
+            indexing_state = index_status.get('indexingState', '')
+            last_crawl = index_status.get('lastCrawlTime', '')
+            page_fetch = index_status.get('pageFetchState', '')
+            referring_urls = index_status.get('referringUrls', [])
+
+            # Check mobile usability from inspection result
+            mobile = inspection.get('mobileUsabilityResult', {})
+            mobile_verdict = mobile.get('verdict', 'UNKNOWN')
+
+            if verdict == 'PASS':
+                indexed += 1
+            else:
+                not_indexed += 1
+                reason = coverage_state or verdict
+                issues.append({
+                    'page': path,
+                    'reason': reason,
+                    'last_crawl': last_crawl[:10] if last_crawl else 'never',
+                    'page_fetch': page_fetch,
+                })
+
+            # Warn on mobile usability issues
+            if mobile_verdict not in ('PASS', 'VERDICT_UNSPECIFIED', 'UNKNOWN'):
+                mobile_issues = mobile.get('issues', [])
+                issue_types = [i.get('issueType', 'unknown') for i in mobile_issues]
+                result['warnings'].append(
+                    f'{path} — mobile usability: {", ".join(issue_types)}'
+                )
+
+            # Warn on canonical mismatch
+            canonical_url = index_status.get('googleCanonical', '')
+            user_canonical = index_status.get('userCanonical', '')
+            if canonical_url and user_canonical and canonical_url != user_canonical:
+                result['warnings'].append(
+                    f'{path} — canonical mismatch: Google chose {canonical_url} over {user_canonical}'
+                )
+
+            # Warn if robots.txt is blocking
+            if robots_txt == 'DISALLOWED':
+                result['errors'].append(f'{path} — blocked by robots.txt')
+
+        except Exception as e:
+            err_str = str(e)
+            # Rate limiting — back off gracefully
+            if '429' in err_str or 'quota' in err_str.lower():
+                result['warnings'].append(f'URL Inspection API rate limited after {indexed + not_indexed} pages')
+                break
+            result['warnings'].append(f'{path} — inspection failed: {err_str[:80]}')
+
+    result['metrics']['indexed_pages'] = indexed
+    result['metrics']['not_indexed_pages'] = not_indexed
+
+    # Report not-indexed pages as errors
+    for issue in issues:
+        result['errors'].append(
+            f'{issue["page"]} — NOT INDEXED: {issue["reason"]} '
+            f'(last crawl: {issue["last_crawl"]}, fetch: {issue["page_fetch"]})'
+        )
+
+    if indexed + not_indexed > 0:
+        result['metrics']['index_coverage_pct'] = round(
+            indexed / (indexed + not_indexed) * 100, 1
+        )
+
+    return result
+
+
+def check_sitemaps_status():
+    """
+    Check sitemap submission status via Search Console Sitemaps API.
+    Verifies sitemaps are submitted, processed without errors, and up to date.
+    """
+    result = {'errors': [], 'warnings': [], 'metrics': {}}
+
+    service, err = _get_gsc_service(scope='readonly')
+    if service is None:
+        result['warnings'].append(f'Sitemaps status check skipped — {err}')
+        return result
+
+    try:
+        response = service.sitemaps().list(siteUrl=SITE_URL).execute()
+        sitemaps = response.get('sitemap', [])
+
+        if not sitemaps:
+            result['errors'].append('No sitemaps submitted to Search Console')
+            return result
+
+        result['metrics']['sitemaps_submitted'] = len(sitemaps)
+
+        total_submitted = 0
+        total_indexed = 0
+
+        for sm in sitemaps:
+            path = sm.get('path', 'unknown')
+            sm_type = sm.get('type', 'unknown')
+            last_submitted = sm.get('lastSubmitted', '')
+            last_downloaded = sm.get('lastDownloaded', '')
+            is_pending = sm.get('isPending', False)
+            warnings_count = sm.get('warnings', 0)
+            errors_count = sm.get('errors', 0)
+
+            # Count URLs
+            contents = sm.get('contents', [])
+            for content in contents:
+                submitted = content.get('submitted', 0)
+                indexed = content.get('indexed', 0)
+                total_submitted += int(submitted) if submitted else 0
+                total_indexed += int(indexed) if indexed else 0
+
+            # Report issues
+            if errors_count and int(errors_count) > 0:
+                result['errors'].append(f'Sitemap {path} has {errors_count} error(s)')
+
+            if warnings_count and int(warnings_count) > 0:
+                result['warnings'].append(f'Sitemap {path} has {warnings_count} warning(s)')
+
+            if is_pending:
+                result['warnings'].append(f'Sitemap {path} is pending processing')
+
+            # Warn if sitemap hasn't been downloaded recently (>14 days)
+            if last_downloaded:
+                from datetime import datetime, timedelta
+                try:
+                    dl_date = datetime.fromisoformat(last_downloaded.replace('Z', '+00:00'))
+                    if (datetime.now(dl_date.tzinfo) - dl_date).days > 14:
+                        result['warnings'].append(
+                            f'Sitemap {path} last downloaded {dl_date.strftime("%Y-%m-%d")} (>14 days ago)'
+                        )
+                except (ValueError, TypeError):
+                    pass
+
+        result['metrics']['sitemap_urls_submitted'] = total_submitted
+        result['metrics']['sitemap_urls_indexed'] = total_indexed
+
+        if total_submitted > 0 and total_indexed > 0:
+            index_ratio = round(total_indexed / total_submitted * 100, 1)
+            result['metrics']['sitemap_index_ratio'] = index_ratio
+            if index_ratio < 80:
+                result['warnings'].append(
+                    f'Only {index_ratio}% of sitemap URLs are indexed ({total_indexed}/{total_submitted})'
+                )
+
+    except Exception as e:
+        result['warnings'].append(f'Sitemaps status error: {str(e)[:100]}')
 
     return result

@@ -21,7 +21,7 @@
   var BRAND_RGBA04 = 'rgba(63,153,165,.04)';
   var API_BASE     = 'https://profile.hotyogacph.dk/.netlify/functions';
   var PROFILE_URL  = 'https://profile.hotyogacph.dk';
-  var FIREBASE_VER = '10.14.1';
+  var FIREBASE_VER = '12.10.0';
   var FIREBASE_CDN = 'https://www.gstatic.com/firebasejs/' + FIREBASE_VER;
 
   // Firebase config — placeholders replaced at Netlify build time
@@ -771,13 +771,13 @@
     h +=     '<a href="#" data-ycf-action="forgot" data-yj-da>Glemt adgangskode?</a>';
     h +=     '<a href="#" data-ycf-action="forgot" data-yj-en hidden>Forgot password?</a>';
     h +=   '</div>';
-    h +=   '<div class="yb-auth-notice">';
-    h +=     '<p data-yj-da>Allerede klient hos os? Opret en profil herunder med <strong>samme email</strong> som du booker med \u2014 s\u00e5 bliver alt koblet sammen automatisk.</p>';
-    h +=     '<p data-yj-en hidden>Already a client? Create a profile below with the <strong>same email</strong> you book with \u2014 everything will be linked automatically.</p>';
+    h +=   '<div class="yb-auth-notice" style="background:#e8f4f6;border-left:3px solid #3f99a5;border-radius:0 10px 10px 0">';
+    h +=     '<p style="color:#2d6b74" data-yj-da>Allerede klient? <a href="https://profile.hotyogacph.dk" style="color:#3f99a5;font-weight:700;text-decoration:underline">Log ind p\u00e5 din profil</a> \u2014 der kan du k\u00f8be direkte.</p>';
+    h +=     '<p style="color:#2d6b74" data-yj-en hidden>Already a client? <a href="https://profile.hotyogacph.dk" style="color:#3f99a5;font-weight:700;text-decoration:underline">Sign in to your profile</a> \u2014 you can buy directly there.</p>';
     h +=   '</div>';
     h +=   '<div class="yb-auth-divider">';
-    h +=     '<span data-yj-da>Har du ikke en konto?</span>';
-    h +=     '<span data-yj-en hidden>Don\'t have an account?</span>';
+    h +=     '<span data-yj-da>Ny klient?</span>';
+    h +=     '<span data-yj-en hidden>New client?</span>';
     h +=     '<a href="#" data-ycf-action="register" data-yj-da>Opret profil</a>';
     h +=     '<a href="#" data-ycf-action="register" data-yj-en hidden>Create profile</a>';
     h +=   '</div>';
@@ -868,8 +868,8 @@
     h +=       '<label for="ycf-reg-email" data-yj-da>Email</label>';
     h +=       '<label for="ycf-reg-email" data-yj-en hidden>Email</label>';
     h +=       '<input type="email" id="ycf-reg-email" required autocomplete="email" placeholder="din@email.dk">';
-    h +=       '<small class="yb-auth-hint" data-yj-da>Allerede klient? Brug den samme email som du booker med</small>';
-    h +=       '<small class="yb-auth-hint" data-yj-en hidden>Already a client? Use the same email you book with</small>';
+    h +=       '<small class="yb-auth-hint" data-yj-da>Brug den email du booker med \u2014 vi kobler din konto automatisk</small>';
+    h +=       '<small class="yb-auth-hint" data-yj-en hidden>Use the email you book with \u2014 we\'ll link your account automatically</small>';
     h +=     '</div>';
     h +=     '<div class="yb-auth-field">';
     h +=       '<label for="ycf-reg-phone" data-yj-da>Telefon</label>';
@@ -1808,6 +1808,24 @@
                     });
                     return;
                   }
+                  // Account exists in Firebase — wrong password. Auto-send reset email.
+                  if (data.hasFirebaseAccount) {
+                    var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
+                    fetch(apiBase + '/send-password-reset', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+                    }).catch(function() {});
+                    var el = $('ycf-login-error');
+                    if (el) {
+                      el.innerHTML = t(
+                        'Forkert adgangskode. Vi har sendt en email til <strong>' + email + '</strong> s\u00e5 du kan nulstille din adgangskode. Tjek din indbakke (og spam).',
+                        'Incorrect password. We\u2019ve sent an email to <strong>' + email + '</strong> to reset your password. Check your inbox (and spam).'
+                      );
+                      el.hidden = false;
+                    }
+                    return;
+                  }
                   var el = $('ycf-login-error');
                   if (el) {
                     el.innerHTML = t(
@@ -2311,15 +2329,91 @@
     }, 2000);
   }
 
+  // ── Cross-iframe auth sync via shared bridge iframe ─────────────────
+  // Storage-based sync (_parentStorage) is unreliable in cross-origin
+  // srcdoc iframes (Safari, Chrome 115+). We load a hidden iframe from
+  // profile.hotyogacph.dk/auth-sync.html which has real localStorage
+  // and relays auth events between sibling embeds.
+  var _ceSyncFrame = null;
+  var _ceSyncReady = false;
+  var _ceSyncQueue = [];
+
+  function initAuthSyncBridge() {
+    try {
+      var f = document.createElement('iframe');
+      f.src = 'https://profile.hotyogacph.dk/auth-sync.html';
+      f.style.cssText = 'display:none;width:0;height:0;border:0';
+      f.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(f);
+      _ceSyncFrame = f;
+      f.addEventListener('load', function () {
+        _ceSyncReady = true;
+        for (var i = 0; i < _ceSyncQueue.length; i++) {
+          try { f.contentWindow.postMessage(_ceSyncQueue[i], '*'); } catch (x) {}
+        }
+        _ceSyncQueue = [];
+        // Ask bridge if anyone is already logged in
+        try { f.contentWindow.postMessage({ type: 'hyc-auth-sync', action: 'query' }, '*'); } catch (x) {}
+      });
+    } catch (e) { /* iframe blocked */ }
+  }
+
+  function sendToSyncBridge(msg) {
+    if (_ceSyncReady && _ceSyncFrame && _ceSyncFrame.contentWindow) {
+      try { _ceSyncFrame.contentWindow.postMessage(msg, '*'); } catch (e) {}
+    } else {
+      _ceSyncQueue.push(msg);
+    }
+  }
+
+  function broadcastAuthChange(user) {
+    if (!user) {
+      sendToSyncBridge({ type: 'hyc-auth-sync', action: 'logout' });
+      return;
+    }
+    user.getIdToken().then(function (token) {
+      sendToSyncBridge({ type: 'hyc-auth-sync', action: 'login', idToken: token });
+    }).catch(function () {});
+  }
+
+  var _ceSyncListening = false;
+  function listenForAuthSync() {
+    if (_ceSyncListening) return;
+    _ceSyncListening = true;
+    window.addEventListener('message', function (e) {
+      try {
+        if (!e.data || e.data.type !== 'hyc-auth-sync') return;
+        if (e.data.action === 'login' && e.data.idToken && !firebase.auth().currentUser) {
+          fetch(API_BASE + '/auth-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: e.data.idToken })
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.customToken) return firebase.auth().signInWithCustomToken(data.customToken);
+            })
+            .catch(function () {});
+        } else if (e.data.action === 'logout' && firebase.auth().currentUser) {
+          firebase.auth().signOut();
+        }
+      } catch (x) {}
+    });
+  }
+
   function initAuthListener() {
     // Poll for Firebase availability then listen for auth state
     var checkInterval = setInterval(function () {
       if (typeof firebase !== 'undefined' && firebase.auth) {
         clearInterval(checkInterval);
+        initAuthSyncBridge();
+        listenForAuthSync();
         firebase.auth().onAuthStateChanged(function (user) {
           // Persist / clear token so login survives page reloads
           if (user) persistAuthToken(user);
           else clearAuthToken();
+          // Broadcast to sibling iframes via bridge
+          broadcastAuthChange(user);
 
           if (!user) return;
 

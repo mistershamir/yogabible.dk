@@ -1289,6 +1289,31 @@
   }
 
   /* ══════════════════════════════════════════
+     BOOKING LINKS COPY
+     ══════════════════════════════════════════ */
+  function initBookingLinksCopy() {
+    document.querySelectorAll('[data-copy-booking]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var type = btn.getAttribute('data-copy-booking');
+        var url = 'https://yogabible.dk/?booking=' + type;
+        var origText = btn.innerHTML;
+        navigator.clipboard.writeText(url).then(function () {
+          btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>' + (T.appt_copied || 'Copied!');
+          setTimeout(function () { btn.innerHTML = origText; }, 2000);
+        }).catch(function () {
+          // Fallback
+          var ta = document.createElement('textarea');
+          ta.value = url; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+          document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+          document.body.removeChild(ta);
+          btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>' + (T.appt_copied || 'Copied!');
+          setTimeout(function () { btn.innerHTML = origText; }, 2000);
+        });
+      });
+    });
+  }
+
+  /* ══════════════════════════════════════════
      INIT
      ══════════════════════════════════════════ */
   function init() {
@@ -1316,6 +1341,7 @@
             });
             initEventListeners();
             initContactSearch();
+            initBookingLinksCopy();
           }
         });
       }

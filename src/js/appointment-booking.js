@@ -137,6 +137,7 @@
     calMonth = now.getMonth();
     renderCalendar();
 
+    modal.removeAttribute('style');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
 
@@ -485,8 +486,9 @@
   /* ══════════════════════════════════════════
      INIT
      ══════════════════════════════════════════ */
+
   function init() {
-    // Open triggers
+    // Open triggers — works on both <button> and <a> with data-open-booking
     document.querySelectorAll('[data-open-booking]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();

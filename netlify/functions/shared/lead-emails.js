@@ -11,7 +11,7 @@
  * Schedule PDFs are now hosted on Cloudinary (not Google Drive).
  */
 
-const { CONFIG, COURSE_CONFIG, SCHEDULE_PDFS } = require('./config');
+const { CONFIG, COURSE_CONFIG, SCHEDULE_PDFS, getDisplayProgram } = require('./config');
 const {
   escapeHtml,
   getCoursePaymentUrl,
@@ -23,6 +23,8 @@ const {
   getSignaturePlain,
   getEnglishNoteHtml,
   getEnglishNotePlain,
+  getGermanPsLineHtml,
+  getGermanPsLinePlain,
   getUnsubscribeFooterHtml,
   getUnsubscribeFooterPlain,
   getAccommodationSectionHtml,
@@ -185,6 +187,85 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
   }
 
   try {
+    // Determine language: 'da' for Danish website/ads, 'de' for German, otherwise English
+    const lang = (leadData.lang || leadData.meta_lang || '').toLowerCase().substring(0, 2);
+    const isDanish = lang === 'da';
+    const isGerman = lang === 'de' || ['at', 'ch'].includes(lang);
+
+    // German leads get DE templates (falling back to EN via i18n lookups)
+    if (isGerman) {
+      let result;
+      const programKeyMap = {
+        'lead_schedule_4w': '4-week', 'lead_schedule_4w-apr': '4-week',
+        'lead_schedule_4w-jul': '4-week-jul', 'lead_schedule_8w': '8-week',
+        'lead_schedule_18w': '18-week', 'lead_schedule_18w-mar': '18-week',
+        'lead_schedule_18w-aug': '18-week-aug', 'lead_schedule_300h': '300h',
+        'lead_schedule_50h': 'specialty', 'lead_schedule_30h': 'specialty'
+      };
+
+      if (leadData.multi_format === 'Yes' && leadData.all_formats) {
+        result = await sendMultiFormatEmail(leadData, 'de', tokenData);
+      } else if (action === 'lead_schedule_multi') {
+        result = await sendMultiFormatEmail(leadData, 'de', tokenData);
+      } else if (action === 'lead_undecided') {
+        result = await sendUndecidedEmail(leadData, 'de', tokenData);
+      } else if (action === 'lead_courses') {
+        result = await sendCoursesEmail(leadData, 'de');
+      } else if (action === 'lead_mentorship') {
+        result = await sendMentorshipEmail(leadData, 'de');
+      } else if (programKeyMap[action]) {
+        result = await sendProgramEmail(leadData, programKeyMap[action], 'de', tokenData);
+      } else if (action === 'lead_meta' && leadData.type === 'ytt') {
+        var metaKey = leadData.ytt_program_type || '4-week';
+        if (!i18n.PROGRAMS[metaKey]) metaKey = '4-week';
+        result = await sendProgramEmail(leadData, metaKey, 'de', tokenData);
+      } else {
+        result = await sendEmailGenericBilingual(leadData, 'de');
+      }
+      if (result && result.success) {
+        await logWelcomeEmail(leadData.email, result.subject || 'Welcome email (DE)');
+      }
+      return result;
+    }
+
+    // English leads get full English email templates matching Danish detail
+    if (!isDanish) {
+      let result;
+      const programKeyMap = {
+        'lead_schedule_4w': '4-week', 'lead_schedule_4w-apr': '4-week',
+        'lead_schedule_4w-jul': '4-week-jul', 'lead_schedule_8w': '8-week',
+        'lead_schedule_18w': '18-week', 'lead_schedule_18w-mar': '18-week',
+        'lead_schedule_18w-aug': '18-week-aug', 'lead_schedule_300h': '300h',
+        'lead_schedule_50h': 'specialty', 'lead_schedule_30h': 'specialty'
+      };
+
+      if (leadData.multi_format === 'Yes' && leadData.all_formats) {
+        result = await sendMultiFormatEmail(leadData, 'en', tokenData);
+      } else if (action === 'lead_schedule_multi') {
+        result = await sendMultiFormatEmail(leadData, 'en', tokenData);
+      } else if (action === 'lead_undecided') {
+        result = await sendUndecidedEmail(leadData, 'en', tokenData);
+      } else if (action === 'lead_courses') {
+        result = await sendCoursesEmail(leadData, 'en');
+      } else if (action === 'lead_mentorship') {
+        result = await sendMentorshipEmail(leadData, 'en');
+      } else if (programKeyMap[action]) {
+        result = await sendProgramEmail(leadData, programKeyMap[action], 'en', tokenData);
+      } else if (action === 'lead_meta' && leadData.type === 'ytt') {
+        // Meta YTT leads: detect program key from ytt_program_type
+        var metaKey = leadData.ytt_program_type || '4-week';
+        if (!i18n.PROGRAMS[metaKey]) metaKey = '4-week';
+        result = await sendProgramEmail(leadData, metaKey, 'en', tokenData);
+      } else {
+        result = await sendEmailGenericBilingual(leadData, 'en');
+      }
+      if (result && result.success) {
+        await logWelcomeEmail(leadData.email, result.subject || 'Welcome email (EN)');
+      }
+      return result;
+    }
+
+    // Danish leads get detailed Danish program-specific emails
     // Multi-format request: user selected 2+ formats in the modal
     if (leadData.multi_format === 'Yes' && leadData.all_formats) {
       const result = await sendEmailMultiYTT(leadData, tokenData);
@@ -228,6 +309,9 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         break;
       case 'lead_mentorship':
         result = await sendEmailMentorship(leadData);
+        break;
+      case 'lead_undecided':
+        result = await sendEmailUndecidedYTT(leadData, tokenData);
         break;
       case 'lead_meta':
         result = await sendEmailGeneric(leadData);
@@ -309,7 +393,7 @@ async function sendEmail4wYTT(leadData, tokenData = {}) {
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 4-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
@@ -378,7 +462,7 @@ async function sendEmail4wJulyYTT(leadData, tokenData = {}) {
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 4-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
@@ -437,7 +521,7 @@ async function sendEmail8wYTT(leadData, tokenData = {}) {
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 8-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
@@ -509,7 +593,7 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 18-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
@@ -583,7 +667,7 @@ async function sendEmail18wAugYTT(leadData, tokenData = {}) {
   bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
 
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 18-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
   bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
@@ -742,7 +826,7 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
   bodyHtml += '\u2705 Opbyg styrke, fleksibilitet og rutine inden uddannelsesstart<br>';
   bodyHtml += '\u2705 M\u00f8d dine kommende medstuderende i et afslappet milj\u00f8<br>';
   bodyHtml += '\u2705 Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer<br><br>';
-  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">Start forberedelsesfasen \u2014 3.750 kr.</a>';
+  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">Start forberedelsesfasen \u2014 3.750 kr.</a>';
   bodyHtml += '</div>';
 
   // Links + compare
@@ -751,7 +835,7 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
     const info = FORMAT_INFO[f];
     if (info) bodyHtml += '<a href="' + info.url + '" style="color:#f75c03;">' + escapeHtml(info.name.replace('program', 'detaljer')) + '</a> \u00b7 ';
   });
-  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Sammenlign alle formater</a>';
+  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Sammenlign alle formater</a>';
   bodyHtml += '</p>';
 
   bodyHtml += '<p style="margin-top:20px;">Har du lyst til at se studiet eller f\u00e5 hj\u00e6lp til at v\u00e6lge det rigtige format?</p>';
@@ -782,9 +866,142 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
   bodyPlain += '- Opbyg styrke og rutine inden uddannelsesstart\n';
   bodyPlain += '- M\u00f8d dine kommende medstuderende\n';
   bodyPlain += '- Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer\n';
-  bodyPlain += 'Start her: https://www.yogabible.dk/om-200hrs-yogalreruddannelser\n\n';
+  bodyPlain += 'Start her: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
   bodyPlain += 'Book infom\u00f8de eller samtale: ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += 'Gl\u00e6der mig til at h\u00f8re fra dig!';
+  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  const result = await sendRawEmail({
+    to: leadData.email,
+    subject,
+    html: wrapHtml(bodyHtml),
+    text: bodyPlain
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
+// Undecided YTT Email — lead chose "Ved ikke endnu" on the program question
+// Showcases all available program formats with descriptions + comparison links
+// =========================================================================
+
+async function sendEmailUndecidedYTT(leadData, tokenData = {}) {
+  const firstName = leadData.first_name || '';
+  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
+  const cityCountry = leadData.city_country || '';
+
+  const scheduleBase = tokenData.leadId && tokenData.token
+    ? '?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : '';
+
+  const subject = firstName + ', find dit perfekte yogauddannelsesformat';
+
+  // ---- HTML ----
+  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>Tak for din interesse i vores <strong>200-timers yogalæreruddannelse</strong>!</p>';
+  bodyHtml += '<p>Det er helt normalt ikke at vide, hvilket format der passer bedst \u2014 det afhænger af din hverdag, dine mål og din læringsstil. Lad mig give dig et overblik, så du lettere kan vælge.</p>';
+
+  // Intro box
+  bodyHtml += '<div style="margin:20px 0;padding:14px;background:#E3F2FD;border-radius:6px;border-left:3px solid #1976D2;">';
+  bodyHtml += '<strong style="color:#1565C0;">💡 Alle formater giver dig det samme certifikat</strong><br>';
+  bodyHtml += 'Uanset hvilket format du vælger, får du en <strong>200-timers Yoga Alliance-certificering</strong> med samme pensum: Hatha, Vinyasa, Yin, Hot Yoga, Meditation, anatomi, filosofi og undervisningsmetodik. Max 12 studerende pr. hold.';
+  bodyHtml += '</div>';
+
+  // Format cards
+  const formats = [
+    {
+      name: '4-ugers intensiv',
+      period: 'April 2026',
+      emoji: '🔥',
+      desc: 'Fuldt fordybende daglig træning i 4 uger. Det mest intense format \u2014 perfekt hvis du kan sætte alt andet på pause og vil have den dybeste oplevelse.',
+      goodFor: 'Dig der vil have en komplet immersion og kan dedikere 4 uger fuld tid.',
+      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger/' + scheduleBase,
+      pageUrl: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs'
+    },
+    {
+      name: '8-ugers semi-intensiv',
+      period: 'Maj\u2013Juni 2026',
+      emoji: '⚡',
+      desc: 'En god balance mellem intensitet og hverdagsliv. Nok fokus til reelle fremskridt, men stadig plads til arbejde eller studie ved siden af.',
+      goodFor: 'Dig der vil have fokuseret uddannelse men har brug for lidt mere tid end 4 uger.',
+      scheduleUrl: 'https://www.yogabible.dk/skema/8-uger/' + scheduleBase,
+      pageUrl: 'https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs'
+    },
+    {
+      name: '4-ugers Vinyasa Plus',
+      period: 'Juli 2026',
+      emoji: '🌊',
+      desc: '70% Vinyasa Flow \u2014 kreativ sekvensering, klasseledelse og avancerede undervisningsteknikker. Plus 30% Yin Yoga + Hot Yoga. For dig der brænder for Vinyasa.',
+      goodFor: 'Dig der allerede ved du vil specialisere dig i Vinyasa Flow.',
+      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger-juli/' + scheduleBase,
+      pageUrl: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs'
+    },
+    {
+      name: '18-ugers fleksibel',
+      period: 'August\u2013December 2026',
+      emoji: '🧘',
+      desc: 'Det mest fleksible format \u2014 vælg hverdags- eller weekendspor og skift frit undervejs. Perfekt hvis du har arbejde, studie eller familie ved siden af. 60 yogaklasser inkluderet.',
+      goodFor: 'Dig der vil tage uddannelsen uden at sætte hverdagen på pause.',
+      scheduleUrl: 'https://www.yogabible.dk/skema/18-uger-august/' + scheduleBase,
+      pageUrl: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs'
+    }
+  ];
+
+  bodyHtml += '<p style="margin-top:24px;"><strong>Her er dine muligheder:</strong></p>';
+
+  formats.forEach(f => {
+    bodyHtml += '<div style="margin:16px 0;padding:16px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
+    bodyHtml += '<strong style="font-size:17px;">' + f.emoji + ' ' + escapeHtml(f.name) + '</strong> <span style="color:#888;">(' + escapeHtml(f.period) + ')</span><br>';
+    bodyHtml += '<span style="color:#555;">' + f.desc + '</span><br><br>';
+    bodyHtml += '<span style="color:#166534;font-size:14px;"><strong>God til:</strong> ' + f.goodFor + '</span><br>';
+    bodyHtml += '<p style="margin:10px 0 4px;">';
+    bodyHtml += '<a href="' + f.scheduleUrl + '" style="display:inline-block;background:#f75c03;color:#fff;padding:8px 18px;text-decoration:none;border-radius:50px;font-weight:600;font-size:14px;">Se skema og datoer \u2192</a>';
+    bodyHtml += ' <a href="' + f.pageUrl + '" style="color:#f75c03;font-size:13px;margin-left:12px;">Læs mere \u2192</a>';
+    bodyHtml += '</p></div>';
+  });
+
+  // Compare link
+  bodyHtml += '<div style="margin:24px 0;padding:16px;background:#F5F3F0;border-radius:6px;text-align:center;">';
+  bodyHtml += '<p style="margin:0 0 10px;"><strong>Stadig i tvivl?</strong></p>';
+  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="display:inline-block;background:#1a1a1a;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Sammenlign alle formater side om side \u2192</a>';
+  bodyHtml += '</div>';
+
+  // Pricing — same for all formats
+  bodyHtml += programHighlightsHtml();
+  bodyHtml += alumniNote();
+
+  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
+  bodyHtml += getPricingSectionHtml('23.750', '3.750', '20.000', 'samme pris for alle formater \u2014 fleksibel ratebetaling');
+  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/om-200hrs-yogalaereruddannelser');
+
+  // Meeting CTA
+  bodyHtml += '<p style="margin-top:24px;">Det bedste du kan gøre nu? <strong>Book et gratis infomøde</strong> \u2014 så hjælper jeg dig personligt med at finde det rigtige format:</p>';
+  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>';
+  bodyHtml += '<p>Du er også velkommen til bare at svare på denne e-mail med dine spørgsmål.</p>';
+  bodyHtml += '<p>Glæder mig til at høre fra dig!</p>';
+  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  // ---- Plain text ----
+  let bodyPlain = 'Hej ' + firstName + ',\n\n';
+  bodyPlain += 'Tak for din interesse i vores 200-timers yogalæreruddannelse!\n\n';
+  bodyPlain += 'Det er helt normalt ikke at vide, hvilket format der passer bedst. Her er et overblik:\n\n';
+  bodyPlain += 'Alle formater giver dig det samme 200-timers Yoga Alliance-certifikat med samme pensum. Max 12 studerende pr. hold.\n\n';
+
+  formats.forEach(f => {
+    bodyPlain += '--- ' + f.name + ' (' + f.period + ') ---\n';
+    bodyPlain += f.desc + '\n';
+    bodyPlain += 'God til: ' + f.goodFor + '\n';
+    bodyPlain += 'Skema: ' + f.scheduleUrl + '\n';
+    bodyPlain += 'Læs mere: ' + f.pageUrl + '\n\n';
+  });
+
+  bodyPlain += 'Sammenlign alle formater: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
+  bodyPlain += programHighlightsPlain();
+  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
+  bodyPlain += '\n' + getPricingSectionPlain('23.750', '3.750', '20.000', 'samme pris for alle formater — fleksibel ratebetaling') + '\n';
+  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/om-200hrs-yogalaereruddannelser');
+  bodyPlain += '\nBook et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += 'Du kan også svare på denne e-mail med dine spørgsmål.\n\nGlæder mig til at høre fra dig!';
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   const result = await sendRawEmail({
@@ -982,8 +1199,458 @@ async function sendEmailMentorship(leadData) {
 }
 
 // =========================================================================
-// Generic / Contact Email
+// Generic / Contact Email (Danish)
 // =========================================================================
+
+// =========================================================================
+// Bilingual Email Builder — uses lead-email-i18n.js translations
+// Builds program-specific emails in both DA and EN with matching structure
+// =========================================================================
+
+const i18n = require('./lead-email-i18n');
+
+function i18nBookingCta(lang) {
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  return '<p style="margin-top:20px;">' + t.bookingCta + '</p>' +
+    '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">' + t.bookingBtn + '</a></p>';
+}
+
+function i18nQuestionPrompt(lang) {
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  return '<p style="margin-top:20px;">' + t.questionPrompt + '</p>' +
+    '<p>' + t.lookingForward + '</p>';
+}
+
+function i18nHighlightsHtml(lang, extras) {
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  let html = '<p style="margin-top:16px;">' + t.highlightsIntro + '</p>';
+  html += '<ul style="margin:8px 0;padding-left:20px;color:#333;">';
+  t.highlights.forEach(function (h) { html += '<li>' + h + '</li>'; });
+  if (extras) extras.forEach(function (e) { html += '<li>' + e + '</li>'; });
+  html += '</ul>';
+  return html;
+}
+
+function i18nHighlightsPlain(lang, extras) {
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  let text = t.highlightsIntro + '\n';
+  t.highlights.forEach(function (h) { text += '- ' + h + '\n'; });
+  if (extras) extras.forEach(function (e) { text += '- ' + e + '\n'; });
+  return text;
+}
+
+function i18nAlumniNote(lang) {
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  return '<p style="margin-top:12px;">' + t.alumniNote + '</p>';
+}
+
+function i18nPricingHtml(lang, fullPrice, deposit, remaining, rateNote) {
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  var currency = lang === 'da' ? ' kr.' : ' DKK';
+  return '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">' +
+    '<strong>' + t.priceLabel + ':</strong> ' + fullPrice + currency + ' (' + t.noFees + ')<br>' +
+    '<strong>' + t.prepLabel + ':</strong> ' + deposit + currency + '<br>' +
+    '<strong>' + t.remainLabel + ':</strong> ' + remaining + currency + ' (' + rateNote + ')' +
+    '</div>';
+}
+
+function i18nPrepPhaseHtml(lang, programPageUrl) {
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  var html = '<div style="margin-top:16px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:4px;">';
+  html += '<strong style="color:#166534;">' + t.prepPhaseTitle + '</strong> ' + t.prepPhaseIntro + '<br><br>';
+  t.prepPhaseBullets.forEach(function (b) { html += '\u2705 ' + b + '<br>'; });
+  html += '<br><a href="' + programPageUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">' + t.prepPhaseBtn + '</a>';
+  html += '</div>';
+  return html;
+}
+
+function i18nAccommodationHtml(lang, cityCountry) {
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  var html = '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-radius:6px;border-left:3px solid #4CAF50;">';
+  html += '<strong style="color:#2E7D32;">' + t.accommodationTitle + '</strong> ';
+  html += t.accommodationIntro;
+  var accommodationConnector = lang === 'da' ? ' og' : lang === 'de' ? '' : ' and';
+  if (cityCountry) html += t.accommodationFromCity + escapeHtml(cityCountry) + accommodationConnector;
+  html += t.accommodationNeedHousing + '<br><br>';
+  html += '<strong><a href="' + t.accommodationLinkUrl + '" style="color:#f75c03;">' + t.accommodationLink + '</a></strong><br>';
+  html += '<span style="color:#666;">' + t.accommodationQuestion + '</span>';
+  html += '</div>';
+  return html;
+}
+
+/**
+ * Build a full YTT program email in any language.
+ * Used for: 4w, 4w-jul, 8w, 18w, 18w-aug, 300h, specialty programs.
+ */
+async function sendProgramEmail(leadData, programKey, lang, tokenData) {
+  const firstName = leadData.first_name || '';
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  const p = (i18n.PROGRAMS[programKey] || {})[lang] || (i18n.PROGRAMS[programKey] || {}).en;
+  if (!p) return sendEmailGenericBilingual(leadData, lang);
+
+  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
+  const cityCountry = leadData.city_country || '';
+  const subject = (p.subject || '').replace('{{name}}', firstName).replace('{{program}}', leadData.program || '');
+
+  // Schedule URL
+  var schedPath = (i18n.SCHEDULE_PATHS[lang] || i18n.SCHEDULE_PATHS.en)[programKey] || '';
+  var sUrl = schedPath ? i18n.scheduleUrl(schedPath, lang, tokenData) : '';
+
+  // Program page URL
+  var pages = i18n.PROGRAM_PAGES[lang] || i18n.PROGRAM_PAGES.en;
+  var programPageUrl = pages[programKey] || pages['about200h'];
+  var about200hUrl = pages['about200h'];
+
+  // ---- HTML ----
+  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>' + p.intro + '</p>';
+
+  if (sUrl) {
+    var schedIntro = lang === 'da' ? 'Her finder du alle tr\u00e6ningsdage og tidspunkter:' : lang === 'de' ? 'Hier findest du alle Trainingstage und Zeiten:' : 'Here are all the training days and times:';
+    var calNote = lang === 'da' ? 'Du kan tilf\u00f8je alle datoer direkte til din kalender.' : lang === 'de' ? 'Du kannst alle Termine direkt in deinen Kalender eintragen.' : 'You can add all dates directly to your calendar.';
+    bodyHtml += '<p>' + schedIntro + '</p>';
+    bodyHtml += '<p style="margin:20px 0;"><a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">' + t.viewScheduleBtn + '</a></p>';
+    bodyHtml += '<p style="font-size:14px;color:#666;">' + calNote + '</p>';
+  }
+
+  bodyHtml += '<p style="margin-top:16px;">' + p.description + '</p>';
+
+  // Vinyasa Plus special box
+  if (p.vinyasaDetail) {
+    bodyHtml += '<div style="margin:16px 0;padding:14px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">';
+    bodyHtml += '<strong style="color:#c2410c;">' + p.vinyasaTitle + '</strong><br><br>';
+    bodyHtml += p.vinyasaFlow + '<br>';
+    bodyHtml += p.vinyasaYin + '<br><br>';
+    bodyHtml += p.vinyasaCert;
+    bodyHtml += '</div>';
+  }
+
+  bodyHtml += i18nHighlightsHtml(lang, p.extras);
+  bodyHtml += i18nAlumniNote(lang);
+
+  if (needsHousing) bodyHtml += i18nAccommodationHtml(lang, cityCountry);
+  bodyHtml += i18nPricingHtml(lang, lang === 'da' ? '23.750' : '23,750', lang === 'da' ? '3.750' : '3,750', lang === 'da' ? '20.000' : '20,000', p.rateNote || t.noFees);
+  bodyHtml += i18nPrepPhaseHtml(lang, programPageUrl);
+
+  bodyHtml += '<p style="margin-top:20px;"><a href="' + programPageUrl + '" style="color:#f75c03;">' + t.readMore + '</a>';
+  bodyHtml += ' \u00b7 <a href="' + about200hUrl + '" style="color:#f75c03;">' + t.compareFormats + '</a></p>';
+  bodyHtml += i18nBookingCta(lang) + i18nQuestionPrompt(lang);
+  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  // ---- Plain text ----
+  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
+  bodyPlain += p.intro.replace(/<[^>]+>/g, '') + '\n\n';
+  var schedLabel = lang === 'da' ? 'Skema og datoer: ' : lang === 'de' ? 'Stundenplan und Termine: ' : 'Schedule and dates: ';
+  if (sUrl) bodyPlain += schedLabel + sUrl + '\n\n';
+  bodyPlain += p.description + '\n\n';
+  bodyPlain += i18nHighlightsPlain(lang, p.extras);
+  bodyPlain += '\n' + t.priceLabel + ': ' + (lang === 'da' ? '23.750 kr.' : '23,750 DKK') + '\n';
+  bodyPlain += t.prepLabel + ': ' + (lang === 'da' ? '3.750 kr.' : '3,750 DKK') + '\n';
+  bodyPlain += t.remainLabel + ': ' + (lang === 'da' ? '20.000 kr.' : '20,000 DKK') + ' (' + (p.rateNote || '') + ')\n\n';
+  bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += t.lookingForward;
+  if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  var result = await sendRawEmail({
+    to: leadData.email,
+    subject: subject,
+    html: wrapHtml(bodyHtml),
+    text: bodyPlain
+  });
+  return { ...result, subject: subject };
+}
+
+/**
+ * Multi-format comparison email — bilingual
+ */
+async function sendMultiFormatEmail(leadData, lang, tokenData) {
+  const firstName = leadData.first_name || '';
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  const m = i18n.MULTI_FORMAT_INFO[lang] || i18n.MULTI_FORMAT_INFO.en;
+  const formats = (leadData.all_formats || '').split(',').filter(function (f) { return f; });
+  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
+  const cityCountry = leadData.city_country || '';
+
+  // Build format list with proper joiner
+  var formatNames = formats.map(function (f) { return (m.formats[f] || {}).name || f; });
+  var formatList;
+  if (formatNames.length > 1) {
+    formatList = formatNames.slice(0, -1).join(', ') + m.joiner + formatNames[formatNames.length - 1];
+  } else {
+    formatList = formatNames[0] || '';
+  }
+
+  var subject = m.subject.replace('{{name}}', firstName);
+  var pages = i18n.PROGRAM_PAGES[lang] || i18n.PROGRAM_PAGES.en;
+  var schedPaths = i18n.SCHEDULE_PATHS[lang] || i18n.SCHEDULE_PATHS.en;
+
+  // ---- HTML ----
+  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>' + m.intro + '</p>';
+  bodyHtml += '<p>' + m.compareIntro.replace('{{formats}}', escapeHtml(formatList)) + '</p>';
+
+  // Comparison prompt
+  bodyHtml += '<div style="margin:20px 0;padding:14px;background:#E3F2FD;border-radius:6px;border-left:3px solid #1976D2;">';
+  bodyHtml += '<strong style="color:#1565C0;">' + m.comparisonPromptTitle + '</strong><br>';
+  bodyHtml += m.comparisonPromptBody + '<br><br>';
+  bodyHtml += '<span style="color:#666;">' + m.comparisonPromptReply + '</span>';
+  bodyHtml += '</div>';
+
+  // Format cards
+  bodyHtml += '<p style="margin-top:20px;"><strong>' + m.overviewTitle + '</strong></p>';
+  formats.forEach(function (f) {
+    var info = m.formats[f];
+    if (!info) return;
+    var sPath = schedPaths[info.programType] || '';
+    var sUrl = sPath ? i18n.scheduleUrl(sPath, lang, tokenData) : '';
+    var pUrl = pages[info.programType] || pages['about200h'];
+    bodyHtml += '<div style="margin:12px 0;padding:12px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
+    bodyHtml += '<strong>' + escapeHtml(info.name) + '</strong> <span style="color:#888;">(' + escapeHtml(info.period) + ')</span><br>';
+    bodyHtml += '<span style="color:#555;">' + info.desc + '</span><br>';
+    if (sUrl) {
+      bodyHtml += '<p style="margin:10px 0 4px;"><a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#fff;padding:8px 18px;text-decoration:none;border-radius:50px;font-weight:600;font-size:14px;">' + t.viewScheduleBtn + '</a></p>';
+    }
+    bodyHtml += '<a href="' + pUrl + '" style="color:#f75c03;font-size:13px;">' + t.readMore + '</a>';
+    bodyHtml += '</div>';
+  });
+
+  bodyHtml += i18nHighlightsHtml(lang);
+  bodyHtml += i18nAlumniNote(lang);
+  if (needsHousing) bodyHtml += i18nAccommodationHtml(lang, cityCountry);
+  bodyHtml += i18nPricingHtml(lang, lang === 'da' ? '23.750' : '23,750', lang === 'da' ? '3.750' : '3,750', lang === 'da' ? '20.000' : '20,000', m.samePriceNote);
+
+  // Prep phase CTA
+  bodyHtml += '<div style="margin-top:20px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:4px;">';
+  bodyHtml += '<strong style="color:#166534;">' + t.prepPhaseSmart + '</strong><br><br>';
+  bodyHtml += t.prepPhaseIntro + '<br><br>';
+  t.prepPhaseBullets.forEach(function (b) { bodyHtml += '\u2705 ' + b + '<br>'; });
+  bodyHtml += '<br><a href="' + pages['about200h'] + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">' + t.prepPhaseBtn + '</a>';
+  bodyHtml += '</div>';
+
+  bodyHtml += '<p style="margin-top:20px;">' + m.seeStudio + '</p>';
+  bodyHtml += i18nBookingCta(lang);
+  bodyHtml += '<p>' + t.lookingForward + '</p>';
+  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  // ---- Plain text ----
+  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
+  bodyPlain += m.intro.replace(/<[^>]+>/g, '') + '\n\n';
+  bodyPlain += m.compareIntro.replace(/<[^>]+>/g, '').replace('{{formats}}', formatList) + '\n\n';
+  formats.forEach(function (f) {
+    var info = m.formats[f];
+    if (!info) return;
+    var sPath = schedPaths[info.programType] || '';
+    var sUrl = sPath ? i18n.scheduleUrl(sPath, lang, tokenData) : '';
+    bodyPlain += '--- ' + info.name + ' (' + info.period + ') ---\n';
+    bodyPlain += info.desc + '\n';
+    if (sUrl) bodyPlain += (lang === 'da' ? 'Skema: ' : lang === 'de' ? 'Stundenplan: ' : 'Schedule: ') + sUrl + '\n';
+    bodyPlain += '\n';
+  });
+  bodyPlain += i18nHighlightsPlain(lang);
+  bodyPlain += '\n' + t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += t.lookingForward;
+  if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  var result = await sendRawEmail({
+    to: leadData.email,
+    subject: subject,
+    html: wrapHtml(bodyHtml),
+    text: bodyPlain
+  });
+  return { ...result, subject: subject };
+}
+
+/**
+ * Undecided YTT email — bilingual
+ */
+async function sendUndecidedEmail(leadData, lang, tokenData) {
+  const firstName = leadData.first_name || '';
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  const u = i18n.UNDECIDED_INFO[lang] || i18n.UNDECIDED_INFO.en;
+  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
+  const cityCountry = leadData.city_country || '';
+  var schedPaths = i18n.SCHEDULE_PATHS[lang] || i18n.SCHEDULE_PATHS.en;
+  var pages = i18n.PROGRAM_PAGES[lang] || i18n.PROGRAM_PAGES.en;
+
+  var subject = u.subject.replace('{{name}}', firstName);
+
+  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>' + u.intro + '</p>';
+  bodyHtml += '<p>' + u.normalText + '</p>';
+
+  // Same cert info box
+  bodyHtml += '<div style="margin:20px 0;padding:14px;background:#E3F2FD;border-radius:6px;border-left:3px solid #1976D2;">';
+  bodyHtml += '<strong style="color:#1565C0;">' + u.sameCertTitle + '</strong><br>';
+  bodyHtml += u.sameCertBody;
+  bodyHtml += '</div>';
+
+  // Format cards
+  bodyHtml += '<p style="margin-top:24px;"><strong>' + u.optionsTitle + '</strong></p>';
+  u.formats.forEach(function (f) {
+    var sPath = schedPaths[f.programType] || '';
+    var sUrl = sPath ? i18n.scheduleUrl(sPath, lang, tokenData) : '';
+    var pUrl = pages[f.programType] || pages['about200h'];
+    bodyHtml += '<div style="margin:16px 0;padding:16px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
+    bodyHtml += '<strong style="font-size:17px;">' + f.emoji + ' ' + escapeHtml(f.name) + '</strong> <span style="color:#888;">(' + escapeHtml(f.period) + ')</span><br>';
+    bodyHtml += '<span style="color:#555;">' + f.desc + '</span><br><br>';
+    bodyHtml += '<span style="color:#166534;font-size:14px;"><strong>' + u.goodFor + '</strong> ' + f.goodFor + '</span><br>';
+    bodyHtml += '<p style="margin:10px 0 4px;">';
+    if (sUrl) bodyHtml += '<a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#fff;padding:8px 18px;text-decoration:none;border-radius:50px;font-weight:600;font-size:14px;">' + t.viewScheduleBtn + '</a> ';
+    bodyHtml += '<a href="' + pUrl + '" style="color:#f75c03;font-size:13px;margin-left:12px;">' + t.readMore + '</a>';
+    bodyHtml += '</p></div>';
+  });
+
+  // Compare CTA
+  bodyHtml += '<div style="margin:24px 0;padding:16px;background:#F5F3F0;border-radius:6px;text-align:center;">';
+  bodyHtml += '<p style="margin:0 0 10px;"><strong>' + u.stillUndecided + '</strong></p>';
+  bodyHtml += '<a href="' + pages['about200h'] + '" style="display:inline-block;background:#1a1a1a;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">' + u.compareBtn + '</a>';
+  bodyHtml += '</div>';
+
+  bodyHtml += i18nHighlightsHtml(lang);
+  bodyHtml += i18nAlumniNote(lang);
+  if (needsHousing) bodyHtml += i18nAccommodationHtml(lang, cityCountry);
+  bodyHtml += i18nPricingHtml(lang, lang === 'da' ? '23.750' : '23,750', lang === 'da' ? '3.750' : '3,750', lang === 'da' ? '20.000' : '20,000', u.samePriceNote);
+  bodyHtml += i18nPrepPhaseHtml(lang, pages['about200h']);
+
+  bodyHtml += '<p style="margin-top:24px;">' + u.meetingCta + '</p>';
+  bodyHtml += i18nBookingCta(lang);
+  bodyHtml += '<p>' + u.replyOk + '</p>';
+  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  // Plain text
+  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
+  bodyPlain += u.intro.replace(/<[^>]+>/g, '') + '\n\n';
+  u.formats.forEach(function (f) {
+    bodyPlain += f.emoji + ' ' + f.name + ' (' + f.period + ')\n';
+    bodyPlain += f.desc + '\n';
+    bodyPlain += u.goodFor + ' ' + f.goodFor + '\n\n';
+  });
+  bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
+  if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });
+  return { ...result, subject: subject };
+}
+
+/**
+ * Generic / Contact email — bilingual
+ */
+async function sendEmailGenericBilingual(leadData, lang) {
+  const firstName = leadData.first_name || '';
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  const g = (i18n.PROGRAMS['generic'] || {})[lang] || i18n.PROGRAMS['generic'].en;
+
+  var subject = g.subject;
+  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>' + g.intro + '</p>';
+  bodyHtml += '<p>' + g.body + '</p>';
+  bodyHtml += '<p>' + g.meanwhile + '</p>';
+  bodyHtml += '<ul style="margin:10px 0;padding-left:20px;">';
+  bodyHtml += '<li>' + g.bookLink + ': <a href="' + CONFIG.MEETING_LINK + '" style="color:#f75c03;">' + (lang === 'da' ? 'Klik her' : lang === 'de' ? 'Hier klicken' : 'Click here') + '</a></li>';
+  bodyHtml += '<li>' + g.visitLink + ': <a href="' + g.visitUrl + '" style="color:#f75c03;">yogabible.dk</a></li>';
+  bodyHtml += '</ul>';
+  bodyHtml += '<p>' + t.replyInvite + '</p>';
+  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + g.intro.replace(/<[^>]+>/g, '') + '\n\n' +
+    g.body + '\n\n' + g.bookLink + ': ' + CONFIG.MEETING_LINK + '\n' + g.visitLink + ': ' + g.visitUrl;
+  if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });
+  return { ...result, subject: subject };
+}
+
+/**
+ * Mentorship email — bilingual
+ */
+async function sendMentorshipEmail(leadData, lang) {
+  const firstName = leadData.first_name || '';
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  const p = (i18n.PROGRAMS['mentorship'] || {})[lang] || i18n.PROGRAMS['mentorship'].en;
+  var service = leadData.service || leadData.program || 'Mentorship';
+
+  var subject = p.subject.replace('{{service}}', service);
+  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>' + p.intro.replace('{{service}}', escapeHtml(service)) + '</p>';
+  bodyHtml += '<p>' + p.description + '</p>';
+  bodyHtml += i18nBookingCta(lang);
+  bodyHtml += '<p>' + t.replyInvite + '</p>';
+  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + p.intro.replace(/<[^>]+>/g, '').replace('{{service}}', service) + '\n\n' +
+    p.description + '\n\n' + t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
+  if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });
+  return { ...result, subject: subject };
+}
+
+/**
+ * Courses email — bilingual
+ */
+async function sendCoursesEmail(leadData, lang) {
+  const firstName = leadData.first_name || '';
+  const t = i18n.SHARED[lang] || i18n.SHARED.en;
+  const c = (i18n.PROGRAMS['courses'] || {})[lang] || i18n.PROGRAMS['courses'].en;
+  var courses = leadData.program || '';
+  var courseList = courses.split(/[,+]/).map(function (s) { return s.trim(); }).filter(function (s) { return s; });
+  var isBundle = courseList.length > 1;
+
+  var subject = isBundle ? c.subjectBundle : c.subjectSingle;
+  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>' + (isBundle ? c.introBundle : c.introSingle).replace('{{courses}}', escapeHtml(courses)) + '</p>';
+
+  courseList.forEach(function (course) {
+    var config = COURSE_CONFIG[course];
+    if (config) {
+      bodyHtml += '<div style="margin:10px 0;padding:12px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
+      bodyHtml += '<strong>' + escapeHtml(config.label) + '</strong> \u2014 ' + config.description + '<br>';
+      bodyHtml += '<span style="color:#666;">' + c.sessions + ' \u00b7 ' + c.pricePer + '</span>';
+      bodyHtml += '</div>';
+    }
+  });
+
+  if (courseList.length === 2) {
+    bodyHtml += '<p style="color:#166534;font-weight:bold;">\u2705 ' + c.bundle2Discount + '</p>';
+  } else if (courseList.length >= 3) {
+    bodyHtml += '<p style="color:#166534;font-weight:bold;">\u2705 ' + c.bundle3Discount + '</p>';
+  }
+
+  bodyHtml += i18nBookingCta(lang);
+  bodyHtml += '<p>' + t.replyInvite + '</p>';
+  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
+  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + (isBundle ? c.introBundle : c.introSingle).replace(/<[^>]+>/g, '').replace('{{courses}}', courses) + '\n\n';
+  bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
+  if (lang === 'da') bodyPlain += getEnglishNotePlain();
+  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });
+  return { ...result, subject: subject };
+}
 
 async function sendEmailGeneric(leadData) {
   const firstName = leadData.first_name || '';

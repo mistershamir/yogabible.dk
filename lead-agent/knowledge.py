@@ -145,7 +145,7 @@ Preparation Phase ("Forberedelsesfasen"): 3750 DKK (NEVER say "deposit"/"deposit
 
 COURSES: Inversions/Splits/Backbends — each 2300 DKK, 8 sessions. Bundle discounts available.
 
-LEADS (Firestore "leads" collection): Fields: email, first_name, last_name, phone, type (ytt/course/mentorship/contact/meta), ytt_program_type (18-week/4-week/8-week/300h/50h/30h), status (New/In Progress/Contacted/Converted/Not Interested/Deferred), temperature (Hot/Warm/Cold), notes, accommodation, city_country, source, cohort_label.
+LEADS (Firestore "leads" collection): Fields: email, first_name, last_name, phone, type (ytt/course/mentorship/contact/meta), ytt_program_type (18-week/4-week/8-week/300h/50h/30h), status (New/In Progress/Contacted/Converted/Not Interested/Deferred), temperature (Hot/Warm/Cold), notes, accommodation, city_country, source, cohort_label, channel (Google Ads/Meta Ads/Google Organic/AI Referral (ChatGPT)/Social (Facebook)/Direct/Email/SMS/Referral), utm_source, utm_medium, utm_campaign, gclid, fbclid, referrer, landing_page.
 
 DRIP SEQUENCE (5 steps over 10 days for YTT leads):
 1. Day 0: Welcome+schedule (auto-sent by Netlify)
@@ -176,6 +176,32 @@ REFERENCE: Config (schedule PDFs, payment URLs)
 
 REFERENCE: Email templates (what leads actually receive)
 {email_content}
+"""
+
+    # Append nurture system context
+    knowledge += """
+
+--- NURTURE SEQUENCE SYSTEM ---
+
+## Active Sequences
+- YTT Onboarding (auto-enrolled on new YTT lead): 5 steps over 14 days — welcome (sent by Netlify) → why become a teacher → SMS check-in → what happens in training → format self-selection + Prep Phase
+- April 4W Intensive Conversion (auto-enrolled for ytt_program_type=4-week): 2 steps — urgency + last chance
+- July Vinyasa Plus International (auto-enrolled for ytt_program_type=4-week-jul): 4 steps — Copenhagen lifestyle → Vinyasa Plus explainer → accommodation logistics → urgency
+- 8W Semi-Intensive DK (auto-enrolled for ytt_program_type=8-week): 3 steps — same cert half time → SMS nudge → Prep Phase
+- 18W Flexible Aug-Dec (auto-enrolled for ytt_program_type=18-week-aug): 3 steps — sold out social proof → how it works → Prep Phase
+- NOTE: A lead can be in BOTH YTT Onboarding AND a program-specific sequence simultaneously. 48-hour throttling prevents message overload.
+
+## System Architecture
+- All automated sends go through the Netlify sequence engine (sequences.js)
+- Campaigns (one-off broadcasts) go through the campaign wizard in the admin panel
+- The agent monitors for gaps and failures but does NOT send drip emails directly
+- The agent drafts personalized follow-ups for leads who completed sequences without converting
+- Frequency throttling: leads won't receive sequence emails within 48h of another email
+
+## Agent Monitoring Role
+- Every 2h: check for leads not in any sequence → alert Shamir via Telegram
+- Every 4h: check for sequence send failures → alert Shamir
+- Daily 10am: review leads who completed sequences without converting → draft personalized follow-up
 """
 
     # Append dynamic knowledge from Firestore (editable via admin panel)

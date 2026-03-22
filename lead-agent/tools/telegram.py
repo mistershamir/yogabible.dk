@@ -56,27 +56,69 @@ async def send_notification(app, text, buttons=None):
 
 
 def format_new_lead_notification(lead):
-    """Format a Telegram message for a new lead."""
+    """Format a Telegram message for a new lead with enriched context."""
     name = f"{lead.get('first_name', '')} {lead.get('last_name', '')}".strip()
     email = lead.get('email', 'N/A')
     phone = lead.get('phone', 'N/A')
+    lead_type = lead.get('type', 'ytt')
     program = lead.get('program', lead.get('ytt_program_type', 'N/A'))
     source = lead.get('source', 'N/A')
     accommodation = lead.get('accommodation', '')
     lead_id = lead.get('id', '')
+    city = lead.get('city_country', '')
+    cohort = lead.get('cohort_label', '')
+
+    # Returning lead detection (set by on_new_lead in agent.py)
+    returning = lead.get('_returning', False)
+
+    # Header — distinguish returning vs new
+    if returning:
+        header = "🔄 <b>Returning Lead</b>"
+        prev_status = lead.get('_previous_status', '')
+        return_note = f"\n⚠️ Previously seen (was: {prev_status})" if prev_status else "\n⚠️ Previously seen in system"
+    else:
+        header = "🟢 <b>New Lead</b>"
+        return_note = ""
+
+    # Lead type badge
+    type_badge = f"[{lead_type.upper()}]" if lead_type != 'ytt' else "[YTT]"
 
     msg = (
-        f"🟢 <b>New Lead</b>\n\n"
+        f"{header} {type_badge}\n\n"
         f"<b>{name}</b>\n"
         f"📧 {email}\n"
-        f"📱 {phone}\n"
-        f"🎓 {program}\n"
-        f"📍 {source}\n"
     )
+
+    # Phone prominently displayed for easy calling
+    if phone and phone != 'N/A':
+        msg += f"📱 <b>{phone}</b>\n"
+    else:
+        msg += f"📱 No phone provided\n"
+
+    channel = lead.get('channel', '')
+    msg += f"🎓 {program}\n"
+    if channel:
+        msg += f"📡 Channel: <b>{channel}</b>\n"
+    msg += f"📍 Source: {source}\n"
+
+    if cohort:
+        msg += f"📅 Cohort: {cohort}\n"
+    if city:
+        msg += f"🌍 {city}\n"
     if accommodation:
         msg += f"🏠 Accommodation: {accommodation}\n"
 
-    msg += "\n✅ Welcome email + schedule sent.\nDrip step 2 scheduled."
+    msg += return_note
+
+    # Action summary based on lead type
+    if lead_type == 'ytt':
+        msg += "\n\n✅ Welcome email + schedule sent.\nDrip step 2 scheduled."
+    else:
+        msg += "\n\n📝 Lead registered (no drip — non-YTT type)."
+
+    # Phone reminder
+    if phone and phone != 'N/A':
+        msg += "\n📞 <i>15-min call reminder set.</i>"
 
     buttons = [
         {'text': '⏸ Pause drip', 'data': f'pause:{lead_id}'},

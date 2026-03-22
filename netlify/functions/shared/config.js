@@ -27,13 +27,86 @@ const CONFIG = {
 const AUTO_SMS_CONFIG = {
   enabled: true,
   templates: {
-    'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a free info session: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
-    'ytt_multi': "Hi {{first_name}}! Thank you for requesting schedules for our {{program}}. We've sent all the schedules to your email (check inbox + spam) so you can compare. Book a free info session: https://yogabible.dk/?booking=1 — Yoga Bible",
-    'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
-    'mentorship': "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
-    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible"
+    en: {
+      'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a free info session: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+      'ytt_multi': "Hi {{first_name}}! Thank you for requesting schedules for our {{program}}. We've sent all the schedules to your email (check inbox + spam) so you can compare. Book a free info session: https://yogabible.dk/?booking=1 — Yoga Bible",
+      'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+      'mentorship': "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+      'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible"
+    },
+    da: {
+      'ytt': "Hej {{first_name}}! Tak for din interesse i vores yogal\u00e6reruddannelse. Vi har sendt detaljer til din e-mail (tjek ogs\u00e5 spam). Book et gratis infom\u00f8de: https://yogabible.dk/?booking=1 — K\u00e6rlig hilsen, Yoga Bible",
+      'ytt_multi': "Hej {{first_name}}! Tak for din foresp\u00f8rgsel p\u00e5 skemaer til vores {{program}}. Vi har sendt alle skemaer til din e-mail (tjek ogs\u00e5 spam), s\u00e5 du kan sammenligne. Book et gratis infom\u00f8de: https://yogabible.dk/?booking=1 — Yoga Bible",
+      'course': "Hej {{first_name}}! Tak for din interesse i vores {{program}} kursus. Vi har sendt detaljer til din e-mail (tjek ogs\u00e5 spam). Book en gratis konsultation: https://yogabible.dk/?booking=1 — K\u00e6rlig hilsen, Yoga Bible",
+      'mentorship': "Hej {{first_name}}! Tak for din interesse i vores Mentorship-program. Vi har sendt detaljer til din e-mail (tjek ogs\u00e5 spam). Book en gratis konsultation: https://yogabible.dk/?booking=1 — K\u00e6rlig hilsen, Yoga Bible",
+      'default': "Hej {{first_name}}! Tak fordi du kontaktede Yoga Bible. Vi har sendt info til din e-mail (tjek ogs\u00e5 spam). Book en konsultation: https://yogabible.dk/?booking=1 — K\u00e6rlig hilsen, Yoga Bible"
+    },
+    de: {
+      'ytt': "Hallo {{first_name}}, hier ist Shamir von Yoga Bible! Danke für dein Interesse an der Yogalehrer-Ausbildung. Schau dir den Stundenplan an und melde dich, wenn du Fragen hast — per E-Mail oder unter +45 53 88 12 09. Bis bald in Kopenhagen!",
+      'ytt_multi': "Hallo {{first_name}}, hier ist Shamir von Yoga Bible! Danke für deine Anfrage zu unseren {{program}}. Wir haben alle Stundenpläne an deine E-Mail geschickt (check auch den Spam-Ordner). Infogespräch buchen: https://yogabible.dk/?booking=1 — Yoga Bible",
+      'course': "Hallo {{first_name}}! Danke für dein Interesse an unserem {{program}} Kurs. Wir haben die Details an deine E-Mail geschickt (check auch den Spam-Ordner). Buche eine Beratung: https://yogabible.dk/?booking=1 — Yoga Bible",
+      'mentorship': "Hallo {{first_name}}! Danke für dein Interesse an unserem Mentorship-Programm. Wir haben die Details an deine E-Mail geschickt (check auch den Spam-Ordner). Buche eine Beratung: https://yogabible.dk/?booking=1 — Yoga Bible",
+      'default': "Hallo {{first_name}}! Danke, dass du dich an Yoga Bible gewandt hast. Wir haben Infos an deine E-Mail geschickt (check auch den Spam-Ordner). Buche eine Beratung: https://yogabible.dk/?booking=1 — Yoga Bible"
+    }
   }
 };
+
+// Human-readable program display names (for SMS, admin UI, etc.)
+// Maps raw slugs/program types → clean display names in both languages
+const PROGRAM_DISPLAY_NAMES = {
+  da: {
+    '4-week':     '4-ugers intensiv yogal\u00e6reruddannelse (april 2026)',
+    '4-week-jul': '4-ugers Vinyasa Plus yogal\u00e6reruddannelse (juli 2026)',
+    '8-week':     '8-ugers semi-intensiv yogal\u00e6reruddannelse (maj\u2013juni 2026)',
+    '18-week':    '18-ugers fleksibel yogal\u00e6reruddannelse (marts\u2013juni 2026)',
+    '18-week-aug':'18-ugers fleksibel yogal\u00e6reruddannelse (august\u2013december 2026)',
+    '300h':       '300-timers avanceret yogal\u00e6reruddannelse',
+    '50h':        '50-timers specialiseringsmodul',
+    '30h':        '30-timers modul',
+    'undecided':  'yogal\u00e6reruddannelse (ikke besluttet endnu)'
+  },
+  en: {
+    '4-week':     '4-Week Intensive Yoga Teacher Training (April 2026)',
+    '4-week-jul': '4-Week Vinyasa Plus Yoga Teacher Training (July 2026)',
+    '8-week':     '8-Week Semi-Intensive Yoga Teacher Training (May\u2013June 2026)',
+    '18-week':    '18-Week Flexible Yoga Teacher Training (March\u2013June 2026)',
+    '18-week-aug':'18-Week Flexible Yoga Teacher Training (August\u2013December 2026)',
+    '300h':       '300-Hour Advanced Yoga Teacher Training',
+    '50h':        '50-Hour Specialty Training',
+    '30h':        '30-Hour Module',
+    'undecided':  'Yoga Teacher Training (undecided)'
+  }
+};
+
+/**
+ * Get human-readable program name from ytt_program_type or raw slug
+ */
+function getDisplayProgram(leadData, lang) {
+  var l = lang || leadData.lang || 'en';
+  var names = PROGRAM_DISPLAY_NAMES[l] || PROGRAM_DISPLAY_NAMES.en;
+
+  // Try ytt_program_type first (most reliable)
+  if (leadData.ytt_program_type && names[leadData.ytt_program_type]) {
+    return names[leadData.ytt_program_type];
+  }
+
+  // Multi-format: build a combined name
+  if (leadData.all_formats && leadData.all_formats.includes(',')) {
+    var fmts = leadData.all_formats.split(',').filter(function (f) { return f; });
+    var fmtMap = { '4w': '4-week', '8w': '8-week', '18w': '18-week', '4w-apr': '4-week', '4w-jul': '4-week-jul', '18w-aug': '18-week-aug' };
+    var labels = fmts.map(function (f) {
+      var key = fmtMap[f] || f;
+      return names[key] || key;
+    });
+    if (l === 'da') {
+      return labels.length > 1 ? labels.slice(0, -1).join(', ') + ' og ' + labels[labels.length - 1] : labels[0];
+    }
+    return labels.length > 1 ? labels.slice(0, -1).join(', ') + ' and ' + labels[labels.length - 1] : labels[0];
+  }
+
+  // Fallback: use the program field as-is
+  return leadData.program || 'Yoga Teacher Training';
+}
 
 const YTT_PROGRAM_TYPES = {
   '18-week': { keywords: ['18 uger', '18-week', '18 week', 'fleksibel', 'flexible', '18w', '18w-mar'], label: '18-Week Flexible (Spring)', shortLabel: '18W' },
@@ -152,6 +225,8 @@ module.exports = {
   CONFIG,
   AUTO_SMS_CONFIG,
   YTT_PROGRAM_TYPES,
+  PROGRAM_DISPLAY_NAMES,
+  getDisplayProgram,
   SCHEDULE_PDFS,
   YTT_PAYMENT,
   COURSE_PAYMENT_URLS,

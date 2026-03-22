@@ -143,6 +143,48 @@ exports.handler = async function(event) {
       });
 
       var created = data.Client || {};
+
+      // Auto-add to MindBody-synced email lists (fire-and-forget)
+      try {
+        var { getDb } = require('./shared/firestore');
+        var db = getDb();
+        var syncLists = await db.collection('email_lists')
+          .where('mb_auto_sync', '==', true).get();
+        var normalizedEmail = (created.Email || body.email).toLowerCase().trim();
+
+        for (var listDoc of syncLists.docs) {
+          var dup = await db.collection('email_list_contacts')
+            .where('list_id', '==', listDoc.id)
+            .where('email', '==', normalizedEmail)
+            .limit(1).get();
+          if (!dup.empty) continue;
+
+          await db.collection('email_list_contacts').add({
+            list_id: listDoc.id,
+            email: normalizedEmail,
+            first_name: created.FirstName || body.firstName || '',
+            last_name: created.LastName || body.lastName || '',
+            mb_client_id: created.Id,
+            mb_active: true,
+            mb_phone: body.phone || '',
+            mb_synced_at: new Date().toISOString(),
+            tags: ['mindbody', 'new-client'],
+            status: 'active',
+            created_at: new Date().toISOString(),
+            engagement: {
+              emails_sent: 0, emails_opened: 0, emails_clicked: 0,
+              last_sent_at: null, last_opened_at: null, last_clicked_at: null
+            }
+          });
+          await db.collection('email_lists').doc(listDoc.id).update({
+            contact_count: (listDoc.data().contact_count || 0) + 1,
+            updated_at: new Date().toISOString()
+          });
+        }
+      } catch (syncErr) {
+        console.error('[mb-client] Auto-add to email list failed (non-blocking):', syncErr.message);
+      }
+
       return jsonResponse(201, {
         success: true,
         client: {

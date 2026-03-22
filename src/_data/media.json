@@ -1,5 +1,5 @@
 {
-  "_readme": "Media asset map for Cloudinary. Upload files to Cloudinary using the folder paths below, then use in templates: {{ media.homepage.hero | cloudimg }} or {% cldimg media.homepage.hero, 'Alt text', 'w_800,c_fill', '800', '600' %}. Set a value to null until the asset is uploaded.",
+  "_readme": "Media asset map. Paths are Cloudinary public IDs (yoga-bible-DK/...). The cloudimg filter and cldimg shortcode serve from local src/assets/images/ when the file exists, falling back to Cloudinary CDN. To add a new image: 1) Place in src/assets/images/{path}.jpg, 2) Add the Cloudinary-style path here. To bulk-download from Cloudinary: bash scripts/migrate-cloudinary-to-local.sh",
 
   "brand": {
     "logo": "yoga-bible-DK/brand/yoga-bible-logo-orange",

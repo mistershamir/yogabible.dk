@@ -8,9 +8,37 @@
  */
 
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 const { CONFIG } = require('./config');
 const { buildUnsubscribeUrl, escapeHtml, formatDate } = require('./utils');
 const { getDb } = require('./firestore');
+
+// ─── Tracking helpers (shared with resend-service) ───────────────────────────
+
+function hashEmail(email) {
+  return crypto.createHash('sha256').update(email.toLowerCase().trim()).digest('hex').slice(0, 12);
+}
+
+const TRACK_BASE_FN = () => (CONFIG.SITE_URL || 'https://yogabible.dk') + '/.netlify/functions/email-track';
+
+function injectTrackingPixel(html, campaignId, email) {
+  if (!campaignId) return html;
+  const base = TRACK_BASE_FN();
+  const eh = hashEmail(email);
+  const pixelUrl = base + '?t=open&cid=' + encodeURIComponent(campaignId) + '&e=' + eh;
+  return html + '<img src="' + pixelUrl + '" width="1" height="1" style="display:none" alt="" />';
+}
+
+function wrapLinksForTracking(html, campaignId, email) {
+  if (!campaignId) return html;
+  const base = TRACK_BASE_FN();
+  const eh = hashEmail(email);
+  return html.replace(/href="(https?:\/\/[^"]+)"/gi, function (match, url) {
+    if (url.includes('/unsubscribe') || url.includes('/email-track')) return match;
+    const trackUrl = base + '?t=click&cid=' + encodeURIComponent(campaignId) + '&e=' + eh + '&url=' + encodeURIComponent(url);
+    return 'href="' + trackUrl + '"';
+  });
+}
 
 let transporter = null;
 
@@ -61,6 +89,15 @@ function getEnglishNotePlain() {
   return '\n\nAre you an English speaker? No problem \u2014 just reply in English and I will be happy to help.\n';
 }
 
+function getGermanPsLineHtml() {
+  return '<p style="margin-top:16px;font-size:13px;color:#6F6A66;font-style:italic;">' +
+    'PS: Wir schreiben dir auf Deutsch, weil wir möchten, dass du dich bei uns willkommen fühlst — noch bevor du in Kopenhagen ankommst. Antworte gerne auf Deutsch oder Englisch, wir verstehen beides.</p>';
+}
+
+function getGermanPsLinePlain() {
+  return '\n\nPS: Wir schreiben dir auf Deutsch, weil wir möchten, dass du dich bei uns willkommen fühlst — noch bevor du in Kopenhagen ankommst. Antworte gerne auf Deutsch oder Englisch, wir verstehen beides.\n';
+}
+
 function getUnsubscribeFooterHtml(email) {
   const url = buildUnsubscribeUrl(email);
   return '<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;">' +
@@ -109,11 +146,15 @@ function substituteVars(text, vars) {
 /**
  * Send a raw email (lowest level)
  */
-async function sendRawEmail({ to, subject, html, text, attachments, replyTo }) {
+async function sendRawEmail({ to, subject, html, text, attachments, replyTo, fromEmail }) {
   const transport = getTransporter();
 
+  // Allow sender override for multi-brand campaigns
+  const senderEmail = fromEmail || process.env.GMAIL_USER || CONFIG.EMAIL_FROM;
+  const senderName = fromEmail && fromEmail.includes('hotyogacph') ? 'Hot Yoga CPH' : CONFIG.FROM_NAME;
+
   const mailOptions = {
-    from: `"${CONFIG.FROM_NAME}" <${process.env.GMAIL_USER || CONFIG.EMAIL_FROM}>`,
+    from: `"${senderName}" <${senderEmail}>`,
     to,
     subject,
     text: text || '',
@@ -167,7 +208,7 @@ async function sendTemplateEmail({ to, templateId, vars, leadId }) {
 /**
  * Send a custom email (admin-composed, not from template)
  */
-async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, includeSignature = true, includeUnsubscribe = true }) {
+async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, includeSignature = true, includeUnsubscribe = true, campaignId, fromEmail }) {
   let html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">';
   html += bodyHtml;
   if (includeSignature) {
@@ -179,12 +220,18 @@ async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, inclu
   }
   html += '</div>';
 
+  // Inject tracking if campaignId provided
+  if (campaignId) {
+    html = wrapLinksForTracking(html, campaignId, to);
+    html = injectTrackingPixel(html, campaignId, to);
+  }
+
   let text = bodyPlain || '';
   if (includeSignature) text += getEnglishNotePlain() + getSignaturePlain();
   if (includeUnsubscribe) text += getUnsubscribeFooterPlain(to);
 
-  const result = await sendRawEmail({ to, subject, html, text });
-  await logEmail({ to, subject, templateId: null, leadId, messageId: result.messageId });
+  const result = await sendRawEmail({ to, subject, html, text, fromEmail });
+  await logEmail({ to, subject, templateId: null, leadId, messageId: result.messageId, campaignId });
   return result;
 }
 
@@ -198,10 +245,15 @@ async function sendAdminNotification(leadData) {
   html += '<h3 style="color:#f75c03;">Ny lead modtaget</h3>';
   html += '<table style="border-collapse:collapse;">';
 
-  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'ytt_program_type', 'program', 'meta_form_id', 'meta_form_name', 'source', 'accommodation', 'city_country'];
+  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'ytt_program_type', 'program', 'meta_form_id', 'meta_form_name', 'source', 'channel', 'utm_campaign', 'accommodation', 'city_country'];
   for (const field of fields) {
     if (leadData[field]) {
-      html += `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;color:#666;">${field}:</td><td style="padding:4px 0;">${escapeHtml(String(leadData[field]))}</td></tr>`;
+      const val = escapeHtml(String(leadData[field]));
+      // Highlight channel with a colored badge
+      const display = field === 'channel'
+        ? `<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:13px;font-weight:bold;background:${getChannelColor(leadData[field])};color:#fff;">${val}</span>`
+        : val;
+      html += `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;color:#666;">${field}:</td><td style="padding:4px 0;">${display}</td></tr>`;
     }
   }
   html += '</table></div>';
@@ -218,10 +270,10 @@ async function sendAdminNotification(leadData) {
 // Email Log
 // =========================================================================
 
-async function logEmail({ to, subject, templateId, leadId, messageId }) {
+async function logEmail({ to, subject, templateId, leadId, messageId, campaignId }) {
   try {
     const db = getDb();
-    await db.collection('email_log').add({
+    const entry = {
       to,
       subject,
       template_id: templateId || null,
@@ -229,10 +281,28 @@ async function logEmail({ to, subject, templateId, leadId, messageId }) {
       message_id: messageId || null,
       sent_at: new Date(),
       status: 'sent'
-    });
+    };
+    if (campaignId) entry.campaign_id = campaignId;
+    await db.collection('email_log').add(entry);
   } catch (err) {
     console.error('[email] Failed to log email:', err.message);
   }
+}
+
+/** Return a background color for channel badges in admin emails */
+function getChannelColor(channel) {
+  if (!channel) return '#999';
+  const ch = channel.toLowerCase();
+  if (ch.includes('google ads')) return '#4285F4';
+  if (ch.includes('google') && ch.includes('organic')) return '#34A853';
+  if (ch.includes('meta ads') || ch.includes('facebook') || ch.includes('instagram ads')) return '#1877F2';
+  if (ch.includes('ai referral')) return '#8B5CF6';
+  if (ch.includes('social')) return '#E4405F';
+  if (ch.includes('email')) return '#f75c03';
+  if (ch.includes('sms')) return '#22C55E';
+  if (ch === 'direct') return '#6B7280';
+  if (ch.includes('referral')) return '#F59E0B';
+  return '#999';
 }
 
 module.exports = {
@@ -244,6 +314,8 @@ module.exports = {
   getSignaturePlain,
   getEnglishNoteHtml,
   getEnglishNotePlain,
+  getGermanPsLineHtml,
+  getGermanPsLinePlain,
   getUnsubscribeFooterHtml,
   getUnsubscribeFooterPlain,
   getAccommodationSectionHtml,

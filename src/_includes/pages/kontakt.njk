@@ -161,9 +161,9 @@
   <p style="color:#6F6A66;font-size:0.95rem;margin-bottom:0.75rem;">
     {% if lang == 'en' %}Prefer to talk in person? Book a free, no-obligation info session at our studio.{% else %}Foretrækker du at tale personligt? Book et gratis og uforpligtende infomøde i vores studie.{% endif %}
   </p>
-  <button class="yb-btn yb-btn--primary" data-open-booking="info-session">
+  <a class="yb-btn yb-btn--primary" href="{% if lang == 'en' %}/en/kontakt?booking=info-session{% else %}/kontakt?booking=info-session{% endif %}" data-open-booking="info-session">
     &#127963; {% if lang == 'en' %}Book a Free Info Session{% else %}Book et Gratis Infomøde{% endif %}
-  </button>
+  </a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
@@ -359,6 +359,19 @@
       message: fd.get('message') || '',
       source: 'Contact form'
     };
+
+    // Attach attribution data (UTM, referrer, channel)
+    if (typeof window.ybAttribution === 'function') {
+      var attr = window.ybAttribution();
+      if (attr.channel) payload.channel = attr.channel;
+      if (attr.utm_source) payload.utm_source = attr.utm_source;
+      if (attr.utm_medium) payload.utm_medium = attr.utm_medium;
+      if (attr.utm_campaign) payload.utm_campaign = attr.utm_campaign;
+      if (attr.gclid) payload.gclid = attr.gclid;
+      if (attr.fbclid) payload.fbclid = attr.fbclid;
+      if (attr.referrer) payload.referrer = attr.referrer;
+      if (attr.landing_page) payload.landing_page = attr.landing_page;
+    }
 
     fetch(FORM_URL, {
       method: 'POST',
