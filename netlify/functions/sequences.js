@@ -570,7 +570,9 @@ async function handleProcess() {
         // Frequency throttle: check if lead received an email in the last 48 hours
         // Uses Date object (not ISO string) to match Firestore Timestamp format
         // used by lead-emails.js, email-service.js, and other senders.
-        if (step.channel === 'email' || step.channel === 'both') {
+        // Sequences with skip_throttle: true bypass this check (e.g., quick follow-ups
+        // that are designed to arrive shortly after signup).
+        if (!sequence.skip_throttle && (step.channel === 'email' || step.channel === 'both')) {
           var throttleCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
           var recentEmailSnap = await db.collection('email_log')
             .where('lead_id', '==', enrollment.lead_id)
