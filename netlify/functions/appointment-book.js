@@ -540,7 +540,7 @@ function buildIcsContent(appointment, id) {
   const endH = Math.floor((parseInt(appointment.time.split(':')[0]) * 60 + parseInt(appointment.time.split(':')[1]) + durationMin) / 60);
   const endM = (parseInt(appointment.time.split(':')[0]) * 60 + parseInt(appointment.time.split(':')[1]) + durationMin) % 60;
   const endTime = String(endH).padStart(2, '0') + String(endM).padStart(2, '0') + '00';
-  const location = appointment.location === 'online' ? 'Online (link sendes separat)' : 'Yoga Bible, Torvegade 66, 1400 København K';
+  const location = appointment.location === 'online' ? 'Online (link sendes separat)' : 'Yoga Bible, Christianshavn, Torvegade 66, 1400 København K';
 
   return [
     'BEGIN:VCALENDAR',
@@ -566,6 +566,50 @@ function buildIcsContent(appointment, id) {
   ].join('\r\n');
 }
 
+function buildAdminIcsContent(appointment, id) {
+  const dateClean = appointment.date.replace(/-/g, '');
+  const timeClean = appointment.time.replace(/:/g, '') + '00';
+  const durationMin = appointment.duration || 30;
+  const endH = Math.floor((parseInt(appointment.time.split(':')[0]) * 60 + parseInt(appointment.time.split(':')[1]) + durationMin) / 60);
+  const endM = (parseInt(appointment.time.split(':')[0]) * 60 + parseInt(appointment.time.split(':')[1]) + durationMin) % 60;
+  const endTime = String(endH).padStart(2, '0') + String(endM).padStart(2, '0') + '00';
+  const location = appointment.location === 'online' ? 'Online' : 'Yoga Bible, Christianshavn, Torvegade 66, 1400 København K';
+  const summary = (appointment.type_name_da || 'Aftale') + ' — ' + (appointment.client_name || 'Klient');
+  const description = (appointment.type_name_en || 'Appointment') + '\\n' +
+    'Client: ' + (appointment.client_name || '') + '\\n' +
+    'Email: ' + (appointment.client_email || '') + '\\n' +
+    'Phone: ' + (appointment.client_phone || '—') +
+    (appointment.message ? '\\nMessage: ' + appointment.message : '');
+
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Yoga Bible//Appointment Admin//DA',
+    'CALSCALE:GREGORIAN',
+    'METHOD:REQUEST',
+    'BEGIN:VEVENT',
+    'DTSTART;TZID=Europe/Copenhagen:' + dateClean + 'T' + timeClean,
+    'DTEND;TZID=Europe/Copenhagen:' + dateClean + 'T' + endTime,
+    'SUMMARY:' + summary,
+    'DESCRIPTION:' + description,
+    'LOCATION:' + location,
+    'UID:admin-' + id + '@yogabible.dk',
+    'STATUS:CONFIRMED',
+    'BEGIN:VALARM',
+    'TRIGGER:-PT1H',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Om 1 time: ' + summary,
+    'END:VALARM',
+    'BEGIN:VALARM',
+    'TRIGGER:-PT15M',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Om 15 min: ' + summary,
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+}
+
 function buildGoogleCalendarUrl(appointment, id) {
   const dateClean = appointment.date.replace(/-/g, '');
   const h = parseInt(appointment.time.split(':')[0]);
@@ -576,7 +620,7 @@ function buildGoogleCalendarUrl(appointment, id) {
   const endM = endMin % 60;
   const startStr = dateClean + 'T' + String(h).padStart(2, '0') + String(m).padStart(2, '0') + '00';
   const endStr = dateClean + 'T' + String(endH).padStart(2, '0') + String(endM).padStart(2, '0') + '00';
-  const location = appointment.location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 København K';
+  const location = appointment.location === 'online' ? 'Online' : 'Yoga Bible, Christianshavn, Torvegade 66, 1400 København K';
   const title = (appointment.type_name_en || 'Appointment') + ' - Yoga Bible';
 
   return 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
@@ -597,8 +641,8 @@ async function sendClientConfirmation(id, appointment, token) {
 
   const dateDa = formatDateDa(appointment.date);
   const dateEn = formatDateEn(appointment.date);
-  const locationDa = appointment.location === 'online' ? 'Online (link sendes separat)' : 'Yoga Bible, Torvegade 66, 1400 København K';
-  const locationEn = appointment.location === 'online' ? 'Online (link sent separately)' : 'Yoga Bible, Torvegade 66, 1400 København K';
+  const locationDa = appointment.location === 'online' ? 'Online (link sendes separat)' : 'Christianshavn, Torvegade 66, 1400 København K';
+  const locationEn = appointment.location === 'online' ? 'Online (link sent separately)' : 'Christianshavn, Torvegade 66, 1400 Copenhagen';
 
   const html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;max-width:600px;margin:0 auto;">' +
     '<div style="background:' + orange + ';padding:24px 32px;border-radius:12px 12px 0 0;">' +
@@ -659,6 +703,8 @@ async function sendClientConfirmation(id, appointment, token) {
 
 // ─── Admin Notification ─────────────────────────────────────────────
 async function sendAdminNotification(id, appointment) {
+  const locationDa = appointment.location === 'online' ? 'Online' : 'Christianshavn, Torvegade 66, 1400 København K';
+
   const html = '<div style="font-family:monospace;font-size:14px;line-height:1.6;">' +
     '<h3 style="color:#f75c03;">&#128197; Ny aftale booket</h3>' +
     '<table style="border-collapse:collapse;">' +
@@ -668,15 +714,26 @@ async function sendAdminNotification(id, appointment) {
     '<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Type:</td><td>' + escapeHtml(appointment.type_name_da || appointment.type) + '</td></tr>' +
     '<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Dato:</td><td>' + appointment.date + ' kl. ' + appointment.time + '</td></tr>' +
     '<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Varighed:</td><td>' + appointment.duration + ' min</td></tr>' +
+    '<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Sted:</td><td>' + locationDa + '</td></tr>' +
     '<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Kilde:</td><td>' + escapeHtml(appointment.source || 'website') + '</td></tr>' +
     (appointment.message ? '<tr><td style="padding:4px 12px 4px 0;font-weight:bold;">Besked:</td><td>' + escapeHtml(appointment.message) + '</td></tr>' : '') +
-    '</table></div>';
+    '</table>' +
+    '<p style="font-size:12px;color:#999;margin-top:12px;">📎 Kalenderfil vedhæftet — åbn den for at tilføje til din kalender med påmindelse.</p>' +
+    '</div>';
+
+  // Build admin ICS with client name in summary + 1h + 15min reminders
+  const icsContent = buildAdminIcsContent(appointment, id);
 
   return sendRawEmail({
     to: CONFIG.EMAIL_ADMIN,
     subject: '📅 Ny aftale: ' + appointment.client_name + ' — ' + appointment.date + ' kl. ' + appointment.time,
     html,
-    text: 'Ny aftale: ' + appointment.client_name + ' (' + appointment.client_email + ') — ' + appointment.date + ' ' + appointment.time
+    text: 'Ny aftale: ' + appointment.client_name + ' (' + appointment.client_email + ') — ' + appointment.date + ' ' + appointment.time + ' — ' + locationDa,
+    attachments: [{
+      filename: 'appointment.ics',
+      content: icsContent,
+      contentType: 'text/calendar; method=REQUEST'
+    }]
   });
 }
 
@@ -761,11 +818,21 @@ async function sendRescheduleEmail(appointment, oldDate, oldTime, id, token) {
 
 // ─── Admin Reschedule Notice ────────────────────────────────────────
 async function sendAdminRescheduleNotice(appointment, newDate, newTime) {
+  // Build updated ICS for admin calendar
+  const updatedAppt = { ...appointment, date: newDate, time: newTime };
+  const icsContent = buildAdminIcsContent(updatedAppt, appointment.id || 'reschedule');
+
   return sendRawEmail({
     to: CONFIG.EMAIL_ADMIN,
     subject: '🔄 Aftale flyttet: ' + appointment.client_name + ' — ' + newDate + ' kl. ' + newTime,
-    html: '<p><strong>' + escapeHtml(appointment.client_name) + '</strong> har flyttet sin aftale fra ' + appointment.date + ' ' + appointment.time + ' til <strong>' + newDate + ' kl. ' + newTime + '</strong>.</p>',
-    text: appointment.client_name + ' har flyttet sin aftale til ' + newDate + ' kl. ' + newTime
+    html: '<p><strong>' + escapeHtml(appointment.client_name) + '</strong> har flyttet sin aftale fra ' + appointment.date + ' ' + appointment.time + ' til <strong>' + newDate + ' kl. ' + newTime + '</strong>.</p>' +
+      '<p style="font-size:12px;color:#999;">📎 Opdateret kalenderfil vedhæftet.</p>',
+    text: appointment.client_name + ' har flyttet sin aftale til ' + newDate + ' kl. ' + newTime,
+    attachments: [{
+      filename: 'appointment.ics',
+      content: icsContent,
+      contentType: 'text/calendar; method=REQUEST'
+    }]
   });
 }
 

@@ -52,7 +52,7 @@
     var endH = Math.floor(endMin / 60);
     var endM = endMin % 60;
     var endTime = String(endH).padStart(2, '0') + String(endM).padStart(2, '0') + '00';
-    var loc = location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 København K';
+    var loc = location === 'online' ? 'Online' : 'Yoga Bible, Christianshavn, Torvegade 66, 1400 København K';
     var uid = date + '-' + time.replace(/:/g, '') + '@yogabible.dk';
 
     return [
@@ -101,7 +101,7 @@
     var dateClean = date.replace(/-/g, '');
     var startStr = dateClean + 'T' + String(h).padStart(2, '0') + String(m).padStart(2, '0') + '00';
     var endStr = dateClean + 'T' + String(endH).padStart(2, '0') + String(endM).padStart(2, '0') + '00';
-    var loc = location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 København K';
+    var loc = location === 'online' ? 'Online' : 'Yoga Bible, Christianshavn, Torvegade 66, 1400 København K';
     return 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
       '&text=' + encodeURIComponent((typeName || 'Appointment') + ' - Yoga Bible') +
       '&dates=' + startStr + '/' + endStr +
@@ -350,9 +350,9 @@
     };
 
     var locationLabels = {
-      'info-session': 'Yoga Bible, Torvegade 66, 1400 København K',
+      'info-session': t('Christianshavn, Torvegade 66, 1400 København K', 'Christianshavn, Torvegade 66, 1400 Copenhagen'),
       'consultation': t('Online (link sendes på email)', 'Online (link sent via email)'),
-      'intro-class': 'Yoga Bible, Torvegade 66, 1400 København K'
+      'intro-class': t('Christianshavn, Torvegade 66, 1400 København K', 'Christianshavn, Torvegade 66, 1400 Copenhagen')
     };
 
     var isReq = isRequestType();
@@ -466,7 +466,7 @@
       detailsEl.innerHTML = '<div style="background:#F5F3F0;border-radius:8px;padding:16px;margin:16px 0;text-align:left;">' +
         (isReq ? '<p style="margin:0 0 8px;color:#f75c03;font-weight:600;font-size:13px;">&#128233; ' + t('Anmodning — afventer bekræftelse', 'Request — awaiting confirmation') + '</p>' : '') +
         '<p style="margin:4px 0;">&#128197; <strong>' + dateFormatted + '</strong> ' + t('kl.', 'at') + ' <strong>' + selectedTime + '</strong></p>' +
-        '<p style="margin:4px 0;">&#128205; ' + (selectedType === 'consultation' ? 'Online' : 'Yoga Bible, Torvegade 66') + '</p>' +
+        '<p style="margin:4px 0;">&#128205; ' + (selectedType === 'consultation' ? 'Online' : t('Christianshavn, Torvegade 66, 1400 København K', 'Christianshavn, Torvegade 66, 1400 Copenhagen')) + '</p>' +
         '</div>' +
         calendarBtns +
         (!isReq ? '<p style="font-size:12px;color:#999;margin-top:8px;text-align:center;">' + t('Kalenderfilen sendes også med din bekræftelsesmail', 'A calendar file is also included in your confirmation email') + '</p>' : '');

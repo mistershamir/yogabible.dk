@@ -19732,7 +19732,8 @@ button.yb-btn--outline-white:hover {
 .yb-book__type-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 4px 12px;
   padding: 12px 16px;
   border: 1.5px solid #E8E4E0;
   border-radius: 10px;
@@ -19751,6 +19752,7 @@ button.yb-btn--outline-white:hover {
 }
 .yb-book__type-icon { font-size: 20px; }
 .yb-book__type-name { flex: 1; font-weight: 600; }
+.yb-book__type-loc { flex-basis: 100%; font-size: 11px; color: #6F6A66; margin-left: 30px; margin-top: -2px; }
 .yb-book__type-dur { font-size: 12px; color: #999; }
 
 /* Calendar */

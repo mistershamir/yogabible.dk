@@ -351,7 +351,7 @@
 
       <p class="yb-visit__note">{{ t.visit_note | safe }}</p>
 
-      <button class="yb-btn yb-btn--cta" type="button" data-open="visit-modal">
+      <button class="yb-btn yb-btn--cta" type="button" data-open-booking="info-session">
         {{ t.visit_cta_text }}
       </button>
     </div>
@@ -394,31 +394,7 @@
   </div>
 </section>
 
-<!-- Calendly Visit Modal -->
-<section class="yb-modal-visit" id="visit-modal" aria-hidden="true">
-  <div class="yb-modal-visit__overlay" data-close></div>
-
-  <div class="yb-modal-visit__box" role="dialog" aria-modal="true" aria-label="{{ t.visit_modal_title }}">
-    <button class="yb-modal-visit__close" type="button" data-close aria-label="{% if lang == 'en' %}Close{% else %}Luk{% endif %}">&#215;</button>
-
-    <div class="yb-modal-visit__header">
-      <h3 class="yb-modal-visit__title">{{ t.visit_modal_title }}</h3>
-      <p class="yb-modal-visit__subtitle">{{ t.visit_modal_subtitle }}</p>
-    </div>
-
-    <div class="yb-modal-visit__booking" style="text-align:center;padding:32px 16px;">
-      <p style="font-size:18px;margin-bottom:20px;">{{ t.visit_modal_subtitle }}</p>
-      <a class="yb-btn yb-btn--primary" href="{% if lang == 'en' %}/en/4-week-ytt?booking=info-session{% else %}/4-ugers-ytt?booking=info-session{% endif %}" data-open-booking="info-session" data-close style="font-size:16px;padding:14px 32px;">
-        &#127963; {% if lang == 'en' %}Book Free Info Session{% else %}Book et gratis infomøde{% endif %}
-      </a>
-      <div style="margin-top:16px;">
-        <a class="yb-btn yb-btn--outline" href="{% if lang == 'en' %}/en/4-week-ytt?booking=consultation{% else %}/4-ugers-ytt?booking=consultation{% endif %}" data-open-booking="consultation" data-close style="font-size:14px;padding:10px 24px;">
-          &#128187; {% if lang == 'en' %}Online Consultation{% else %}Online konsultation{% endif %}
-        </a>
-      </div>
-    </div>
-  </div>
-</section>
+{# Visit modal removed — CTA now opens booking modal directly #}
 
 <!-- ═══════════════════════════════════════
      8. REVIEWS — Google Reviews Carousel
