@@ -14,6 +14,7 @@
 
   var playerSection = document.getElementById('yb-live-player-section');
   var offlineSection = document.getElementById('yb-live-offline');
+  var reconnectingSection = document.getElementById('yb-live-reconnecting');
   var checkingOverlay = document.getElementById('yb-live-checking');
   var badge = document.getElementById('yb-live-badge');
   var retryBtn = document.getElementById('yb-live-retry');
@@ -50,7 +51,9 @@
   var liveStartTime = null;
   var sessionLiveStartTime = null;  // Server-side start time for persistent timer
   var POLL_INTERVAL = 15000;
+  var FAST_POLL_INTERVAL = 5000; // faster polling when reconnecting
   var isStreamLive = false;
+  var isReconnecting = false; // teacher disconnected but session still live
   var livekitRoom = null;
   var currentRoomName = null;
 
@@ -217,7 +220,12 @@
     })
     .catch(function (err) {
       console.error('[live] LiveKit connection error:', err);
-      showOffline();
+      if (isReconnecting) {
+        // Stay in reconnecting state — keep polling, don't show "not live"
+        console.log('[live] Connection failed during reconnecting — will retry on next poll');
+      } else {
+        showOffline();
+      }
     });
   }
 
@@ -245,7 +253,8 @@
       cleanupMount();
       livekitRoom = null;
       currentRoomName = null;
-      showOffline();
+      // Don't show offline immediately — check if session is still live (teacher may reconnect)
+      showReconnecting();
     });
 
     room.on(LivekitClient.RoomEvent.Reconnecting, function () {
@@ -1101,6 +1110,7 @@
 
   function showLive() {
     isStreamLive = true;
+    hideReconnecting();
     playerSection.style.display = 'block';
     offlineSection.style.display = 'none';
     joinSection.style.display = 'none';
@@ -1113,8 +1123,38 @@
     }
   }
 
+  function showReconnecting() {
+    // Show "teacher reconnecting" state with fast polling
+    isStreamLive = false;
+    isReconnecting = true;
+    playerSection.style.display = 'none';
+    offlineSection.style.display = 'none';
+    if (reconnectingSection) reconnectingSection.style.display = 'block';
+    joinSection.style.display = 'none';
+    interactiveSection.classList.remove('yb-live-interactive--active');
+    if (meetSection) { meetSection.style.display = 'none'; if (meetIframe) meetIframe.src = ''; }
+    badge.classList.remove('yb-live-badge--visible');
+    hideRecording();
+    checkingOverlay.classList.add('yb-live-player__checking--hidden');
+    if (viewerCountEl) viewerCountEl.style.display = 'none';
+    cleanupMount();
+
+    // Start fast polling (every 5s instead of 15s)
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    pollTimer = setInterval(checkStream, FAST_POLL_INTERVAL);
+    checkStream(); // immediate check
+  }
+
+  function hideReconnecting() {
+    isReconnecting = false;
+    if (reconnectingSection) reconnectingSection.style.display = 'none';
+    // Restore normal polling speed
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+
   function showOffline() {
     isStreamLive = false;
+    hideReconnecting();
     playerSection.style.display = 'none';
     offlineSection.style.display = 'block';
     joinSection.style.display = 'none';
