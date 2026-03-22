@@ -229,18 +229,21 @@ async function handleTeacherSessions(user) {
   });
 
   // For teachers (non-admin): filter to sessions where they are the instructor
-  // Match by email or by instructor name
+  // Priority: 1) explicit teacherEmail match, 2) fuzzy name match, 3) created_by
   if (user.role === 'teacher') {
+    var email = (user.email || '').toLowerCase();
     items = items.filter(function (item) {
-      // Match by instructor field (could be name or email)
+      // Priority 1: explicit teacherEmail field (set in admin panel)
+      if (item.teacherEmail) {
+        return item.teacherEmail.toLowerCase() === email;
+      }
+      // Priority 2: fuzzy match by instructor name vs email prefix
       var instructor = (item.instructor || '').toLowerCase();
-      var email = (user.email || '').toLowerCase();
-      // Simple match: instructor contains the email prefix (before @)
       var emailPrefix = email.split('@')[0].replace(/[._-]/g, ' ');
       return instructor === email ||
              instructor.indexOf(emailPrefix) !== -1 ||
-             // Also check if session has streamSource=remote and was created by this teacher
-             item.created_by === email;
+             // Priority 3: session was created by this teacher
+             (item.created_by || '').toLowerCase() === email;
     });
   }
 
@@ -251,6 +254,7 @@ async function handleTeacherSessions(user) {
       title_da: item.title_da,
       title_en: item.title_en,
       instructor: item.instructor,
+      teacherEmail: item.teacherEmail || null,
       startDateTime: item.startDateTime,
       endDateTime: item.endDateTime,
       status: item.status,
