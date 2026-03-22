@@ -522,10 +522,16 @@
     aspect-ratio: 16 / 9;
   }
 
+  .yb-live-tile--portrait {
+    aspect-ratio: 9 / 16;
+    max-width: 480px;
+    justify-self: center;
+  }
+
   .yb-live-tile video {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
   }
 

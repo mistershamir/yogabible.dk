@@ -67,6 +67,13 @@
   var liveStartTime = null;
   var cameraEnabled = true;
   var micEnabled = true;
+
+  // Participant overlay elements
+  var participantsOverlay = document.getElementById('yts-participants-overlay');
+  var participantsNum = document.getElementById('yts-participants-num');
+  var handAlert = document.getElementById('yts-hand-alert');
+  var handAlertName = document.getElementById('yts-hand-alert-name');
+  var handAlertTimer = null;
   var allCameras = [];  // full device list for flip
 
   // ═══════════════════════════════════════════════════════
@@ -1001,6 +1008,11 @@
               var hand = tile.querySelector('.yts-remote__hand');
               if (hand) hand.style.display = msg.raised ? 'block' : 'none';
             }
+            // Show prominent notification to teacher when hand is raised
+            if (msg.raised) {
+              var pName = getParticipantDisplayName(participant);
+              showHandNotification(pName);
+            }
           }
         } catch (e) {}
       });
@@ -1300,9 +1312,56 @@
   }
 
   function updateRemoteCount() {
-    if (!remoteCountEl || !livekitRoom) return;
+    if (!livekitRoom) return;
     var count = livekitRoom.remoteParticipants.size;
-    remoteCountEl.textContent = count + ' participant' + (count !== 1 ? 's' : '');
+    if (remoteCountEl) {
+      remoteCountEl.textContent = count + ' participant' + (count !== 1 ? 's' : '');
+    }
+    // Update the preview overlay
+    if (participantsOverlay) {
+      if (count > 0) {
+        participantsOverlay.style.display = '';
+        if (participantsNum) participantsNum.textContent = count;
+      } else {
+        participantsOverlay.style.display = 'none';
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // HAND RAISE NOTIFICATION
+  // ═══════════════════════════════════════════════════════
+
+  var handNotifTimer = null;
+
+  function showHandNotification(name) {
+    // Play a short notification sound
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.value = 0.15;
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (e) {}
+
+    // Show hand alert pill on the preview overlay
+    if (handAlert && handAlertName) {
+      handAlertName.textContent = name;
+      handAlert.style.display = '';
+      handAlert.style.animation = 'none';
+      handAlert.offsetHeight;
+      handAlert.style.animation = 'yts-hand-pop 0.3s ease-out';
+      if (handAlertTimer) clearTimeout(handAlertTimer);
+      handAlertTimer = setTimeout(function () {
+        handAlert.style.display = 'none';
+      }, 8000);
+    }
   }
 
   // ═══════════════════════════════════════════════════════
