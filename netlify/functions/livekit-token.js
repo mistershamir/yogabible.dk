@@ -273,36 +273,57 @@ async function handleCreateRoom(event) {
   var muxPlaybackId = session.muxPlaybackId || null;
 
   if (!isRejoin) {
+    // Check for active egresses on this room first — prevent duplicates
+    var hasActiveEgress = false;
     try {
-      var muxResult = await muxFetch('/video/v1/live-streams', 'POST', {
-        playback_policy: ['public'],
-        new_asset_settings: { playback_policy: ['public'] },
-        latency_mode: 'low',
-        reconnect_window: 60,
-        max_continuous_duration: 21600
-      });
-      var muxStream = muxResult.data;
-      muxStreamId = muxStream.id;
-      muxPlaybackId = muxStream.playback_ids && muxStream.playback_ids[0]
-        ? muxStream.playback_ids[0].id : null;
+      var existingEgresses = await livekitApi('ListEgress', { room_name: roomName }, 'livekit.Egress');
+      var egressItems = existingEgresses.items || existingEgresses.egresses || [];
+      for (var ei = 0; ei < egressItems.length; ei++) {
+        var st = egressItems[ei].status;
+        if (st === 'EGRESS_STARTING' || st === 'EGRESS_ACTIVE' || st === 0 || st === 1) {
+          hasActiveEgress = true;
+          console.log('[livekit-token] Active egress already exists:', egressItems[ei].egress_id, 'status:', st);
+          break;
+        }
+      }
+    } catch (checkErr) {
+      console.log('[livekit-token] Could not check existing egresses:', checkErr.message);
+    }
 
-      // Start LiveKit Room Composite Egress → RTMP to Mux
-      var rtmpUrl = 'rtmps://global-live.mux.com:443/app/' + muxStream.stream_key;
-      await livekitApi('StartRoomCompositeEgress', {
-        room_name: roomName,
-        layout: 'grid',
-        audio_only: false,
-        video_only: false,
-        stream_outputs: [{
-          urls: [rtmpUrl],
-          protocol: 0
-        }]
-      }, 'livekit.Egress');
+    if (hasActiveEgress) {
+      console.log('[livekit-token] Skipping egress creation — active egress exists for room:', roomName);
+    } else {
+      try {
+        var muxResult = await muxFetch('/video/v1/live-streams', 'POST', {
+          playback_policy: ['public'],
+          new_asset_settings: { playback_policy: ['public'] },
+          latency_mode: 'low',
+          reconnect_window: 60,
+          max_continuous_duration: 21600
+        });
+        var muxStream = muxResult.data;
+        muxStreamId = muxStream.id;
+        muxPlaybackId = muxStream.playback_ids && muxStream.playback_ids[0]
+          ? muxStream.playback_ids[0].id : null;
 
-      console.log('[livekit-token] Recording egress started → Mux stream:', muxStreamId);
-    } catch (egressErr) {
-      // Recording failure should not block the session
-      console.error('[livekit-token] Recording setup failed (non-blocking):', egressErr.message);
+        // Start LiveKit Room Composite Egress → RTMP to Mux
+        var rtmpUrl = 'rtmps://global-live.mux.com:443/app/' + muxStream.stream_key;
+        await livekitApi('StartRoomCompositeEgress', {
+          room_name: roomName,
+          layout: 'grid',
+          audio_only: false,
+          video_only: false,
+          stream_outputs: [{
+            urls: [rtmpUrl],
+            protocol: 0
+          }]
+        }, 'livekit.Egress');
+
+        console.log('[livekit-token] Recording egress started → Mux stream:', muxStreamId);
+      } catch (egressErr) {
+        // Recording failure should not block the session
+        console.error('[livekit-token] Recording setup failed (non-blocking):', egressErr.message);
+      }
     }
   } else {
     console.log('[livekit-token] Rejoin — reusing existing Mux stream:', muxStreamId);
@@ -574,19 +595,29 @@ async function handleStartEgress(event) {
 
   var roomName = session.livekitRoom;
 
-  // Step 1: Stop ALL egresses to free up slots (try all, ignore already-stopped)
+  // Step 1: Check for active egresses on this room — prevent duplicates
   try {
-    var egressList = await livekitApi('ListEgress', {}, 'livekit.Egress');
+    var egressList = await livekitApi('ListEgress', { room_name: roomName }, 'livekit.Egress');
     var egresses = egressList.items || egressList.egresses || [];
     for (var i = 0; i < egresses.length; i++) {
-      var eid = egresses[i].egress_id || egresses[i].egressId;
+      var st = egresses[i].status;
+      if (st === 'EGRESS_STARTING' || st === 'EGRESS_ACTIVE' || st === 0 || st === 1) {
+        return jsonResponse(200, {
+          ok: true,
+          roomName: roomName,
+          muxStreamId: session.muxLiveStreamId,
+          message: 'Egress already active — skipped duplicate',
+          existingEgressId: egresses[i].egress_id
+        });
+      }
+    }
+    // Stop any completed/failed egresses (cleanup)
+    for (var j = 0; j < egresses.length; j++) {
+      var eid = egresses[j].egress_id || egresses[j].egressId;
       if (!eid) continue;
       try {
         await livekitApi('StopEgress', { egress_id: eid }, 'livekit.Egress');
-        console.log('[livekit-token] Egress stopped:', eid);
-      } catch (stopErr) {
-        console.log('[livekit-token] Egress stop skipped:', eid, stopErr.message);
-      }
+      } catch (stopErr) { /* already complete/stopped */ }
     }
   } catch (listErr) {
     console.log('[livekit-token] ListEgress failed:', listErr.message);
