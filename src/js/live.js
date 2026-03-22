@@ -65,6 +65,8 @@
   var unreadChat = 0;
   var currentSession = null;
   var participantTiles = {}; // identity → tile element
+  var recBadge = document.getElementById('yb-live-rec');
+  var recBadgeInteractive = document.getElementById('yb-live-rec-interactive');
 
   // i18n
   var isDa = (container.dataset.lang || 'da') === 'da';
@@ -127,6 +129,24 @@
     liveStartTime = null;
     if (elapsedEl) elapsedEl.classList.remove('yb-live-elapsed--visible');
     if (elapsedTimeEl) elapsedTimeEl.textContent = '00:00';
+  }
+
+  function showRecording(session, mode) {
+    // Show REC badge only when egress recording is actually active
+    var isRecording = session && session.muxLiveStreamId;
+    var el = mode === 'interactive' ? recBadgeInteractive : recBadge;
+    if (el) {
+      if (isRecording) {
+        el.classList.add('yb-live-rec--visible');
+      } else {
+        el.classList.remove('yb-live-rec--visible');
+      }
+    }
+  }
+
+  function hideRecording() {
+    if (recBadge) recBadge.classList.remove('yb-live-rec--visible');
+    if (recBadgeInteractive) recBadgeInteractive.classList.remove('yb-live-rec--visible');
   }
 
   function esc(s) {
@@ -331,8 +351,9 @@
     joinSection.style.display = 'none';
     interactiveSection.classList.remove('yb-live-interactive--active');
 
-    // Show badge
+    // Show badge + recording indicator
     badge.classList.add('yb-live-badge--visible');
+    showRecording(session, 'player');
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
 
     if (pollTimer) {
@@ -389,6 +410,7 @@
     joinSection.style.display = 'block';
     interactiveSection.classList.remove('yb-live-interactive--active');
     badge.classList.add('yb-live-badge--visible');
+    showRecording(session, 'interactive');
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
 
     if (pollTimer) {
@@ -1023,6 +1045,7 @@
     interactiveSection.classList.remove('yb-live-interactive--active');
     if (meetSection) { meetSection.style.display = 'none'; if (meetIframe) meetIframe.src = ''; }
     badge.classList.remove('yb-live-badge--visible');
+    hideRecording();
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
     if (viewerCountEl) viewerCountEl.style.display = 'none';
     cleanupMount();
@@ -1169,6 +1192,7 @@
         }
 
         // Normal viewer mode
+        showRecording(liveSession, 'player');
         connectToRoom(liveSession.livekitRoom);
         renderSchedule(data.items);
         return;
@@ -1187,6 +1211,7 @@
         if (muxLive.liveStartedAt) {
           sessionLiveStartTime = new Date(muxLive.liveStartedAt).getTime();
         }
+        showRecording(muxLive, 'player');
         showMuxPlayer(muxLive.muxPlaybackId);
       } else {
         showOffline();
