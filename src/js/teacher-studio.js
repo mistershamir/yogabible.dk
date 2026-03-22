@@ -1001,6 +1001,11 @@
               var hand = tile.querySelector('.yts-remote__hand');
               if (hand) hand.style.display = msg.raised ? 'block' : 'none';
             }
+            // Show prominent notification to teacher when hand is raised
+            if (msg.raised) {
+              var pName = getParticipantDisplayName(participant);
+              showHandNotification(pName);
+            }
           }
         } catch (e) {}
       });
@@ -1303,6 +1308,65 @@
     if (!remoteCountEl || !livekitRoom) return;
     var count = livekitRoom.remoteParticipants.size;
     remoteCountEl.textContent = count + ' participant' + (count !== 1 ? 's' : '');
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // HAND RAISE NOTIFICATION
+  // ═══════════════════════════════════════════════════════
+
+  var handNotifTimer = null;
+
+  function showHandNotification(name) {
+    // Play a short notification sound
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.value = 0.15;
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (e) {}
+
+    // Create or reuse notification banner
+    var banner = document.getElementById('yts-hand-notif');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'yts-hand-notif';
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;' +
+        'background:#f75c03;color:#fff;padding:12px 16px;' +
+        'display:flex;align-items:center;justify-content:center;gap:8px;' +
+        'font-size:1rem;font-weight:700;' +
+        'animation:yts-notif-slide 0.3s ease-out;';
+      document.body.appendChild(banner);
+
+      // Add animation keyframes
+      var style = document.createElement('style');
+      style.textContent = '@keyframes yts-notif-slide{from{transform:translateY(-100%)}to{transform:translateY(0)}}';
+      document.head.appendChild(style);
+    }
+
+    banner.innerHTML = '✋ ' + name + (isDa ? ' har rakt hånden op' : ' raised their hand');
+    banner.style.display = 'flex';
+    banner.style.animation = 'none';
+    banner.offsetHeight; // force reflow
+    banner.style.animation = 'yts-notif-slide 0.3s ease-out';
+
+    // Auto-hide after 6 seconds
+    if (handNotifTimer) clearTimeout(handNotifTimer);
+    handNotifTimer = setTimeout(function () {
+      banner.style.display = 'none';
+    }, 6000);
+
+    // Tap to dismiss
+    banner.onclick = function () {
+      banner.style.display = 'none';
+      if (handNotifTimer) clearTimeout(handNotifTimer);
+    };
   }
 
   // ═══════════════════════════════════════════════════════
