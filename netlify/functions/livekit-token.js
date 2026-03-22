@@ -482,6 +482,22 @@ async function handleCloseRoom(event) {
     return jsonResponse(400, { ok: false, error: 'roomName is required' });
   }
 
+  // Stop any active egresses for this room before deleting it
+  try {
+    var egressList = await livekitApi('ListEgress', { room_name: roomName }, 'livekit.Egress');
+    var egresses = egressList.items || egressList.egresses || [];
+    for (var e = 0; e < egresses.length; e++) {
+      try {
+        await livekitApi('StopEgress', { egress_id: egresses[e].egress_id }, 'livekit.Egress');
+        console.log('[livekit-token] Egress stopped:', egresses[e].egress_id);
+      } catch (stopErr) {
+        console.log('[livekit-token] Egress stop failed:', egresses[e].egress_id, stopErr.message);
+      }
+    }
+  } catch (listErr) {
+    console.log('[livekit-token] ListEgress failed (room may not exist):', listErr.message);
+  }
+
   try {
     await livekitApi('DeleteRoom', { room: roomName });
     console.log('[livekit-token] Room deleted:', roomName, 'by:', user.email);
