@@ -218,16 +218,36 @@ exports.handler = async (event) => {
     }
   }
 
-  // ── Task 2: Create YTT Quick Follow-up sequence ─────────────────────────
+  // ── Task 2: Create OR update YTT Quick Follow-up sequence ───────────────
 
   try {
-    // Check if it already exists
     var existing = await db.collection('sequences')
       .where('name', '==', NEW_SEQUENCE.name).limit(1).get();
 
     if (!existing.empty) {
       var existingId = existing.docs[0].id;
-      results.new_sequence = { name: NEW_SEQUENCE.name, id: existingId, status: 'already_exists' };
+      var existingDoc = existing.docs[0];
+      var existingData = existingDoc.data();
+      var existingSteps = existingData.steps || [];
+
+      // Always update step content if empty (fixes seeded sequences with blank bodies)
+      var stepUpdated = false;
+      if (existingSteps.length > 0 && !existingSteps[0].email_body) {
+        existingSteps[0].email_subject = NEW_SEQUENCE.steps[0].email_subject;
+        existingSteps[0].email_body = NEW_SEQUENCE.steps[0].email_body;
+        existingSteps[0].email_subject_en = NEW_SEQUENCE.steps[0].email_subject_en;
+        existingSteps[0].email_body_en = NEW_SEQUENCE.steps[0].email_body_en;
+        await db.collection('sequences').doc(existingId).update({
+          steps: existingSteps,
+          updated_at: new Date().toISOString()
+        });
+        stepUpdated = true;
+      }
+
+      results.new_sequence = {
+        name: NEW_SEQUENCE.name, id: existingId,
+        status: stepUpdated ? 'updated_content' : 'already_exists'
+      };
     } else {
       var newDoc = await db.collection('sequences').add(NEW_SEQUENCE);
       results.new_sequence = { name: NEW_SEQUENCE.name, id: newDoc.id, status: 'created' };
