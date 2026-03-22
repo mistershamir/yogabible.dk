@@ -211,6 +211,7 @@
     $('yb-la-desc-da').value = (item && item.description_da) || '';
     $('yb-la-desc-en').value = (item && item.description_en) || '';
     $('yb-la-instructor').value = (item && item.instructor) || '';
+    if ($('yb-la-teacher-email')) $('yb-la-teacher-email').value = (item && item.teacherEmail) || '';
     $('yb-la-mux-playback').value = (item && item.muxPlaybackId) || '';
     $('yb-la-recording-id').value = (item && item.recordingPlaybackId) || '';
     $('yb-la-recurrence').value = (item && item.recurrence && item.recurrence.type) || 'none';
@@ -336,6 +337,7 @@
       description_da: $('yb-la-desc-da').value.trim(),
       description_en: $('yb-la-desc-en').value.trim(),
       instructor: $('yb-la-instructor').value.trim(),
+      teacherEmail: $('yb-la-teacher-email') ? $('yb-la-teacher-email').value.trim() || null : null,
       startDateTime: $('yb-la-start').value ? new Date($('yb-la-start').value).toISOString() : '',
       endDateTime: $('yb-la-end').value ? new Date($('yb-la-end').value).toISOString() : '',
       muxPlaybackId: $('yb-la-mux-playback').value.trim() || null,

@@ -26,7 +26,7 @@ const COLLECTION = 'live-schedule';
 const ALLOWED_FIELDS = [
   'source', 'mbClassId', 'mbClassName', 'mbProgramId', 'mbSessionTypeId',
   'title_da', 'title_en', 'description_da', 'description_en',
-  'instructor', 'startDateTime', 'endDateTime', 'duration',
+  'instructor', 'teacherEmail', 'startDateTime', 'endDateTime', 'duration',
   'muxPlaybackId', 'muxStreamKey', 'muxLiveStreamId',
   'recordingPlaybackId', 'recordingAssetId',
   'liveStartedAt', 'liveEndedAt',
