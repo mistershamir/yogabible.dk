@@ -67,6 +67,13 @@
   var liveStartTime = null;
   var cameraEnabled = true;
   var micEnabled = true;
+
+  // Participant overlay elements
+  var participantsOverlay = document.getElementById('yts-participants-overlay');
+  var participantsNum = document.getElementById('yts-participants-num');
+  var handAlert = document.getElementById('yts-hand-alert');
+  var handAlertName = document.getElementById('yts-hand-alert-name');
+  var handAlertTimer = null;
   var allCameras = [];  // full device list for flip
 
   // ═══════════════════════════════════════════════════════
@@ -1305,9 +1312,20 @@
   }
 
   function updateRemoteCount() {
-    if (!remoteCountEl || !livekitRoom) return;
+    if (!livekitRoom) return;
     var count = livekitRoom.remoteParticipants.size;
-    remoteCountEl.textContent = count + ' participant' + (count !== 1 ? 's' : '');
+    if (remoteCountEl) {
+      remoteCountEl.textContent = count + ' participant' + (count !== 1 ? 's' : '');
+    }
+    // Update the preview overlay
+    if (participantsOverlay) {
+      if (count > 0) {
+        participantsOverlay.style.display = '';
+        if (participantsNum) participantsNum.textContent = count;
+      } else {
+        participantsOverlay.style.display = 'none';
+      }
+    }
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1332,41 +1350,18 @@
       osc.stop(ctx.currentTime + 0.3);
     } catch (e) {}
 
-    // Create or reuse notification banner
-    var banner = document.getElementById('yts-hand-notif');
-    if (!banner) {
-      banner = document.createElement('div');
-      banner.id = 'yts-hand-notif';
-      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;' +
-        'background:#f75c03;color:#fff;padding:12px 16px;' +
-        'display:flex;align-items:center;justify-content:center;gap:8px;' +
-        'font-size:1rem;font-weight:700;' +
-        'animation:yts-notif-slide 0.3s ease-out;';
-      document.body.appendChild(banner);
-
-      // Add animation keyframes
-      var style = document.createElement('style');
-      style.textContent = '@keyframes yts-notif-slide{from{transform:translateY(-100%)}to{transform:translateY(0)}}';
-      document.head.appendChild(style);
+    // Show hand alert pill on the preview overlay
+    if (handAlert && handAlertName) {
+      handAlertName.textContent = name;
+      handAlert.style.display = '';
+      handAlert.style.animation = 'none';
+      handAlert.offsetHeight;
+      handAlert.style.animation = 'yts-hand-pop 0.3s ease-out';
+      if (handAlertTimer) clearTimeout(handAlertTimer);
+      handAlertTimer = setTimeout(function () {
+        handAlert.style.display = 'none';
+      }, 8000);
     }
-
-    banner.innerHTML = '✋ ' + name + (isDa ? ' har rakt hånden op' : ' raised their hand');
-    banner.style.display = 'flex';
-    banner.style.animation = 'none';
-    banner.offsetHeight; // force reflow
-    banner.style.animation = 'yts-notif-slide 0.3s ease-out';
-
-    // Auto-hide after 6 seconds
-    if (handNotifTimer) clearTimeout(handNotifTimer);
-    handNotifTimer = setTimeout(function () {
-      banner.style.display = 'none';
-    }, 6000);
-
-    // Tap to dismiss
-    banner.onclick = function () {
-      banner.style.display = 'none';
-      if (handNotifTimer) clearTimeout(handNotifTimer);
-    };
   }
 
   // ═══════════════════════════════════════════════════════
