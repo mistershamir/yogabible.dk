@@ -681,11 +681,17 @@ async function handleStopAllEgresses(event) {
       }
     }
 
+    // Return raw egress data for debugging
+    var debugInfo = egresses.map(function(eg) {
+      return { keys: Object.keys(eg), egress_id: eg.egress_id, egressId: eg.egressId, status: eg.status, room_name: eg.room_name, roomName: eg.roomName };
+    });
+
     return jsonResponse(200, {
       ok: true,
       total: egresses.length,
       stopped: stopped.length,
-      stoppedIds: stopped
+      stoppedIds: stopped,
+      debug: debugInfo
     });
   } catch (err) {
     return jsonResponse(500, { ok: false, error: err.message });
