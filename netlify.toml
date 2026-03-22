@@ -14,6 +14,10 @@
 [functions."process-sequences"]
   schedule = "*/30 * * * *"
 
+# Scheduled function: auto-close zombie LiveKit rooms every 5 minutes
+[functions."live-room-cleanup"]
+  schedule = "*/5 * * * *"
+
 # Redirect www to non-www (301)
 [[redirects]]
   from = "https://www.yogabible.dk/*"
