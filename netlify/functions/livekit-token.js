@@ -481,9 +481,26 @@ async function handleCloseRoom(event) {
     console.log('[livekit-token] Room delete failed (may not exist):', err.message);
   }
 
-  // Update session status
+  // Update session status + stop Mux stream
   if (sessionId) {
     var session = await getDoc(COLLECTION, sessionId);
+
+    // Stop Mux live stream if one was created (prevents orphan recording after room deletion)
+    if (session && session.muxLiveStreamId) {
+      try {
+        await muxFetch('/video/v1/live-streams/' + session.muxLiveStreamId + '/complete', 'PUT');
+        console.log('[livekit-token] Mux stream completed:', session.muxLiveStreamId);
+      } catch (muxErr) {
+        console.log('[livekit-token] Mux stream complete failed (may already be idle):', muxErr.message);
+      }
+      try {
+        await muxFetch('/video/v1/live-streams/' + session.muxLiveStreamId + '/disable', 'PUT');
+        console.log('[livekit-token] Mux stream disabled:', session.muxLiveStreamId);
+      } catch (muxErr2) {
+        console.log('[livekit-token] Mux stream disable failed:', muxErr2.message);
+      }
+    }
+
     if (session && session.status === 'live') {
       var liveStarted = session.liveStartedAt ? new Date(session.liveStartedAt) : null;
       var durationMs = liveStarted ? (Date.now() - liveStarted.getTime()) : Infinity;

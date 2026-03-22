@@ -45,6 +45,7 @@
   var btnLeave = document.getElementById('yb-live-btn-leave');
 
   var pollTimer = null;
+  var isCheckingStream = false; // guard against overlapping poll fetches
   var elapsedTimer = null;
   var liveStartTime = null;
   var sessionLiveStartTime = null;  // Server-side start time for persistent timer
@@ -162,6 +163,12 @@
         }
       }
     }
+    // Remove previous listeners if reattaching (prevents accumulation on camera toggle)
+    if (videoEl._orientCheck) {
+      videoEl.removeEventListener('loadedmetadata', videoEl._orientCheck);
+      videoEl.removeEventListener('resize', videoEl._orientCheck);
+    }
+    videoEl._orientCheck = check;
     videoEl.addEventListener('loadedmetadata', check);
     videoEl.addEventListener('resize', check); // fires when resolution changes (orientation flip)
     check(); // in case already loaded
@@ -538,7 +545,9 @@
       try {
         var msg = JSON.parse(new TextDecoder().decode(payload));
         handleDataMessage(msg, participant);
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[live-i] DataReceived error:', e);
+      }
     });
 
     room.on(LivekitClient.RoomEvent.Disconnected, function () {
@@ -905,7 +914,24 @@
   function sendDataMessage(msg) {
     if (!livekitRoom || !isJoined) return;
     var data = new TextEncoder().encode(JSON.stringify(msg));
-    livekitRoom.localParticipant.publishData(data, { reliable: true });
+    try {
+      livekitRoom.localParticipant.publishData(data, { reliable: true });
+    } catch (err) {
+      console.warn('[live-i] Failed to send data message:', err);
+      // Revert hand raise state if send failed
+      if (msg.type === 'hand') {
+        handRaised = !handRaised;
+        updateControlStates();
+        var localTile = livekitRoom ? participantTiles[livekitRoom.localParticipant.identity] : null;
+        if (localTile) {
+          var handEl = localTile.querySelector('.yb-live-tile__hand');
+          if (handEl) {
+            if (handRaised) handEl.classList.add('yb-live-tile__hand--visible');
+            else handEl.classList.remove('yb-live-tile__hand--visible');
+          }
+        }
+      }
+    }
   }
 
   function sendChat() {
@@ -1123,10 +1149,12 @@
 
   function checkStream() {
     if (isJoined) return; // Don't poll while in interactive session
+    if (isCheckingStream) return; // prevent overlapping poll fetches
 
     // If we're already connected via LiveKit and streaming, don't disrupt
     if (livekitRoom && isStreamLive && !isJoined) {
       // Still fetch schedule for sidebar, but don't touch player
+      isCheckingStream = true;
       var opts2 = { headers: {} };
       getAuthToken().then(function (token) {
         if (token) opts2.headers['Authorization'] = 'Bearer ' + token;
@@ -1155,10 +1183,12 @@
           }
         }
       })
-      .catch(function () {});
+      .catch(function () {})
+      .finally(function () { isCheckingStream = false; });
       return;
     }
 
+    isCheckingStream = true;
     var opts = { headers: {} };
 
     getAuthToken().then(function (token) {
@@ -1239,7 +1269,8 @@
     })
     .catch(function () {
       showOffline();
-    });
+    })
+    .finally(function () { isCheckingStream = false; });
   }
 
   function startPolling() {
