@@ -254,10 +254,14 @@ async function handleTeacherSessions(user) {
       startDateTime: item.startDateTime,
       endDateTime: item.endDateTime,
       status: item.status,
+      streamType: item.streamType || null,
+      interactive: item.interactive || false,
+      meetingUrl: item.meetingUrl || null,
       streamSource: item.streamSource || 'studio',
       muxLiveStreamId: item.muxLiveStreamId || null,
       muxPlaybackId: item.muxPlaybackId || null,
-      livekitRoom: item.livekitRoom || null
+      livekitRoom: item.livekitRoom || null,
+      liveStartedAt: item.liveStartedAt || null
     };
   });
 

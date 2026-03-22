@@ -159,6 +159,12 @@
       return;
     }
 
+    // Auto-select any live session so teacher can rejoin after refresh
+    var liveItem = null;
+    for (var li = 0; li < items.length; li++) {
+      if (items[li].status === 'live') { liveItem = items[li]; break; }
+    }
+
     var html = '';
     for (var i = 0; i < items.length; i++) {
       var item = items[i];
@@ -218,6 +224,19 @@
     var cards = sessionList.querySelectorAll('.yts-sessions__item');
     for (var j = 0; j < cards.length; j++) {
       cards[j].addEventListener('click', handleSessionClick);
+    }
+
+    // Auto-select live session so teacher can rejoin after page refresh
+    if (liveItem && !isLive && !isTestMode) {
+      selectedSession = liveItem;
+      // Highlight the live session card
+      var liveCard = sessionList.querySelector('[data-session-id="' + liveItem.id + '"]');
+      if (liveCard) liveCard.classList.add('yts-sessions__item--selected');
+      // Update button to show "Rejoin" instead of "Go Live"
+      if (goLiveBtn) {
+        goLiveBtn.textContent = isDa ? 'Tilslut igen' : 'Rejoin';
+        goLiveBtn.disabled = false;
+      }
     }
   }
 
@@ -511,10 +530,12 @@
   function updateGoLiveState() {
     if (goLiveBtn) {
       goLiveBtn.disabled = !(selectedSession && !isLive && !isTestMode);
-      // Update button label for meet sessions
+      // Update button label based on session state
       if (selectedSession) {
         var st = selectedSession.streamType || (selectedSession.interactive ? 'interactive' : 'broadcast');
-        if (st === 'meet') {
+        if (selectedSession.status === 'live') {
+          goLiveBtn.textContent = isDa ? 'Tilslut igen' : 'Rejoin';
+        } else if (st === 'meet') {
           goLiveBtn.textContent = isDa ? 'Start møde' : 'Start meeting';
         } else {
           goLiveBtn.textContent = isDa ? 'Gå live' : 'Go Live';
