@@ -50,12 +50,10 @@ exports.handler = async (event) => {
     });
   });
 
-  // 3. Get recent leads (last 14 days) to see who SHOULD have been enrolled
-  var twoWeeksAgo = new Date(Date.now() - 14 * 24 * 3600000);
+  // 3. Get recent YTT leads — simple query (no composite index needed)
   var recentLeadsSnap = await db.collection('leads')
     .where('type', '==', 'ytt')
-    .orderBy('created_at', 'desc')
-    .limit(50)
+    .limit(200)
     .get();
 
   var recentLeads = [];
