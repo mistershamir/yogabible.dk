@@ -1,45 +1,43 @@
 /**
- * Cloudinary Browser API — Yoga Bible
- * Admin-only proxy for Cloudinary Admin API.
- * Lists folders, lists resources (PDFs), and signs direct uploads.
+ * Bunny Storage Browser API — Yoga Bible
+ * Admin-only proxy for Bunny Storage API.
+ * Lists folders, lists resources (PDFs/images), and generates upload URLs.
+ *
+ * NOTE: This function was originally cloudinary-browser.js and has been migrated
+ * to use Bunny Storage. The endpoint path remains the same for backwards compat.
  *
  * GET /.netlify/functions/cloudinary-browser?action=folders&path=yoga-bible-DK/materials
  * GET /.netlify/functions/cloudinary-browser?action=resources&path=yoga-bible-DK/materials/shared
  * GET /.netlify/functions/cloudinary-browser?action=sign_upload&folder=yoga-bible-DK/materials/shared
- *
- * NOTE: This function uses the Cloudinary Admin API directly for folder browsing,
- * resource listing, and upload signing. When migrating away from Cloudinary to
- * another CDN/storage provider (e.g. R2), this entire function will need to be
- * rewritten to use the new provider's API. The secure_url values returned to
- * the client will also change format. Keep this function operational until
- * the full migration is complete and all document references have been updated.
  */
 
-const crypto = require('crypto');
 const https = require('https');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 
-const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'ddcynsa30';
-const API_KEY    = process.env.CLOUDINARY_API_KEY    || '617726211878669';
-const API_SECRET = process.env.CLOUDINARY_API_SECRET || 'n90Ts-IUyUnxwNdtQd9i64d6Gtw';
+const BUNNY_STORAGE_ZONE = process.env.BUNNY_STORAGE_ZONE || 'yogabible';
+const BUNNY_STORAGE_KEY  = process.env.BUNNY_STORAGE_API_KEY || '';
+const BUNNY_CDN_HOST     = process.env.BUNNY_CDN_HOST || 'yogabible.b-cdn.net';
+const BUNNY_STORAGE_HOST = 'storage.bunnycdn.com';
 const ROOT_PREFIX = 'yoga-bible-DK/materials';
 
-// ── Helper: authenticated GET to Cloudinary Admin API ──
-function cloudinaryGet(path) {
+// ── Helper: authenticated request to Bunny Storage API ──
+function bunnyRequest(method, path, body) {
   return new Promise((resolve, reject) => {
-    const auth = Buffer.from(API_KEY + ':' + API_SECRET).toString('base64');
-    const url = new URL('https://api.cloudinary.com/v1_1/' + CLOUD_NAME + '/' + path);
-
     const options = {
-      hostname: url.hostname,
-      path: url.pathname + url.search,
-      method: 'GET',
+      hostname: BUNNY_STORAGE_HOST,
+      path: '/' + BUNNY_STORAGE_ZONE + '/' + path + (path.endsWith('/') ? '' : '/'),
+      method: method,
       headers: {
-        'Authorization': 'Basic ' + auth,
+        'AccessKey': BUNNY_STORAGE_KEY,
         'Accept': 'application/json'
       }
     };
+
+    if (body) {
+      options.headers['Content-Type'] = 'application/octet-stream';
+      options.headers['Content-Length'] = body.length;
+    }
 
     const req = https.request(options, (res) => {
       let data = '';
@@ -48,13 +46,15 @@ function cloudinaryGet(path) {
         try {
           resolve({ status: res.statusCode, body: JSON.parse(data) });
         } catch (e) {
-          reject(new Error('Invalid JSON from Cloudinary: ' + data.slice(0, 200)));
+          // Bunny sometimes returns non-JSON for certain status codes
+          resolve({ status: res.statusCode, body: data });
         }
       });
     });
 
     req.on('error', reject);
-    req.setTimeout(10000, () => { req.destroy(); reject(new Error('Cloudinary API timeout')); });
+    req.setTimeout(10000, () => { req.destroy(); reject(new Error('Bunny API timeout')); });
+    if (body) req.write(body);
     req.end();
   });
 }
@@ -62,93 +62,84 @@ function cloudinaryGet(path) {
 // ── Action: list subfolders ──
 async function listFolders(folderPath) {
   try {
-    const result = await cloudinaryGet('folders/' + encodeURIComponent(folderPath).replace(/%2F/g, '/'));
+    const result = await bunnyRequest('GET', folderPath);
     if (result.status !== 200) {
-      return jsonResponse(result.status, { ok: false, error: result.body.error || 'Cloudinary error' });
+      return jsonResponse(result.status, { ok: false, error: 'Bunny Storage error: ' + result.status });
     }
-    const folders = (result.body.folders || []).map(f => ({
-      name: f.name,
-      path: f.path
-    }));
+
+    // Bunny returns an array of objects; filter to directories only
+    const items = Array.isArray(result.body) ? result.body : [];
+    const folders = items
+      .filter(item => item.IsDirectory)
+      .map(item => ({
+        name: item.ObjectName,
+        path: folderPath + '/' + item.ObjectName
+      }));
+
     return jsonResponse(200, { ok: true, folders });
   } catch (err) {
-    console.error('[cloudinary-browser] listFolders error:', err.message);
+    console.error('[bunny-browser] listFolders error:', err.message);
     return jsonResponse(500, { ok: false, error: err.message });
   }
 }
 
-// ── Action: list resources (PDFs) in a folder ──
-// Queries both resource_type=image and resource_type=raw, merges results
+// ── Action: list resources (files) in a folder ──
 async function listResources(folderPath) {
   try {
-    const fetchType = async (resourceType) => {
-      const qPath = 'resources/' + resourceType + '/upload?prefix=' +
-        encodeURIComponent(folderPath) + '&type=upload&max_results=500';
-      const result = await cloudinaryGet(qPath);
-      if (result.status !== 200) return [];
-      return (result.body.resources || []).map(r => ({
-        public_id: r.public_id,
-        format: r.format || '',
-        bytes: r.bytes || 0,
-        created_at: r.created_at || '',
-        secure_url: r.secure_url || '',
-        resource_type: r.resource_type || resourceType,
-        display_name: r.display_name || ''
-      }));
-    };
+    const result = await bunnyRequest('GET', folderPath);
+    if (result.status !== 200) {
+      return jsonResponse(result.status, { ok: false, error: 'Bunny Storage error: ' + result.status });
+    }
 
-    const [imageRes, rawRes] = await Promise.all([
-      fetchType('image'),
-      fetchType('raw')
-    ]);
+    const items = Array.isArray(result.body) ? result.body : [];
+    const resources = items
+      .filter(item => !item.IsDirectory)
+      .map(item => {
+        const ext = (item.ObjectName.match(/\.(\w+)$/) || ['', ''])[1].toLowerCase();
+        const nameNoExt = item.ObjectName.replace(/\.\w+$/, '');
+        return {
+          public_id: folderPath + '/' + nameNoExt,
+          format: ext,
+          bytes: item.Length || 0,
+          created_at: item.DateCreated || '',
+          secure_url: 'https://' + BUNNY_CDN_HOST + '/' + folderPath + '/' + item.ObjectName,
+          resource_type: getResourceType(ext),
+          display_name: item.ObjectName
+        };
+      })
+      .sort((a, b) => {
+        const nameA = a.display_name.toLowerCase();
+        const nameB = b.display_name.toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
 
-    // Merge and filter to only files directly in this folder (not subfolders)
-    const allResources = imageRes.concat(rawRes).filter(r => {
-      // public_id should be folderPath/filename (no additional slashes)
-      const relative = r.public_id.replace(folderPath + '/', '');
-      return relative.indexOf('/') === -1 && relative.length > 0;
-    });
-
-    // Sort by name
-    allResources.sort((a, b) => {
-      const nameA = a.public_id.split('/').pop().toLowerCase();
-      const nameB = b.public_id.split('/').pop().toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
-
-    return jsonResponse(200, { ok: true, resources: allResources });
+    return jsonResponse(200, { ok: true, resources });
   } catch (err) {
-    console.error('[cloudinary-browser] listResources error:', err.message);
+    console.error('[bunny-browser] listResources error:', err.message);
     return jsonResponse(500, { ok: false, error: err.message });
   }
 }
 
-// ── Action: sign an upload ──
+// ── Action: generate upload info ──
+// Returns the Bunny Storage upload URL + headers the client needs
 function signUpload(folder) {
-  const timestamp = Math.floor(Date.now() / 1000);
-  const params = {
-    folder: folder,
-    resource_type: 'raw',
-    timestamp: String(timestamp)
-  };
-
-  // Build signature string: sorted params joined by &, then append API secret
-  const sortedStr = Object.keys(params).sort()
-    .map(k => k + '=' + params[k])
-    .join('&');
-  const signature = crypto.createHash('sha1').update(sortedStr + API_SECRET).digest('hex');
-
   return jsonResponse(200, {
     ok: true,
     upload_params: {
-      timestamp: timestamp,
-      signature: signature,
-      api_key: API_KEY,
-      cloud_name: CLOUD_NAME,
-      folder: folder,
-      resource_type: 'raw'
+      upload_url: 'https://' + BUNNY_STORAGE_HOST + '/' + BUNNY_STORAGE_ZONE + '/' + folder + '/',
+      headers: {
+        'AccessKey': BUNNY_STORAGE_KEY
+      },
+      cdn_base: 'https://' + BUNNY_CDN_HOST + '/' + folder + '/'
     }
   });
+}
+
+// ── Helper: detect resource type from extension ──
+function getResourceType(ext) {
+  if (['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif', 'avif'].includes(ext)) return 'image';
+  if (['mp4', 'mov', 'webm', 'avi'].includes(ext)) return 'video';
+  return 'raw';
 }
 
 // ── Handler ──

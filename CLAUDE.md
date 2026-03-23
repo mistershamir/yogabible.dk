@@ -419,8 +419,8 @@ Each tab has a partial in `src/_includes/partials/admin-{name}-panel.njk` and a 
 | `META_PIXEL_ID` | Meta pixel ID |
 | `INSTAGRAM_ACCESS_TOKEN` | Instagram API token |
 | `INSTAGRAM_VERIFY_TOKEN` | Instagram webhook verify token |
-| `CLOUDINARY_API_KEY` | Cloudinary API key (`617726211878669`) |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+| `BUNNY_STORAGE_API_KEY` | Bunny Storage zone password |
+| `BUNNY_CDN_HOST` | Bunny CDN hostname (`yogabible.b-cdn.net`) |
 | `AI_INTERNAL_SECRET` | AI backfill/Mux processing secret (`2f8a6b592a15b8ac92021d791fdbd0fb48ef61c96899407c2d2e50030933c576`) |
 | `LIVEKIT_API_KEY` | LiveKit API key (interactive/panel streaming) |
 | `LIVEKIT_API_SECRET` | LiveKit API secret |
@@ -855,20 +855,21 @@ To build the same modal for the Hot Yoga CPH site:
 
 ---
 
-## Cloudinary Media Management (MANDATORY)
+## Bunny CDN Media Management (MANDATORY)
 
-**IMPORTANT:** All media assets are hosted on Cloudinary (`ddcynsa30`). When creating a new page, you MUST also create the corresponding Cloudinary folder. This is not optional.
+**IMPORTANT:** All media assets are hosted on Bunny CDN (`yogabible.b-cdn.net`). When creating a new page, create the corresponding folder in Bunny Storage. This is not optional.
 
 ### Account Details
 
-- **Cloud Name:** `ddcynsa30`
-- **Base URL:** `https://res.cloudinary.com/ddcynsa30`
-- **API Key:** `617726211878669`
-- **API Secret:** `n90Ts-IUyUnxwNdtQd9i64d6Gtw`
+- **CDN URL:** `https://yogabible.b-cdn.net`
+- **Storage Zone:** `yogabible`
+- **Storage Host:** `storage.bunnycdn.com`
+- **Storage API Key:** Set via `BUNNY_STORAGE_API_KEY` env var
+- **Account API Key:** Set via `BUNNY_ACCOUNT_API_KEY` env var
 
 ### Folder Structure
 
-All folders live under the root `yoga-bible-DK/`. The current structure:
+All folders live under the root `yoga-bible-DK/` in Bunny Storage. The current structure:
 
 ```
 yoga-bible-DK/
@@ -912,92 +913,81 @@ yoga-bible-DK/
     └── models/       ← model showcase photos
 ```
 
-### Auto-Create Cloudinary Folder for New Pages (MANDATORY)
+### Create Folder for New Pages (MANDATORY)
 
-When creating a new page on this site, you MUST create a corresponding Cloudinary folder using this curl command:
-
-```bash
-curl -s -X POST "https://api.cloudinary.com/v1_1/ddcynsa30/folders/yoga-bible-DK/{page-name}" \
-  -u "617726211878669:n90Ts-IUyUnxwNdtQd9i64d6Gtw"
-```
-
-**For pages with sub-sections**, create nested folders:
+Folders are auto-created when you upload a file. To create an empty folder via Bunny Storage API:
 
 ```bash
-# Parent folder
-curl -s -X POST "https://api.cloudinary.com/v1_1/ddcynsa30/folders/yoga-bible-DK/{page-name}" \
-  -u "617726211878669:n90Ts-IUyUnxwNdtQd9i64d6Gtw"
-
-# Sub-folder
-curl -s -X POST "https://api.cloudinary.com/v1_1/ddcynsa30/folders/yoga-bible-DK/{page-name}/{sub-section}" \
-  -u "617726211878669:n90Ts-IUyUnxwNdtQd9i64d6Gtw"
+# Upload a placeholder to create the folder structure
+curl -s -X PUT "https://storage.bunnycdn.com/yogabible/yoga-bible-DK/{page-name}/.keep" \
+  -H "AccessKey: $BUNNY_STORAGE_API_KEY" \
+  -H "Content-Length: 0"
 ```
+
+Or simply upload assets directly — Bunny creates parent folders automatically.
 
 **Naming rules:**
 - Folder names: lowercase, hyphens for spaces (e.g., `teacher-training`)
 - Match the page slug used in the site URL
 - Nest sub-sections under the parent page folder
 
-### Using Cloudinary in Templates
+### Using Bunny CDN in Templates
 
 **Filters** (for URLs only — use inside `src`, `href`, `background-image`):
 
 ```nunjucks
-{# Basic optimized image URL #}
-{{ "yoga-bible-DK/homepage/hero" | cloudimg }}
+{# Basic optimized image URL — Bunny Optimizer auto-serves WebP/AVIF #}
+{{ "yoga-bible-DK/homepage/hero.jpg" | cloudimg }}
 
-{# With custom transforms #}
-{{ "yoga-bible-DK/homepage/hero" | cloudimg("w_800,h_600,c_fill") }}
+{# With resize transforms (converted to Bunny query params) #}
+{{ "yoga-bible-DK/homepage/hero.jpg" | cloudimg("w_800,h_600") }}
 
 {# Video URL #}
-{{ "yoga-bible-DK/homepage/hero-loop" | cloudvid }}
+{{ "yoga-bible-DK/homepage/hero-loop.mp4" | cloudvid }}
 ```
 
 **Shortcodes** (for full responsive `<img>` / `<video>` tags):
 
 ```nunjucks
-{# Responsive image with srcset (1x + 2x DPR) #}
-{% cldimg "yoga-bible-DK/homepage/hero", "Alt text", "w_800,c_fill", "800", "600" %}
+{# Responsive image — Bunny Optimizer handles format + quality automatically #}
+{% cldimg "yoga-bible-DK/homepage/hero.jpg", "Alt text", "w_800", "800", "600" %}
 
 {# Autoplay looping video with poster #}
-{% cldvid "yoga-bible-DK/courses/inversions-reel", "yoga-bible-DK/courses/inversions-poster", "w_1280" %}
+{% cldvid "yoga-bible-DK/courses/inversions-reel.mp4", "yoga-bible-DK/courses/inversions-poster.jpg", "" %}
 ```
 
-**Common transform strings:**
-- `w_800,h_600,c_fill` — Crop to exact size
-- `w_1200,c_scale` — Scale to width, auto height
-- `w_600,ar_16:9,c_fill` — Fill to aspect ratio
-- `f_auto,q_auto` — Auto format + quality (applied by default)
+**Bunny Optimizer features (automatic, no URL params needed):**
+- Auto WebP/AVIF conversion (based on browser support)
+- Smart compression (desktop 85%, mobile 70%)
+- Auto-resize (desktop max 1600px, mobile max 800px)
 
-### Cloudinary Path Convention
+**Optional query params for Dynamic Image API:**
+- `?width=800` — Resize to width
+- `?height=600` — Resize to height
+- `?width=800&height=600` — Resize to exact dimensions
+- `?quality=85` — Override quality
 
-When referencing images in templates, always use the Cloudinary path (not local):
+### Bunny CDN Path Convention
 
-| Local placeholder path | Cloudinary path |
-|----------------------|-----------------|
-| `/assets/images/brand/*` | `yoga-bible-DK/brand/*` |
-| `/assets/images/homepage/*` | `yoga-bible-DK/homepage/*` |
-| `/assets/images/studio/*` | `yoga-bible-DK/studio/*` |
-| `/assets/images/courses/*` | `yoga-bible-DK/courses/*` |
-| `/assets/images/concepts/hotyoga-*` | `yoga-bible-DK/concepts/hotyoga/*` |
-| `/assets/images/concepts/namaste-*` | `yoga-bible-DK/concepts/namaste/*` |
-| `/assets/images/concepts/vibro-*` | `yoga-bible-DK/concepts/vibro/*` |
-| `/assets/images/copenhagen/*` | `yoga-bible-DK/copenhagen/*` |
-| `/assets/images/accommodation/*` | `yoga-bible-DK/accommodation/*` |
-| `/assets/images/journal/*` | `yoga-bible-DK/journal/*` |
-| `/assets/images/p4w/*` | `yoga-bible-DK/programs/p4w/*` |
+When referencing images in templates, use the Bunny Storage path (with file extension):
+
+| Bunny Storage path | CDN URL |
+|-------------------|---------|
+| `yoga-bible-DK/brand/logo.png` | `https://yogabible.b-cdn.net/yoga-bible-DK/brand/logo.png` |
+| `yoga-bible-DK/homepage/hero.jpg` | `https://yogabible.b-cdn.net/yoga-bible-DK/homepage/hero.jpg` |
+| `yoga-bible-DK/courses/splits/reel.mp4` | `https://yogabible.b-cdn.net/yoga-bible-DK/courses/splits/reel.mp4` |
 
 ### Workflow Checklist for New Pages
 
 When you create a new page, follow this order:
 
-1. Create Cloudinary folder(s) via curl (see above)
+1. Upload assets to Bunny Storage (via dashboard or API)
 2. Create the page files (i18n JSON, template, DA/EN wrappers)
 3. Use `cloudimg`/`cldimg` filters/shortcodes for all images in the template
 4. Use `cloudvid`/`cldvid` for any videos
 5. Add placeholder comments noting required image specs:
    ```html
-   {# CLOUDINARY: yoga-bible-DK/pagename/hero.jpg — 1920x900, dark cinematic #}
+   {# BUNNY: yoga-bible-DK/pagename/hero.jpg — 1920x900, dark cinematic #}
    ```
 6. Build with `npx @11ty/eleventy` to verify
 

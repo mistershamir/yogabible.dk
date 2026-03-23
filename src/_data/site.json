@@ -19,9 +19,9 @@
   "soundcloud": "https://soundcloud.com/yogabible",
   "appStore": "https://apps.apple.com/us/app/yoga-bible-dk/id1089612518",
   "googlePlay": "https://play.google.com/store/apps/details?id=com.fitnessmobileapps.hotyogacopenhagen",
-  "cloudinary": {
-    "cloudName": "ddcynsa30",
-    "baseUrl": "https://res.cloudinary.com/ddcynsa30"
+  "bunny": {
+    "cdnUrl": "https://yogabible.b-cdn.net",
+    "storageZone": "yogabible"
   },
-  "mediaBase": "https://res.cloudinary.com/ddcynsa30"
+  "mediaBase": "https://yogabible.b-cdn.net"
 }
