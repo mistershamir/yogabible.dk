@@ -7,15 +7,12 @@ var fs = require('fs');
 var CLOUD_NAME = "ddcynsa30";
 var CLOUD_BASE = "https://res.cloudinary.com/" + CLOUD_NAME;
 var IMG_SRC_DIR = "src/assets/images";
+var VID_SRC_DIR = "src/assets/videos";
 
-// ─── Local image resolver ─────────────────────────────────────────
-// Maps a Cloudinary public ID to a local file path.
-// Returns the local path if found, null otherwise.
+// ─── Local resolver: images ──────────────────────────────────────
 function resolveLocal(cloudPath) {
   if (!cloudPath) return null;
-  // Strip yoga-bible-DK/ prefix → map to local folder structure
   var localRel = cloudPath.replace(/^yoga-bible-DK\//, '');
-  // Strip Cloudinary version prefix (e.g. v1772433753/)
   localRel = localRel.replace(/^v\d+\//, '');
   var exts = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
   for (var i = 0; i < exts.length; i++) {
@@ -25,8 +22,41 @@ function resolveLocal(cloudPath) {
   return null;
 }
 
+// ─── Local resolver: videos ──────────────────────────────────────
+function resolveLocalVideo(cloudPath) {
+  if (!cloudPath) return null;
+  var localRel = cloudPath.replace(/^yoga-bible-DK\//, '');
+  localRel = localRel.replace(/^v\d+\//, '');
+  // Strip any existing extension
+  localRel = localRel.replace(/\.(mp4|mov|webm)$/, '');
+  var exts = ['.mp4', '.mov', '.webm'];
+  for (var i = 0; i < exts.length; i++) {
+    var full = path.join(VID_SRC_DIR, localRel + exts[i]);
+    if (fs.existsSync(full)) return full;
+  }
+  return null;
+}
+
+// ─── Local resolver: poster frames (saved as images from video extracts) ──
+function resolveLocalPoster(cloudPath) {
+  if (!cloudPath) return null;
+  var localRel = cloudPath.replace(/^yoga-bible-DK\//, '');
+  localRel = localRel.replace(/^v\d+\//, '');
+  // Poster frames are saved as .jpg in the images dir
+  localRel = localRel.replace(/\.(jpg|png)$/, '');
+  var exts = ['.jpg', '.jpeg', '.png', '.webp'];
+  for (var i = 0; i < exts.length; i++) {
+    var full = path.join(IMG_SRC_DIR, localRel + exts[i]);
+    if (fs.existsSync(full)) return full;
+  }
+  return null;
+}
+
 module.exports = function(eleventyConfig) {
-  // ── Global data: Cloudinary base URL (used for videos + fallback) ──
+  // ── Global data: Cloudinary base URL (fallback for not-yet-downloaded assets) ──
+  // Once all assets are downloaded locally, this is only used as a build-time
+  // fallback. The localMedia transform rewrites any remaining Cloudinary URLs
+  // to local paths when the files exist.
   eleventyConfig.addGlobalData("mediaBase", CLOUD_BASE);
 
   // Passthrough filter (used in some templates for URL strings)
@@ -45,9 +75,9 @@ module.exports = function(eleventyConfig) {
   //   {% cldimg "yoga-bible-DK/homepage/hero", "Alt text", "w_800,c_fill", "800", "600" %}
   //   {% cldvid "yoga-bible-DK/homepage/hero-loop", "poster-path", "w_1280" %}
   //
-  // Images are served from local /assets/images/ when available.
-  // Falls back to Cloudinary CDN for images not yet downloaded.
-  // Videos always served from Cloudinary (eleventy-img can't process video).
+  // Images served from local /assets/images/ (eleventy-img generates WebP+JPEG).
+  // Videos served from local /assets/videos/ when available.
+  // Falls back to Cloudinary CDN for assets not yet downloaded locally.
 
   // Filter: returns optimized image URL (local-first, Cloudinary fallback)
   eleventyConfig.addFilter("cloudimg", function(cloudPath, transforms) {
@@ -61,10 +91,21 @@ module.exports = function(eleventyConfig) {
     return CLOUD_BASE + "/image/upload/" + t + "/" + cloudPath;
   });
 
-  // Filter: returns video URL (always Cloudinary — videos stay on CDN)
-  eleventyConfig.addFilter("cloudvid", function(path, transforms) {
+  // Filter: returns video URL (local-first, Cloudinary fallback)
+  eleventyConfig.addFilter("cloudvid", function(vidPath, transforms) {
+    if (!vidPath) return '';
+    var local = resolveLocalVideo(vidPath);
+    if (local) {
+      return '/' + local.replace(/^src\//, '');
+    }
+    // Also check if it's a poster frame request (path ends with .jpg/.png)
+    if (/\.(jpg|png)$/.test(vidPath)) {
+      var poster = resolveLocalPoster(vidPath);
+      if (poster) return '/' + poster.replace(/^src\//, '');
+    }
+    // Fallback to Cloudinary for videos not yet downloaded
     var t = transforms || "f_auto,q_auto";
-    return CLOUD_BASE + "/video/upload/" + t + "/" + path;
+    return CLOUD_BASE + "/video/upload/" + t + "/" + vidPath;
   });
 
   // Shortcode: renders responsive <picture> tag via eleventy-img (local-first)
@@ -136,13 +177,21 @@ module.exports = function(eleventyConfig) {
     return '<img src="' + src + '" srcset="' + srcset1x + ' 1x, ' + srcset2x + ' 2x" alt="' + (alt || '') + '"' + wAttr + hAttr + ' loading="lazy" decoding="async">';
   });
 
-  // Shortcode: renders <video> tag (videos always from Cloudinary CDN)
+  // Shortcode: renders <video> tag (local-first, Cloudinary fallback)
   eleventyConfig.addShortcode("cldvid", function(cloudPath, poster, transforms) {
-    var t = transforms || "f_auto,q_auto";
-    var src = CLOUD_BASE + "/video/upload/" + t + "/" + cloudPath;
+    // Resolve video source
+    var localVid = resolveLocalVideo(cloudPath);
+    var src;
+    if (localVid) {
+      src = '/' + localVid.replace(/^src\//, '');
+    } else {
+      var t = transforms || "f_auto,q_auto";
+      src = CLOUD_BASE + "/video/upload/" + t + "/" + cloudPath;
+    }
+    // Resolve poster image
     var posterAttr = '';
     if (poster) {
-      var localPoster = resolveLocal(poster);
+      var localPoster = resolveLocal(poster) || resolveLocalPoster(poster);
       if (localPoster) {
         posterAttr = ' poster="/' + localPoster.replace(/^src\//, '') + '"';
       } else {
@@ -150,6 +199,40 @@ module.exports = function(eleventyConfig) {
       }
     }
     return '<video' + posterAttr + ' autoplay loop muted playsinline><source src="' + src + '"></video>';
+  });
+
+  // ─── HTML transform: rewrite remaining Cloudinary URLs to local paths ──
+  // Catches {{ mediaBase }}/path and full Cloudinary URLs in rendered HTML.
+  // Only rewrites if the local file exists; otherwise leaves the Cloudinary URL.
+  var cloudinaryVideoRegex = /https:\/\/res\.cloudinary\.com\/ddcynsa30\/video\/upload\/(?:[a-zA-Z0-9_,.:]+\/)*((?:yoga-bible-DK|v\d+)\/.+?\.(mp4|mov|webm))/g;
+  var cloudinaryImageRegex = /https:\/\/res\.cloudinary\.com\/ddcynsa30\/image\/upload\/(?:[a-zA-Z0-9_,.:]+\/)*((?:yoga-bible-DK|v\d+)\/.+?)(?=["'\s)<]|$)/g;
+  var mediaBaseVideoRegex = /https:\/\/res\.cloudinary\.com\/ddcynsa30\/((?:yoga-bible-DK|v\d+)\/.+?\.(mp4|mov|webm))/g;
+
+  eleventyConfig.addTransform("localMedia", function(content) {
+    if (!this.page.outputPath || !this.page.outputPath.endsWith(".html")) return content;
+
+    // Rewrite Cloudinary video URLs to local
+    content = content.replace(cloudinaryVideoRegex, function(match, assetPath, ext) {
+      var localVid = resolveLocalVideo(assetPath.replace(/\.(mp4|mov|webm)$/, ''));
+      if (localVid) return '/' + localVid.replace(/^src\//, '');
+      return match;
+    });
+
+    // Rewrite direct mediaBase video references (without /video/upload/ prefix)
+    content = content.replace(mediaBaseVideoRegex, function(match, assetPath, ext) {
+      var localVid = resolveLocalVideo(assetPath.replace(/\.(mp4|mov|webm)$/, ''));
+      if (localVid) return '/' + localVid.replace(/^src\//, '');
+      return match;
+    });
+
+    // Rewrite Cloudinary image URLs to local (catches any missed by filters)
+    content = content.replace(cloudinaryImageRegex, function(match, assetPath) {
+      var localImg = resolveLocal(assetPath);
+      if (localImg) return '/' + localImg.replace(/^src\//, '');
+      return match;
+    });
+
+    return content;
   });
 
   // Pass through root files (favicons, etc.)
