@@ -19,9 +19,14 @@ function hasExtension(p) {
   return /\.(jpg|jpeg|png|webp|svg|gif|avif|mp4|mov|webm)$/i.test(p);
 }
 
+// ── Strip Cloudinary version prefix (v1771966816/) from paths ──
+function stripVersion(p) {
+  return p.replace(/^v\d+\//, '');
+}
+
 // ── Resolve CDN URL for images ──
 function resolveCdnImage(cloudPath, transforms) {
-  var resolved = cloudPath;
+  var resolved = stripVersion(cloudPath);
   if (!hasExtension(resolved) && BUNNY_MANIFEST[resolved]) {
     resolved = BUNNY_MANIFEST[resolved];
   }
@@ -32,7 +37,7 @@ function resolveCdnImage(cloudPath, transforms) {
 
 // ── Resolve CDN URL for videos ──
 function resolveCdnVideo(vidPath) {
-  var resolved = vidPath;
+  var resolved = stripVersion(vidPath);
   if (!hasExtension(resolved) && BUNNY_MANIFEST[resolved]) {
     resolved = BUNNY_MANIFEST[resolved];
   }
@@ -309,38 +314,42 @@ module.exports = function(eleventyConfig) {
   // Catches Bunny CDN image URLs that lack a file extension (broken after migration)
   var bunnyExtensionlessRegex = /https:\/\/yogabible\.b-cdn\.net\/((?:yoga-bible-DK|[\w-]+)\/[\w\/-]+?)(?=["'\s)?&#]|$)(?!\.\w{2,5})/g;
 
+  // Catches Bunny CDN URLs with Cloudinary version prefixes (v1234567890/)
+  var bunnyVersionRegex = /https:\/\/yogabible\.b-cdn\.net\/v\d+\//g;
+
   eleventyConfig.addTransform("localMedia", function(content) {
     if (!this.page.outputPath || !this.page.outputPath.endsWith(".html")) return content;
+
+    // Strip Cloudinary version prefixes from Bunny CDN URLs
+    // e.g. yogabible.b-cdn.net/v1771966816/Sample.png → yogabible.b-cdn.net/Sample.png
+    content = content.replace(bunnyVersionRegex, BUNNY_CDN + '/');
 
     // Rewrite Cloudinary video URLs → local or Bunny CDN
     content = content.replace(cloudinaryVideoRegex, function(match, assetPath, ext) {
       var localVid = resolveLocalVideo(assetPath.replace(/\.(mp4|mov|webm)$/, ''));
       if (localVid) return '/' + localVid.replace(/^src\//, '');
-      return BUNNY_CDN + '/' + assetPath;
+      return BUNNY_CDN + '/' + stripVersion(assetPath);
     });
 
     // Rewrite direct mediaBase video references
     content = content.replace(mediaBaseVideoRegex, function(match, assetPath, ext) {
       var localVid = resolveLocalVideo(assetPath.replace(/\.(mp4|mov|webm)$/, ''));
       if (localVid) return '/' + localVid.replace(/^src\//, '');
-      return BUNNY_CDN + '/' + assetPath;
+      return BUNNY_CDN + '/' + stripVersion(assetPath);
     });
 
-    // Rewrite Cloudinary image URLs → local or Bunny/Cloudinary CDN
+    // Rewrite Cloudinary image URLs → local or Bunny CDN
     content = content.replace(cloudinaryImageRegex, function(match, assetPath) {
       var localImg = resolveLocal(assetPath);
       if (localImg) return '/' + localImg.replace(/^src\//, '');
       return resolveCdnImage(assetPath);
     });
 
-    // Fix extensionless Bunny CDN URLs → use manifest or Cloudinary fallback
+    // Fix extensionless Bunny CDN URLs → use manifest
     content = content.replace(bunnyExtensionlessRegex, function(match, assetPath) {
-      // Skip if it already has an extension (video files caught earlier)
       if (hasExtension(assetPath)) return match;
-      // Try local first
       var localImg = resolveLocal(assetPath);
       if (localImg) return '/' + localImg.replace(/^src\//, '');
-      // Use manifest or fall back to Cloudinary
       return resolveCdnImage(assetPath);
     });
 
