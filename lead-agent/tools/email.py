@@ -29,6 +29,9 @@ ORANGE = '#f75c03'
 MEETING_LINK = 'https://yogabible.dk/?booking=1'
 ACCOMMODATION_LINK = 'https://yogabible.dk/accommodation'
 
+# CDN base URL for media assets (configurable for CDN migration)
+CLOUDINARY_BASE = os.getenv('CLOUDINARY_BASE_URL', 'https://res.cloudinary.com/ddcynsa30')
+
 SCHEDULE_LINKS = {
     '18-week': 'https://yogabible.dk/ytt-skema/?program=18w-mar-jun-2026',
     '4-week': 'https://yogabible.dk/ytt-skema/?program=4w-apr-2026',
@@ -36,9 +39,9 @@ SCHEDULE_LINKS = {
 }
 
 SCHEDULE_PDFS = {
-    '18-week': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz',
-    '4-week': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf',
-    '8-week': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j',
+    '18-week': CLOUDINARY_BASE + '/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz',
+    '4-week': CLOUDINARY_BASE + '/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf',
+    '8-week': CLOUDINARY_BASE + '/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j',
 }
 
 PROGRAM_LABELS = {

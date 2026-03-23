@@ -35,12 +35,14 @@ const API_VERSIONS = {
 };
 
 // Base URLs derived from versions
+// CLOUDINARY and CLOUDINARY_API are configurable via env vars for CDN migration
+const CLOUDINARY_CLOUD = process.env.CLOUDINARY_CLOUD_NAME || 'ddcynsa30';
 const API_BASES = {
   META_GRAPH_FB: `https://graph.facebook.com/${API_VERSIONS.META_GRAPH}`,
   META_GRAPH_IG: `https://graph.instagram.com/${API_VERSIONS.META_GRAPH}`,
   MINDBODY: `https://api.mindbodyonline.com/public/${API_VERSIONS.MINDBODY}`,
-  CLOUDINARY: `https://res.cloudinary.com/ddcynsa30`,
-  CLOUDINARY_API: `https://api.cloudinary.com/${API_VERSIONS.CLOUDINARY}/ddcynsa30`,
+  CLOUDINARY: process.env.CLOUDINARY_BASE_URL || `https://res.cloudinary.com/${CLOUDINARY_CLOUD}`,
+  CLOUDINARY_API: `https://api.cloudinary.com/${API_VERSIONS.CLOUDINARY}/${CLOUDINARY_CLOUD}`,
   GATEWAYAPI: 'https://gatewayapi.eu/rest/mtsms',
   ECONOMIC: 'https://restapi.e-conomic.com',
   MUX: 'https://api.mux.com',

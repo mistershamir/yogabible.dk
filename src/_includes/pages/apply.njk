@@ -127,9 +127,9 @@
         </div>
 
         <!-- Image frame -->
-        <figure class="yb-apply-intro__heroMedia" style="--yb-hero-img:url('https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/mentorship/beth-02.jpg')" aria-label="Yoga Bible">
+        <figure class="yb-apply-intro__heroMedia" style="--yb-hero-img:url('{{ mediaBase }}/yoga-bible-DK/mentorship/beth-02.jpg')" aria-label="Yoga Bible">
           <img
-            src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/mentorship/beth-02.jpg"
+            src="{{ mediaBase }}/yoga-bible-DK/mentorship/beth-02.jpg"
             alt="{{ t.intro_img_alt }}"
             loading="eager"
             decoding="async"
@@ -751,7 +751,7 @@
   inset: 0;
   background:
     linear-gradient(180deg, rgba(22,22,22,0.85) 0%, rgba(22,22,22,0.7) 50%, rgba(22,22,22,0.92) 100%),
-    url('https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/mentorship/beth-02.jpg') center/cover no-repeat;
+    url('{{ mediaBase }}/yoga-bible-DK/mentorship/beth-02.jpg') center/cover no-repeat;
   z-index: 0;
 }
 
