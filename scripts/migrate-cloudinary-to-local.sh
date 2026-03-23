@@ -205,7 +205,7 @@ echo "$ALL_IMAGES" | while IFS='|' read -r pid fmt size w h; do
   HTTP_CODE=$(curl -s -o "$LOCAL_PATH" -w "%{http_code}" "$DOWNLOAD_URL")
 
   if [ "$HTTP_CODE" = "200" ]; then
-    FILE_SIZE=$(stat -f%z "$LOCAL_PATH" 2>/dev/null || stat --printf="%s" "$LOCAL_PATH" 2>/dev/null)
+    FILE_SIZE=$(stat -f%z "$LOCAL_PATH" 2>/dev/null || stat -c%s "$LOCAL_PATH" 2>/dev/null)
     mb=$(echo "scale=2; $FILE_SIZE / 1048576" | bc)
     echo "  ✓ ${mb}MB | $LOCAL_REL.$EXT"
     DOWNLOADED=$((DOWNLOADED + 1))
@@ -229,6 +229,6 @@ echo "  1. Run: bash scripts/migrate-cloudinary-to-local.sh --audit"
 echo "     to check for oversized files that need manual optimization"
 echo "  2. Run: npx @11ty/eleventy"
 echo "     to verify the site builds with local images"
-echo "  3. Commit and deploy"
+echo "  3. Commit and deploy — Netlify CDN serves the optimized images"
 echo ""
 echo "Videos remain on Cloudinary CDN (no change needed)."
