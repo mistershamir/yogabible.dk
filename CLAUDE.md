@@ -313,7 +313,7 @@ All serverless functions live in `netlify/functions/`. Shared code in `netlify/f
 | `live-admin` | Live stream schedule CRUD + MindBody import (admin) |
 | `knowledge-admin` | Agent knowledge base CRUD — 3 brands (admin) |
 | `email-templates` | Email template preview/management (admin) |
-| `cloudinary-browser` | Cloudinary folder/asset browser (admin) |
+| `bunny-browser` | Bunny Storage folder/asset browser (admin) |
 | **Other** | |
 | `catalog` | Public course catalog endpoint |
 | `catalog-seed` | Seed catalog with initial data |
@@ -594,22 +594,6 @@ Bidirectional sync between local (iCloud) repo and GitHub. Runs every 5 min via 
 - Lock file prevents concurrent syncs
 - Retry with exponential backoff for network failures
 - Config: `scripts/com.yogabible.git-sync.plist`
-
-### Cloudinary Asset Optimizer (`scripts/cloudinary-optimize-assets.sh`)
-
-Finds oversized images (>1MB) on Cloudinary and re-uploads optimized versions.
-
-- Converts to JPG (keeps PNG for brand assets)
-- Applies quality=85, scales to max 2400px
-- Reports savings percentage per asset
-
-### Cloudinary Storage Audit (`scripts/cloudinary-storage-audit.sh`)
-
-Detailed audit: largest images/videos, unoptimized formats, storage per folder.
-
-### Cloudinary Folder Creator (`scripts/cloudinary-create-missing-folders.sh`)
-
-Creates the full Cloudinary folder structure (16 folders).
 
 ---
 

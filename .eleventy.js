@@ -19,7 +19,7 @@ function hasExtension(p) {
   return /\.(jpg|jpeg|png|webp|svg|gif|avif|mp4|mov|webm)$/i.test(p);
 }
 
-// ── Strip Cloudinary version prefix (v1771966816/) from paths ──
+// ── Strip legacy version prefix (v1771966816/) from paths ──
 function stripVersion(p) {
   return p.replace(/^v\d+\//, '');
 }
@@ -149,8 +149,8 @@ function resolveLocalPoster(cloudPath) {
   return null;
 }
 
-// ── Convert Cloudinary transform strings to Bunny Optimizer query params ──
-// e.g. "w_800,c_fill,q_auto,f_auto" → "width=800"
+// ── Convert legacy transform strings to Bunny Optimizer query params ──
+// e.g. "w_800,c_fill" → "width=800"
 // Bunny Optimizer handles format (WebP/AVIF) and quality automatically.
 function cloudinaryTransformsToBunny(transforms) {
   if (!transforms) return '';
@@ -179,19 +179,19 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/js");
   eleventyConfig.addPassthroughCopy("src/assets");
 
-  // ─── Image helpers (local-first, Cloudinary fallback) ─────────────
+  // ─── Image helpers (local-first, Bunny CDN fallback) ─────────────
   //
-  // Usage unchanged in templates:
+  // Usage in templates:
   //   {{ "yoga-bible-DK/homepage/hero" | cloudimg }}
-  //   {{ "yoga-bible-DK/homepage/hero" | cloudimg("w_800,h_600,c_fill") }}
-  //   {% cldimg "yoga-bible-DK/homepage/hero", "Alt text", "w_800,c_fill", "800", "600" %}
-  //   {% cldvid "yoga-bible-DK/homepage/hero-loop", "poster-path", "w_1280" %}
+  //   {{ "yoga-bible-DK/homepage/hero" | cloudimg("w_800,h_600") }}
+  //   {% cldimg "yoga-bible-DK/homepage/hero", "Alt text", "w_800", "800", "600" %}
+  //   {% cldvid "yoga-bible-DK/homepage/hero-loop", "poster-path", "" %}
   //
   // Images served from local /assets/images/ (eleventy-img generates WebP+JPEG).
   // Videos served from local /assets/videos/ when available.
-  // Falls back to Cloudinary CDN for assets not yet downloaded locally.
+  // Falls back to Bunny CDN.
 
-  // Filter: returns optimized image URL (local-first, Bunny/Cloudinary fallback)
+  // Filter: returns optimized image URL (local-first, Bunny CDN fallback)
   eleventyConfig.addFilter("cloudimg", function(cloudPath, transforms) {
     if (!cloudPath) return '';
     var local = resolveLocal(cloudPath);
@@ -201,7 +201,7 @@ module.exports = function(eleventyConfig) {
     return resolveCdnImage(cloudPath, transforms);
   });
 
-  // Filter: returns video URL (local-first, Bunny/Cloudinary fallback)
+  // Filter: returns video URL (local-first, Bunny CDN fallback)
   eleventyConfig.addFilter("cloudvid", function(vidPath, transforms) {
     if (!vidPath) return '';
     var local = resolveLocalVideo(vidPath);
@@ -306,15 +306,13 @@ module.exports = function(eleventyConfig) {
   });
 
   // ─── HTML transform: fix CDN URLs ──────────────────────────────────────
-  // 1. Rewrite legacy Cloudinary URLs → local or Bunny/Cloudinary CDN
-  // 2. Fix extensionless Bunny CDN URLs → use manifest or Cloudinary fallback
+  // 1. Rewrite any stale Cloudinary URLs → Bunny CDN
+  // 2. Fix extensionless Bunny CDN URLs → use manifest
+  // 3. Strip legacy version prefixes (v1234567890/) from Bunny URLs
   var cloudinaryVideoRegex = /https:\/\/res\.cloudinary\.com\/ddcynsa30\/video\/upload\/(?:[a-zA-Z0-9_,.:]+\/)*((?:yoga-bible-DK|v\d+)\/.+?\.(mp4|mov|webm))/g;
   var cloudinaryImageRegex = /https:\/\/res\.cloudinary\.com\/ddcynsa30\/image\/upload\/(?:[a-zA-Z0-9_,.:]+\/)*((?:yoga-bible-DK|v\d+)\/.+?)(?=["'\s)<]|$)/g;
   var mediaBaseVideoRegex = /https:\/\/res\.cloudinary\.com\/ddcynsa30\/((?:yoga-bible-DK|v\d+)\/.+?\.(mp4|mov|webm))/g;
-  // Catches Bunny CDN image URLs that lack a file extension (broken after migration)
   var bunnyExtensionlessRegex = /https:\/\/yogabible\.b-cdn\.net\/((?:yoga-bible-DK|[\w-]+)\/[\w\/-]+?)(?=["'\s)?&#]|$)(?!\.\w{2,5})/g;
-
-  // Catches Bunny CDN URLs with Cloudinary version prefixes (v1234567890/)
   var bunnyVersionRegex = /https:\/\/yogabible\.b-cdn\.net\/v\d+\//g;
 
   eleventyConfig.addTransform("localMedia", function(content) {
