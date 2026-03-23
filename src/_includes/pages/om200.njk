@@ -390,7 +390,7 @@
     <div class="om2-cred__media">
       <div class="om2-cred__image">
         <img
-          src="https://res.cloudinary.com/ddcynsa30/image/upload/v1771966816/Sample_Certificate_jzjtfx.png"
+          src="{{ mediaBase }}/v1771966816/Sample_Certificate_jzjtfx.png"
           alt="Yoga Alliance RYS 200 Certificate Sample"
           loading="lazy"
           decoding="async"
@@ -648,11 +648,11 @@
 
         {# Video preview — moved into left column #}
         <figure class="om2-online__media om2-online__media--inline">
-          <div class="om2-online__video-card" data-om2-online-video data-src="https://res.cloudinary.com/ddcynsa30/video/upload/w_1280,q_auto,f_auto/yoga-bible-DK/courses/workshop-previews.mp4">
+          <div class="om2-online__video-card" data-om2-online-video data-src="{{ mediaBase }}/yoga-bible-DK/courses/workshop-previews.mp4">
             <video
               class="om2-online__thumb-video"
               muted playsinline preload="metadata"
-              src="https://res.cloudinary.com/ddcynsa30/video/upload/w_1280,q_auto,f_auto/yoga-bible-DK/courses/workshop-previews.mp4#t=3">
+              src="{{ mediaBase }}/yoga-bible-DK/courses/workshop-previews.mp4#t=3">
             </video>
             <div class="om2-online__video-overlay"></div>
             <span class="om2-online__video-label">{{ t.online_video_label }}</span>
@@ -755,12 +755,12 @@
       <div class="om2-location__slider" data-om2-loc-slider>
         <div class="om2-location__slider-track" data-om2-loc-track>
           {% set studio_imgs = [
-            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736516/Studio_Pictures-8_maazde.jpg",
-            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736512/Studio_Pictures-1_usfq4w.jpg",
-            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736515/Studio_Pictures-5_daelan.jpg",
-            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736509/Studio_Pictures-9_yhwn7h.jpg",
-            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736511/Studio_Pictures-4_tnsrfh.jpg",
-            "https://res.cloudinary.com/ddcynsa30/image/upload/w_1000,q_auto,f_auto/v1772736508/Studio_Pictures-7_v4to94.jpg"
+            "{{ mediaBase }}/v1772736516/Studio_Pictures-8_maazde.jpg",
+            "{{ mediaBase }}/v1772736512/Studio_Pictures-1_usfq4w.jpg",
+            "{{ mediaBase }}/v1772736515/Studio_Pictures-5_daelan.jpg",
+            "{{ mediaBase }}/v1772736509/Studio_Pictures-9_yhwn7h.jpg",
+            "{{ mediaBase }}/v1772736511/Studio_Pictures-4_tnsrfh.jpg",
+            "{{ mediaBase }}/v1772736508/Studio_Pictures-7_v4to94.jpg"
           ] %}
           {% set studio_alts = ["Yoga studio main room", "Studio entrance", "Practice space", "Hot room", "Studio interior", "Changing area"] %}
           {% for img in studio_imgs %}
@@ -1000,22 +1000,22 @@
         <figure class="om2-ya__badge-card">
           <div class="om2-ya__hero-badge">
             <div class="om2-ya__tile om2-ya__tile--dark om2-ya__tile--hero" data-label="Yoga Alliance">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/ya-logo-white.webp"
+              <img src="{{ mediaBase }}/yoga-bible-DK/brand/ya-logo-white.webp"
                    alt="Yoga Alliance logo" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
           </div>
           <div class="om2-ya__badge-grid" role="list">
             <div class="om2-ya__tile" role="listitem" data-label="E-RYT 500">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/eryt500.png" alt="E-RYT 500 badge" loading="lazy" decoding="async"
+              <img src="{{ mediaBase }}/yoga-bible-DK/brand/eryt500.png" alt="E-RYT 500 badge" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
             <div class="om2-ya__tile" role="listitem" data-label="RYS 200">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/rys200.png" alt="RYS 200 badge" loading="lazy" decoding="async"
+              <img src="{{ mediaBase }}/yoga-bible-DK/brand/rys200.png" alt="RYS 200 badge" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
             <div class="om2-ya__tile" role="listitem" data-label="YACEP">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/yacep.png" alt="YACEP badge" loading="lazy" decoding="async"
+              <img src="{{ mediaBase }}/yoga-bible-DK/brand/yacep.png" alt="YACEP badge" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
           </div>

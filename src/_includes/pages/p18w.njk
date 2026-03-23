@@ -38,7 +38,7 @@
 <section class="yb-hero">
   <div class="yb-hero__bg">
     <video autoplay muted loop playsinline preload="metadata">
-      <source src="https://res.cloudinary.com/ddcynsa30/video/upload/q_auto/v1773250445/18_weeks_Hero_Compressed_ixxiz6.mp4" type="video/mp4">
+      <source src="{{ mediaBase }}/v1773250445/18_weeks_Hero_Compressed_ixxiz6.mp4" type="video/mp4">
     </video>
   </div>
   <div class="yb-hero__glow"></div>
@@ -367,7 +367,7 @@
           <div class="p4w-certval__image-wrapper">
             {# CLOUDINARY: Sample_Certificate_jzjtfx — optimized for display, auto-quality, auto-format #}
             <img
-              src="https://res.cloudinary.com/ddcynsa30/image/upload/w_800,q_auto,f_auto/v1771966816/Sample_Certificate_jzjtfx.png"
+              src="{{ mediaBase }}/v1771966816/Sample_Certificate_jzjtfx.png"
               alt="{{ t.certval_image_alt }}"
               loading="lazy"
             >
@@ -481,8 +481,8 @@
     <figure class="yb-tracks__video">
       <div class="yb-tracks__video-container" id="tracksVideoWrap">
         <video id="tracksVideo" preload="metadata" playsinline
-               poster="https://res.cloudinary.com/ddcynsa30/video/upload/so_0,w_1280,f_jpg,q_auto/yoga-bible-DK/programs/testimonial-weekday.jpg">
-          <source src="https://res.cloudinary.com/ddcynsa30/video/upload/f_auto,q_auto/yoga-bible-DK/programs/testimonial-weekday.mp4" type="video/mp4">
+               poster="{{ mediaBase }}/yoga-bible-DK/programs/testimonial-weekday.jpg">
+          <source src="{{ mediaBase }}/yoga-bible-DK/programs/testimonial-weekday.mp4" type="video/mp4">
         </video>
         <div class="yb-tracks__video-overlay" id="tracksVideoOverlay">
           <button class="yb-tracks__video-btn" id="tracksVideoBtn" aria-label="{{ t.tracks_video_play_aria }}">
@@ -789,25 +789,25 @@
         <div class="yb-visit__viewport">
           <div class="yb-visit__track" id="visit-track">
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-hot-yoga-01.jpg" alt="{{ t.visit_img1_alt }}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-hot-yoga-01.jpg" alt="{{ t.visit_img1_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-training-space.jpg" alt="{{ t.visit_img2_alt }}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-training-space.jpg" alt="{{ t.visit_img2_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-torvegade.jpg" alt="{{ t.visit_img3_alt }}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-torvegade.jpg" alt="{{ t.visit_img3_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-shower.jpg" alt="{{ t.visit_img4_alt }}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-shower.jpg" alt="{{ t.visit_img4_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/christianshavn-location.jpg" alt="{{ t.visit_img5_alt }}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/copenhagen/christianshavn-location.jpg" alt="{{ t.visit_img5_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/metro-station-02.jpeg" alt="{{ t.visit_img6_alt }}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/copenhagen/metro-station-02.jpeg" alt="{{ t.visit_img6_alt }}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/metro-station-01.jpeg" alt="{{ t.visit_img7_alt }}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/copenhagen/metro-station-01.jpeg" alt="{{ t.visit_img7_alt }}" loading="lazy">
             </figure>
           </div>
         </div>
@@ -923,7 +923,7 @@
       <article class="yb-more-card">
         <figure class="yb-more-card__image">
           <img id="ybCourseImg"
-               src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/inversions-course.jpg"
+               src="{{ mediaBase }}/yoga-bible-DK/courses/inversions-course.jpg"
                alt="{{ t.course_inv_alt }}"
                loading="lazy">
           <span class="yb-more-card__badge yb-more-card__badge--soft">{{ t.more_courses_badge }}</span>
@@ -951,7 +951,7 @@
       <article class="yb-more-card">
         <figure class="yb-more-card__image">
           <img id="ybProgramImg"
-               src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/programs/ytt-200h-education.png"
+               src="{{ mediaBase }}/yoga-bible-DK/programs/ytt-200h-education.png"
                alt="{{ t.prog4w_alt }}"
                loading="lazy">
           <span id="ybProgramBadge" class="yb-more-card__badge yb-more-card__badge--primary">{{ t.prog4w_badge }}</span>
@@ -1292,21 +1292,21 @@
   /* ── yb-more: Course pills ── */
   var COURSE_DATA = {
     inv: {
-      image: 'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/inversions-course.jpg',
+      image: '{{ mediaBase }}/yoga-bible-DK/courses/inversions-course.jpg',
       blurb: {{ t.course_inv_blurb | dump | safe }},
       href: '{% if lang == "en" %}/en/inversions{% else %}/inversions{% endif %}',
       label: {{ t.course_inv_label | dump | safe }},
       alt: {{ t.course_inv_alt | dump | safe }}
     },
     spl: {
-      image: 'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/splits-course.jpg',
+      image: '{{ mediaBase }}/yoga-bible-DK/courses/splits-course.jpg',
       blurb: {{ t.course_spl_blurb | dump | safe }},
       href: '{% if lang == "en" %}/en/splits{% else %}/splits{% endif %}',
       label: {{ t.course_spl_label | dump | safe }},
       alt: {{ t.course_spl_alt | dump | safe }}
     },
     bb: {
-      image: 'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/backbend-training-pro.jpg',
+      image: '{{ mediaBase }}/yoga-bible-DK/courses/backbend-training-pro.jpg',
       blurb: {{ t.course_bb_blurb | dump | safe }},
       href: '{% if lang == "en" %}/en/backbends{% else %}/backbends{% endif %}',
       label: {{ t.course_bb_label | dump | safe }},

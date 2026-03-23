@@ -22,5 +22,6 @@
   "cloudinary": {
     "cloudName": "ddcynsa30",
     "baseUrl": "https://res.cloudinary.com/ddcynsa30"
-  }
+  },
+  "mediaBase": "https://res.cloudinary.com/ddcynsa30"
 }

@@ -32,7 +32,7 @@
     <div class="yb-kontakt-split">
       <!-- Left: Studio Photo -->
       <figure class="yb-kontakt-photo yb-fade-in">
-        <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/dsc-8528.jpg"
+        <img src="{{ mediaBase }}/yoga-bible-DK/studio/dsc-8528.jpg"
              alt="Yoga Bible studio, Christianshavn"
              loading="lazy" decoding="async"
              width="600" height="800">
@@ -85,8 +85,8 @@
       <div class="yb-kontakt-studio-media">
         <div class="yb-kontakt-studio-video">
           <video autoplay muted loop playsinline preload="metadata"
-                 poster="{{ t.studio_video_poster }}">
-            <source src="{{ t.studio_video_src }}" type="video/mp4">
+                 poster="{{ t.studio_video_poster | cdnUrl }}">
+            <source src="{{ t.studio_video_src | cdnUrl }}" type="video/mp4">
           </video>
         </div>
       </div>
@@ -139,7 +139,7 @@
           <img src="/assets/images/copenhagen/christianshavn-canal.jpg" alt="{{ t.studio_img3_alt }}" loading="lazy" decoding="async">
         </div>
         <div class="yb-kontakt-gallery__slide">
-          <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/dsc-8528.jpg" alt="{{ t.studio_img4_alt }}" loading="lazy" decoding="async">
+          <img src="{{ mediaBase }}/yoga-bible-DK/studio/dsc-8528.jpg" alt="{{ t.studio_img4_alt }}" loading="lazy" decoding="async">
         </div>
         <div class="yb-kontakt-gallery__slide">
           <img src="/assets/images/copenhagen/copenhagen-hero.jpg" alt="{{ t.studio_img5_alt }}" loading="lazy" decoding="async">

@@ -6,6 +6,13 @@
  * GET /.netlify/functions/cloudinary-browser?action=folders&path=yoga-bible-DK/materials
  * GET /.netlify/functions/cloudinary-browser?action=resources&path=yoga-bible-DK/materials/shared
  * GET /.netlify/functions/cloudinary-browser?action=sign_upload&folder=yoga-bible-DK/materials/shared
+ *
+ * NOTE: This function uses the Cloudinary Admin API directly for folder browsing,
+ * resource listing, and upload signing. When migrating away from Cloudinary to
+ * another CDN/storage provider (e.g. R2), this entire function will need to be
+ * rewritten to use the new provider's API. The secure_url values returned to
+ * the client will also change format. Keep this function operational until
+ * the full migration is complete and all document references have been updated.
  */
 
 const crypto = require('crypto');

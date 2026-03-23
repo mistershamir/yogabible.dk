@@ -35,7 +35,7 @@
   {% if t.hero_video_src %}
   <div class="yb-hero__bg">
     <video autoplay muted loop playsinline preload="metadata">
-      <source src="{{ t.hero_video_src }}" type="video/mp4">
+      <source src="{{ t.hero_video_src | cdnUrl }}" type="video/mp4">
     </video>
   </div>
   {% endif %}
@@ -119,7 +119,7 @@
 
     {# RIGHT: Media #}
     <figure class="ybc-details__media" aria-hidden="true">
-      <img src="{{ t.s1_img_src }}" alt="{{ t.s1_img_alt }}" loading="eager" decoding="async">
+      <img src="{{ t.s1_img_src | cdnUrl }}" alt="{{ t.s1_img_alt }}" loading="eager" decoding="async">
       <span class="ybc-frame"></span>
     </figure>
   </div>
@@ -182,11 +182,11 @@
       <div class="ybc-journey__media" aria-label="{{ t.s2_video_aria }}">
         <div class="ybc-journey__video-wrap">
           <button class="ybc-video-poster" aria-label="{{ t.s2_video_play }}">
-            <img src="{{ t.s2_video_poster }}" alt="" loading="eager" decoding="async">
+            <img src="{{ t.s2_video_poster | cdnUrl }}" alt="" loading="eager" decoding="async">
           </button>
           <video class="ybc-journey__video" playsinline webkit-playsinline preload="auto" loop
-                 poster="{{ t.s2_video_poster }}">
-            <source src="{{ t.s2_video_src }}" type="video/mp4">
+                 poster="{{ t.s2_video_poster | cdnUrl }}">
+            <source src="{{ t.s2_video_src | cdnUrl }}" type="video/mp4">
             {{ t.s2_video_nosupport }}
           </video>
           <button class="ybc-video-toggle" type="button" aria-label="{{ t.s2_video_toggle }}" aria-pressed="false">
@@ -221,7 +221,7 @@
     <figure class="ybc-quote__media" aria-hidden="true">
       <div class="ybc-quote__clip">
         <video class="ybc-quote__video" playsinline webkit-playsinline muted loop preload="metadata"
-               data-src="{{ t.s3_video_src }}"></video>
+               data-src="{{ t.s3_video_src | cdnUrl }}"></video>
         <span class="ybc-frame"></span>
       </div>
     </figure>
@@ -237,7 +237,7 @@
       {# LEFT: Desktop image #}
       <div class="ybc-teacher__col ybc-teacher__col--media">
         <figure class="ybc-teacher__media--desktop" aria-label="{{ t.s4_portrait_aria }}">
-          <img src="{{ t.s4_img_src }}" alt="{{ t.s4_img_alt }}">
+          <img src="{{ t.s4_img_src | cdnUrl }}" alt="{{ t.s4_img_alt }}">
         </figure>
       </div>
 
@@ -251,7 +251,7 @@
           {# Mobile image #}
           <div class="ybc-teacher__media--mobile">
             <figure>
-              <img src="{{ t.s4_img_src }}" alt="{{ t.s4_img_alt }}">
+              <img src="{{ t.s4_img_src | cdnUrl }}" alt="{{ t.s4_img_alt }}">
             </figure>
           </div>
 
@@ -333,7 +333,7 @@
     <div class="ybc-what__grid" aria-label="{{ t.s5_grid_aria }}">
       {% for i in range(1, 7) %}
       <figure class="ybc-tile">
-        <img src="{{ t['s5_img' + i + '_src'] }}" alt="{{ t['s5_img' + i + '_alt'] }}" loading="lazy">
+        <img src="{{ t['s5_img' + i + '_src'] | cdnUrl }}" alt="{{ t['s5_img' + i + '_alt'] }}" loading="lazy">
       </figure>
       {% endfor %}
     </div>
@@ -355,7 +355,7 @@
         {% if cid != courseId %}
         <a class="ybc-cross__card" href="{{ lp }}/{{ cid }}">
           <figure class="ybc-cross__card-img">
-            <img src="{{ tc['cross_' + cid + '_img'] }}" alt="{{ tc['cross_' + cid + '_alt'] }}" loading="lazy">
+            <img src="{{ tc['cross_' + cid + '_img'] | cdnUrl }}" alt="{{ tc['cross_' + cid + '_alt'] }}" loading="lazy">
           </figure>
           <div class="ybc-cross__card-body">
             <h3>{{ tc['cross_' + cid + '_title'] }}</h3>
