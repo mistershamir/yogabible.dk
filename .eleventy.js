@@ -4,8 +4,8 @@ var Image = require('@11ty/eleventy-img');
 var path = require('path');
 var fs = require('fs');
 
-var CLOUD_NAME = "ddcynsa30";
-var CLOUD_BASE = "https://res.cloudinary.com/" + CLOUD_NAME;
+// ── CDN: Bunny CDN (yogabible.b-cdn.net) ──────────────────────────────────
+var BUNNY_CDN = "https://yogabible.b-cdn.net";
 var IMG_SRC_DIR = "src/assets/images";
 var VID_SRC_DIR = "src/assets/videos";
 
@@ -52,12 +52,22 @@ function resolveLocalPoster(cloudPath) {
   return null;
 }
 
+// ── Convert Cloudinary transform strings to Bunny Optimizer query params ──
+// e.g. "w_800,c_fill,q_auto,f_auto" → "width=800"
+// Bunny Optimizer handles format (WebP/AVIF) and quality automatically.
+function cloudinaryTransformsToBunny(transforms) {
+  if (!transforms) return '';
+  var params = [];
+  var wMatch = transforms.match(/w_(\d+)/);
+  var hMatch = transforms.match(/h_(\d+)/);
+  if (wMatch) params.push('width=' + wMatch[1]);
+  if (hMatch) params.push('height=' + hMatch[1]);
+  return params.join('&');
+}
+
 module.exports = function(eleventyConfig) {
-  // ── Global data: Cloudinary base URL (fallback for not-yet-downloaded assets) ──
-  // Once all assets are downloaded locally, this is only used as a build-time
-  // fallback. The localMedia transform rewrites any remaining Cloudinary URLs
-  // to local paths when the files exist.
-  eleventyConfig.addGlobalData("mediaBase", CLOUD_BASE);
+  // ── Global data: Bunny CDN base URL ──
+  eleventyConfig.addGlobalData("mediaBase", BUNNY_CDN);
 
   // Passthrough filter (used in some templates for URL strings)
   eleventyConfig.addFilter("cdnUrl", function(val) { return val || ''; });
@@ -79,19 +89,20 @@ module.exports = function(eleventyConfig) {
   // Videos served from local /assets/videos/ when available.
   // Falls back to Cloudinary CDN for assets not yet downloaded locally.
 
-  // Filter: returns optimized image URL (local-first, Cloudinary fallback)
+  // Filter: returns optimized image URL (local-first, Bunny CDN fallback)
   eleventyConfig.addFilter("cloudimg", function(cloudPath, transforms) {
     if (!cloudPath) return '';
     var local = resolveLocal(cloudPath);
     if (local) {
       return '/' + local.replace(/^src\//, '');
     }
-    // Fallback to Cloudinary CDN for images not yet downloaded locally
-    var t = transforms || "f_auto,q_auto";
-    return CLOUD_BASE + "/image/upload/" + t + "/" + cloudPath;
+    // Fallback to Bunny CDN — Optimizer auto-serves WebP/AVIF
+    var bunnyUrl = BUNNY_CDN + "/" + cloudPath;
+    var params = cloudinaryTransformsToBunny(transforms);
+    return params ? bunnyUrl + "?" + params : bunnyUrl;
   });
 
-  // Filter: returns video URL (local-first, Cloudinary fallback)
+  // Filter: returns video URL (local-first, Bunny CDN fallback)
   eleventyConfig.addFilter("cloudvid", function(vidPath, transforms) {
     if (!vidPath) return '';
     var local = resolveLocalVideo(vidPath);
@@ -103,9 +114,8 @@ module.exports = function(eleventyConfig) {
       var poster = resolveLocalPoster(vidPath);
       if (poster) return '/' + poster.replace(/^src\//, '');
     }
-    // Fallback to Cloudinary for videos not yet downloaded
-    var t = transforms || "f_auto,q_auto";
-    return CLOUD_BASE + "/video/upload/" + t + "/" + vidPath;
+    // Fallback to Bunny CDN
+    return BUNNY_CDN + "/" + vidPath;
   });
 
   // Shortcode: renders responsive <picture> tag via eleventy-img (local-first)
@@ -167,17 +177,17 @@ module.exports = function(eleventyConfig) {
       }
     }
 
-    // ── Fallback: Cloudinary CDN (image not yet downloaded locally) ──
-    var t = transforms || "f_auto,q_auto";
-    var src = CLOUD_BASE + "/image/upload/" + t + "/" + cloudPath;
-    var srcset1x = CLOUD_BASE + "/image/upload/" + t + ",dpr_1.0/" + cloudPath;
-    var srcset2x = CLOUD_BASE + "/image/upload/" + t + ",dpr_2.0/" + cloudPath;
+    // ── Fallback: Bunny CDN (image not yet downloaded locally) ──
+    var bunnyUrl = BUNNY_CDN + "/" + cloudPath;
+    var params = cloudinaryTransformsToBunny(transforms);
+    var src = params ? bunnyUrl + "?" + params : bunnyUrl;
+    // Bunny Optimizer auto-serves WebP/AVIF, so no need for srcset format switching
     var wAttr = width ? ' width="' + width + '"' : '';
     var hAttr = height ? ' height="' + height + '"' : '';
-    return '<img src="' + src + '" srcset="' + srcset1x + ' 1x, ' + srcset2x + ' 2x" alt="' + (alt || '') + '"' + wAttr + hAttr + ' loading="lazy" decoding="async">';
+    return '<img src="' + src + '" alt="' + (alt || '') + '"' + wAttr + hAttr + ' loading="lazy" decoding="async">';
   });
 
-  // Shortcode: renders <video> tag (local-first, Cloudinary fallback)
+  // Shortcode: renders <video> tag (local-first, Bunny CDN fallback)
   eleventyConfig.addShortcode("cldvid", function(cloudPath, poster, transforms) {
     // Resolve video source
     var localVid = resolveLocalVideo(cloudPath);
@@ -185,8 +195,7 @@ module.exports = function(eleventyConfig) {
     if (localVid) {
       src = '/' + localVid.replace(/^src\//, '');
     } else {
-      var t = transforms || "f_auto,q_auto";
-      src = CLOUD_BASE + "/video/upload/" + t + "/" + cloudPath;
+      src = BUNNY_CDN + "/" + cloudPath;
     }
     // Resolve poster image
     var posterAttr = '';
@@ -195,15 +204,15 @@ module.exports = function(eleventyConfig) {
       if (localPoster) {
         posterAttr = ' poster="/' + localPoster.replace(/^src\//, '') + '"';
       } else {
-        posterAttr = ' poster="' + CLOUD_BASE + '/image/upload/f_auto,q_auto/' + poster + '"';
+        posterAttr = ' poster="' + BUNNY_CDN + '/' + poster + '"';
       }
     }
     return '<video' + posterAttr + ' autoplay loop muted playsinline><source src="' + src + '"></video>';
   });
 
-  // ─── HTML transform: rewrite remaining Cloudinary URLs to local paths ──
-  // Catches {{ mediaBase }}/path and full Cloudinary URLs in rendered HTML.
-  // Only rewrites if the local file exists; otherwise leaves the Cloudinary URL.
+  // ─── HTML transform: rewrite any remaining Cloudinary URLs to Bunny CDN ──
+  // Catches legacy Cloudinary URLs still in i18n data or hardcoded references
+  // and rewrites them to Bunny CDN URLs (or local paths if available).
   var cloudinaryVideoRegex = /https:\/\/res\.cloudinary\.com\/ddcynsa30\/video\/upload\/(?:[a-zA-Z0-9_,.:]+\/)*((?:yoga-bible-DK|v\d+)\/.+?\.(mp4|mov|webm))/g;
   var cloudinaryImageRegex = /https:\/\/res\.cloudinary\.com\/ddcynsa30\/image\/upload\/(?:[a-zA-Z0-9_,.:]+\/)*((?:yoga-bible-DK|v\d+)\/.+?)(?=["'\s)<]|$)/g;
   var mediaBaseVideoRegex = /https:\/\/res\.cloudinary\.com\/ddcynsa30\/((?:yoga-bible-DK|v\d+)\/.+?\.(mp4|mov|webm))/g;
@@ -211,25 +220,25 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addTransform("localMedia", function(content) {
     if (!this.page.outputPath || !this.page.outputPath.endsWith(".html")) return content;
 
-    // Rewrite Cloudinary video URLs to local
+    // Rewrite Cloudinary video URLs → local or Bunny CDN
     content = content.replace(cloudinaryVideoRegex, function(match, assetPath, ext) {
       var localVid = resolveLocalVideo(assetPath.replace(/\.(mp4|mov|webm)$/, ''));
       if (localVid) return '/' + localVid.replace(/^src\//, '');
-      return match;
+      return BUNNY_CDN + '/' + assetPath;
     });
 
-    // Rewrite direct mediaBase video references (without /video/upload/ prefix)
+    // Rewrite direct mediaBase video references
     content = content.replace(mediaBaseVideoRegex, function(match, assetPath, ext) {
       var localVid = resolveLocalVideo(assetPath.replace(/\.(mp4|mov|webm)$/, ''));
       if (localVid) return '/' + localVid.replace(/^src\//, '');
-      return match;
+      return BUNNY_CDN + '/' + assetPath;
     });
 
-    // Rewrite Cloudinary image URLs to local (catches any missed by filters)
+    // Rewrite Cloudinary image URLs → local or Bunny CDN
     content = content.replace(cloudinaryImageRegex, function(match, assetPath) {
       var localImg = resolveLocal(assetPath);
       if (localImg) return '/' + localImg.replace(/^src\//, '');
-      return match;
+      return BUNNY_CDN + '/' + assetPath;
     });
 
     return content;

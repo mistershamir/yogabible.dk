@@ -119,26 +119,24 @@ const YTT_PROGRAM_TYPES = {
   '30h': { keywords: ['30 hour', '30h', '30 timer', '30-hour'], label: '30-Hour Module', shortLabel: '30H' }
 };
 
-// Schedule PDFs — hosted on Cloudinary (configurable via CLOUDINARY_BASE_URL env var)
-// Folder: yogabible/schedules/2026/
-// Upload PDFs and paste the Cloudinary URLs here
-const CLOUDINARY_BASE = process.env.CLOUDINARY_BASE_URL || 'https://res.cloudinary.com/ddcynsa30';
+// Schedule PDFs — hosted on Bunny CDN
+const CDN_BASE = process.env.CDN_BASE_URL || 'https://yogabible.b-cdn.net';
 
 const SCHEDULE_PDFS = {
   '18-week': {
-    'Marts-Juni 2026': CLOUDINARY_BASE + '/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz',
+    'Marts-Juni 2026': CDN_BASE + '/v1771280099/18w-mar-jun-2026.pdf_izgiuz',
     'August-December 2026': '', // Upload when ready
-    'default': CLOUDINARY_BASE + '/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz'
+    'default': CDN_BASE + '/v1771280099/18w-mar-jun-2026.pdf_izgiuz'
   },
   '4-week': {
-    'April 2026': CLOUDINARY_BASE + '/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf',
+    'April 2026': CDN_BASE + '/v1771280041/4w-apr-2026.pdf_x9iwdf',
     'Juli 2026': '',         // Upload when ready
-    'default': CLOUDINARY_BASE + '/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf'
+    'default': CDN_BASE + '/v1771280041/4w-apr-2026.pdf_x9iwdf'
   },
   '8-week': {
-    'Maj-Juni 2026': CLOUDINARY_BASE + '/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j',
+    'Maj-Juni 2026': CDN_BASE + '/v1771280072/8w-may-jun-2026.pdf_k7i62j',
     'Oktober-November 2026': '', // Upload when ready
-    'default': CLOUDINARY_BASE + '/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j'
+    'default': CDN_BASE + '/v1771280072/8w-may-jun-2026.pdf_k7i62j'
   },
   '300h': {
     'Maj-December 2026': '', // Upload when ready
@@ -229,7 +227,7 @@ module.exports = {
   YTT_PROGRAM_TYPES,
   PROGRAM_DISPLAY_NAMES,
   getDisplayProgram,
-  CLOUDINARY_BASE,
+  CDN_BASE,
   SCHEDULE_PDFS,
   YTT_PAYMENT,
   COURSE_PAYMENT_URLS,

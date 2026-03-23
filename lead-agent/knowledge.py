@@ -87,11 +87,11 @@ def _compute_hash():
 
 def _extract_config_summary():
     """Return a concise summary of config.js — not the raw file."""
-    cdn_base = os.environ.get('CLOUDINARY_BASE_URL', 'https://res.cloudinary.com/ddcynsa30')
+    cdn_base = os.environ.get('CDN_BASE_URL', 'https://yogabible.b-cdn.net')
     return f"""Schedule PDFs (CDN):
-- 18-week Mar-Jun 2026: {cdn_base}/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz
-- 4-week Apr 2026: {cdn_base}/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf
-- 8-week May-Jun 2026: {cdn_base}/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j
+- 18-week Mar-Jun 2026: {cdn_base}/v1771280099/18w-mar-jun-2026.pdf_izgiuz
+- 4-week Apr 2026: {cdn_base}/v1771280041/4w-apr-2026.pdf_x9iwdf
+- 8-week May-Jun 2026: {cdn_base}/v1771280072/8w-may-jun-2026.pdf_k7i62j
 - 300h: TBA
 
 Payment URLs (MindBody):
