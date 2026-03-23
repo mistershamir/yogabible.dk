@@ -5,13 +5,7 @@ var path = require('path');
 var fs = require('fs');
 
 var CLOUD_NAME = "ddcynsa30";
-var CLOUD_BASE_LEGACY = "https://res.cloudinary.com/" + CLOUD_NAME;
-// ── Media CDN: Cloudflare R2 (primary) with Cloudinary fallback ──
-// Set MEDIA_BASE_URL env var to your R2 custom domain, e.g.:
-//   MEDIA_BASE_URL=https://media.yogabible.dk
-// Falls back to Cloudinary if not set (legacy mode).
-var MEDIA_BASE = process.env.MEDIA_BASE_URL || CLOUD_BASE_LEGACY;
-var USE_R2 = !!process.env.MEDIA_BASE_URL;
+var CLOUD_BASE = "https://res.cloudinary.com/" + CLOUD_NAME;
 var IMG_SRC_DIR = "src/assets/images";
 
 // ─── Local image resolver ─────────────────────────────────────────
@@ -32,21 +26,11 @@ function resolveLocal(cloudPath) {
 }
 
 module.exports = function(eleventyConfig) {
-  // ── Global data: media CDN base URL ──
-  // Available in all templates as {{ mediaBase }}
-  eleventyConfig.addGlobalData("mediaBase", MEDIA_BASE);
-  eleventyConfig.addGlobalData("useR2", USE_R2);
+  // ── Global data: Cloudinary base URL (used for videos + fallback) ──
+  eleventyConfig.addGlobalData("mediaBase", CLOUD_BASE);
 
-  // ── Filter: replace Cloudinary URLs in HTML content strings ──
-  // Use in templates: {{ t.htmlContent | cdnUrl | safe }}
-  var cloudinaryUrlRegex = /https:\/\/res\.cloudinary\.com\/ddcynsa30\/(image|video|raw)\/upload\/(?:([a-z0-9_,.:]+)\/)*?((?:yoga-bible-DK|v\d+)\/.+?)(?=["'\s)<]|$)/g;
-  eleventyConfig.addFilter("cdnUrl", function(html) {
-    if (!html || typeof html !== 'string') return html || '';
-    if (!USE_R2) return html;
-    return html.replace(cloudinaryUrlRegex, function(match, type, transforms, assetPath) {
-      return MEDIA_BASE + '/' + assetPath;
-    });
-  });
+  // Passthrough filter (used in some templates for URL strings)
+  eleventyConfig.addFilter("cdnUrl", function(val) { return val || ''; });
 
   // Pass through static assets
   eleventyConfig.addPassthroughCopy("src/css");
@@ -65,30 +49,22 @@ module.exports = function(eleventyConfig) {
   // Falls back to Cloudinary CDN for images not yet downloaded.
   // Videos always served from Cloudinary (eleventy-img can't process video).
 
-  // Filter: returns optimized image URL (local-first)
+  // Filter: returns optimized image URL (local-first, Cloudinary fallback)
   eleventyConfig.addFilter("cloudimg", function(cloudPath, transforms) {
     if (!cloudPath) return '';
     var local = resolveLocal(cloudPath);
     if (local) {
-      // Serve from local assets — browser gets the pre-optimized file
       return '/' + local.replace(/^src\//, '');
     }
-    // Fallback to CDN for images not yet downloaded
-    if (USE_R2) {
-      // R2 serves pre-optimized files directly (no transform strings)
-      return MEDIA_BASE + "/" + cloudPath;
-    }
+    // Fallback to Cloudinary CDN for images not yet downloaded locally
     var t = transforms || "f_auto,q_auto";
-    return CLOUD_BASE_LEGACY + "/image/upload/" + t + "/" + cloudPath;
+    return CLOUD_BASE + "/image/upload/" + t + "/" + cloudPath;
   });
 
-  // Filter: returns video URL (CDN — can't process video locally)
+  // Filter: returns video URL (always Cloudinary — videos stay on CDN)
   eleventyConfig.addFilter("cloudvid", function(path, transforms) {
-    if (USE_R2) {
-      return MEDIA_BASE + "/" + path;
-    }
     var t = transforms || "f_auto,q_auto";
-    return CLOUD_BASE_LEGACY + "/video/upload/" + t + "/" + path;
+    return CLOUD_BASE + "/video/upload/" + t + "/" + path;
   });
 
   // Shortcode: renders responsive <picture> tag via eleventy-img (local-first)
@@ -150,47 +126,27 @@ module.exports = function(eleventyConfig) {
       }
     }
 
-    // ── Fallback: CDN (image not yet downloaded) ──
-    if (USE_R2) {
-      var src = MEDIA_BASE + "/" + cloudPath;
-      var wAttr = width ? ' width="' + width + '"' : '';
-      var hAttr = height ? ' height="' + height + '"' : '';
-      return '<img src="' + src + '" alt="' + (alt || '') + '"' + wAttr + hAttr + ' loading="lazy" decoding="async">';
-    }
+    // ── Fallback: Cloudinary CDN (image not yet downloaded locally) ──
     var t = transforms || "f_auto,q_auto";
-    var src = CLOUD_BASE_LEGACY + "/image/upload/" + t + "/" + cloudPath;
-    var srcset1x = CLOUD_BASE_LEGACY + "/image/upload/" + t + ",dpr_1.0/" + cloudPath;
-    var srcset2x = CLOUD_BASE_LEGACY + "/image/upload/" + t + ",dpr_2.0/" + cloudPath;
+    var src = CLOUD_BASE + "/image/upload/" + t + "/" + cloudPath;
+    var srcset1x = CLOUD_BASE + "/image/upload/" + t + ",dpr_1.0/" + cloudPath;
+    var srcset2x = CLOUD_BASE + "/image/upload/" + t + ",dpr_2.0/" + cloudPath;
     var wAttr = width ? ' width="' + width + '"' : '';
     var hAttr = height ? ' height="' + height + '"' : '';
     return '<img src="' + src + '" srcset="' + srcset1x + ' 1x, ' + srcset2x + ' 2x" alt="' + (alt || '') + '"' + wAttr + hAttr + ' loading="lazy" decoding="async">';
   });
 
-  // Shortcode: renders <video> tag (CDN)
+  // Shortcode: renders <video> tag (videos always from Cloudinary CDN)
   eleventyConfig.addShortcode("cldvid", function(cloudPath, poster, transforms) {
-    var src;
+    var t = transforms || "f_auto,q_auto";
+    var src = CLOUD_BASE + "/video/upload/" + t + "/" + cloudPath;
     var posterAttr = '';
-
-    if (USE_R2) {
-      src = MEDIA_BASE + "/" + cloudPath;
-      if (poster) {
-        var localPoster = resolveLocal(poster);
-        if (localPoster) {
-          posterAttr = ' poster="/' + localPoster.replace(/^src\//, '') + '"';
-        } else {
-          posterAttr = ' poster="' + MEDIA_BASE + '/' + poster + '"';
-        }
-      }
-    } else {
-      var t = transforms || "f_auto,q_auto";
-      src = CLOUD_BASE_LEGACY + "/video/upload/" + t + "/" + cloudPath;
-      if (poster) {
-        var localPoster = resolveLocal(poster);
-        if (localPoster) {
-          posterAttr = ' poster="/' + localPoster.replace(/^src\//, '') + '"';
-        } else {
-          posterAttr = ' poster="' + CLOUD_BASE_LEGACY + '/image/upload/f_auto,q_auto/' + poster + '"';
-        }
+    if (poster) {
+      var localPoster = resolveLocal(poster);
+      if (localPoster) {
+        posterAttr = ' poster="/' + localPoster.replace(/^src\//, '') + '"';
+      } else {
+        posterAttr = ' poster="' + CLOUD_BASE + '/image/upload/f_auto,q_auto/' + poster + '"';
       }
     }
     return '<video' + posterAttr + ' autoplay loop muted playsinline><source src="' + src + '"></video>';

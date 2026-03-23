@@ -140,7 +140,7 @@ download_file() {
 
   if [ "$HTTP_CODE" = "200" ]; then
     local FILE_SIZE
-    FILE_SIZE=$(stat -f%z "$LOCAL_PATH" 2>/dev/null || stat --printf="%s" "$LOCAL_PATH" 2>/dev/null)
+    FILE_SIZE=$(stat -f%z "$LOCAL_PATH" 2>/dev/null || stat -c%s "$LOCAL_PATH" 2>/dev/null)
     local mb
     mb=$(echo "scale=2; $FILE_SIZE / 1048576" | bc)
     echo "  + ${mb}MB | $LOCAL_REL.$EXT"
@@ -230,6 +230,6 @@ du -sh "$OUTPUT_DIR/"
 echo ""
 echo "Next steps:"
 echo "  1. Verify the backup: ls -la $OUTPUT_DIR/"
-echo "  2. Set up Cloudflare R2 bucket (see MIGRATION.md)"
-echo "  3. Upload: bash scripts/r2-upload.sh"
-echo "  4. Update code references (already done if you ran the migration branch)"
+echo "  2. Copy images to local assets: bash scripts/migrate-cloudinary-to-local.sh"
+echo "  3. Build and verify: npx @11ty/eleventy"
+echo "  4. Commit and deploy — Netlify CDN serves the images"
