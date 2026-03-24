@@ -524,5 +524,23 @@ module.exports = {
   UNDECIDED_INFO,
   SCHEDULE_PATHS,
   PROGRAM_PAGES,
-  scheduleUrl
+  scheduleUrl,
+  isCopenhagenLead
 };
+
+/**
+ * Check if a lead is from the Copenhagen area (based on city_country field).
+ * Used to route non-CPH Danish leads to the enhanced EN schedule page
+ * (which includes accommodation info they may need).
+ */
+function isCopenhagenLead(leadData) {
+  var city = (leadData.city_country || '').toLowerCase();
+  if (!city) return true; // No city info — assume local (conservative: don't show accommodation)
+  var cphAreas = [
+    'københavn', 'copenhagen', 'cph', 'christianshavn', 'frederiksberg',
+    'amager', 'østerbro', 'nørrebro', 'vesterbro', 'valby', 'vanløse',
+    'brønshøj', 'hellerup', 'gentofte', 'glostrup', 'hvidovre', 'tårnby',
+    'dragør', 'rødovre', 'albertslund', 'ballerup', 'lyngby', 'kongens lyngby'
+  ];
+  return cphAreas.some(function(a) { return city.indexOf(a) !== -1; });
+}

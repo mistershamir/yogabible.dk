@@ -443,9 +443,12 @@ async function sendEmail4wJulyYTT(leadData, tokenData = {}) {
   const remaining = '20.000';
   const rateNote = 'fleksibel ratebetaling';
 
+  // Non-CPH Danish leads get the enhanced EN schedule page (includes accommodation info)
+  const isCph = i18n.isCopenhagenLead(leadData);
+  const schedPath = isCph ? '/skema/4-uger-juli/' : '/en/schedule/4-weeks-july/';
   const scheduleUrl = tokenData.leadId && tokenData.token
-    ? 'https://www.yogabible.dk/skema/4-uger-juli/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://www.yogabible.dk/skema/4-uger-juli/';
+    ? 'https://www.yogabible.dk' + schedPath + '?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://www.yogabible.dk' + schedPath;
 
   let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
   bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>4-ugers Vinyasa Plus yogal\u00e6reruddannelse</strong> (juli 2026).</p>';
@@ -1920,8 +1923,13 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   const subject = (p.subject || '').replace('{{name}}', firstName).replace('{{program}}', leadData.program || '');
 
   // Schedule URL
-  var schedPath = (i18n.SCHEDULE_PATHS[lang] || i18n.SCHEDULE_PATHS.en)[programKey] || '';
-  var sUrl = schedPath ? i18n.scheduleUrl(schedPath, lang, tokenData) : '';
+  // Non-CPH Danish leads for July get the enhanced EN schedule page (includes accommodation info)
+  var schedLang = lang;
+  if (programKey === '4-week-jul' && lang === 'da' && !i18n.isCopenhagenLead(leadData)) {
+    schedLang = 'en';
+  }
+  var schedPath = (i18n.SCHEDULE_PATHS[schedLang] || i18n.SCHEDULE_PATHS.en)[programKey] || '';
+  var sUrl = schedPath ? i18n.scheduleUrl(schedPath, schedLang, tokenData) : '';
 
   // Program page URL
   var pages = i18n.PROGRAM_PAGES[lang] || i18n.PROGRAM_PAGES.en;
