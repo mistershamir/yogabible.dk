@@ -303,8 +303,14 @@ function fetchFormNameFromGraph(formId) {
 // 'from-answer' = use the answer to the program question (multi-program forms)
 const FORM_ID_MAP = {
   '1974647360148367': '18-week',        // 18 Ugers Fleksibelt YTT — March–June 2026 cohort
-  '961808297026346':  'from-answer'     // General YTT form — program determined by Q2 answer
-  // Add new forms below:
+  '961808297026346':  'from-answer',    // General YTT form — program determined by Q2 answer
+  // July Vinyasa Plus — International instant forms (lang set via form hidden field)
+  '827004866473769':  '4-week-jul',     // july-vinyasa-plus-en  (UK / English)
+  '25716246641411656':'4-week-jul',     // july-vinyasa-plus-no  (Norway, lang=no)
+  '4318151781759438': '4-week-jul',     // july-vinyasa-plus-se  (Sweden, lang=sv)
+  '2450631555377690': '4-week-jul',     // july-vinyasa-plus-de  (Germany/Austria, lang=de)
+  '1668412377638315': '4-week-jul',     // july-vinyasa-plus-fi  (Finland, lang=fi)
+  '960877763097239':  '4-week-jul'      // july-vinyasa-plus-nl  (Netherlands, lang=nl)
 };
 
 // ─── Program Answer → Type Map ───────────────────────────────────────────────
