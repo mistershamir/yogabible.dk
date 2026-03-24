@@ -127,17 +127,23 @@ async function processLeadgenChange(value) {
   // Also handle "for- og efternavn" (first and last name combined field)
   const fullName = fields.full_name || fields.name || fields['for- og efternavn'] || findFieldByKeyword(fields, ['fulde navn', 'full name', 'navn']) || '';
   const nameParts = fullName.trim().split(/\s+/);
-  const firstName = fields.first_name || fields.fornavn || fields.fornavne || findFieldByKeyword(fields, ['fornavn', 'first name', 'first_name']) || nameParts[0] || '';
-  const lastName = fields.last_name || fields.efternavn || findFieldByKeyword(fields, ['efternavn', 'last name', 'last_name']) || nameParts.slice(1).join(' ') || '';
-  const email = (fields.email || fields['e-mail'] || fields['e-mailadresse'] || findFieldByKeyword(fields, ['email', 'e-mail', 'mail']) || '').toLowerCase().trim();
-  const phone = fields.phone_number || fields.phone || fields.telefonnummer || fields.telefon || fields.mobil || findFieldByKeyword(fields, ['telefon', 'phone', 'mobil']) || '';
-  const city = fields.city || fields.location || fields.by || fields.land || findFieldByKeyword(fields, ['by', 'city', 'location', 'country', 'land', 'hvor bor']) || '';
+  const firstName = fields.first_name || fields.fornavn || fields.fornavne || findFieldByKeyword(fields, ['fornavn', 'first name', 'first_name', 'förnamn', 'vorname', 'etunimi', 'voornaam']) || nameParts[0] || '';
+  const lastName = fields.last_name || fields.efternavn || findFieldByKeyword(fields, ['efternavn', 'last name', 'last_name', 'efternamn', 'nachname', 'sukunimi', 'achternaam', 'etternavn']) || nameParts.slice(1).join(' ') || '';
+  const email = (fields.email || fields['e-mail'] || fields['e-mailadresse'] || findFieldByKeyword(fields, ['email', 'e-mail', 'mail', 'sähköposti']) || '').toLowerCase().trim();
+  const phone = fields.phone_number || fields.phone || fields.telefonnummer || fields.telefon || fields.mobil || findFieldByKeyword(fields, ['telefon', 'phone', 'mobil', 'puhelinnumero', 'telefoonnummer']) || '';
+  const city = fields.city || fields.location || fields.by || findFieldByKeyword(fields, ['by', 'city', 'location', 'hvor bor', 'stad', 'ort', 'stadt', 'kaupunki', 'plaats', 'sted']) || '';
+  const country = fields.country || fields.land || findFieldByKeyword(fields, ['country', 'land', 'maa', 'pays']) || '';
 
   // Parse custom questions — Meta sends these as field_data with the question text as key
   // We do a fuzzy match since Meta may vary casing/encoding of Danish characters
   const programAnswer = findFieldByKeyword(fields, ['program', 'interesseret', 'hvilket']) || '';
   const housingAnswer = findFieldByKeyword(fields, ['bolig', 'housing', 'hjælp med bolig', 'hjaelp']) || '';
   const program = fields.program || fields.which_program || fields.interested_in || programAnswer || '';
+
+  // July Vinyasa Plus international form questions (Q1–Q3)
+  const yogaExpAnswer = findFieldByKeyword(fields, ['yoga experience', 'yogaerfaring', 'yogaerfarenhet', 'yogaerfahrung', 'joogakokemust', 'yoga-ervaring']) || '';
+  const accommodationAnswer = findFieldByKeyword(fields, ['stay in copenhagen', 'oppholdet', 'vistelse', 'aufenthalt', 'oleskeluu', 'verblijf']) || '';
+  const englishComfortAnswer = findFieldByKeyword(fields, ['english', 'engelsk', 'engelska', 'englisch', 'englanniksi', 'engels']) || '';
 
   // Parse tracking parameters (set in Meta form settings)
   const metaCampaignName = fields.campaign_name || '';
@@ -153,7 +159,7 @@ async function processLeadgenChange(value) {
   const fieldPlatform = (fields.platform || '').toLowerCase();
   const metaPlatform = graphPlatform || fieldPlatform || '';
 
-  console.log(`[fb-leads] Parsed fields — program="${program}", housing="${housingAnswer}", platform="${metaPlatform}" (graph="${graphPlatform}", field="${fieldPlatform}"), lang="${metaLang}"`);
+  console.log(`[fb-leads] Parsed fields — program="${program}", housing="${housingAnswer}", platform="${metaPlatform}" (graph="${graphPlatform}", field="${fieldPlatform}"), lang="${metaLang}", city="${city}", country="${country}", yogaExp="${yogaExpAnswer}", accommodation="${accommodationAnswer}", englishComfort="${englishComfortAnswer}"`);
 
   if (!email) {
     console.warn('[fb-leads] Lead has no email — skipping:', leadgen_id);
@@ -171,10 +177,16 @@ async function processLeadgenChange(value) {
     resolvedType = detectYTTType(program, ad_name || formName || '', form_id);
   }
 
-  // Resolve accommodation from housing question
-  const accommodationValue = housingAnswer
-    ? normalizeHousingAnswer(housingAnswer)
-    : normalizeYesNo(fields.housing || fields.accommodation || 'No');
+  // Resolve accommodation from housing question (international forms or Danish forms)
+  const accommodationValue = accommodationAnswer
+    ? normalizeAccommodationAnswer(accommodationAnswer)
+    : housingAnswer
+      ? normalizeHousingAnswer(housingAnswer)
+      : normalizeYesNo(fields.housing || fields.accommodation || 'No');
+
+  // Normalize Q1 (yoga experience) and Q3 (english comfort)
+  const yogaExperience = normalizeYogaExperience(yogaExpAnswer);
+  const englishComfort = normalizeEnglishComfort(englishComfortAnswer);
 
   // Check if already an applicant in Firestore
   const db = getDb();
@@ -198,7 +210,10 @@ async function processLeadgenChange(value) {
     cohort_label: metaCohort || '',
     preferred_month: '',
     accommodation: accommodationValue,
-    city_country: city,
+    yoga_experience: yogaExperience,
+    english_comfort: englishComfort,
+    city_country: country ? (city ? city + ', ' + country : country) : city,
+    country: country || '',
     housing_months: '',
     service: '',
     subcategories: '',
@@ -303,8 +318,14 @@ function fetchFormNameFromGraph(formId) {
 // 'from-answer' = use the answer to the program question (multi-program forms)
 const FORM_ID_MAP = {
   '1974647360148367': '18-week',        // 18 Ugers Fleksibelt YTT — March–June 2026 cohort
-  '961808297026346':  'from-answer'     // General YTT form — program determined by Q2 answer
-  // Add new forms below:
+  '961808297026346':  'from-answer',    // General YTT form — program determined by Q2 answer
+  // July Vinyasa Plus — International instant forms (lang set via form hidden field)
+  '827004866473769':  '4-week-jul',     // july-vinyasa-plus-en  (UK / English)
+  '25716246641411656':'4-week-jul',     // july-vinyasa-plus-no  (Norway, lang=no)
+  '4318151781759438': '4-week-jul',     // july-vinyasa-plus-se  (Sweden, lang=sv)
+  '2450631555377690': '4-week-jul',     // july-vinyasa-plus-de  (Germany/Austria, lang=de)
+  '1668412377638315': '4-week-jul',     // july-vinyasa-plus-fi  (Finland, lang=fi)
+  '960877763097239':  '4-week-jul'      // july-vinyasa-plus-nl  (Netherlands, lang=nl)
 };
 
 // ─── Program Answer → Type Map ───────────────────────────────────────────────
@@ -331,6 +352,87 @@ function normalizeHousingAnswer(val) {
   if (v.includes('finder selv')) return 'Self';
   // Fallback to generic yes/no
   return normalizeYesNo(val);
+}
+
+// ─── Q1: Yoga Experience Normalization ──────────────────────────────────────
+// Normalizes answers from all 6 language variants → regular / beginner / previous_ytt
+function normalizeYogaExperience(val) {
+  if (!val) return '';
+  const v = String(val).toLowerCase().trim();
+  // Option 3: previous YTT (EN/NO/SE/DE/FI/NL)
+  if (v.includes('ytt before') || v.includes('yogalærerutdanning') || v.includes('yogalärarutbildning') ||
+      v.includes('yogalehrerausbildung') || v.includes('joogaopettajakoulutuksen') || v.includes('yogadocentenopleiding')) {
+    return 'previous_ytt';
+  }
+  // Option 2: beginner / fairly new (EN/NO/SE/DE/FI/NL)
+  if (v.includes('new to yoga') || v.includes('ganske ny') || v.includes('ganska ny') ||
+      v.includes('neu im yoga') || v.includes('melko uusi') || v.includes('vrij nieuw')) {
+    return 'beginner';
+  }
+  // Option 1: regular practitioner (EN/NO/SE/DE/FI/NL)
+  if (v.includes('regularly') || v.includes('regelmessig') || v.includes('regelbundet') ||
+      v.includes('regelmäßig') || v.includes('säännöllisesti') || v.includes('regelmatig')) {
+    return 'regular';
+  }
+  return '';
+}
+
+// ─── Q2: Accommodation / Practicalities Normalization ───────────────────────
+// Normalizes answers from all 6 language variants →
+// accommodation / accommodation_plus / self_arranged / lives_in_denmark
+function normalizeAccommodationAnswer(val) {
+  if (!val) return '';
+  const v = String(val).toLowerCase().trim();
+  // Option 4: lives in Denmark (EN/NO/SE/DE/FI/NL)
+  if (v.includes('live in denmark') || v.includes('bor i danmark') || v.includes('lebe in dänemark') ||
+      v.includes('tanskassa') || v.includes('asun tanskassa') || v.includes('woon in denemarken')) {
+    return 'lives_in_denmark';
+  }
+  // Option 3: self-arranged / no thanks (EN/NO/SE/DE/FI/NL)
+  if (v.includes('no thanks') || v.includes('nei takk') || v.includes('nej tack') ||
+      v.includes('nein danke') || v.includes('ei kiitos') || v.includes('nee bedankt') ||
+      v.includes('sort everything') || v.includes('ordner alt') || v.includes('ordnar allt') ||
+      v.includes('organisiere alles') || v.includes('hoidan itse') || v.includes('regel alles')) {
+    return 'self_arranged';
+  }
+  // Option 2: accommodation + other practicalities (EN/NO/SE/DE/FI/NL)
+  if ((v.includes('accommodation') || v.includes('overnatting') || v.includes('boende') ||
+       v.includes('unterkunft') || v.includes('majoituksen') || v.includes('accommodatie')) &&
+      (v.includes('practical') || v.includes('praktisk') || v.includes('praktiska') ||
+       v.includes('praktischen') || v.includes('käytännön') || v.includes('zaken') || v.includes('andre'))) {
+    return 'accommodation_plus';
+  }
+  // Option 1: accommodation only (EN/NO/SE/DE/FI/NL)
+  if (v.includes('help with accommodation') || v.includes('hjelp med overnatting') ||
+      v.includes('hjälp med boende') || v.includes('hilfe bei der unterkunft') ||
+      v.includes('apua majoituksen') || v.includes('hulp met accommodatie')) {
+    return 'accommodation';
+  }
+  return '';
+}
+
+// ─── Q3: English Language Comfort Normalization ─────────────────────────────
+// Normalizes answers from 5 non-EN language variants →
+// comfortable / needs_patience / unsure (NOT on English form)
+function normalizeEnglishComfort(val) {
+  if (!val) return '';
+  const v = String(val).toLowerCase().trim();
+  // Option 3: unsure (NO/SE/DE/FI/NL)
+  if (v.includes('usikker') || v.includes('osäker') || v.includes('nicht sicher') ||
+      v.includes('en ole varma') || v.includes('niet zeker')) {
+    return 'unsure';
+  }
+  // Option 2: needs patience (NO/SE/DE/FI/NL)
+  if (v.includes('tålmodighet') || v.includes('tålamod') || v.includes('geduld') ||
+      v.includes('kärsivällisyyttä') || v.includes('geduld nodig')) {
+    return 'needs_patience';
+  }
+  // Option 1: comfortable / no problem (NO/SE/DE/FI/NL)
+  if (v.includes('ikke noe problem') || v.includes('inga problem') || v.includes('kein problem') ||
+      v.includes('ei ongelmaa') || v.includes('geen probleem')) {
+    return 'comfortable';
+  }
+  return '';
 }
 
 function fetchLeadFromGraph(leadgenId) {
