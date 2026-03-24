@@ -150,7 +150,18 @@
     var modal = $('yb-book-modal');
     if (!modal) return;
     modal.setAttribute('aria-hidden', 'true');
+    modal.style.display = 'none';
     document.body.style.overflow = '';
+
+    // Clean ?booking= param from URL so the page looks normal after closing
+    if (window.history && window.history.replaceState) {
+      var url = new URL(window.location);
+      if (url.searchParams.has('booking')) {
+        url.searchParams.delete('booking');
+        var clean = url.pathname + (url.search || '') + (url.hash || '');
+        window.history.replaceState({}, '', clean);
+      }
+    }
   }
 
   window.openBookingModal = openModal;
