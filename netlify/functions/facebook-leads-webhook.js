@@ -131,7 +131,8 @@ async function processLeadgenChange(value) {
   const lastName = fields.last_name || fields.efternavn || findFieldByKeyword(fields, ['efternavn', 'last name', 'last_name']) || nameParts.slice(1).join(' ') || '';
   const email = (fields.email || fields['e-mail'] || fields['e-mailadresse'] || findFieldByKeyword(fields, ['email', 'e-mail', 'mail']) || '').toLowerCase().trim();
   const phone = fields.phone_number || fields.phone || fields.telefonnummer || fields.telefon || fields.mobil || findFieldByKeyword(fields, ['telefon', 'phone', 'mobil']) || '';
-  const city = fields.city || fields.location || fields.by || fields.land || findFieldByKeyword(fields, ['by', 'city', 'location', 'country', 'land', 'hvor bor']) || '';
+  const city = fields.city || fields.location || fields.by || findFieldByKeyword(fields, ['by', 'city', 'location', 'hvor bor']) || '';
+  const country = fields.country || fields.land || findFieldByKeyword(fields, ['country', 'land']) || '';
 
   // Parse custom questions — Meta sends these as field_data with the question text as key
   // We do a fuzzy match since Meta may vary casing/encoding of Danish characters
@@ -153,7 +154,7 @@ async function processLeadgenChange(value) {
   const fieldPlatform = (fields.platform || '').toLowerCase();
   const metaPlatform = graphPlatform || fieldPlatform || '';
 
-  console.log(`[fb-leads] Parsed fields — program="${program}", housing="${housingAnswer}", platform="${metaPlatform}" (graph="${graphPlatform}", field="${fieldPlatform}"), lang="${metaLang}"`);
+  console.log(`[fb-leads] Parsed fields — program="${program}", housing="${housingAnswer}", platform="${metaPlatform}" (graph="${graphPlatform}", field="${fieldPlatform}"), lang="${metaLang}", city="${city}", country="${country}"`);
 
   if (!email) {
     console.warn('[fb-leads] Lead has no email — skipping:', leadgen_id);
@@ -198,7 +199,8 @@ async function processLeadgenChange(value) {
     cohort_label: metaCohort || '',
     preferred_month: '',
     accommodation: accommodationValue,
-    city_country: city,
+    city_country: country ? (city ? city + ', ' + country : country) : city,
+    country: country || '',
     housing_months: '',
     service: '',
     subcategories: '',
