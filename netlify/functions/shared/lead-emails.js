@@ -978,12 +978,9 @@ async function sendJulyVinyasaPlusDaEmail(leadData, tokenData) {
 
   var subject = firstName + ', her er alle datoer til 4-ugers Vinyasa Plus uddannelsen (juli)';
 
-  // Non-CPH Danish leads get the enhanced EN schedule page (includes accommodation info)
-  var isCphForSchedule = i18n.isCopenhagenLead(leadData);
-  var schedPath = isCphForSchedule ? '/skema/4-uger-juli/' : '/en/schedule/4-weeks-july/';
   var sUrl = tokenData && tokenData.leadId && tokenData.token
-    ? 'https://yogabible.dk' + schedPath + '?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://yogabible.dk' + schedPath;
+    ? 'https://yogabible.dk/skema/4-uger-juli/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://yogabible.dk/skema/4-uger-juli/';
 
   var html = '';
 
