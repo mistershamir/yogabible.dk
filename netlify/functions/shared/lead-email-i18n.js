@@ -112,8 +112,7 @@ const SHARED = {
       '200 Stunden · Yoga Alliance zertifiziert (RYT-200)',
       'Hatha, Vinyasa, Yin, Hot Yoga & Meditation',
       'Anatomie, Philosophie, Sequenzierung & Unterrichtsmethodik',
-      'Alle Level willkommen',
-      'Die Ausbildung findet auf Englisch statt'
+      'Alle Level willkommen'
     ],
     alumniNote: 'Wir bilden seit 2014 Yogalehrer aus. Unsere Absolventen unterrichten in ganz Europa und darüber hinaus.',
     prepPhaseTitle: '\ud83d\udca1 Wusstest du?',
