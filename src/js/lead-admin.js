@@ -757,6 +757,22 @@
         unreadBadge = ' <span class="yb-lead__sms-unread-icon" title="Unread SMS">\ud83d\udce9</span>';
       }
 
+      // Schedule engagement badge
+      var schedBadge = '';
+      var se = l.schedule_engagement;
+      if (se && se.total_visits) {
+        var sePages = se.pages || {};
+        var seMaxScroll = 0;
+        for (var sk in sePages) { if (sePages[sk].max_scroll > seMaxScroll) seMaxScroll = sePages[sk].max_scroll; }
+        if (se.total_visits >= 3 && seMaxScroll >= 75) {
+          schedBadge = ' <span class="yb-lead__sched-badge" style="color:#155724" title="Viewed schedule ' + se.total_visits + 'x, scrolled ' + seMaxScroll + '%">\ud83d\udcc5\ud83d\udd25</span>';
+        } else if (se.total_visits >= 2 || seMaxScroll >= 50) {
+          schedBadge = ' <span class="yb-lead__sched-badge" style="color:#856404" title="Viewed schedule ' + se.total_visits + 'x, scrolled ' + seMaxScroll + '%">\ud83d\udcc5</span>';
+        } else {
+          schedBadge = ' <span class="yb-lead__sched-badge" style="color:#6F6A66" title="Viewed schedule ' + se.total_visits + 'x, scrolled ' + seMaxScroll + '%">\ud83d\udcc5</span>';
+        }
+      }
+
       // Notes count
       var notesCount = Array.isArray(l.notes) ? l.notes.length : 0;
 
@@ -772,7 +788,7 @@
         '<td class="yb-lead__cell-name">' +
           priorityBadgeHtml(l.priority) +
           esc((l.first_name || '') + ' ' + (l.last_name || '')).trim() +
-          unreadBadge +
+          unreadBadge + schedBadge +
         '</td>' +
         '<td class="yb-lead__cell-contact">' +
           '<div class="yb-lead__cell-email-text">' + esc(l.email || '') +
@@ -1438,6 +1454,64 @@
     }
 
     html += '</div>'; // end card 3
+
+    // Card 4: Schedule Engagement (from visit tracking)
+    var eng = l.schedule_engagement;
+    if (eng && eng.pages && Object.keys(eng.pages).length > 0) {
+      html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+      html += '<h4 class="yb-lead__card-title">SCHEDULE ENGAGEMENT</h4>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Total Visits</span>' +
+        '<span class="yb-lead__card-value"><strong>' + (eng.total_visits || 0) + '</strong></span>' +
+      '</div>';
+      if (eng.last_visit) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Last Visit</span>' +
+          '<span class="yb-lead__card-value">' + fmtDateTime(eng.last_visit) + '</span>' +
+        '</div>';
+      }
+      if (eng.last_page) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Last Page</span>' +
+          '<span class="yb-lead__card-value">' + esc(eng.last_page) + '</span>' +
+        '</div>';
+      }
+      // Per-page breakdown
+      var pages = eng.pages || {};
+      var slugs = Object.keys(pages);
+      if (slugs.length > 0) {
+        html += '<div style="margin-top:8px;border-top:1px solid #E8E4E0;padding-top:8px;">';
+        slugs.forEach(function (slug) {
+          var p = pages[slug];
+          var visits = p.visit_count || 0;
+          var scroll = p.max_scroll || 0;
+          var secs = p.total_seconds || 0;
+          var mins = secs >= 60 ? Math.floor(secs / 60) + 'm ' + (secs % 60) + 's' : secs + 's';
+          // Engagement level badges
+          var level = '';
+          if (visits >= 3 && scroll >= 75) {
+            level = '<span class="yb-lead__badge" style="background:#d4edda;color:#155724;margin-left:6px;">🔥 High</span>';
+          } else if (visits >= 2 || scroll >= 50) {
+            level = '<span class="yb-lead__badge" style="background:#FFF3CD;color:#856404;margin-left:6px;">📊 Medium</span>';
+          } else {
+            level = '<span class="yb-lead__badge" style="background:#F5F3F0;color:#6F6A66;margin-left:6px;">👀 Low</span>';
+          }
+          html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;flex-wrap:wrap;">';
+          html += '<span style="font-weight:600;font-size:.82rem;">' + esc(slug) + '</span>' + level;
+          html += '<span style="font-size:.75rem;color:#6F6A66;margin-left:auto;">' +
+            visits + ' visit' + (visits !== 1 ? 's' : '') +
+            ' · ' + scroll + '% scrolled' +
+            ' · ' + mins + ' on page' +
+          '</span>';
+          if (p.last_visit) {
+            html += '<span style="font-size:.72rem;color:#6F6A66;">(last: ' + fmtDateTime(p.last_visit) + ')</span>';
+          }
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+      html += '</div>'; // end card 4
+    }
 
     html += '</div>'; // end yb-lead__detail-cards wrapper
 
