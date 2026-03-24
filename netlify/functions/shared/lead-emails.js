@@ -15,7 +15,8 @@ const { CONFIG, COURSE_CONFIG, SCHEDULE_PDFS, getDisplayProgram } = require('./c
 const {
   escapeHtml,
   getCoursePaymentUrl,
-  getBundlePaymentUrl
+  getBundlePaymentUrl,
+  buildUnsubscribeUrl
 } = require('./utils');
 const {
   sendRawEmail,
@@ -239,7 +240,12 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         'lead_schedule_50h': 'specialty', 'lead_schedule_30h': 'specialty'
       };
 
-      if (leadData.multi_format === 'Yes' && leadData.all_formats) {
+      // July Vinyasa Plus — use conditional template with Q1/Q2/Q3/country blocks
+      var isJulyAction = action === 'lead_schedule_4w-jul' ||
+        (action === 'lead_meta' && leadData.type === 'ytt' && leadData.ytt_program_type === '4-week-jul');
+      if (isJulyAction) {
+        result = await sendJulyVinyasaPlusEnEmail(leadData, tokenData);
+      } else if (leadData.multi_format === 'Yes' && leadData.all_formats) {
         result = await sendMultiFormatEmail(leadData, 'en', tokenData);
       } else if (action === 'lead_schedule_multi') {
         result = await sendMultiFormatEmail(leadData, 'en', tokenData);
@@ -488,6 +494,296 @@ async function sendEmail4wJulyYTT(leadData, tokenData = {}) {
     text: bodyPlain
   });
   return { ...result, subject };
+}
+
+// =========================================================================
+// July Vinyasa Plus — Conditional Welcome Email (EN/DE/DA)
+// New template with conditional blocks based on form answers (Q1–Q3),
+// country-based travel/price blocks, and accommodation variants.
+// =========================================================================
+
+/**
+ * Get localized Preparation Phase price string based on country code.
+ */
+function getLocalizedPrepPrice(country) {
+  switch (country) {
+    case 'NO': return '3,750 DKK (approx. 5,400 NOK)';
+    case 'SE': return '3,750 DKK (approx. 5,600 SEK)';
+    case 'DE': case 'AT': case 'CH': return '3.750 DKK (ca. 500 EUR)';
+    case 'FI': return '3,750 DKK (approx. 500 EUR)';
+    case 'NL': return '3,750 DKK (approx. 500 EUR)';
+    case 'UK': return '3,750 DKK (approx. £425)';
+    case 'DK': return '3.750 kr.';
+    default:   return '3,750 DKK (approx. 500 EUR)';
+  }
+}
+
+/**
+ * Travel block — country-specific paragraph + "Discover Copenhagen" link.
+ */
+function julyTravelBlockHtml(country) {
+  var text = '';
+  switch (country) {
+    case 'NO':
+      text = 'Copenhagen is just a short flight from most Norwegian cities — many of our students fly in from Oslo, Bergen and Trondheim.';
+      break;
+    case 'SE':
+      text = 'Copenhagen is right next door — a quick flight from Stockholm, or just 30 minutes by train from Malmö.';
+      break;
+    case 'DE': case 'AT':
+      text = 'Copenhagen is well connected from all major German-speaking airports, with frequent direct flights.';
+      break;
+    case 'FI':
+      text = 'Direct flights from Helsinki to Copenhagen take under two hours.';
+      break;
+    case 'NL':
+      text = 'Copenhagen is just a short direct flight from Amsterdam and other Dutch airports.';
+      break;
+    case 'UK':
+      text = 'Copenhagen is just a short direct flight from most UK airports — many of our students fly in from London, Manchester and Edinburgh.';
+      break;
+    case 'DK':
+      return ''; // No travel block for Danish leads
+    default:
+      text = 'Copenhagen has direct flight connections from most major European cities.';
+      break;
+  }
+  return '<p style="margin-top:16px;">' + text + '</p>' +
+    '<p><a href="https://yogabible.dk/en/about-copenhagen/" style="color:#f75c03;">Discover Copenhagen →</a></p>';
+}
+
+/**
+ * Accommodation block — conditional on Q2 answer.
+ */
+function julyAccommodationBlockHtml(accommodation) {
+  if (accommodation === 'accommodation') {
+    return '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">' +
+      '<strong style="color:#2E7D32;">🏠 Accommodation</strong><br><br>' +
+      'We can see you\'d like help with accommodation — great, we\'ve got you. Once you secure your spot through the Preparation Phase, we\'ll help you reserve accommodation in Copenhagen.<br><br>' +
+      '<strong><a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">See accommodation options →</a></strong><br>' +
+      '<span style="color:#666;">Questions about housing? Just reply to this email.</span>' +
+      '</div>';
+  }
+  if (accommodation === 'accommodation_plus') {
+    return '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">' +
+      '<strong style="color:#2E7D32;">🏠 Accommodation & Logistics</strong><br><br>' +
+      'We can see you\'d like help with accommodation and logistics — great, we\'ve got you covered. Once you secure your spot through the Preparation Phase, we\'ll help you with accommodation, getting around Copenhagen, and everything else you need for your stay.<br><br>' +
+      '<strong><a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">See accommodation options →</a></strong><br>' +
+      '<span style="color:#666;">Questions? Just reply to this email.</span>' +
+      '</div>';
+  }
+  if (accommodation === 'self_arranged') {
+    return '<p style="margin-top:16px;color:#666;">If you change your mind about accommodation, we\'re always happy to help. <a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">See accommodation options →</a></p>';
+  }
+  // lives_in_denmark, lives_in_copenhagen → no accommodation block
+  return '';
+}
+
+/**
+ * Preparation Phase block — conditional on Q2 answer + localized price.
+ */
+function julyPrepPhaseBlockHtml(accommodation, localizedPrice) {
+  var html = '<div style="margin-top:16px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:6px;">';
+  html += '<strong style="color:#166534;">💡 Secure your spot</strong><br><br>';
+
+  if (accommodation === 'accommodation' || accommodation === 'accommodation_plus' || accommodation === 'self_arranged') {
+    html += 'The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort. You\'ll get access to the member area with optional study materials to help you prepare. Once paid, we can also help you reserve accommodation in Copenhagen. The Preparation Phase is fully refundable if the course is cancelled.<br><br>';
+    html += '✅ Secures your place in the July cohort<br>';
+    html += '✅ Access to member area with preparation materials<br>';
+    html += '✅ We help you reserve accommodation once enrolled<br>';
+    html += '✅ Fully refundable if the course is cancelled<br>';
+  } else if (accommodation === 'lives_in_denmark') {
+    html += 'The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort. You\'ll get access to the member area with optional study materials to help you prepare. The Preparation Phase is fully refundable if the course is cancelled.<br><br>';
+    html += '✅ Secures your place in the July cohort<br>';
+    html += '✅ Access to member area with preparation materials<br>';
+    html += '✅ Fully refundable if the course is cancelled<br>';
+  } else if (accommodation === 'lives_in_copenhagen') {
+    html += 'The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort. You\'ll get access to the member area with optional study materials to help you prepare. You can also start practising at our studio in Christianshavn right away — the more hours you complete before July, the stronger your foundation will be. The Preparation Phase is fully refundable if the course is cancelled.<br><br>';
+    html += '✅ Secures your place in the July cohort<br>';
+    html += '✅ Start practising at the studio straight away<br>';
+    html += '✅ Access to member area with preparation materials<br>';
+    html += '✅ Fully refundable if the course is cancelled<br>';
+  } else {
+    // Fallback — no Q2 answer (generic international)
+    html += 'The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort. You\'ll get access to the member area with optional study materials to help you prepare. The Preparation Phase is fully refundable if the course is cancelled.<br><br>';
+    html += '✅ Secures your place in the July cohort<br>';
+    html += '✅ Access to member area with preparation materials<br>';
+    html += '✅ Fully refundable if the course is cancelled<br>';
+  }
+
+  html += '<br><a href="https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Start Preparation Phase →</a>';
+  html += '</div>';
+  return html;
+}
+
+/**
+ * Bilingual signature for July emails — "Healthy regards" for all languages.
+ */
+function julySignatureHtml() {
+  var orange = '#f75c03';
+  return '<div style="margin-top:18px;padding-top:14px;border-top:1px solid #EBE7E3;font-size:15px;line-height:1.55;color:#1a1a1a;">' +
+    '<div style="margin:0 0 2px;">Healthy regards,</div>' +
+    '<div style="margin:0 0 2px;"><strong>Shamir</strong> — Course Director</div>' +
+    '<div style="margin:0 0 2px;">Yoga Bible</div>' +
+    '<div style="margin:0 0 2px;"><a href="https://www.yogabible.dk" style="color:' + orange + ';text-decoration:none;">www.yogabible.dk</a></div>' +
+    '<div style="margin:0 0 2px;"><a href="' + CONFIG.STUDIO_MAPS_URL + '" target="_blank" style="color:' + orange + ';text-decoration:none;">Torvegade 66, 1400 København K, Danmark</a></div>' +
+    '<div style="margin:0;"><a href="tel:+4553881209" style="color:' + orange + ';text-decoration:none;">+45 53 88 12 09</a></div>' +
+    '</div>';
+}
+
+/**
+ * Bilingual unsubscribe footer for July emails.
+ */
+function julyUnsubscribeHtml(email, lang) {
+  var url = buildUnsubscribeUrl(email);
+  var text;
+  if (lang === 'de') {
+    text = 'Keine weiteren E-Mails erhalten? <a href="' + url + '" style="color:#999;text-decoration:none;">Hier abmelden</a>';
+  } else if (lang === 'da') {
+    text = 'Ønsker du ikke at modtage flere e-mails? <a href="' + url + '" style="color:#999;text-decoration:none;">Afmeld her</a>';
+  } else {
+    text = 'Don\'t want to receive more emails? <a href="' + url + '" style="color:#999;text-decoration:none;">Unsubscribe here</a>';
+  }
+  return '<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;font-size:11px;color:#999;">' + text + '</div>';
+}
+
+/**
+ * July Vinyasa Plus — English conditional email template.
+ * Used for lang = en, no, sv, fi, nl (all non-DE, non-DA leads).
+ * Conditional blocks based on Q1 (yoga experience), Q2 (accommodation),
+ * Q3 (English comfort), and country (travel + price localization).
+ */
+async function sendJulyVinyasaPlusEnEmail(leadData, tokenData) {
+  var firstName = leadData.first_name || '';
+  var country = (leadData.country || 'OTHER').toUpperCase();
+  var yogaExp = leadData.yoga_experience || '';
+  var accommodation = leadData.accommodation || '';
+  var englishComfort = leadData.english_comfort || '';
+  var lang = (leadData.lang || leadData.meta_lang || 'en').toLowerCase().substring(0, 2);
+
+  var subject = firstName + ', here are all the dates for the 4-week Vinyasa Plus training (July)';
+
+  // Schedule URL (tokenized)
+  var sUrl = tokenData && tokenData.leadId && tokenData.token
+    ? 'https://yogabible.dk/en/schedule/4-weeks-july/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://yogabible.dk/en/schedule/4-weeks-july/';
+
+  var localizedPrice = getLocalizedPrepPrice(country);
+
+  // ---- HTML ----
+  var html = '';
+
+  // Block 1: Greeting
+  html += '<p>Hi ' + escapeHtml(firstName) + ',</p>';
+
+  // Block 2: Thank you
+  html += '<p>Thank you for your interest in our <strong>4-Week Vinyasa Plus Yoga Teacher Training</strong> (July 2026).</p>';
+
+  // Block 3: Schedule CTA
+  html += '<p>Here are all the training days and times:</p>';
+  html += '<p style="margin:20px 0;"><a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">View your schedule →</a></p>';
+  html += '<p style="font-size:14px;color:#666;">You can add all dates directly to your calendar.</p>';
+
+  // Block 4: Vinyasa Plus detail box
+  html += '<div style="margin:16px 0;padding:14px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">';
+  html += '<strong style="color:#c2410c;">What is the Vinyasa Plus format?</strong><br><br>';
+  html += '<strong>70% Vinyasa Flow</strong> — creative sequencing, class leadership and advanced teaching techniques<br>';
+  html += '<strong>30% Yin Yoga + Hot Yoga</strong> — restoration, deep stretches and teaching in a heated environment<br><br>';
+  html += 'You will be certified to teach both non-heated and heated Vinyasa, Yin and Hot Yoga classes.<br><br>';
+  html += '<a href="https://yogabible.dk/en/yoga-journal/vinyasa-plus-metoden/" style="color:#f75c03;">Read more about the Vinyasa Plus method →</a>';
+  html += '</div>';
+
+  // Block 5: Program highlights
+  html += '<p style="margin-top:16px;">About the training:</p>';
+  html += '<ul style="margin:8px 0;padding-left:20px;color:#333;">';
+  html += '<li>200 hours · Yoga Alliance certified (RYT-200)</li>';
+  html += '<li>Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation</li>';
+  html += '<li>Anatomy, philosophy, sequencing & teaching methodology</li>';
+  html += '<li>Certified to teach both non-heated and hot yoga classes</li>';
+  html += '<li>All levels welcome</li>';
+  html += '</ul>';
+
+  // Block 6: Yoga experience (conditional on Q1)
+  if (yogaExp === 'regular') {
+    html += '<p style="margin-top:16px;">Great — your existing practice gives you a strong foundation. The training will deepen your understanding and add teaching methodology, sequencing and anatomy to what you already know.</p>';
+  } else if (yogaExp === 'beginner') {
+    html += '<p style="margin-top:16px;">You\'re welcome exactly as you are. Many of our graduates started in the same place. The Preparation Phase gives you time to build strength, flexibility and confidence before training starts in July.</p>';
+  } else if (yogaExp === 'previous_ytt') {
+    html += '<p style="margin-top:16px;">Welcome back to the mat. Vinyasa Plus will add a new dimension to your teaching — especially the 70/30 flow-to-yin ratio and heated teaching techniques.</p>';
+  }
+
+  // Block 7: English comfort (only if lang ≠ en, lang ≠ da, and Q3 answer exists)
+  if (lang !== 'en' && lang !== 'da' && englishComfort) {
+    if (englishComfort === 'needs_patience') {
+      html += '<p style="margin-top:16px;">Don\'t worry — the English we use is clear and practical, not academic. Your classmates will be international too, so everyone supports each other. We go at a pace that works for the whole group.</p>';
+    } else if (englishComfort === 'unsure') {
+      html += '<p style="margin-top:16px;">We completely understand. The English we use is clear and practical, not academic. Many of our graduates had the same concern before starting — and it was never an issue. Your classmates will be international too, so everyone supports each other. If you\'d like to talk about this, just reply to this email.</p>';
+    }
+    // comfortable → do not show this block
+  }
+
+  // Block 8: Alumni note
+  html += '<p style="margin-top:12px;">We have trained yoga teachers since 2014, and our graduates teach across Europe and beyond.</p>';
+
+  // Block 9: Travel block (conditional on country)
+  html += julyTravelBlockHtml(country);
+
+  // Block 10: Accommodation block (conditional on Q2)
+  html += julyAccommodationBlockHtml(accommodation);
+
+  // Block 11: Preparation Phase (conditional on Q2 + localized price)
+  html += julyPrepPhaseBlockHtml(accommodation, localizedPrice);
+
+  // Block 12: Booking CTA
+  html += '<p style="margin-top:20px;">Want to learn more or ask questions? Book a free online consultation:</p>';
+  html += '<p style="margin:16px 0;"><a href="https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Book a Free Online Consultation →</a></p>';
+
+  // Block 13: Signature
+  html += julySignatureHtml();
+
+  // Block 14: Unsubscribe
+  html += julyUnsubscribeHtml(leadData.email, lang);
+
+  // ---- Plain text ----
+  var plain = 'Hi ' + firstName + ',\n\n';
+  plain += 'Thank you for your interest in our 4-Week Vinyasa Plus Yoga Teacher Training (July 2026).\n\n';
+  plain += 'Here are all the training days and times:\n' + sUrl + '\nYou can add all dates directly to your calendar.\n\n';
+  plain += 'What is the Vinyasa Plus format?\n';
+  plain += '70% Vinyasa Flow — creative sequencing, class leadership and advanced teaching techniques\n';
+  plain += '30% Yin Yoga + Hot Yoga — restoration, deep stretches and teaching in a heated environment\n';
+  plain += 'You will be certified to teach both non-heated and heated Vinyasa, Yin and Hot Yoga classes.\n\n';
+  plain += 'About the training:\n';
+  plain += '• 200 hours · Yoga Alliance certified (RYT-200)\n';
+  plain += '• Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation\n';
+  plain += '• Anatomy, philosophy, sequencing & teaching methodology\n';
+  plain += '• Certified to teach both non-heated and hot yoga classes\n';
+  plain += '• All levels welcome\n\n';
+  if (yogaExp === 'regular') {
+    plain += 'Great — your existing practice gives you a strong foundation. The training will deepen your understanding and add teaching methodology, sequencing and anatomy to what you already know.\n\n';
+  } else if (yogaExp === 'beginner') {
+    plain += 'You\'re welcome exactly as you are. Many of our graduates started in the same place. The Preparation Phase gives you time to build strength, flexibility and confidence before training starts in July.\n\n';
+  } else if (yogaExp === 'previous_ytt') {
+    plain += 'Welcome back to the mat. Vinyasa Plus will add a new dimension to your teaching — especially the 70/30 flow-to-yin ratio and heated teaching techniques.\n\n';
+  }
+  if (lang !== 'en' && lang !== 'da' && englishComfort === 'needs_patience') {
+    plain += 'Don\'t worry — the English we use is clear and practical, not academic. Your classmates will be international too, so everyone supports each other.\n\n';
+  } else if (lang !== 'en' && lang !== 'da' && englishComfort === 'unsure') {
+    plain += 'We completely understand. The English we use is clear and practical, not academic. Many of our graduates had the same concern before starting — and it was never an issue.\n\n';
+  }
+  plain += 'We have trained yoga teachers since 2014, and our graduates teach across Europe and beyond.\n\n';
+  plain += 'Secure your spot: The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort.\n';
+  plain += 'Start Preparation Phase: https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211\n\n';
+  plain += 'Book a Free Online Consultation: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
+  plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
+  plain += '\n---\nUnsubscribe: ' + buildUnsubscribeUrl(leadData.email);
+
+  var result = await sendRawEmail({
+    to: leadData.email,
+    subject: subject,
+    html: wrapHtml(html),
+    text: plain
+  });
+  return { ...result, subject: subject };
 }
 
 // =========================================================================

@@ -142,7 +142,7 @@ async function processLeadgenChange(value) {
 
   // July Vinyasa Plus international form questions (Q1–Q3)
   const yogaExpAnswer = findFieldByKeyword(fields, ['yoga experience', 'yogaerfaring', 'yogaerfarenhet', 'yogaerfahrung', 'joogakokemust', 'yoga-ervaring']) || '';
-  const accommodationAnswer = findFieldByKeyword(fields, ['stay in copenhagen', 'oppholdet', 'vistelse', 'aufenthalt', 'oleskeluu', 'verblijf']) || '';
+  const accommodationAnswer = findFieldByKeyword(fields, ['stay in copenhagen', 'oppholdet', 'vistelse', 'aufenthalt', 'oleskeluu', 'verblijf', 'overnatning']) || '';
   const englishComfortAnswer = findFieldByKeyword(fields, ['english', 'engelsk', 'engelska', 'englisch', 'englanniksi', 'engels']) || '';
 
   // Parse tracking parameters (set in Meta form settings)
@@ -325,7 +325,8 @@ const FORM_ID_MAP = {
   '4318151781759438': '4-week-jul',     // july-vinyasa-plus-se  (Sweden, lang=sv)
   '2450631555377690': '4-week-jul',     // july-vinyasa-plus-de  (Germany/Austria, lang=de)
   '1668412377638315': '4-week-jul',     // july-vinyasa-plus-fi  (Finland, lang=fi)
-  '960877763097239':  '4-week-jul'      // july-vinyasa-plus-nl  (Netherlands, lang=nl)
+  '960877763097239':  '4-week-jul',     // july-vinyasa-plus-nl  (Netherlands, lang=nl)
+  '1344364364192542': '4-week-jul'      // july-vinyasa-plus-dk  (Denmark, lang=da)
 };
 
 // ─── Program Answer → Type Map ───────────────────────────────────────────────
@@ -359,19 +360,22 @@ function normalizeHousingAnswer(val) {
 function normalizeYogaExperience(val) {
   if (!val) return '';
   const v = String(val).toLowerCase().trim();
-  // Option 3: previous YTT (EN/NO/SE/DE/FI/NL)
+  // Option 3: previous YTT (EN/NO/SE/DE/FI/NL/DA)
   if (v.includes('ytt before') || v.includes('yogalærerutdanning') || v.includes('yogalärarutbildning') ||
-      v.includes('yogalehrerausbildung') || v.includes('joogaopettajakoulutuksen') || v.includes('yogadocentenopleiding')) {
+      v.includes('yogalehrerausbildung') || v.includes('joogaopettajakoulutuksen') || v.includes('yogadocentenopleiding') ||
+      v.includes('yogalæreruddannelse')) {
     return 'previous_ytt';
   }
-  // Option 2: beginner / fairly new (EN/NO/SE/DE/FI/NL)
+  // Option 2: beginner / fairly new (EN/NO/SE/DE/FI/NL/DA)
   if (v.includes('new to yoga') || v.includes('ganske ny') || v.includes('ganska ny') ||
-      v.includes('neu im yoga') || v.includes('melko uusi') || v.includes('vrij nieuw')) {
+      v.includes('neu im yoga') || v.includes('melko uusi') || v.includes('vrij nieuw') ||
+      v.includes('ret ny inden for yoga')) {
     return 'beginner';
   }
-  // Option 1: regular practitioner (EN/NO/SE/DE/FI/NL)
+  // Option 1: regular practitioner (EN/NO/SE/DE/FI/NL/DA)
   if (v.includes('regularly') || v.includes('regelmessig') || v.includes('regelbundet') ||
-      v.includes('regelmäßig') || v.includes('säännöllisesti') || v.includes('regelmatig')) {
+      v.includes('regelmäßig') || v.includes('säännöllisesti') || v.includes('regelmatig') ||
+      v.includes('regelmæssigt')) {
     return 'regular';
   }
   return '';
@@ -383,29 +387,38 @@ function normalizeYogaExperience(val) {
 function normalizeAccommodationAnswer(val) {
   if (!val) return '';
   const v = String(val).toLowerCase().trim();
-  // Option 4: lives in Denmark (EN/NO/SE/DE/FI/NL)
+  // Option 4a: lives in Copenhagen — DA form only (can access studio physically)
+  if (v.includes('bor i københavn')) {
+    return 'lives_in_copenhagen';
+  }
+  // Option 4b: lives in Denmark (EN/NO/SE/DE/FI/NL international forms)
   if (v.includes('live in denmark') || v.includes('bor i danmark') || v.includes('lebe in dänemark') ||
       v.includes('tanskassa') || v.includes('asun tanskassa') || v.includes('woon in denemarken')) {
     return 'lives_in_denmark';
   }
-  // Option 3: self-arranged / no thanks (EN/NO/SE/DE/FI/NL)
+  // Option 3: self-arranged / no thanks (EN/NO/SE/DE/FI/NL/DA)
   if (v.includes('no thanks') || v.includes('nei takk') || v.includes('nej tack') ||
       v.includes('nein danke') || v.includes('ei kiitos') || v.includes('nee bedankt') ||
+      v.includes('nej tak') ||
       v.includes('sort everything') || v.includes('ordner alt') || v.includes('ordnar allt') ||
-      v.includes('organisiere alles') || v.includes('hoidan itse') || v.includes('regel alles')) {
+      v.includes('organisiere alles') || v.includes('hoidan itse') || v.includes('regel alles') ||
+      v.includes('klarer det selv')) {
     return 'self_arranged';
   }
-  // Option 2: accommodation + other practicalities (EN/NO/SE/DE/FI/NL)
+  // Option 2: accommodation + other practicalities (EN/NO/SE/DE/FI/NL/DA)
   if ((v.includes('accommodation') || v.includes('overnatting') || v.includes('boende') ||
-       v.includes('unterkunft') || v.includes('majoituksen') || v.includes('accommodatie')) &&
+       v.includes('unterkunft') || v.includes('majoituksen') || v.includes('accommodatie') ||
+       v.includes('overnatning')) &&
       (v.includes('practical') || v.includes('praktisk') || v.includes('praktiska') ||
-       v.includes('praktischen') || v.includes('käytännön') || v.includes('zaken') || v.includes('andre'))) {
+       v.includes('praktischen') || v.includes('käytännön') || v.includes('zaken') || v.includes('andre') ||
+       v.includes('praktiske'))) {
     return 'accommodation_plus';
   }
-  // Option 1: accommodation only (EN/NO/SE/DE/FI/NL)
+  // Option 1: accommodation only (EN/NO/SE/DE/FI/NL/DA)
   if (v.includes('help with accommodation') || v.includes('hjelp med overnatting') ||
       v.includes('hjälp med boende') || v.includes('hilfe bei der unterkunft') ||
-      v.includes('apua majoituksen') || v.includes('hulp met accommodatie')) {
+      v.includes('apua majoituksen') || v.includes('hulp met accommodatie') ||
+      v.includes('hjælp med overnatning')) {
     return 'accommodation';
   }
   return '';
