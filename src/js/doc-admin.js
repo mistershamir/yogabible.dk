@@ -337,8 +337,8 @@
 
     getAuthHeaders().then(function(headers) {
       return Promise.all([
-        fetch('/.netlify/functions/cloudinary-browser?action=folders&path=' + encodeURIComponent(browserPath), { headers: headers }).then(function(r) { return r.json(); }),
-        fetch('/.netlify/functions/cloudinary-browser?action=resources&path=' + encodeURIComponent(browserPath), { headers: headers }).then(function(r) { return r.json(); })
+        fetch('/.netlify/functions/bunny-browser?action=folders&path=' + encodeURIComponent(browserPath), { headers: headers }).then(function(r) { return r.json(); }),
+        fetch('/.netlify/functions/bunny-browser?action=resources&path=' + encodeURIComponent(browserPath), { headers: headers }).then(function(r) { return r.json(); })
       ]);
     }).then(function(results) {
       browserFolders = results[0].ok ? results[0].folders : [];
@@ -415,15 +415,15 @@
     if (progressText) progressText.textContent = t('doc_uploading');
 
     getAuthHeaders().then(function(headers) {
-      return fetch('/.netlify/functions/cloudinary-browser?action=sign_upload&folder=' + encodeURIComponent(browserPath), { headers: headers }).then(function(r) { return r.json(); });
+      return fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(browserPath), { headers: headers }).then(function(r) { return r.json(); });
     }).then(function(data) {
       if (!data.ok) throw new Error(data.error || 'Sign failed');
-      var p = data.upload_params, fd = new FormData();
-      fd.append('file', file); fd.append('timestamp', p.timestamp);
-      fd.append('signature', p.signature); fd.append('api_key', p.api_key);
-      fd.append('folder', p.folder);
+      var p = data.upload_params;
+      var uploadUrl = p.upload_url + encodeURIComponent(file.name);
       var xhr = new XMLHttpRequest();
-      xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + p.cloud_name + '/' + p.resource_type + '/upload');
+      xhr.open('PUT', uploadUrl);
+      xhr.setRequestHeader('AccessKey', p.headers.AccessKey);
+      xhr.setRequestHeader('Content-Type', 'application/octet-stream');
       xhr.upload.addEventListener('progress', function(e) {
         if (e.lengthComputable) {
           var pct = Math.round((e.loaded / e.total) * 100);
@@ -433,11 +433,13 @@
       });
       xhr.onload = function() {
         if (progressWrap) progressWrap.hidden = true;
-        if (xhr.status === 200) { browserLoaded = false; selectFile(JSON.parse(xhr.responseText).secure_url); toast(t('doc_uploaded')); }
-        else { toast(t('doc_upload_error'), true); }
+        if (xhr.status === 201 || xhr.status === 200) {
+          var cdnUrl = p.cdn_base + encodeURIComponent(file.name);
+          browserLoaded = false; selectFile(cdnUrl); toast(t('doc_uploaded'));
+        } else { toast(t('doc_upload_error'), true); }
       };
       xhr.onerror = function() { if (progressWrap) progressWrap.hidden = true; toast(t('doc_upload_error'), true); };
-      xhr.send(fd);
+      xhr.send(file);
     }).catch(function(err) {
       if (progressWrap) progressWrap.hidden = true;
       console.error('Upload error:', err);
