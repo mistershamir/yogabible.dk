@@ -43,28 +43,55 @@ const LANG_MAP = {
 const COUNTRY_NAME_MAP = {
   'denmark':        'DK',
   'danmark':        'DK',
+  'tanska':         'DK',   // Finnish for Denmark
+  'denemarken':     'DK',   // Dutch for Denmark
+  'dänemark':       'DK',   // German for Denmark
   'norway':         'NO',
   'norge':          'NO',
+  'norja':          'NO',   // Finnish for Norway
+  'noorwegen':      'NO',   // Dutch for Norway
+  'norwegen':       'NO',   // German for Norway
   'sweden':         'SE',
   'sverige':        'SE',
+  'ruotsi':         'SE',   // Finnish for Sweden
+  'zweden':         'SE',   // Dutch for Sweden
+  'schweden':       'SE',   // German for Sweden
   'germany':        'DE',
   'deutschland':    'DE',
+  'tyskland':       'DE',   // NO/SE/DK for Germany
+  'saksa':          'DE',   // Finnish for Germany
+  'duitsland':      'DE',   // Dutch for Germany
   'finland':        'FI',
+  'suomi':          'FI',   // Finnish for Finland
+  'finnland':       'FI',   // German for Finland
   'netherlands':    'NL',
   'holland':        'NL',
   'nederland':      'NL',
   'the netherlands':'NL',
+  'niederlande':    'NL',   // German for Netherlands
+  'alankomaat':     'NL',   // Finnish for Netherlands
+  'nederländerna':  'NL',   // Swedish for Netherlands
   'united kingdom': 'UK',
   'uk':             'UK',
   'england':        'UK',
   'scotland':       'UK',
   'wales':          'UK',
   'great britain':  'UK',
+  'storbritannien': 'UK',   // SE for UK
+  'iso-britannia':  'UK',   // Finnish for UK
+  'verenigd koninkrijk': 'UK', // Dutch for UK
+  'großbritannien': 'UK',   // German for UK
   'austria':        'AT',
   'österreich':     'AT',
+  'østrig':         'AT',   // Danish for Austria
+  'itävalta':       'AT',   // Finnish for Austria
+  'oostenrijk':     'AT',   // Dutch for Austria
   'switzerland':    'CH',
   'schweiz':        'CH',
-  'suisse':         'CH'
+  'suisse':         'CH',
+  'svizzera':       'CH',   // Italian for Switzerland
+  'sveitsi':        'CH',   // Finnish for Switzerland
+  'zwitserland':    'CH'    // Dutch for Switzerland
 };
 
 /**

@@ -127,12 +127,12 @@ async function processLeadgenChange(value) {
   // Also handle "for- og efternavn" (first and last name combined field)
   const fullName = fields.full_name || fields.name || fields['for- og efternavn'] || findFieldByKeyword(fields, ['fulde navn', 'full name', 'navn']) || '';
   const nameParts = fullName.trim().split(/\s+/);
-  const firstName = fields.first_name || fields.fornavn || fields.fornavne || findFieldByKeyword(fields, ['fornavn', 'first name', 'first_name']) || nameParts[0] || '';
-  const lastName = fields.last_name || fields.efternavn || findFieldByKeyword(fields, ['efternavn', 'last name', 'last_name']) || nameParts.slice(1).join(' ') || '';
-  const email = (fields.email || fields['e-mail'] || fields['e-mailadresse'] || findFieldByKeyword(fields, ['email', 'e-mail', 'mail']) || '').toLowerCase().trim();
-  const phone = fields.phone_number || fields.phone || fields.telefonnummer || fields.telefon || fields.mobil || findFieldByKeyword(fields, ['telefon', 'phone', 'mobil']) || '';
-  const city = fields.city || fields.location || fields.by || findFieldByKeyword(fields, ['by', 'city', 'location', 'hvor bor']) || '';
-  const country = fields.country || fields.land || findFieldByKeyword(fields, ['country', 'land']) || '';
+  const firstName = fields.first_name || fields.fornavn || fields.fornavne || findFieldByKeyword(fields, ['fornavn', 'first name', 'first_name', 'förnamn', 'vorname', 'etunimi', 'voornaam']) || nameParts[0] || '';
+  const lastName = fields.last_name || fields.efternavn || findFieldByKeyword(fields, ['efternavn', 'last name', 'last_name', 'efternamn', 'nachname', 'sukunimi', 'achternaam', 'etternavn']) || nameParts.slice(1).join(' ') || '';
+  const email = (fields.email || fields['e-mail'] || fields['e-mailadresse'] || findFieldByKeyword(fields, ['email', 'e-mail', 'mail', 'sähköposti']) || '').toLowerCase().trim();
+  const phone = fields.phone_number || fields.phone || fields.telefonnummer || fields.telefon || fields.mobil || findFieldByKeyword(fields, ['telefon', 'phone', 'mobil', 'puhelinnumero', 'telefoonnummer']) || '';
+  const city = fields.city || fields.location || fields.by || findFieldByKeyword(fields, ['by', 'city', 'location', 'hvor bor', 'stad', 'ort', 'stadt', 'kaupunki', 'plaats', 'sted']) || '';
+  const country = fields.country || fields.land || findFieldByKeyword(fields, ['country', 'land', 'maa', 'pays']) || '';
 
   // Parse custom questions — Meta sends these as field_data with the question text as key
   // We do a fuzzy match since Meta may vary casing/encoding of Danish characters
