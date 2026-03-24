@@ -204,7 +204,12 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         'lead_schedule_50h': 'specialty', 'lead_schedule_30h': 'specialty'
       };
 
-      if (leadData.multi_format === 'Yes' && leadData.all_formats) {
+      // July Vinyasa Plus — use conditional German template
+      var isJulyActionDe = action === 'lead_schedule_4w-jul' ||
+        (action === 'lead_meta' && leadData.type === 'ytt' && leadData.ytt_program_type === '4-week-jul');
+      if (isJulyActionDe) {
+        result = await sendJulyVinyasaPlusDeEmail(leadData, tokenData);
+      } else if (leadData.multi_format === 'Yes' && leadData.all_formats) {
         result = await sendMultiFormatEmail(leadData, 'de', tokenData);
       } else if (action === 'lead_schedule_multi') {
         result = await sendMultiFormatEmail(leadData, 'de', tokenData);
@@ -288,7 +293,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         result = await sendEmail4wYTT(leadData, tokenData);
         break;
       case 'lead_schedule_4w-jul':
-        result = await sendEmail4wJulyYTT(leadData, tokenData);
+        result = await sendJulyVinyasaPlusDaEmail(leadData, tokenData);
         break;
       case 'lead_schedule_8w':
         result = await sendEmail8wYTT(leadData, tokenData);
@@ -776,6 +781,332 @@ async function sendJulyVinyasaPlusEnEmail(leadData, tokenData) {
   plain += 'Book a Free Online Consultation: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
   plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
   plain += '\n---\nUnsubscribe: ' + buildUnsubscribeUrl(leadData.email);
+
+  var result = await sendRawEmail({
+    to: leadData.email,
+    subject: subject,
+    html: wrapHtml(html),
+    text: plain
+  });
+  return { ...result, subject: subject };
+}
+
+/**
+ * July Vinyasa Plus — German conditional email template.
+ * Used for lang = de (and AT/CH leads).
+ */
+async function sendJulyVinyasaPlusDeEmail(leadData, tokenData) {
+  var firstName = leadData.first_name || '';
+  var country = (leadData.country || 'OTHER').toUpperCase();
+  var yogaExp = leadData.yoga_experience || '';
+  var accommodation = leadData.accommodation || '';
+  var englishComfort = leadData.english_comfort || '';
+
+  var subject = firstName + ', hier sind alle Termine für die 4-Wochen Vinyasa Plus Ausbildung (Juli)';
+
+  var sUrl = tokenData && tokenData.leadId && tokenData.token
+    ? 'https://yogabible.dk/en/schedule/4-weeks-july/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://yogabible.dk/en/schedule/4-weeks-july/';
+
+  var localizedPrice = getLocalizedPrepPrice(country);
+
+  var html = '';
+
+  // Block 1: Greeting
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+
+  // Block 2: Thank you + language note
+  html += '<p>Vielen Dank für dein Interesse an unserer <strong>4-wöchigen Vinyasa Plus Yogalehrerausbildung</strong> (Juli 2026).</p>';
+  html += '<p>Ich schreibe dir auf Deutsch, damit du dich direkt wohlfühlst — im Alltag spreche ich Englisch, und du kannst mir jederzeit auf Deutsch oder Englisch antworten.</p>';
+
+  // Block 3: Schedule CTA
+  html += '<p>Hier sind alle Trainingstage und -zeiten:</p>';
+  html += '<p style="margin:20px 0;"><a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Deinen Stundenplan ansehen →</a></p>';
+  html += '<p style="font-size:14px;color:#666;">Du kannst alle Termine direkt in deinen Kalender übernehmen.</p>';
+
+  // Block 4: Vinyasa Plus detail box
+  html += '<div style="margin:16px 0;padding:14px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">';
+  html += '<strong style="color:#c2410c;">Was ist das Vinyasa Plus Format?</strong><br><br>';
+  html += '<strong>70% Vinyasa Flow</strong> — kreatives Sequencing, Klassenleitung und fortgeschrittene Unterrichtstechniken<br>';
+  html += '<strong>30% Yin Yoga + Hot Yoga</strong> — Regeneration, tiefe Dehnungen und Unterrichten in einer beheizten Umgebung<br><br>';
+  html += 'Du wirst zertifiziert, um sowohl unbeheizte als auch beheizte Vinyasa-, Yin- und Hot-Yoga-Stunden zu unterrichten.<br><br>';
+  html += '<a href="https://yogabible.dk/en/yoga-journal/vinyasa-plus-metoden/" style="color:#f75c03;">Mehr über die Vinyasa Plus Methode erfahren →</a>';
+  html += '</div>';
+
+  // Block 5: Program highlights
+  html += '<p style="margin-top:16px;">Über die Ausbildung:</p>';
+  html += '<ul style="margin:8px 0;padding-left:20px;color:#333;">';
+  html += '<li>200 Stunden · Yoga Alliance zertifiziert (RYT-200)</li>';
+  html += '<li>Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation</li>';
+  html += '<li>Anatomie, Philosophie, Sequencing & Unterrichtsmethodik</li>';
+  html += '<li>Zertifiziert für unbeheizten und Hot-Yoga-Unterricht</li>';
+  html += '<li>Alle Levels willkommen</li>';
+  html += '</ul>';
+
+  // Block 6: Yoga experience (conditional)
+  if (yogaExp === 'regular') {
+    html += '<p style="margin-top:16px;">Super — deine bestehende Praxis gibt dir eine starke Grundlage. Die Ausbildung vertieft dein Verständnis und fügt Unterrichtsmethodik, Sequencing und Anatomie zu dem hinzu, was du bereits weißt.</p>';
+  } else if (yogaExp === 'beginner') {
+    html += '<p style="margin-top:16px;">Du bist genau richtig, so wie du bist. Viele unserer Absolventen haben an derselben Stelle angefangen. Die Vorbereitungsphase gibt dir Zeit, Kraft, Flexibilität und Selbstvertrauen aufzubauen, bevor das Training im Juli beginnt.</p>';
+  } else if (yogaExp === 'previous_ytt') {
+    html += '<p style="margin-top:16px;">Willkommen zurück auf der Matte. Vinyasa Plus wird deinem Unterrichten eine neue Dimension verleihen — besonders das 70/30-Verhältnis von Flow zu Yin und die Techniken für beheizten Unterricht.</p>';
+  }
+
+  // Block 7: English comfort (conditional — DE always has Q3)
+  if (englishComfort === 'needs_patience') {
+    html += '<p style="margin-top:16px;">Keine Sorge — das Englisch, das wir verwenden, ist klar und praktisch, nicht akademisch. Deine Mitschüler werden ebenfalls international sein, sodass sich alle gegenseitig unterstützen. Wir gehen in einem Tempo vor, das für die ganze Gruppe passt.</p>';
+  } else if (englishComfort === 'unsure') {
+    html += '<p style="margin-top:16px;">Das verstehen wir vollkommen. Das Englisch, das wir verwenden, ist klar und praktisch, nicht akademisch. Viele unserer Absolventen hatten vor dem Start dieselbe Sorge — und es war nie ein Problem. Deine Mitschüler werden ebenfalls international sein, sodass sich alle gegenseitig unterstützen. Wenn du darüber sprechen möchtest, antworte einfach auf diese E-Mail.</p>';
+  }
+  // comfortable → do not show
+
+  // Block 8: Alumni note
+  html += '<p style="margin-top:12px;">Wir bilden seit 2014 Yogalehrer aus, und unsere Absolventen unterrichten in ganz Europa und darüber hinaus.</p>';
+
+  // Block 9: Travel block
+  var travelText = '';
+  if (country === 'DE') {
+    travelText = 'Kopenhagen ist von allen großen deutschen Flughäfen gut erreichbar, mit regelmäßigen Direktflügen.';
+  } else if (country === 'AT') {
+    travelText = 'Kopenhagen ist von Wien und anderen österreichischen Flughäfen leicht erreichbar, mit regelmäßigen Direktflügen.';
+  } else if (country !== 'DK') {
+    travelText = 'Kopenhagen hat direkte Flugverbindungen von den meisten großen europäischen Städten.';
+  }
+  if (travelText) {
+    html += '<p style="margin-top:16px;">' + travelText + '</p>';
+    html += '<p><a href="https://yogabible.dk/en/about-copenhagen/" style="color:#f75c03;">Kopenhagen entdecken →</a></p>';
+  }
+
+  // Block 10: Accommodation block
+  if (accommodation === 'accommodation') {
+    html += '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">';
+    html += '<strong style="color:#2E7D32;">🏠 Unterkunft</strong><br><br>';
+    html += 'Wir sehen, dass du Hilfe bei der Unterkunft wünschst — super, wir kümmern uns darum. Sobald du deinen Platz über die Vorbereitungsphase gesichert hast, helfen wir dir, eine Unterkunft in Kopenhagen zu reservieren.<br><br>';
+    html += '<strong><a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">Unterkunftsoptionen ansehen →</a></strong><br>';
+    html += '<span style="color:#666;">Fragen zur Unterkunft? Antworte einfach auf diese E-Mail.</span>';
+    html += '</div>';
+  } else if (accommodation === 'accommodation_plus') {
+    html += '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">';
+    html += '<strong style="color:#2E7D32;">🏠 Unterkunft & Logistik</strong><br><br>';
+    html += 'Wir sehen, dass du Hilfe bei Unterkunft und Logistik wünschst — super, wir kümmern uns um alles. Sobald du deinen Platz über die Vorbereitungsphase gesichert hast, helfen wir dir mit Unterkunft, Fortbewegung in Kopenhagen und allem anderen, was du für deinen Aufenthalt brauchst.<br><br>';
+    html += '<strong><a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">Unterkunftsoptionen ansehen →</a></strong><br>';
+    html += '<span style="color:#666;">Fragen? Antworte einfach auf diese E-Mail.</span>';
+    html += '</div>';
+  } else if (accommodation === 'self_arranged') {
+    html += '<p style="margin-top:16px;color:#666;">Falls du es dir mit der Unterkunft anders überlegst, helfen wir dir gerne. <a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">Unterkunftsoptionen ansehen →</a></p>';
+  }
+  // lives_in_denmark, lives_in_copenhagen → no accommodation block
+
+  // Block 11: Preparation Phase
+  html += '<div style="margin-top:16px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:6px;">';
+  html += '<strong style="color:#166534;">💡 Sichere deinen Platz</strong><br><br>';
+
+  if (accommodation === 'accommodation' || accommodation === 'accommodation_plus' || accommodation === 'self_arranged') {
+    html += 'Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz im Juli-Kurs. Du erhältst Zugang zum Mitgliederbereich mit optionalen Lernmaterialien zur Vorbereitung. Nach der Zahlung helfen wir dir auch, eine Unterkunft in Kopenhagen zu reservieren. Die Vorbereitungsphase ist vollständig erstattbar, falls der Kurs abgesagt wird.<br><br>';
+    html += '✅ Sichert deinen Platz im Juli-Kurs<br>';
+    html += '✅ Zugang zum Mitgliederbereich mit Vorbereitungsmaterialien<br>';
+    html += '✅ Wir helfen dir, eine Unterkunft zu reservieren<br>';
+    html += '✅ Vollständig erstattbar, falls der Kurs abgesagt wird<br>';
+  } else if (accommodation === 'lives_in_copenhagen') {
+    html += 'Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz im Juli-Kurs. Du erhältst Zugang zum Mitgliederbereich mit optionalen Lernmaterialien zur Vorbereitung. Du kannst auch sofort in unserem Studio in Christianshavn mit dem Üben beginnen — je mehr Stunden du vor Juli absolvierst, desto stärker ist dein Fundament. Die Vorbereitungsphase ist vollständig erstattbar, falls der Kurs abgesagt wird.<br><br>';
+    html += '✅ Sichert deinen Platz im Juli-Kurs<br>';
+    html += '✅ Sofort im Studio üben<br>';
+    html += '✅ Zugang zum Mitgliederbereich mit Vorbereitungsmaterialien<br>';
+    html += '✅ Vollständig erstattbar, falls der Kurs abgesagt wird<br>';
+  } else {
+    // lives_in_denmark or fallback
+    html += 'Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz im Juli-Kurs. Du erhältst Zugang zum Mitgliederbereich mit optionalen Lernmaterialien zur Vorbereitung. Die Vorbereitungsphase ist vollständig erstattbar, falls der Kurs abgesagt wird.<br><br>';
+    html += '✅ Sichert deinen Platz im Juli-Kurs<br>';
+    html += '✅ Zugang zum Mitgliederbereich mit Vorbereitungsmaterialien<br>';
+    html += '✅ Vollständig erstattbar, falls der Kurs abgesagt wird<br>';
+  }
+
+  html += '<br><a href="https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Vorbereitungsphase starten →</a>';
+  html += '</div>';
+
+  // Block 12: Booking CTA
+  html += '<p style="margin-top:20px;">Möchtest du mehr erfahren oder Fragen stellen? Buche ein kostenloses Online-Gespräch:</p>';
+  html += '<p style="margin:16px 0;"><a href="https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Kostenloses Online-Gespräch buchen →</a></p>';
+
+  // Block 13: Signature
+  html += julySignatureHtml();
+
+  // Block 14: Unsubscribe
+  html += julyUnsubscribeHtml(leadData.email, 'de');
+
+  // ---- Plain text ----
+  var plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Vielen Dank für dein Interesse an unserer 4-wöchigen Vinyasa Plus Yogalehrerausbildung (Juli 2026).\n\n';
+  plain += 'Ich schreibe dir auf Deutsch, damit du dich direkt wohlfühlst — im Alltag spreche ich Englisch, und du kannst mir jederzeit auf Deutsch oder Englisch antworten.\n\n';
+  plain += 'Hier sind alle Trainingstage und -zeiten:\n' + sUrl + '\nDu kannst alle Termine direkt in deinen Kalender übernehmen.\n\n';
+  plain += 'Was ist das Vinyasa Plus Format?\n';
+  plain += '70% Vinyasa Flow — kreatives Sequencing, Klassenleitung und fortgeschrittene Unterrichtstechniken\n';
+  plain += '30% Yin Yoga + Hot Yoga — Regeneration, tiefe Dehnungen und Unterrichten in einer beheizten Umgebung\n\n';
+  plain += 'Über die Ausbildung:\n';
+  plain += '• 200 Stunden · Yoga Alliance zertifiziert (RYT-200)\n';
+  plain += '• Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation\n';
+  plain += '• Anatomie, Philosophie, Sequencing & Unterrichtsmethodik\n';
+  plain += '• Alle Levels willkommen\n\n';
+  plain += 'Wir bilden seit 2014 Yogalehrer aus, und unsere Absolventen unterrichten in ganz Europa und darüber hinaus.\n\n';
+  plain += 'Sichere deinen Platz: Vorbereitungsphase (' + localizedPrice + ')\n';
+  plain += 'Vorbereitungsphase starten: https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211\n\n';
+  plain += 'Kostenloses Online-Gespräch buchen: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
+  plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
+  plain += '\n---\nAbmelden: ' + buildUnsubscribeUrl(leadData.email);
+
+  var result = await sendRawEmail({
+    to: leadData.email,
+    subject: subject,
+    html: wrapHtml(html),
+    text: plain
+  });
+  return { ...result, subject: subject };
+}
+
+/**
+ * July Vinyasa Plus — Danish conditional email template.
+ * Used for lang = da. All links use Danish URLs (no /en/ prefix).
+ */
+async function sendJulyVinyasaPlusDaEmail(leadData, tokenData) {
+  var firstName = leadData.first_name || '';
+  var yogaExp = leadData.yoga_experience || '';
+  var accommodation = leadData.accommodation || '';
+  var cityCountry = (leadData.city_country || '').toLowerCase();
+
+  var subject = firstName + ', her er alle datoer til 4-ugers Vinyasa Plus uddannelsen (juli)';
+
+  var sUrl = tokenData && tokenData.leadId && tokenData.token
+    ? 'https://yogabible.dk/skema/4-uger-juli/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://yogabible.dk/skema/4-uger-juli/';
+
+  var html = '';
+
+  // Block 1: Greeting
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+
+  // Block 2: Thank you
+  html += '<p>Tak for din interesse i vores <strong>4-ugers Vinyasa Plus yogalæreruddannelse</strong> (juli 2026).</p>';
+
+  // Block 3: Schedule CTA
+  html += '<p>Her er alle træningsdage og -tidspunkter:</p>';
+  html += '<p style="margin:20px 0;"><a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se din tidsplan →</a></p>';
+  html += '<p style="font-size:14px;color:#666;">Du kan tilføje alle datoer direkte i din kalender.</p>';
+
+  // Block 4: Vinyasa Plus detail box
+  html += '<div style="margin:16px 0;padding:14px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">';
+  html += '<strong style="color:#c2410c;">Hvad er Vinyasa Plus-formatet?</strong><br><br>';
+  html += '<strong>70% Vinyasa Flow</strong> — kreativ sequencing, klasseledelse og avancerede undervisningsteknikker<br>';
+  html += '<strong>30% Yin Yoga + Hot Yoga</strong> — restitution, dybe stræk og undervisning i et opvarmet miljø<br><br>';
+  html += 'Du bliver certificeret til at undervise i både uopvarmede og opvarmede Vinyasa-, Yin- og Hot Yoga-klasser.<br><br>';
+  html += '<a href="https://yogabible.dk/yoga-journal/vinyasa-plus-metoden/" style="color:#f75c03;">Læs mere om Vinyasa Plus-metoden →</a>';
+  html += '</div>';
+
+  // Block 5: Program highlights
+  html += '<p style="margin-top:16px;">Om uddannelsen:</p>';
+  html += '<ul style="margin:8px 0;padding-left:20px;color:#333;">';
+  html += '<li>200 timer · Yoga Alliance-certificeret (RYT-200)</li>';
+  html += '<li>Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation</li>';
+  html += '<li>Anatomi, filosofi, sequencing & undervisningsmetodik</li>';
+  html += '<li>Certificeret til at undervise både uopvarmet og hot yoga</li>';
+  html += '<li>Alle niveauer er velkomne</li>';
+  html += '</ul>';
+
+  // Block 6: Yoga experience (conditional)
+  if (yogaExp === 'regular') {
+    html += '<p style="margin-top:16px;">Fedt — din eksisterende praksis giver dig et stærkt fundament. Uddannelsen vil uddybe din forståelse og tilføje undervisningsmetodik, sequencing og anatomi til det, du allerede kan.</p>';
+  } else if (yogaExp === 'beginner') {
+    html += '<p style="margin-top:16px;">Du er velkommen præcis som du er. Mange af vores dimittender startede det samme sted. Forberedelsesfasen giver dig tid til at opbygge styrke, fleksibilitet og selvtillid inden træningen starter i juli.</p>';
+  } else if (yogaExp === 'previous_ytt') {
+    html += '<p style="margin-top:16px;">Velkommen tilbage på måtten. Vinyasa Plus vil tilføje en ny dimension til din undervisning — især 70/30-forholdet mellem flow og yin og teknikker til opvarmet undervisning.</p>';
+  }
+
+  // Block 7: English comfort — NOT SHOWN for Danish leads
+
+  // Block 8: Alumni note
+  html += '<p style="margin-top:12px;">Vi har uddannet yogalærere siden 2014, og vores dimittender underviser i hele Europa og videre.</p>';
+
+  // Block 9: Travel block — studio location for non-CPH Danish leads
+  var isCph = accommodation === 'lives_in_copenhagen' ||
+    cityCountry.includes('københavn') || cityCountry.includes('copenhagen');
+  if (!isCph) {
+    html += '<p style="margin-top:16px;">Studiet ligger på Torvegade 66 i Christianshavn — lige ved kanalen og tæt på metroen. Mange af vores studerende pendler eller finder overnatning i København under uddannelsen.</p>';
+  }
+
+  // Block 10: Accommodation block
+  if (accommodation === 'accommodation') {
+    html += '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">';
+    html += '<strong style="color:#2E7D32;">🏠 Overnatning</strong><br><br>';
+    html += 'Vi kan se, at du gerne vil have hjælp med overnatning — det klarer vi. Når du har sikret din plads via Forberedelsesfasen, hjælper vi dig med at finde overnatning i København.<br><br>';
+    html += '<strong><a href="https://yogabible.dk/accommodation/" style="color:#f75c03;">Se overnatningsmuligheder →</a></strong><br>';
+    html += '<span style="color:#666;">Spørgsmål om bolig? Bare svar på denne e-mail.</span>';
+    html += '</div>';
+  } else if (accommodation === 'accommodation_plus') {
+    html += '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">';
+    html += '<strong style="color:#2E7D32;">🏠 Overnatning & logistik</strong><br><br>';
+    html += 'Vi kan se, at du gerne vil have hjælp med overnatning og praktiske ting — det klarer vi. Når du har sikret din plads via Forberedelsesfasen, hjælper vi dig med overnatning og alt andet, du har brug for under dit ophold i København.<br><br>';
+    html += '<strong><a href="https://yogabible.dk/accommodation/" style="color:#f75c03;">Se overnatningsmuligheder →</a></strong><br>';
+    html += '<span style="color:#666;">Spørgsmål? Bare svar på denne e-mail.</span>';
+    html += '</div>';
+  } else if (accommodation === 'self_arranged') {
+    html += '<p style="margin-top:16px;color:#666;">Hvis du ombestemmer dig vedrørende overnatning, hjælper vi gerne. <a href="https://yogabible.dk/accommodation/" style="color:#f75c03;">Se overnatningsmuligheder →</a></p>';
+  }
+  // lives_in_copenhagen → no accommodation block
+
+  // Block 11: Preparation Phase
+  html += '<div style="margin-top:16px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:6px;">';
+  html += '<strong style="color:#166534;">💡 Sikr din plads</strong><br><br>';
+
+  if (accommodation === 'accommodation' || accommodation === 'accommodation_plus' || accommodation === 'self_arranged') {
+    html += 'Forberedelsesfasen (3.750 kr.) reserverer din plads på juli-holdet. Du får adgang til medlemsområdet med valgfrit studiemateriale til at forberede dig. Når du har betalt, kan vi også hjælpe dig med at finde overnatning i København. Forberedelsesfasen er fuldt refunderbar, hvis kurset aflyses.<br><br>';
+    html += '✅ Sikrer din plads på juli-holdet<br>';
+    html += '✅ Adgang til medlemsområdet med forberedelsesmaterialer<br>';
+    html += '✅ Vi hjælper dig med at finde overnatning<br>';
+    html += '✅ Fuldt refunderbar, hvis kurset aflyses<br>';
+  } else if (accommodation === 'lives_in_copenhagen') {
+    html += 'Forberedelsesfasen (3.750 kr.) reserverer din plads på juli-holdet. Du får adgang til medlemsområdet med valgfrit studiemateriale til at forberede dig. Du kan også begynde at træne i vores studie i Christianshavn med det samme — jo flere timer du når inden juli, desto stærkere er dit fundament. Forberedelsesfasen er fuldt refunderbar, hvis kurset aflyses.<br><br>';
+    html += '✅ Sikrer din plads på juli-holdet<br>';
+    html += '✅ Begynd at træne i studiet med det samme<br>';
+    html += '✅ Adgang til medlemsområdet med forberedelsesmaterialer<br>';
+    html += '✅ Fuldt refunderbar, hvis kurset aflyses<br>';
+  } else {
+    // Fallback
+    html += 'Forberedelsesfasen (3.750 kr.) reserverer din plads på juli-holdet. Du får adgang til medlemsområdet med valgfrit studiemateriale til at forberede dig. Forberedelsesfasen er fuldt refunderbar, hvis kurset aflyses.<br><br>';
+    html += '✅ Sikrer din plads på juli-holdet<br>';
+    html += '✅ Adgang til medlemsområdet med forberedelsesmaterialer<br>';
+    html += '✅ Fuldt refunderbar, hvis kurset aflyses<br>';
+  }
+
+  html += '<br><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Start Forberedelsesfasen →</a>';
+  html += '</div>';
+
+  // Block 12: Booking CTA
+  html += '<p style="margin-top:20px;">Vil du vide mere eller stille spørgsmål? Book en gratis online samtale:</p>';
+  html += '<p style="margin:16px 0;"><a href="https://yogabible.dk/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Book en gratis online samtale →</a></p>';
+
+  // Block 13: Signature
+  html += julySignatureHtml();
+
+  // Block 14: Unsubscribe
+  html += julyUnsubscribeHtml(leadData.email, 'da');
+
+  // ---- Plain text ----
+  var plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Tak for din interesse i vores 4-ugers Vinyasa Plus yogalæreruddannelse (juli 2026).\n\n';
+  plain += 'Her er alle træningsdage og -tidspunkter:\n' + sUrl + '\nDu kan tilføje alle datoer direkte i din kalender.\n\n';
+  plain += 'Hvad er Vinyasa Plus-formatet?\n';
+  plain += '70% Vinyasa Flow — kreativ sequencing, klasseledelse og avancerede undervisningsteknikker\n';
+  plain += '30% Yin Yoga + Hot Yoga — restitution, dybe stræk og undervisning i et opvarmet miljø\n\n';
+  plain += 'Om uddannelsen:\n';
+  plain += '• 200 timer · Yoga Alliance-certificeret (RYT-200)\n';
+  plain += '• Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation\n';
+  plain += '• Anatomi, filosofi, sequencing & undervisningsmetodik\n';
+  plain += '• Alle niveauer er velkomne\n\n';
+  plain += 'Vi har uddannet yogalærere siden 2014, og vores dimittender underviser i hele Europa og videre.\n\n';
+  plain += 'Sikr din plads: Forberedelsesfasen (3.750 kr.)\n';
+  plain += 'Start Forberedelsesfasen: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs?product=100211\n\n';
+  plain += 'Book en gratis online samtale: https://yogabible.dk/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
+  plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
+  plain += '\n---\nAfmeld: ' + buildUnsubscribeUrl(leadData.email);
 
   var result = await sendRawEmail({
     to: leadData.email,
