@@ -5,10 +5,10 @@
  * Auth: X-Internal-Secret header
  *
  * Generates HMAC schedule tokens for every lead in Firestore that doesn't
- * already have one stored. This enables schedule URL tracking for leads
- * who signed up before tokenized links were implemented.
+ * already have one stored. Uses Firestore batched writes (500 per batch)
+ * to stay within Netlify function timeout.
  *
- * GET /.netlify/functions/backfill-schedule-tokens?dry=1 — preview only (no writes)
+ * ?dry=1 — preview only (no writes)
  */
 
 const crypto = require('crypto');
@@ -16,6 +16,7 @@ const { getDb } = require('./shared/firestore');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
+const BATCH_SIZE = 450; // Firestore max is 500, leave headroom
 
 function generateScheduleToken(leadId, email) {
   var hmac = crypto.createHmac('sha256', TOKEN_SECRET);
@@ -44,37 +45,51 @@ exports.handler = async (event) => {
   var generated = 0;
   var errors = [];
 
+  // Collect all updates first
+  var updates = [];
+
   for (var i = 0; i < leadsSnap.docs.length; i++) {
     var doc = leadsSnap.docs[i];
     var lead = doc.data();
     total++;
 
-    // Skip leads that already have a stored token
     if (lead.schedule_token) {
       alreadyHaveToken++;
       continue;
     }
 
-    // Skip leads without email (can't generate token)
     if (!lead.email) {
       noEmail++;
       continue;
     }
 
-    var token = generateScheduleToken(doc.id, lead.email);
+    updates.push({
+      id: doc.id,
+      token: generateScheduleToken(doc.id, lead.email)
+    });
+  }
 
-    if (!dryRun) {
-      try {
-        await db.collection('leads').doc(doc.id).update({
-          schedule_token: token
+  if (!dryRun && updates.length > 0) {
+    // Write in batches of 450
+    for (var b = 0; b < updates.length; b += BATCH_SIZE) {
+      var chunk = updates.slice(b, b + BATCH_SIZE);
+      var batch = db.batch();
+
+      for (var j = 0; j < chunk.length; j++) {
+        batch.update(db.collection('leads').doc(chunk[j].id), {
+          schedule_token: chunk[j].token
         });
-        generated++;
-      } catch (err) {
-        errors.push({ id: doc.id, error: err.message });
       }
-    } else {
-      generated++;
+
+      try {
+        await batch.commit();
+        generated += chunk.length;
+      } catch (err) {
+        errors.push({ batch: Math.floor(b / BATCH_SIZE) + 1, count: chunk.length, error: err.message });
+      }
     }
+  } else {
+    generated = updates.length;
   }
 
   return jsonResponse(200, {
