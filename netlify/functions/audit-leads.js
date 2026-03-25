@@ -75,18 +75,33 @@ exports.handler = async (event) => {
   console.log(`[audit-leads] Starting — since=${new Date(sinceTs * 1000).toISOString()}, dry_run=${dryRun}, form_id=${targetFormId || 'all'}`);
 
   try {
-    // 1. Fetch forms from the page
-    const allForms = await fetchForms();
-    const forms = targetFormId
-      ? allForms.filter(f => f.id === targetFormId)
-      : allForms;
+    // 1. Build form list from FORM_ID_MAP (doesn't require pages_manage_ads permission)
+    //    Each unique form ID gets a name based on its mapping
+    const FORM_NAMES = {
+      '1974647360148367': '18-week YTT',
+      '961808297026346':  'General YTT (multi-program)',
+      '827004866473769':  'July Vinyasa Plus — EN/UK',
+      '25716246641411656': 'July Vinyasa Plus — NO',
+      '4318151781759438': 'July Vinyasa Plus — SE',
+      '2450631555377690': 'July Vinyasa Plus — DE',
+      '1668412377638315': 'July Vinyasa Plus — FI',
+      '960877763097239':  'July Vinyasa Plus — NL',
+      '1344364364192542': 'July Vinyasa Plus — DK'
+    };
 
-    console.log(`[audit-leads] Found ${allForms.length} form(s) on page, checking ${forms.length}`);
+    let forms;
+    if (targetFormId) {
+      forms = [{ id: targetFormId, name: FORM_NAMES[targetFormId] || `Form ${targetFormId}` }];
+    } else {
+      forms = Object.entries(FORM_NAMES).map(([id, name]) => ({ id, name }));
+    }
+
+    console.log(`[audit-leads] Checking ${forms.length} known form(s)`);
 
     const results = {
       dry_run: dryRun,
       since: new Date(sinceTs * 1000).toISOString(),
-      all_forms: allForms.map(f => ({ id: f.id, name: f.name, status: f.status })),
+      known_forms: forms.map(f => ({ id: f.id, name: f.name })),
       forms_checked: forms.length,
       leads_in_meta: 0,
       leads_already_in_firestore: 0,
@@ -338,12 +353,6 @@ async function processLead(rawLead, form, fields, email) {
 }
 
 // ─── Graph API ───────────────────────────────────────────────────────────────
-
-function fetchForms() {
-  const token = process.env.FB_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
-  const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${PAGE_ID}/leadgen_forms?fields=id,name,status&limit=100&access_token=${token}`;
-  return graphGet(url).then(data => data.data || []);
-}
 
 function fetchLeadsForForm(formId, sinceTs) {
   const token = process.env.FB_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
