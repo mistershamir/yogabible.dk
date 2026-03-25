@@ -1,6 +1,13 @@
 {% set t = i18n.schedule_4w_jul_plan[lang or "en"] %}
 {% if not t %}{% set t = i18n.schedule_4w_jul_plan["en"] %}{% endif %}
 
+<style>
+  .s4wjp-explore-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:16px; }
+  @media (max-width:700px) {
+    .s4wjp-explore-grid { grid-template-columns:1fr;max-width:340px;margin:0 auto; }
+  }
+</style>
+
 <section id="schedule-4w-jul-plan">
 
   {# ── HERO (Copenhagen, Denmark prominent) ───────────── #}
@@ -147,6 +154,58 @@
         {% endif %}
       </div>
       {% endfor %}
+    </div>
+  </div>
+
+  {# ── EXPLORE MORE (3 Video Boxes) ──────────────────── #}
+  <div style="padding:48px 24px 0;">
+    <div style="max-width:900px;margin:0 auto;">
+      <p style="font-size:.72rem;font-weight:600;letter-spacing:.08em;color:#f75c03;text-align:center;margin:0 0 24px;">{{ t.exploreEyebrow }}</p>
+      <div class="s4wjp-explore-grid">
+
+        {# Box 1 — The Program #}
+        <a href="{% if lang == 'en' %}/en/200-hours-4-weeks-intensive-programs/{% else %}/200-timers-4-ugers-intensiv-programmer/{% endif %}" style="text-decoration:none;display:block;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:#0F0F0F;">
+          <video autoplay muted loop playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;">
+            <source src="{{ mediaBase }}/v1773250556/4_weeks_hero_compressed_a5w707.mp4" type="video/mp4">
+          </video>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,rgba(0,0,0,.1) 60%);"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;">
+            <p style="font-size:.65rem;font-weight:600;letter-spacing:.08em;color:#ff9966;margin:0 0 6px;">{{ t.exploreBox1Eyebrow }}</p>
+            <p style="font-size:1.1rem;font-weight:700;color:#fff;line-height:1.2;margin:0 0 6px;">{{ t.exploreBox1Title }}</p>
+            <p style="font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.4;margin:0 0 10px;">{{ t.exploreBox1Desc }}</p>
+            <span style="font-size:.78rem;font-weight:600;color:#f75c03;display:inline-flex;align-items:center;gap:4px;">{{ t.exploreBox1Cta }} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+          </div>
+        </a>
+
+        {# Box 2 — Copenhagen #}
+        <a href="{% if lang == 'en' %}/en/about-copenhagen/{% else %}/om-koebenhavn/{% endif %}" style="text-decoration:none;display:block;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:#0F0F0F;">
+          <video autoplay muted loop playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;">
+            <source src="{{ "yoga-bible-DK/copenhagen/about-copenhagen-hero-loop" | cloudvid("w_800,q_auto") }}" type="video/mp4">
+          </video>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,rgba(0,0,0,.1) 60%);"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;">
+            <p style="font-size:.65rem;font-weight:600;letter-spacing:.08em;color:#ff9966;margin:0 0 6px;">{{ t.exploreBox2Eyebrow }}</p>
+            <p style="font-size:1.1rem;font-weight:700;color:#fff;line-height:1.2;margin:0 0 6px;">{{ t.exploreBox2Title }}</p>
+            <p style="font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.4;margin:0 0 10px;">{{ t.exploreBox2Desc }}</p>
+            <span style="font-size:.78rem;font-weight:600;color:#f75c03;display:inline-flex;align-items:center;gap:4px;">{{ t.exploreBox2Cta }} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+          </div>
+        </a>
+
+        {# Box 3 — Accommodation #}
+        <a href="{% if lang == 'en' %}/en/accommodation/{% else %}/overnatning/{% endif %}" style="text-decoration:none;display:block;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:#0F0F0F;">
+          <video autoplay muted loop playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;">
+            <source src="{{ "yoga-bible-DK/accommodation/accommodation-hero-loop" | cloudvid("w_800,q_auto") }}" type="video/mp4">
+          </video>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,rgba(0,0,0,.1) 60%);"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;">
+            <p style="font-size:.65rem;font-weight:600;letter-spacing:.08em;color:#ff9966;margin:0 0 6px;">{{ t.exploreBox3Eyebrow }}</p>
+            <p style="font-size:1.1rem;font-weight:700;color:#fff;line-height:1.2;margin:0 0 6px;">{{ t.exploreBox3Title }}</p>
+            <p style="font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.4;margin:0 0 10px;">{{ t.exploreBox3Desc }}</p>
+            <span style="font-size:.78rem;font-weight:600;color:#f75c03;display:inline-flex;align-items:center;gap:4px;">{{ t.exploreBox3Cta }} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+          </div>
+        </a>
+
+      </div>
     </div>
   </div>
 
