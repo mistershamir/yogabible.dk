@@ -4,14 +4,11 @@
 {% set mailto_ask = "mailto:info@yogabible.dk?subject=Sp%C3%B8rgsm%C3%A5l%20til%20yoga%20fotosession&body=Hej%20Yoga%20Bible%0A%0AJeg%20har%20et%20sp%C3%B8rgsm%C3%A5l%20om%20yoga%20fotosession:%0A%0A" %}
 
 {# ── Models data array for loop ── #}
-{# imgBase = Bunny CDN folder for each model. Images: {key}-portrait, {key}-1, {key}-2, {key}-3
-   OR override with img_p / img_1 / img_2 / img_3 for custom Bunny paths #}
+{# imgBase = yoga-bible-DK/yogaphotography/Models/{Folder}/
+   Default images: {Name}.jpg (portrait), {Name} 1.jpg, {Name} 2.jpg, {Name} 3.jpg
+   Override with img_p / img_1 / img_2 / img_3 for custom paths (Cloudinary or Bunny) #}
 {% set models = [
-  { key: "anna",      folder: "Anna",      variation: "a",
-    img_p: "DSC_6049_qx8dow",
-    img_1: "DSC_6430_mwuxlj",
-    img_2: "Inversion_Course_Kursus_K%C3%B8benhavn_l%C3%A6re_fi9ik3",
-    img_3: "DSC_6263_u780xe" },
+  { key: "anna",      folder: "Anna",      variation: "a" },
   { key: "sita",      folder: "Sita",      variation: "b" },
   { key: "kerti",     folder: "Kerti",     variation: "c" },
   { key: "eva",       folder: "Eva",       variation: "c" },
@@ -335,8 +332,8 @@
 <section class="yphoto-model yphoto-model--{{ m.variation }}" aria-label="{{ mname }}">
   <div class="yphoto-model__inner yphoto-reveal">
     <div class="yphoto-model__intro">
-      {# Portrait — use override or default path, no forced crop #}
-      {% set portrait_src = m.img_p if m.img_p else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-portrait') %}
+      {# Portrait — use override or default path: Models/{Folder}/{Name}.jpg #}
+      {% set portrait_src = m.img_p if m.img_p else ('yoga-bible-DK/yogaphotography/Models/' + m.folder + '/' + m.folder + '.jpg') %}
       <div class="yphoto-model__portrait">
         <img
           src="{{ portrait_src | cloudimg('w_520,c_scale') }}"
@@ -356,10 +353,10 @@
         {% endif %}
       </div>
     </div>
-    {# Gallery — use overrides or default paths, no forced crop #}
-    {% set g1 = m.img_1 if m.img_1 else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-1') %}
-    {% set g2 = m.img_2 if m.img_2 else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-2') %}
-    {% set g3 = m.img_3 if m.img_3 else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-3') %}
+    {# Gallery — use overrides or default: Models/{Folder}/{Name} 1.jpg etc #}
+    {% set g1 = m.img_1 if m.img_1 else ('yoga-bible-DK/yogaphotography/Models/' + m.folder + '/' + m.folder + '%201.jpg') %}
+    {% set g2 = m.img_2 if m.img_2 else ('yoga-bible-DK/yogaphotography/Models/' + m.folder + '/' + m.folder + '%202.jpg') %}
+    {% set g3 = m.img_3 if m.img_3 else ('yoga-bible-DK/yogaphotography/Models/' + m.folder + '/' + m.folder + '%203.jpg') %}
     <div class="yphoto-model__gallery">
       <div class="yphoto-model__photo yphoto-model__photo--1">
         <img src="{{ g1 | cloudimg('w_800,c_scale') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
@@ -403,5 +400,19 @@
     });
   }, { threshold: 0.15 });
   els.forEach(function(el){ io.observe(el); });
+})();
+
+/* Auto-detect photo orientation — adds is-portrait / is-landscape / is-square */
+(function(){
+  document.querySelectorAll('.yphoto-model__photo img').forEach(function(img){
+    function classify(){
+      if (!img.naturalWidth || !img.naturalHeight) return;
+      var r = img.naturalWidth / img.naturalHeight;
+      var cl = r < 0.85 ? 'is-portrait' : r > 1.15 ? 'is-landscape' : 'is-square';
+      img.parentElement.classList.add(cl);
+    }
+    if (img.complete && img.naturalWidth) classify();
+    else img.addEventListener('load', classify);
+  });
 })();
 </script>
