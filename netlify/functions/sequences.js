@@ -632,6 +632,10 @@ async function handleProcess() {
         if (isGerman && step.email_subject_de) {
           selectedSubject = step.email_subject_de;
           selectedBody = step.email_body_de || step.email_body_en || step.email_body;
+          // Append language note — Shamir is not a German speaker
+          if (selectedBody) {
+            selectedBody += '<p style="margin-top:24px;padding-top:16px;border-top:1px solid #E8E4E0;color:#6F6A66;font-size:13px;"><em>P.S. Ich schreibe dir auf Deutsch, damit es einfacher f\u00FCr dich ist \u2014 aber im Alltag spreche ich Englisch. Antworte gerne auf Deutsch oder Englisch, ich verstehe beides!</em></p>';
+          }
         } else if (!isDanish) {
           selectedSubject = step.email_subject_en || step.email_subject;
           selectedBody = step.email_body_en || step.email_body;
