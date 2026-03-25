@@ -189,6 +189,15 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
   }
 
   try {
+    // Waitlist 300h — bilingual, handles lang internally
+    if (action === 'lead_waitlist_300h') {
+      const result = await sendWaitlist300hEmail(leadData);
+      if (result && result.success) {
+        await logWelcomeEmail(leadData.email, result.subject || 'Waitlist 300h email');
+      }
+      return result;
+    }
+
     // Determine language: use explicit lang field, then country detection fallback
     const rawLang = (leadData.lang || leadData.meta_lang || '').toLowerCase().trim();
     let lang, isDanish, isGerman;
@@ -322,6 +331,9 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         break;
       case 'lead_schedule_300h':
         result = await sendEmail300hYTT(leadData);
+        break;
+      case 'lead_waitlist_300h':
+        result = await sendWaitlist300hEmail(leadData);
         break;
       case 'lead_schedule_50h':
       case 'lead_schedule_30h':
@@ -1691,6 +1703,74 @@ async function sendEmail300hYTT(leadData) {
     html: wrapHtml(bodyHtml),
     text: bodyPlain,
     attachments: attachment ? [attachment] : []
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
+// 300h Waitlist Confirmation Email (Bilingual)
+// =========================================================================
+
+async function sendWaitlist300hEmail(leadData) {
+  const firstName = leadData.first_name || '';
+  const lang = (leadData.lang || 'da').toLowerCase();
+  const isEn = lang === 'en';
+
+  const subject = isEn
+    ? 'You\'re on the waitlist — 300-Hour Advanced Yoga Teacher Training'
+    : 'Du er på ventelisten — 300-timers avanceret yogalæreruddannelse';
+
+  let bodyHtml, bodyPlain;
+
+  if (isEn) {
+    bodyHtml = '<p>Hi ' + escapeHtml(firstName) + ',</p>';
+    bodyHtml += '<p>Thank you for your interest in our <strong>300-Hour Advanced Yoga Teacher Training</strong> — we\'re thrilled to have you on the waitlist.</p>';
+    bodyHtml += '<p>We are currently designing the most comprehensive 300-hour program in Scandinavia. As soon as the program opens for applications, you will be <strong>among the first to know</strong>.</p>';
+    bodyHtml += '<p>Here\'s what you can expect:</p>';
+    bodyHtml += '<ul style="margin:10px 0;padding-left:20px;">';
+    bodyHtml += '<li><strong>24 weeks</strong> of advanced training in Copenhagen</li>';
+    bodyHtml += '<li><strong>RYT-500 certification</strong> through Yoga Alliance</li>';
+    bodyHtml += '<li>Specializations in Yin Yoga, Yoga Therapy, Pre/Postnatal, Ayurveda &amp; more</li>';
+    bodyHtml += '<li>Max <strong>12 participants</strong> for close mentoring</li>';
+    bodyHtml += '</ul>';
+    bodyHtml += '<p>In the meantime, feel free to reply to this email if you have any questions — I\'m happy to chat.</p>';
+    bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book a free info session</a></p>';
+    bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+    bodyPlain = 'Hi ' + firstName + ',\n\n';
+    bodyPlain += 'Thank you for your interest in our 300-Hour Advanced Yoga Teacher Training — we\'re thrilled to have you on the waitlist.\n\n';
+    bodyPlain += 'We are currently designing the most comprehensive 300-hour program in Scandinavia. As soon as the program opens for applications, you will be among the first to know.\n\n';
+    bodyPlain += 'In the meantime, feel free to reply to this email if you have any questions.\n\n';
+    bodyPlain += 'Book a free info session: ' + CONFIG.MEETING_LINK;
+    bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  } else {
+    bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+    bodyHtml += '<p>Tak for din interesse i vores <strong>300-timers avancerede yogalæreruddannelse</strong> — vi er glade for at have dig på ventelisten.</p>';
+    bodyHtml += '<p>Vi er i gang med at designe det mest ambitiøse 300-timers program i Skandinavien. Så snart uddannelsen åbner for ansøgning, vil du være <strong>blandt de første til at høre det</strong>.</p>';
+    bodyHtml += '<p>Her er hvad du kan forvente:</p>';
+    bodyHtml += '<ul style="margin:10px 0;padding-left:20px;">';
+    bodyHtml += '<li><strong>24 ugers</strong> avanceret uddannelse i København</li>';
+    bodyHtml += '<li><strong>RYT-500 certificering</strong> gennem Yoga Alliance</li>';
+    bodyHtml += '<li>Specialiseringer i Yin Yoga, Yoga Terapi, Pre/Postnatal, Ayurveda og mere</li>';
+    bodyHtml += '<li>Max <strong>12 deltagere</strong> for tæt mentoring</li>';
+    bodyHtml += '</ul>';
+    bodyHtml += '<p>I mellemtiden er du meget velkommen til at svare på denne e-mail, hvis du har spørgsmål — jeg svarer gerne.</p>';
+    bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>';
+    bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+    bodyPlain = 'Hej ' + firstName + ',\n\n';
+    bodyPlain += 'Tak for din interesse i vores 300-timers avancerede yogalæreruddannelse — vi er glade for at have dig på ventelisten.\n\n';
+    bodyPlain += 'Vi er i gang med at designe det mest ambitiøse 300-timers program i Skandinavien. Så snart uddannelsen åbner for ansøgning, vil du være blandt de første til at høre det.\n\n';
+    bodyPlain += 'I mellemtiden er du meget velkommen til at svare på denne e-mail.\n\n';
+    bodyPlain += 'Book et gratis infomøde: ' + CONFIG.MEETING_LINK;
+    bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  }
+
+  const result = await sendRawEmail({
+    to: leadData.email,
+    subject,
+    html: wrapHtml(bodyHtml),
+    text: bodyPlain
   });
   return { ...result, subject };
 }

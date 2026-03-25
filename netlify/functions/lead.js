@@ -385,6 +385,24 @@ function processLead(payload, action) {
         source: 'Website'
       };
 
+    case 'lead_waitlist_300h':
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: '300h',
+        program: payload.program || '300-Hour Advanced Yoga Teacher Training',
+        course_id: '',
+        cohort_label: 'waitlist',
+        preferred_month: '',
+        accommodation: 'No',
+        city_country: '',
+        housing_months: '',
+        service: '',
+        subcategories: 'waitlist',
+        message: '',
+        source: 'Website'
+      };
+
     case 'lead_schedule_50h':
       return {
         ...base,
