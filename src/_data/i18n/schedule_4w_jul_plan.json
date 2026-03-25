@@ -11,7 +11,6 @@
     "ctaStart": "Start Preparation Phase",
 
     "pillYA": "Yoga Alliance RYT-200",
-    "pillStudents": "Max 12 students",
     "pillPeriod": "July–August 2026",
     "pillFocus": "Vinyasa Plus",
     "pillIntl": "International cohort",
@@ -23,7 +22,7 @@
     "certificationLabel": "Certification",
 
     "welcomeTitle": "Your summer in Copenhagen",
-    "welcomeP1": "Every July, yoga teachers from across Europe come to Copenhagen for our most international cohort. You'll train alongside people from Norway, Sweden, Germany, Finland, the Netherlands, the UK — and Denmark. The training is intimate (max 12 students) and fully immersive.",
+    "welcomeP1": "Every July, yoga teachers from across Europe come to Copenhagen for our most international cohort. You'll train alongside people from Norway, Sweden, Germany, Finland, the Netherlands, the UK — and Denmark. The training is intimate and fully immersive.",
     "welcomeP2": "Copenhagen in July is magical: long daylight hours, the harbour for swimming, cycling culture, and a city that's easy to navigate even if it's your first visit.",
 
     "vpTitle": "What is Vinyasa Plus?",
@@ -52,10 +51,10 @@
     "prepPrice": "3,750 DKK",
     "prepPriceNote": "deducted from the full tuition",
     "prepIncludes": "What's included:",
-    "prepItem1": "Reserved spot in the July 2026 cohort (max 12 students)",
-    "prepItem2": "Structured preparation material before training starts",
+    "prepItem1": "Reserved spot in the July 2026 cohort",
+    "prepItem2": "Access to preparation materials to study before arrival",
     "prepItem3": "Personal guidance from your course director",
-    "prepItem4": "Access to the studio for practice during the Preparation Phase",
+    "prepItem4": "Help with accommodation and practicalities in Copenhagen",
     "prepItem5": "Flexible payment plan for the remaining balance",
     "prepRemaining": "The remaining balance is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.",
     "prepCta": "Start Preparation Phase",
@@ -135,7 +134,7 @@
     "contactEmail": "Or email us directly:",
 
     "scheduleTitle": "Full training schedule",
-    "scheduleDesc": "Here are all 21 training days across 4 weeks. Use the conflict finder to check which days work for you.",
+    "scheduleDesc": "Here are all 21 training days across 4 weeks — your complete schedule from day one to graduation.",
 
     "greetingHello": "Hi",
     "greetingText": "Here is your personal schedule and planning guide for the 4-week Vinyasa Plus program (July 2026).",

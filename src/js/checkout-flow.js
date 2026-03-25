@@ -48,10 +48,10 @@
     ],
     en: [
       'Secure your spot in the program',
-      'Start booking classes immediately',
-      'Classes count toward your training hours',
+      'Access to structured preparation materials',
+      'Personal guidance from your course director',
       'Prepare body and mind — join the community early',
-      'Class access included — save on a separate membership'
+      'Flexible payment plan for the remaining balance'
     ]
   };
 
@@ -86,6 +86,10 @@
   function openModal() {
     modal = $('ycf-modal');
     if (!modal) return;
+
+    // Apply language visibility to modal elements
+    modal.querySelectorAll('[data-yj-da]').forEach(function (el) { el.hidden = !isDa; });
+    modal.querySelectorAll('[data-yj-en]').forEach(function (el) { el.hidden = isDa; });
 
     scrollY = window.scrollY;
     document.documentElement.style.overflow = 'hidden';
