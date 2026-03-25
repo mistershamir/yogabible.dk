@@ -3,12 +3,9 @@
  * Admin-only proxy for Bunny Storage API.
  * Lists folders, lists resources (PDFs/images), and generates upload URLs.
  *
- * NOTE: This function was originally cloudinary-browser.js and has been migrated
- * to use Bunny Storage. The endpoint path remains the same for backwards compat.
- *
- * GET /.netlify/functions/cloudinary-browser?action=folders&path=yoga-bible-DK/materials
- * GET /.netlify/functions/cloudinary-browser?action=resources&path=yoga-bible-DK/materials/shared
- * GET /.netlify/functions/cloudinary-browser?action=sign_upload&folder=yoga-bible-DK/materials/shared
+ * GET /.netlify/functions/bunny-browser?action=folders&path=yoga-bible-DK/materials
+ * GET /.netlify/functions/bunny-browser?action=resources&path=yoga-bible-DK/materials/shared
+ * GET /.netlify/functions/bunny-browser?action=sign_upload&folder=yoga-bible-DK/materials/shared
  */
 
 const https = require('https');

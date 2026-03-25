@@ -167,18 +167,17 @@
 
 ---
 
-### 11. Cloudinary
+### 11. Bunny CDN (replaced Cloudinary March 2026)
 
 | Field | Value |
 |-------|-------|
-| **CDN** | `https://res.cloudinary.com/ddcynsa30` |
-| **Admin API** | `https://api.cloudinary.com/v1_1/ddcynsa30/` |
-| **Version** | v1_1 (stable, unchanged for years) |
-| **Package** | `cloudinary: ^2.9.0` (devDep, Eleventy build only) |
-| **Files** | `.eleventy.js`, `netlify/functions/cloudinary-browser.js` |
-| **Risk** | LOW — v1_1 has been the only version for a decade |
+| **CDN** | `https://yogabible.b-cdn.net` |
+| **Storage API** | `https://storage.bunnycdn.com/yogabible/` |
+| **Storage Zone** | `yogabible` |
+| **Files** | `.eleventy.js`, `netlify/functions/bunny-browser.js` |
+| **Risk** | LOW — simple REST API, no SDK dependency |
 
-**Action:** Minimal. Run `npm outdated` to catch SDK updates.
+**Action:** None. Bunny Optimizer handles image transforms at delivery time.
 
 ---
 
