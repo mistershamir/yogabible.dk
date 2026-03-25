@@ -624,22 +624,37 @@ async function handleProcess() {
         var smsSent = false;
 
         // Language branching — determine lead language for content selection
-        // Use explicit lang field first, then fall back to country detection
+        // Country detection ALWAYS overrides when there's a mismatch, because
+        // the old Facebook webhook stamped lang='da' on all leads regardless
         var rawLang = (lead.lang || lead.meta_lang || lead.language || '').toLowerCase().trim();
         var leadCountry = detectLeadCountry(lead);
         var leadLang, isDanish, isGerman;
 
-        if (rawLang) {
-          // Explicit language set (from website Weglot detection or form field)
+        // Country detection is the source of truth for language
+        // rawLang can be wrong (old webhook defaulted everything to 'da')
+        if (leadCountry === 'DK') {
+          isDanish = true;
+          isGerman = false;
+          leadLang = 'da';
+        } else if (['DE', 'AT', 'CH'].includes(leadCountry)) {
+          isDanish = false;
+          isGerman = true;
+          leadLang = 'de';
+        } else if (leadCountry !== 'OTHER') {
+          // Known non-DK country (NO, SE, FI, NL, UK)
+          isDanish = false;
+          isGerman = false;
+          leadLang = 'en';
+        } else if (rawLang) {
+          // Unknown country but has explicit lang — trust it
           leadLang = rawLang.substring(0, 2);
           isDanish = ['da', 'dk'].includes(leadLang);
-          isGerman = leadLang === 'de' || ['AT', 'CH'].includes(leadCountry);
+          isGerman = leadLang === 'de';
         } else {
-          // No explicit language — use country detection as fallback
-          // Prevents international leads (e.g. from Facebook forms) defaulting to Danish
-          isDanish = leadCountry === 'DK';
-          isGerman = ['DE', 'AT', 'CH'].includes(leadCountry);
-          leadLang = isDanish ? 'da' : (isGerman ? 'de' : 'en');
+          // No country, no lang — default Danish (domestic market)
+          isDanish = true;
+          isGerman = false;
+          leadLang = 'da';
         }
 
         // Select language-appropriate email content
