@@ -284,12 +284,28 @@
     "faq8_q": "Kan jeg arbejde ved siden af uddannelsen?",
     "faq8_a": "Ja. Programmet er designet til at fungere ved siden af dit professionelle liv. Med 24 uger og en sommerpause er tempoet håndterbart — selv med et aktivt undervisningsprogram.",
 
-    "final_cta_title": "Klar til at mestre dit håndværk?",
-    "final_cta_text": "24 uger. 300 timer. RYT-500 certificering. Din plads venter.",
-    "final_cta_prep": "Start Forberedelsesfasen — 5.750 kr",
-    "final_cta_schedule": "Få Skema",
-    "final_cta_info": "Book Gratis Infomøde",
-    "final_cta_refund": "Giv os besked hurtigst muligt ved afmelding."
+    "coming_soon_badge": "Kommer snart",
+    "coming_soon_title": "Uddannelsen er under udvikling",
+    "coming_soon_text": "Vi er i gang med at designe den mest ambitiøse 300-timers yogalæreruddannelse i Skandinavien. Tilmeld dig ventelisten nedenfor, så kontakter vi dig, så snart uddannelsen åbner for ansøgning.",
+
+    "waitlist_eyebrow": "Venteliste",
+    "waitlist_title": "Skriv dig på ventelisten",
+    "waitlist_lead": "Vær blandt de første til at høre, når 300-timers uddannelsen åbner for ansøgning. Vi kontakter dig personligt med alle detaljer.",
+    "waitlist_first_name": "Fornavn *",
+    "waitlist_last_name": "Efternavn *",
+    "waitlist_email": "E-mail *",
+    "waitlist_phone": "Telefonnummer *",
+    "waitlist_submit": "Tilmeld ventelisten",
+    "waitlist_submitting": "Sender...",
+    "waitlist_privacy": "Ved indsendelse accepterer du vores <a href=\"/privacy-policy\">privatlivspolitik</a>.",
+    "waitlist_error": "Kunne ikke sende lige nu. Prøv igen — eller skriv til <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a>.",
+    "waitlist_success_title": "Du er på ventelisten!",
+    "waitlist_success_text": "Tak for din interesse. Vi sender dig en bekræftelse på e-mail og kontakter dig, så snart uddannelsen åbner for ansøgning.",
+
+    "final_cta_title": "Vil du mestre dit håndværk?",
+    "final_cta_text": "300 timer. RYT-500 certificering. Uddannelsen er under udvikling — tilmeld dig ventelisten og vær den første til at høre nyt.",
+    "final_cta_waitlist": "Tilmeld ventelisten",
+    "final_cta_info": "Book Gratis Infomøde"
   },
   "en": {
     "hero_tagline": "300 Hours · Yoga Alliance RYT-500",
@@ -576,11 +592,27 @@
     "faq8_q": "Can I work alongside the training?",
     "faq8_a": "Yes. The program is designed to work alongside your professional life. With 24 weeks and a summer break, the pace is manageable — even with an active teaching schedule.",
 
+    "coming_soon_badge": "Coming Soon",
+    "coming_soon_title": "This program is in development",
+    "coming_soon_text": "We are designing the most ambitious 300-hour yoga teacher training in Scandinavia. Join the waitlist below and we will reach out as soon as the program opens for applications.",
+
+    "waitlist_eyebrow": "Waitlist",
+    "waitlist_title": "Join the waitlist",
+    "waitlist_lead": "Be among the first to hear when the 300-hour training opens for applications. We will contact you personally with all the details.",
+    "waitlist_first_name": "First name *",
+    "waitlist_last_name": "Last name *",
+    "waitlist_email": "Email *",
+    "waitlist_phone": "Phone *",
+    "waitlist_submit": "Join Waitlist",
+    "waitlist_submitting": "Sending...",
+    "waitlist_privacy": "By submitting you accept our <a href=\"/en/privacy-policy\">privacy policy</a>.",
+    "waitlist_error": "Could not send right now. Please try again — or email <a href=\"mailto:info@yogabible.dk\">info@yogabible.dk</a>.",
+    "waitlist_success_title": "You are on the waitlist!",
+    "waitlist_success_text": "Thank you for your interest. We will send you a confirmation email and reach out as soon as the program opens for applications.",
+
     "final_cta_title": "Ready to master your craft?",
-    "final_cta_text": "24 weeks. 300 hours. RYT-500 certification. Your spot is waiting.",
-    "final_cta_prep": "Start Preparation Phase — 5,750 kr",
-    "final_cta_schedule": "Get Schedule",
-    "final_cta_info": "Book Free Info Session",
-    "final_cta_refund": "Please let us know as soon as possible if you need to cancel."
+    "final_cta_text": "300 hours. RYT-500 certification. The program is in development — join the waitlist and be the first to know.",
+    "final_cta_waitlist": "Join Waitlist",
+    "final_cta_info": "Book Free Info Session"
   }
 }
