@@ -24,6 +24,7 @@ const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 const { detectLeadCountry } = require('./shared/country-detect');
+const { getDisplayProgram } = require('./shared/config');
 
 const GRAPH_API_VERSION = 'v25.0';
 const PAGE_ID = '878172732056415';
@@ -63,6 +64,13 @@ exports.handler = async (event) => {
   const params = event.queryStringParameters || {};
   if (params.secret !== process.env.AI_INTERNAL_SECRET) {
     return jsonResp(401, { error: 'Invalid secret' });
+  }
+
+  // ─── Patch Mode: fix fields on existing leads by leadgen_id ──────────────────
+  // POST with ?secret=...&mode=patch and JSON body:
+  // { "leadgen_ids": ["123..."], "updates": { "source": "Facebook Ad", "program": "..." } }
+  if (params.mode === 'patch' && event.httpMethod === 'POST') {
+    return handlePatchLeads(event);
   }
 
   // ─── Re-fetch Mode: recover leads by leadgen_id from Graph API ──────────────
@@ -229,6 +237,69 @@ exports.handler = async (event) => {
 
 // ─── Manual Recovery — process leads from CSV/manual input ───────────────────
 
+async function handlePatchLeads(event) {
+  let body;
+  try {
+    body = JSON.parse(event.body || '{}');
+  } catch (e) {
+    return jsonResp(400, { error: 'Invalid JSON body' });
+  }
+
+  const leadgenIds = body.leadgen_ids || [];
+  const updates = body.updates || {};
+
+  if (!leadgenIds.length || !Object.keys(updates).length) {
+    return jsonResp(400, { error: 'Provide leadgen_ids array and updates object' });
+  }
+
+  // Only allow safe field updates
+  const allowedFields = ['source', 'program', 'cohort_label', 'ytt_program_type', 'notes', 'country', 'lang', 'meta_lang'];
+  const safeUpdates = {};
+  for (const key of Object.keys(updates)) {
+    if (allowedFields.includes(key)) {
+      safeUpdates[key] = updates[key];
+    }
+  }
+  safeUpdates.updated_at = new Date();
+
+  const db = getDb();
+  const results = { patched: [], not_found: [], errors: [] };
+
+  for (const leadgenId of leadgenIds) {
+    try {
+      const snap = await db.collection('leads')
+        .where('meta_leadgen_id', '==', leadgenId)
+        .limit(1)
+        .get();
+
+      if (snap.empty) {
+        results.not_found.push(leadgenId);
+        continue;
+      }
+
+      const doc = snap.docs[0];
+      const oldData = doc.data();
+      await doc.ref.update(safeUpdates);
+
+      results.patched.push({
+        leadgen_id: leadgenId,
+        firestore_id: doc.id,
+        email: oldData.email,
+        name: `${oldData.first_name || ''} ${oldData.last_name || ''}`.trim(),
+        changed: Object.keys(safeUpdates).filter(k => k !== 'updated_at').map(k => ({
+          field: k,
+          from: oldData[k] || '(empty)',
+          to: safeUpdates[k]
+        }))
+      });
+    } catch (err) {
+      results.errors.push({ leadgen_id: leadgenId, error: err.message });
+    }
+  }
+
+  return jsonResp(200, { ok: true, mode: 'patch', ...results });
+}
+
 async function handleRefetchRecovery(event) {
   let body;
   try {
@@ -313,7 +384,7 @@ async function handleRefetchRecovery(event) {
         phone,
         type: 'ytt',
         ytt_program_type: resolvedType,
-        program: rawLead.ad_name || 'Facebook Lead Form (refetch recovery)',
+        program: getDisplayProgram({ ytt_program_type: resolvedType, lang: metaLang }, metaLang) || 'Facebook Lead Form',
         course_id: '',
         cohort_label: '',
         preferred_month: '',
@@ -326,7 +397,7 @@ async function handleRefetchRecovery(event) {
         service: '',
         subcategories: '',
         message: '',
-        source: 'Meta Lead – Facebook – refetch recovery via audit-leads',
+        source: (rawLead.platform || '').toLowerCase() === 'instagram' ? 'Instagram Ad' : 'Facebook Ad',
         meta_form_id: formId,
         meta_form_name: '',
         meta_ad_id: rawLead.ad_id || '',

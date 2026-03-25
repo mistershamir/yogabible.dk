@@ -29,6 +29,7 @@ const AUTO_SMS_CONFIG = {
   templates: {
     en: {
       'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We've sent details to your email (check inbox + spam). Book a free info session: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
+      'ytt_intl': "Hi {{first_name}}! Thank you for your interest in our July 2026 Yoga Teacher Training in Copenhagen. We've sent details to your email (check inbox + spam). Book a free online info meeting: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation — Healthy regards, Yoga Bible",
       'ytt_multi': "Hi {{first_name}}! Thank you for requesting schedules for our {{program}}. We've sent all the schedules to your email (check inbox + spam) so you can compare. Book a free info session: https://yogabible.dk/?booking=1 — Yoga Bible",
       'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
       'mentorship': "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/?booking=1 — Warm regards, Yoga Bible",
@@ -43,6 +44,7 @@ const AUTO_SMS_CONFIG = {
     },
     de: {
       'ytt': "Hallo {{first_name}}, hier ist Shamir von Yoga Bible! Danke für dein Interesse an der Yogalehrer-Ausbildung. Schau dir den Stundenplan an und melde dich, wenn du Fragen hast — per E-Mail oder unter +45 53 88 12 09. Bis bald in Kopenhagen!",
+      'ytt_intl': "Hallo {{first_name}}! Danke für dein Interesse an unserer Yogalehrer-Ausbildung im Juli 2026 in Kopenhagen. Wir haben alle Details an deine E-Mail geschickt (check auch den Spam-Ordner). Buche ein kostenloses Online-Infogespräch: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation — Gesunde Grüße, Yoga Bible",
       'ytt_multi': "Hallo {{first_name}}, hier ist Shamir von Yoga Bible! Danke für deine Anfrage zu unseren {{program}}. Wir haben alle Stundenpläne an deine E-Mail geschickt (check auch den Spam-Ordner). Infogespräch buchen: https://yogabible.dk/?booking=1 — Yoga Bible",
       'course': "Hallo {{first_name}}! Danke für dein Interesse an unserem {{program}} Kurs. Wir haben die Details an deine E-Mail geschickt (check auch den Spam-Ordner). Buche eine Beratung: https://yogabible.dk/?booking=1 — Yoga Bible",
       'mentorship': "Hallo {{first_name}}! Danke für dein Interesse an unserem Mentorship-Programm. Wir haben die Details an deine E-Mail geschickt (check auch den Spam-Ordner). Buche eine Beratung: https://yogabible.dk/?booking=1 — Yoga Bible",
