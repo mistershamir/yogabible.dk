@@ -122,13 +122,18 @@ async function sendWelcomeSMS(leadData, leadDocId) {
   // Multi-format YTT request (user asked for multiple schedules)
   const isMulti = leadData.all_formats && leadData.all_formats.includes(',');
 
+  // Detect if international lead (non-DK country)
+  const leadCountry = (leadData.country || '').toUpperCase();
+  const isDK = !leadCountry || leadCountry === 'DK' || leadCountry === 'DENMARK' || leadCountry === 'DANMARK';
+
   if (isMulti) {
     templateKey = 'ytt_multi';
   } else if (program.includes('week') || program.includes('uge') || program.includes('ytt') ||
       program.includes('200') || program.includes('300') || program.includes('teacher training') ||
       program.includes('intensive') || program.includes('flexible') ||
       leadData.type === 'ytt') {
-    templateKey = 'ytt';
+    // International YTT leads get online consultation link instead of physical info meeting
+    templateKey = (!isDK && lang !== 'da') ? 'ytt_intl' : 'ytt';
   } else if (program.includes('inversion') || program.includes('backbend') || program.includes('split') ||
              program.includes('bundle') || leadData.type === 'course' || leadData.type === 'bundle') {
     templateKey = 'course';
