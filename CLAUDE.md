@@ -389,6 +389,141 @@ When a new cohort is announced (e.g., October 8W):
 
 ---
 
+## Lead Behavior Tracking System (MANDATORY)
+
+**IMPORTANT:** ALL emails sent to leads MUST include tracking instrumentation. ALL new pages and email features MUST implement the tracking systems described below. This is not optional — the marketing team relies on this data for lead qualification, priority scoring, and re-engagement detection.
+
+### Architecture — 3 Tracking Layers
+
+| Layer | What It Tracks | How It Works | Firestore Field |
+|-------|---------------|--------------|-----------------|
+| **Schedule Tracking** | Schedule page visits from tokenized email links | `?tid=&tok=` HMAC params → `schedule-visit.js` | `leads/{id}.schedule_engagement` |
+| **Email Engagement** | Opens (pixel) + clicks (redirect) for all emails | Pixel + link wrapping → `email-track.js` | `leads/{id}.email_engagement` |
+| **Website Behavior** | All page visits, scroll, time, CTA clicks | `yb_lid` cookie → `site-track.js` → `site-visit.js` | `leads/{id}.site_engagement` |
+
+**Plus:** Re-engagement detection across all layers — flags leads who return after 7+ days of silence.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `netlify/functions/shared/email-tracking.js` | Helpers: `prepareTrackedEmail(html, leadId, source)` — injects pixel + wraps links |
+| `netlify/functions/email-track.js` | Tracking pixel endpoint (opens) + click redirect (clicks + sets `yb_lid` cookie) |
+| `netlify/functions/schedule-visit.js` | Schedule page visit tracking (tokenized `?tid=&tok=` links) |
+| `netlify/functions/site-visit.js` | General website behavior tracking (pageviews, scroll, time, CTA clicks) |
+| `netlify/functions/backfill-schedule-tokens.js` | One-time: generate `schedule_token` for all existing leads |
+| `src/js/schedule-track.js` | Client-side: schedule page tracker (fires on `?tid=&tok=` URLs) |
+| `src/js/site-track.js` | Client-side: general site tracker (fires when `yb_lid` cookie exists) |
+| `src/js/lead-admin.js` | Admin panel: displays engagement badges + detail cards |
+
+### How Each Layer Works
+
+**Schedule Tracking (tokenized links):**
+1. `lead.js` generates HMAC-SHA256 token from `leadId:email` using `UNSUBSCRIBE_SECRET`
+2. Welcome emails include `?tid=LEAD_ID&tok=TOKEN` on schedule URLs
+3. `sequences.js` auto-injects tokens into any schedule URL in nurture emails via `injectScheduleTokens()`
+4. `schedule-track.js` (client) fires pageview/heartbeat/leave events to `schedule-visit.js`
+5. Stored in `leads/{id}.schedule_engagement` and `schedule_visits/{tid}_{slug}` collection
+
+**Email Engagement (pixel + click tracking):**
+1. `prepareTrackedEmail(html, leadId, source)` injects a 1x1 tracking pixel and wraps all links
+2. Pixel loads → `email-track.js?t=open&lid=LEAD_ID` → logs open on lead doc
+3. Link click → `email-track.js?t=click&lid=LEAD_ID&url=...` → logs click, sets `yb_lid` cookie (1 year), redirects
+4. Stored in `leads/{id}.email_engagement { total_opens, total_clicks, last_opened, last_clicked, opens[], clicks[] }`
+
+**Website Behavior (cookie-based):**
+1. `yb_lid` cookie set when lead clicks any tracked email link
+2. `site-track.js` (loaded on every page via `base.njk`) reads cookie, sends events to `site-visit.js`
+3. Tracks: pageviews, scroll depth (%), time on page (30s heartbeats), CTA clicks, sessions
+4. Auto-detects interests from page categories (schedule, pricing, 4-week, 8-week, etc.)
+5. Stored in `leads/{id}.site_engagement { total_pageviews, total_sessions, total_time_seconds, pages{}, interests[], cta_clicks[] }`
+
+### Re-Engagement Detection
+
+Both `email-track.js` and `site-visit.js` check `lead.last_activity` on every event:
+- If the lead has been inactive for **7+ days** and returns → sets `re_engaged: true` + logs event
+- `re_engagement_events[]` stores: trigger type, days inactive, detail (page/URL), timestamp
+- Admin panel shows 🔄 badge next to re-engaged leads
+
+### Admin Panel Display
+
+**Badges next to lead name in table:**
+- 📅🔥 / 📅 — Schedule engagement (green = 3+ visits & 75%+ scroll, yellow = 2+ visits or 50%+ scroll)
+- ✉️🔥 / ✉️ — Email engagement (green = 3+ clicks, yellow = 1+ click or 3+ opens)
+- 🌐 — Site browsing (blue = 3+ pageviews)
+- 🔄 — Re-engaged (orange = came back after 7+ days silence)
+
+**Detail cards in lead view:**
+- **Schedule Engagement** — visits, scroll %, time per schedule page, engagement level
+- **Email Engagement** — opens, clicks, last opened/clicked, recent clicked links
+- **Website Activity** — pageviews, sessions, total time, interests, top pages, CTA clicks
+- **Re-Engagement History** — timeline of return events with days inactive
+
+### Firestore Schema (Lead Doc Fields)
+
+```
+leads/{id}:
+  schedule_token: "hex..."                    // HMAC token for schedule URL tracking
+  schedule_engagement:
+    total_visits: number
+    last_visit: Timestamp
+    last_page: string
+    pages:
+      {slug}: { visit_count, last_visit, max_scroll, total_seconds }
+  email_engagement:
+    total_opens: number
+    total_clicks: number
+    last_opened: Timestamp
+    last_clicked: Timestamp
+    opens: [{ at, src }]
+    clicks: [{ url, at, src }]
+  site_engagement:
+    total_pageviews: number
+    total_sessions: number
+    total_time_seconds: number
+    first_visit: Timestamp
+    last_visit: Timestamp
+    pages:
+      {slug}: { views, last_visit, path, max_scroll, total_seconds }
+    interests: ["teacher-training", "4-week", "pricing", ...]
+    cta_clicks: [{ text, href, page, at }]
+  last_activity: Timestamp                     // Used for re-engagement detection
+  re_engaged: boolean
+  re_engaged_at: Timestamp
+  re_engagement_events: [{ at, trigger, detail, days_inactive }]
+```
+
+### Rules for New Email Features (MANDATORY)
+
+1. **ALL emails sent to leads** MUST call `prepareTrackedEmail(html, leadId, sourceTag)` as the LAST step before sending
+2. **Source tags** follow the format: `seq:SEQUENCE_ID:STEP` for sequences, `welcome:PROGRAM_KEY` for welcome emails, `campaign:CAMPAIGN_ID` for campaigns
+3. **Schedule URLs** in any email MUST be tokenized — use `injectScheduleTokens(html, leadId, email)` or the `scheduleUrl()` helper from `lead-email-i18n.js`
+4. **New email-sending functions** must accept `leadId` and pass it through the tracking pipeline
+5. **Order of email body processing:** (1) Substitute template vars → (2) Inject schedule tokens → (3) Inject email tracking (pixel + links)
+6. **Never wrap** unsubscribe links, tracking pixel URLs, or already-wrapped links
+
+### Rules for New Pages
+
+1. `site-track.js` is loaded globally via `base.njk` — no extra setup needed for basic tracking
+2. **New page categories** should be added to the `PAGE_INTERESTS` map in `site-visit.js` so interests are auto-detected
+3. **CTA buttons** are auto-tracked if they use standard classes: `.yb-btn`, `.yb-btn--primary`, `.yb-hero__cta`, `[data-checkout-product]`
+
+### Rules for New Sequences
+
+1. The sequence processor (`sequences.js`) automatically injects both schedule tokens and email tracking into all sequence emails — no manual setup needed
+2. **Verify** new sequence step content doesn't contain pre-existing tracking URLs (would cause double-wrapping)
+3. If adding a new email sender outside the sequence processor, import and call `prepareTrackedEmail()` from `shared/email-tracking.js`
+
+### Backfill & Maintenance
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `backfill-schedule-tokens` | POST | Generate `schedule_token` for all leads missing one |
+
+Protected by `X-Internal-Secret` header (`AI_INTERNAL_SECRET` env var).
+
+---
+
 ## Schedule Pages & Conflict Finder
 
 All YTT schedule pages include a **Conflict Finder** — an interactive tool that lets prospective students check which training days clash with their busy schedule.
@@ -550,6 +685,9 @@ All serverless functions live in `netlify/functions/`. Shared code in `netlify/f
 | `member-documents` | Member training documents |
 | `seed-trainee-materials` | Seed trainee course materials |
 | `schedule-token` | Schedule token validator |
+| `schedule-visit` | Schedule page visit tracking (tokenized links) |
+| `site-visit` | Website behavior tracking (pageviews, scroll, time, CTAs) |
+| `backfill-schedule-tokens` | Generate schedule tokens for all existing leads |
 | `auth-token` | Firebase auth token helper |
 | `health` | Health check endpoint |
 | `meta-capi` | Meta Conversions API (Facebook pixel server-side) |
@@ -585,6 +723,8 @@ All JS files in `src/js/`. No bundler — each is a standalone IIFE loaded via `
 | `journal.js` | Blog listing — language switch, search, progress bar, share |
 | `glossary.js` | Yoga glossary page — search, filter, letter nav |
 | `schedule-embed.js` | MindBody schedule embed |
+| `schedule-track.js` | Schedule page visit tracker (tokenized `?tid=&tok=` links) |
+| `site-track.js` | General site behavior tracker (reads `yb_lid` cookie, tracks all pages) |
 | `appointment-booking.js` | Appointment booking flow |
 | `course.js` | Course page interactions |
 | `course-viewer.js` | Course content viewer (enrolled students) |
