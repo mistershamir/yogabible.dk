@@ -18713,7 +18713,7 @@ button.yb-btn--outline-white:hover {
   transition: opacity 0.2s;
 }
 .yphoto-model__links a:hover { opacity: 0.7; }
-/* Gallery */
+/* Gallery — orientation-adaptive with editorial offsets */
 .yphoto-model__gallery {
   display: flex;
   flex-wrap: wrap;
@@ -18725,6 +18725,7 @@ button.yb-btn--outline-white:hover {
   overflow: hidden;
   position: relative;
   background: #222;
+  transition: transform 0.4s ease;
 }
 .yphoto-model__photo img {
   width: 100%;
@@ -18734,10 +18735,17 @@ button.yb-btn--outline-white:hover {
 }
 .yphoto-model__photo:hover img { transform: scale(1.03); }
 
+/* Orientation-based flex sizing (set by JS on img.onload) */
+.yphoto-model__photo.is-landscape { flex: 1.5; min-width: 45%; }
+.yphoto-model__photo.is-portrait  { flex: 0.8; min-width: 25%; max-width: 38%; }
+.yphoto-model__photo.is-square    { flex: 1;   min-width: 30%; }
+
+/* Constrain portrait photos height so they don't dominate */
+.yphoto-model__photo.is-portrait img { max-height: 520px; object-fit: cover; }
+
 /* Variation A: Classic — portrait left, info right, gallery below as collage */
-.yphoto-model--a .yphoto-model__photo--1 { width: 58%; }
-.yphoto-model--a .yphoto-model__photo--2 { width: calc(42% - 16px); margin-top: -40px; }
-.yphoto-model--a .yphoto-model__photo--3 { width: 40%; margin-left: 10%; margin-top: -20px; }
+.yphoto-model--a .yphoto-model__photo--2 { margin-top: -40px; }
+.yphoto-model--a .yphoto-model__photo--3 { margin-top: -20px; }
 
 /* Variation B: Hero Portrait Top — centered portrait, info + gallery below */
 .yphoto-model--b .yphoto-model__intro {
@@ -18755,18 +18763,16 @@ button.yb-btn--outline-white:hover {
 }
 .yphoto-model--b .yphoto-model__links { justify-content: center; }
 .yphoto-model--b .yphoto-model__gallery { justify-content: center; }
-.yphoto-model--b .yphoto-model__photo--1 { width: 30%; margin-top: 20px; }
-.yphoto-model--b .yphoto-model__photo--2 { width: 42%; }
-.yphoto-model--b .yphoto-model__photo--3 { width: 55%; margin-top: -30px; }
+.yphoto-model--b .yphoto-model__photo--1 { margin-top: 20px; }
+.yphoto-model--b .yphoto-model__photo--3 { margin-top: -30px; }
 
-/* Variation C: Side-by-side editorial — portrait with name overlay, asymmetric gallery */
+/* Variation C: Side-by-side editorial — portrait right, info left, asymmetric gallery */
 .yphoto-model--c .yphoto-model__intro {
   flex-direction: row-reverse;
 }
 .yphoto-model--c .yphoto-model__gallery { justify-content: space-between; }
-.yphoto-model--c .yphoto-model__photo--1 { width: 100%; margin-bottom: -30px; }
-.yphoto-model--c .yphoto-model__photo--2 { width: 48%; }
-.yphoto-model--c .yphoto-model__photo--3 { width: 48%; margin-top: 30px; }
+.yphoto-model--c .yphoto-model__photo--1 { flex: 2; min-width: 60%; margin-bottom: -30px; }
+.yphoto-model--c .yphoto-model__photo--3 { margin-top: 30px; }
 
 /* Mobile: stack model cards */
 @media (max-width: 768px) {
@@ -18783,7 +18789,8 @@ button.yb-btn--outline-white:hover {
   .yphoto-model__bio { max-width: 100%; }
   .yphoto-model__links { justify-content: center; }
   .yphoto-model__gallery { flex-direction: column; }
-  .yphoto-model__photo { width: 100% !important; margin: 0 !important; }
+  .yphoto-model__photo { width: 100% !important; max-width: 100% !important; margin: 0 !important; flex: none !important; }
+  .yphoto-model__photo.is-portrait img { max-height: none; }
 }
 
 
