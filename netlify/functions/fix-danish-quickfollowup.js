@@ -33,15 +33,10 @@ exports.handler = async (event) => {
   var dry = (event.queryStringParameters || {}).dry === '1';
   var db = getDb();
 
-  // Only scan recent entries (last 7 days) — older ones were already handled
-  var cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 7);
-
-  // Find recent email_log entries for Quick Follow-up sequence
+  // Find email_log entries for Quick Follow-up sequence
   var logSnap = await db.collection('email_log')
     .where('sequence_id', '==', QUICK_FOLLOWUP_SEQ_ID)
     .where('status', '==', 'sent')
-    .where('sent_at', '>=', cutoff)
     .get();
 
   if (logSnap.empty) {
