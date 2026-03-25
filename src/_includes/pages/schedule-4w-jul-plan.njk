@@ -331,15 +331,12 @@
           { dn: "24", dd_en: "Fri", time: "11:00–16:00", topic_en: "Vinyasa Flow & Class Management", type: "workshop" },
           { dn: "25", dd_en: "Sat", time: "13:00–18:00", topic_en: "Yoga Anatomy", type: "workshop" },
           { dn: "26", dd_en: "Sun", time: "13:00–17:00", topic_en: "Yoga Philosophy 03 — Online", type: "online" }
-        ]}
-      ]},
-      { name_en: "August", year: "2026", weeks: [
-        { num: 4, label_en: "Exam & Graduation", range_en: "Jul 27 – Aug 2", graduation: true, days: [
+        ]},
+        { num: 4, label_en: "Exam & Graduation", range_en: "Jul 27 – 31", graduation: true, days: [
           { dn: "27", dd_en: "Mon", time: "10:00–15:00", topic_en: "Vinyasa Flow & Creative Sequencing", type: "workshop" },
-          { dn: "29", dd_en: "Wed", time: "09:00–15:00", topic_en: "Business of Yoga", type: "workshop" },
-          { dn: "31", dd_en: "Fri", time: "11:00–17:00", topic_en: "Hot Yoga & Heated Vinyasa", type: "workshop" },
-          { dn: "1",  dd_en: "Sat", time: "13:00–18:00", topic_en: "Vinyasa Flow — Exam", type: "exam" },
-          { dn: "2",  dd_en: "Sun", time: "14:00–17:00", topic_en: "Yin Yoga & Hot Yoga — Exam + Graduation", type: "graduation" }
+          { dn: "28", dd_en: "Tue", time: "12:00–15:00", topic_en: "Business of Yoga", type: "workshop" },
+          { dn: "30", dd_en: "Thu", time: "10:30–16:30", topic_en: "Hot Yoga & Heated Vinyasa", type: "workshop" },
+          { dn: "31", dd_en: "Fri", time: "10:00–16:00", topic_en: "Vinyasa Flow & Yin Yoga — Exam + Graduation", type: "graduation" }
         ]}
       ]}
     ] %}
@@ -381,6 +378,10 @@
             {% if day.type == 'graduation' %}<span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.graduationLabel }}</span>{% elif day.type == 'exam' %}<span style="background:#FFF0E6;color:#f75c03;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.examLabel }}</span>{% endif %}
           </div>
           {% endfor %}
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0 4px;color:#6F6A66;">
+            <span style="font-size:1.1rem;">→</span>
+            <span style="font-size:.85rem;font-style:italic;">Dinner & celebration with the group</span>
+          </div>
         </div>
       </details>
       {% else %}

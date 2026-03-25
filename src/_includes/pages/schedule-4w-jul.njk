@@ -172,15 +172,12 @@
           { dn: "24", dd: "Fre", dd_en: "Fri", time: "11:00–16:00", topic: "Vinyasa Flow & Class Management", type: "workshop" },
           { dn: "25", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
           { dn: "26", dd: "Søn", dd_en: "Sun", time: "13:00–17:00", topic: "Yogafilosofi 03 — Online", topic_en: "Yoga Philosophy 03 — Online", type: "online" }
-        ]}
-      ]},
-      { name: "August", name_en: "August", year: "2026", weeks: [
-        { num: 4, label: "Eksamen & Graduation", label_en: "Exam & Graduation", range: "27 jul – 2 aug", range_en: "Jul 27 – Aug 2", graduation: true, days: [
+        ]},
+        { num: 4, label: "Eksamen & Graduation", label_en: "Exam & Graduation", range: "27 – 31 jul", range_en: "Jul 27 – 31", graduation: true, days: [
           { dn: "27", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa Flow & Creative Sequencing", type: "workshop" },
-          { dn: "29", dd: "Ons", dd_en: "Wed", time: "09:00–15:00", topic: "Business of Yoga", type: "workshop" },
-          { dn: "31", dd: "Fre", dd_en: "Fri", time: "11:00–17:00", topic: "Hot Yoga & Heated Vinyasa", type: "workshop" },
-          { dn: "1",  dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa Flow — Eksamen", topic_en: "Vinyasa Flow — Exam", type: "exam" },
-          { dn: "2",  dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Yin Yoga & Hot Yoga — Eksamen + Graduation 🎓", topic_en: "Yin Yoga & Hot Yoga — Exam + Graduation 🎓", type: "graduation" }
+          { dn: "28", dd: "Tir", dd_en: "Tue", time: "12:00–15:00", topic: "Business of Yoga", type: "workshop" },
+          { dn: "30", dd: "Tor", dd_en: "Thu", time: "10:30–16:30", topic: "Hot Yoga & Heated Vinyasa", type: "workshop" },
+          { dn: "31", dd: "Fre", dd_en: "Fri", time: "10:00–16:00", topic: "Vinyasa Flow & Yin Yoga — Eksamen + Graduation 🎓", topic_en: "Vinyasa Flow & Yin Yoga — Exam + Graduation 🎓", type: "graduation" }
         ]}
       ]}
     ] %}
@@ -222,6 +219,10 @@
             {% if day.type == 'graduation' %}<span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.graduationLabel }}</span>{% elif day.type == 'exam' %}<span style="background:#FFF0E6;color:#f75c03;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.examLabel }}</span>{% endif %}
           </div>
           {% endfor %}
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0 4px;color:#6F6A66;">
+            <span style="font-size:1.1rem;">→</span>
+            <span style="font-size:.85rem;font-style:italic;">{% if lang == "en" %}Dinner & celebration with the group{% else %}Middag & fejring med holdet{% endif %}</span>
+          </div>
         </div>
       </details>
       {% else %}
@@ -349,7 +350,7 @@
     {d:'2026-07-06',s:'09:00',e:'15:00'},{d:'2026-07-07',s:'11:00',e:'17:00'},{d:'2026-07-09',s:'11:00',e:'17:00'},{d:'2026-07-11',s:'13:00',e:'18:00'},{d:'2026-07-12',s:'14:00',e:'18:00'},
     {d:'2026-07-13',s:'09:00',e:'15:00'},{d:'2026-07-14',s:'11:00',e:'17:00'},{d:'2026-07-15',s:'10:00',e:'15:00'},{d:'2026-07-16',s:'11:00',e:'17:00'},{d:'2026-07-18',s:'13:00',e:'18:00'},{d:'2026-07-19',s:'13:00',e:'17:00'},
     {d:'2026-07-20',s:'10:00',e:'15:00'},{d:'2026-07-21',s:'09:00',e:'15:00'},{d:'2026-07-23',s:'11:00',e:'15:00'},{d:'2026-07-24',s:'11:00',e:'16:00'},{d:'2026-07-25',s:'13:00',e:'18:00'},{d:'2026-07-26',s:'13:00',e:'17:00'},
-    {d:'2026-07-27',s:'10:00',e:'15:00'},{d:'2026-07-29',s:'09:00',e:'15:00'},{d:'2026-07-31',s:'11:00',e:'17:00'},{d:'2026-08-01',s:'13:00',e:'18:00'},{d:'2026-08-02',s:'14:00',e:'17:00'}
+    {d:'2026-07-27',s:'10:00',e:'15:00'},{d:'2026-07-28',s:'12:00',e:'15:00'},{d:'2026-07-30',s:'10:30',e:'16:30'},{d:'2026-07-31',s:'10:00',e:'16:00'}
   ];
   s4wjSchedule.forEach(function(item) {
     var dt = new Date(item.d + 'T12:00:00');
