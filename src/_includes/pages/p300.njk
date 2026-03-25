@@ -45,12 +45,9 @@
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
       <a href="#p300-waitlist" class="yb-btn yb-btn--primary yb-btn--large">{{ t.final_cta_waitlist }}</a>
-      <a class="yb-btn yb-btn--outline-white yb-btn--large" href="{% if lang == 'en' %}/en/300h-advanced-ytt?booking=info-session{% else %}/300h-ytt?booking=info-session{% endif %}" data-open-booking="info-session">{{ t.final_cta_info }}</a>
     </div>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
-      <span class="yb-hero__trust-dot"></span>
-      <span>{{ t.hero_trust2 }}</span>
       <span class="yb-hero__trust-dot"></span>
       <span>{{ t.hero_trust3 }}</span>
     </div>
@@ -136,17 +133,7 @@
       {% endfor %}
     </div>
 
-    <div class="p300-snap__dates">
-      <div class="p300-snap__date-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span>{{ t.snap_dates }}</span>
-      </div>
-      <div class="p300-snap__date-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>{{ t.snap_break }}</span>
-      </div>
-    </div>
-
+    {# SAVED: dates section + snap_text removed while program is on waitlist — restore when cohort dates are confirmed #}
     <p class="p300-snap__text">{{ t.snap_text }}</p>
   </div>
 </section>
@@ -679,18 +666,7 @@
           </ul>
         </div>
 
-        <div class="p300-pricing__payment-split">
-          <div class="p300-pricing__payment-block p300-pricing__payment-block--prep">
-            <h4>{{ t.pricing_prep_title }}</h4>
-            <span class="p300-pricing__payment-amount">{{ t.pricing_prep_amount }}</span>
-            <p>{{ t.pricing_prep_desc }}</p>
-          </div>
-          <div class="p300-pricing__payment-block p300-pricing__payment-block--remaining">
-            <h4>{{ t.pricing_remaining_title }}</h4>
-            <span class="p300-pricing__payment-amount">{{ t.pricing_remaining_amount }}</span>
-            <p>{{ t.pricing_remaining_desc }}</p>
-          </div>
-        </div>
+        {# SAVED: pricing payment-split (prep phase + remaining balance) removed while on waitlist — restore when enrollment opens #}
 
         <div class="p300-pricing__ctas">
           <a href="#p300-waitlist" class="yb-btn yb-btn--primary">{{ t.final_cta_waitlist }}</a>
@@ -786,7 +762,6 @@
     <p class="p300-final__text">{{ t.final_cta_text }}</p>
     <div class="p300-final__ctas">
       <a href="#p300-waitlist" class="yb-btn yb-btn--primary yb-btn--large">{{ t.final_cta_waitlist }}</a>
-      <a class="yb-btn yb-btn--outline-white yb-btn--large" href="{% if lang == 'en' %}/en/300h-advanced-ytt?booking=info-session{% else %}/300h-ytt?booking=info-session{% endif %}" data-open-booking="info-session">{{ t.final_cta_info }}</a>
     </div>
   </div>
 </section>
