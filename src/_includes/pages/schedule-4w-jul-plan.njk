@@ -6,12 +6,12 @@
   {# ── HERO (Copenhagen, Denmark prominent) ───────────── #}
   <div style="background:#0F0F0F;color:#fff;padding:clamp(80px,12vw,160px) 24px clamp(60px,8vw,100px);text-align:center;">
     <div style="max-width:640px;margin:0 auto;">
-      <p style="font-size:clamp(5rem,16vw,10rem);font-weight:700;line-height:1.05;padding-bottom:0.12em;background:linear-gradient(135deg,#f75c03,#ff9966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0 0 16px;">{{ t.heroTitle }}</p>
+      <p style="font-size:clamp(2.5rem,8vw,4.5rem);font-weight:700;line-height:1.1;padding-bottom:0.12em;background:linear-gradient(135deg,#f75c03,#ff9966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0 0 16px;">{{ t.heroTitle }}</p>
       <p style="font-size:clamp(1.25rem,3.5vw,1.8rem);font-weight:700;color:#fff;letter-spacing:-.015em;line-height:1.2;margin:0 0 12px;">{{ t.heroSubtitle }}</p>
       <p style="font-size:.95rem;color:rgba(255,255,255,.4);letter-spacing:.04em;">{{ t.heroPeriod }}</p>
       <p style="font-size:.82rem;color:rgba(255,255,255,.3);margin-top:8px;">{{ t.heroLocation }}</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
-        <a href="/en/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-flex;align-items:center;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;text-decoration:none;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</a>
+        <button onclick="openBookingModal('consultation')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</button>
         <button onclick="startCheckoutFunnel('100211')" style="background:#f75c03;color:#fff;border:none;padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
       </div>
     </div>
@@ -21,12 +21,11 @@
   <div style="background:#F5F3F0;padding:28px 24px;border-bottom:1px solid #E8E4E0;">
     <div style="max-width:700px;margin:0 auto;">
       <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;">
-        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">{{ t.pillYA }}</span>
-        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">{{ t.pillStudents }}</span>
-        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">{{ t.pillPeriod }}</span>
+        <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillYA }}</span>
+        <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillPeriod }}</span>
         <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillFocus }}</span>
         <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillIntl }}</span>
-        <span style="background:#F5F3F0;color:#6F6A66;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:500;border:1px solid #E8E4E0;">{{ t.pillCph }}</span>
+        <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillCph }}</span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;">
         <div>
@@ -97,25 +96,27 @@
     </div>
   </div>
 
-  {# ── ACCOMMODATION ──────────────────────────────────── #}
+  {# ── ACCOMMODATION (accordions) ───────────────────── #}
   <div style="max-width:700px;margin:0 auto;padding:48px 24px 0;">
     <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:8px;">{{ t.accomTitle }}</h2>
     <p style="font-size:.92rem;color:#6F6A66;margin-bottom:20px;">{{ t.accomDesc }}</p>
-    {% set accomOptions = [
-      { title: t.accomOpt1Title, desc: t.accomOpt1Desc, icon: "&#127968;" },
-      { title: t.accomOpt2Title, desc: t.accomOpt2Desc, icon: "&#128230;" },
-      { title: t.accomOpt3Title, desc: t.accomOpt3Desc, icon: "&#127758;" },
-      { title: t.accomOpt4Title, desc: t.accomOpt4Desc, icon: "&#128646;" }
-    ] %}
-    <div style="display:flex;flex-direction:column;gap:12px;">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      {% set accomOptions = [
+        { title: t.accomOpt1Title, desc: t.accomOpt1Desc },
+        { title: t.accomOpt2Title, desc: t.accomOpt2Desc },
+        { title: t.accomOpt3Title, desc: t.accomOpt3Desc },
+        { title: t.accomOpt4Title, desc: t.accomOpt4Desc }
+      ] %}
       {% for opt in accomOptions %}
-      <div style="background:#FFFCF9;border:1px solid #E8E4E0;border-radius:14px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start;">
-        <span style="font-size:1.4rem;flex-shrink:0;margin-top:2px;">{{ opt.icon }}</span>
-        <div>
-          <p style="font-weight:700;font-size:.92rem;margin-bottom:4px;">{{ opt.title }}</p>
-          <p style="font-size:.85rem;color:#6F6A66;line-height:1.5;">{{ opt.desc }}</p>
+      <details style="background:#F5F3F0;border-radius:12px;overflow:hidden;"{% if loop.first %} open{% endif %}>
+        <summary style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;list-style:none;-webkit-appearance:none;">
+          <span style="font-weight:700;font-size:.9rem;color:#0F0F0F;">{{ opt.title }}</span>
+          <span style="color:#f75c03;background:#FFF0E6;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;flex-shrink:0;transition:transform .25s;">+</span>
+        </summary>
+        <div style="padding:0 18px 16px;">
+          <p style="font-size:.88rem;color:#6F6A66;line-height:1.6;">{{ opt.desc }}</p>
         </div>
-      </div>
+      </details>
       {% endfor %}
     </div>
     <p style="font-size:.85rem;color:#6F6A66;margin-top:16px;line-height:1.5;">{{ t.accomCta }} <a href="mailto:info@yogabible.dk" style="color:#f75c03;text-decoration:underline;">info@yogabible.dk</a></p>
@@ -126,15 +127,17 @@
     <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:20px;">{{ t.cphTitle }}</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
       {% set cphItems = [
-        { title: t.cphItem1Title, desc: t.cphItem1Desc, icon: "&#128690;" },
-        { title: t.cphItem2Title, desc: t.cphItem2Desc, icon: "&#9728;&#65039;" },
-        { title: t.cphItem3Title, desc: t.cphItem3Desc, icon: "&#129495;" },
-        { title: t.cphItem4Title, desc: t.cphItem4Desc, icon: "&#128176;" }
+        { title: t.cphItem1Title, desc: t.cphItem1Desc },
+        { title: t.cphItem2Title, desc: t.cphItem2Desc },
+        { title: t.cphItem3Title, desc: t.cphItem3Desc },
+        { title: t.cphItem4Title, desc: t.cphItem4Desc }
       ] %}
       {% for item in cphItems %}
-      <div style="background:#F5F3F0;border-radius:14px;padding:18px;{% if loop.index > 2 %}{% endif %}">
-        <span style="font-size:1.3rem;">{{ item.icon }}</span>
-        <p style="font-weight:700;font-size:.88rem;margin:8px 0 4px;">{{ item.title }}</p>
+      <div style="background:#F5F3F0;border-radius:14px;padding:18px;">
+        <div style="width:32px;height:32px;background:#FFF0E6;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+          <span style="color:#f75c03;font-size:.85rem;font-weight:700;">{{ loop.index }}</span>
+        </div>
+        <p style="font-weight:700;font-size:.88rem;margin:0 0 4px;">{{ item.title }}</p>
         <p style="font-size:.82rem;color:#6F6A66;line-height:1.5;">{{ item.desc }}</p>
       </div>
       {% endfor %}
@@ -203,8 +206,8 @@
   <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
     <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">{{ t.hoursTitle }}</p>
     {% set hoursData4jul = [
-      { pct: 30,  hours: 60, color: "#f75c03", key: "hLabel0" },
-      { pct: 5,   hours: 10, color: "#ff9966", key: "hLabel1" },
+      { pct: 15,  hours: 30, color: "#f75c03", key: "hLabel0" },
+      { pct: 20,  hours: 40, color: "#ff9966", key: "hLabel1" },
       { pct: 22,  hours: 44, color: "#1a1a1a", key: "hLabel2" },
       { pct: 7,   hours: 14, color: "#3d3d3d", key: "hLabel3" },
       { pct: 6,   hours: 12, color: "#666666", key: "hLabel4" },
@@ -229,58 +232,6 @@
       {% endfor %}
     </div>
     <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:10px;font-style:italic;">{{ t.hoursTotal }}</p>
-  </div>
-
-  {# ── CONFLICT FINDER ──────────────────────────────── #}
-  <div style="max-width:700px;margin:0 auto;padding:24px 24px 0;">
-    <details id="s4wjp-conflict-finder" style="background:#fff;border:1.5px solid #E8E4E0;border-radius:16px;overflow:hidden;">
-      <summary style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;list-style:none;-webkit-appearance:none;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <span style="background:#FFF0E6;color:#f75c03;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">&#128197;</span>
-          <div>
-            <p style="font-weight:700;font-size:.92rem;">{{ t.conflictTitle }}</p>
-            <p style="font-size:.78rem;color:#6F6A66;">{{ t.conflictDesc }}</p>
-          </div>
-        </div>
-        <svg class="s4wjp-cf-chevron" style="flex-shrink:0;transition:transform .25s;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </summary>
-      <div style="padding:0 20px 20px;border-top:1px solid #E8E4E0;">
-        <p style="font-size:.8rem;color:#6F6A66;padding:14px 0 10px;margin:0;">{{ t.conflictDesc }}</p>
-        <div style="display:flex;flex-direction:column;gap:6px;" id="s4wjp-busy-days">
-          {% set busyDays = [
-            { val: "1", label: "Monday", checked: true, start: "09:00", end: "17:00" },
-            { val: "2", label: "Tuesday", checked: true, start: "09:00", end: "17:00" },
-            { val: "3", label: "Wednesday", checked: true, start: "09:00", end: "17:00" },
-            { val: "4", label: "Thursday", checked: true, start: "09:00", end: "17:00" },
-            { val: "5", label: "Friday", checked: true, start: "09:00", end: "17:00" },
-            { val: "6", label: "Saturday", checked: false, start: "10:00", end: "14:00" },
-            { val: "0", label: "Sunday", checked: false, start: "10:00", end: "14:00" }
-          ] %}
-          {% for d in busyDays %}
-          <div class="s4wjp-busy-row" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:{% if d.checked %}#F5F3F0{% else %}transparent{% endif %};transition:background .2s;">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:110px;">
-              <input type="checkbox" name="s4wjp-busy" value="{{ d.val }}" {% if d.checked %}checked{% endif %} onchange="s4wjpToggleBusyRow(this)" style="accent-color:#f75c03;width:16px;height:16px;">
-              <span style="font-size:.85rem;font-weight:600;">{{ d.label }}</span>
-            </label>
-            <div class="s4wjp-busy-times" style="display:flex;align-items:center;gap:6px;{% if not d.checked %}opacity:.3;pointer-events:none;{% endif %}">
-              <input type="time" value="{{ d.start }}" class="s4wjp-time-from" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:100px;">
-              <span style="color:#6F6A66;font-size:.75rem;">{{ t.conflictDateTo }}</span>
-              <input type="time" value="{{ d.end }}" class="s4wjp-time-to" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:100px;">
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        <div style="margin-top:18px;padding-top:14px;border-top:1px dashed #E8E4E0;">
-          <p style="font-size:.82rem;font-weight:700;margin:0 0 2px;">{{ t.conflictSpecificLabel }}</p>
-          <p style="font-size:.72rem;color:#6F6A66;margin:0 0 10px;">{{ t.conflictSpecificHint }}</p>
-          <div id="s4wjp-specific-dates" style="display:flex;flex-direction:column;gap:6px;"></div>
-          <button type="button" onclick="s4wjpAddSpecificDate()" style="margin-top:8px;background:none;border:1.5px dashed #E8E4E0;border-radius:10px;padding:8px 16px;font-size:.78rem;font-weight:600;color:#f75c03;cursor:pointer;font-family:inherit;transition:border-color .2s;" onmouseenter="this.style.borderColor='#f75c03'" onmouseleave="this.style.borderColor='#E8E4E0'">{{ t.conflictAddDate }}</button>
-        </div>
-        <button onclick="s4wjpCheckConflicts()" style="margin-top:16px;background:#f75c03;color:#fff;border:none;padding:12px 24px;border-radius:50px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.conflictBtn }}</button>
-        <div id="s4wjp-conflict-results" style="display:none;margin-top:16px;"></div>
-        <p style="font-size:.75rem;color:#6F6A66;margin:16px 0 0;line-height:1.5;">{{ t.conflictNote | safe }}</p>
-      </div>
-    </details>
   </div>
 
   {# ── SCHEDULE BODY ─────────────────────────────────── #}
@@ -460,7 +411,7 @@
     <div style="background:#FFFCF9;border:1px solid #E8E4E0;border-radius:16px;padding:28px 24px;text-align:center;">
       <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:8px;">{{ t.contactTitle }}</h2>
       <p style="font-size:.92rem;color:#6F6A66;line-height:1.55;margin-bottom:20px;">{{ t.contactDesc }}</p>
-      <a href="/en/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-block;background:#f75c03;color:#fff;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;text-decoration:none;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.contactCta }}</a>
+      <button onclick="openBookingModal('consultation')" style="background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.contactCta }}</button>
       <p style="font-size:.82rem;color:#6F6A66;margin-top:14px;">{{ t.contactEmail }} <a href="mailto:info@yogabible.dk" style="color:#f75c03;">info@yogabible.dk</a></p>
     </div>
   </div>
@@ -471,7 +422,7 @@
       <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:12px;">{{ t.ctaSectionTitle }}</h2>
       <p style="color:rgba(255,255,255,.68);margin-bottom:28px;line-height:1.55;">{{ t.ctaSectionDesc }}</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <a href="/en/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-flex;align-items:center;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;text-decoration:none;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</a>
+        <button onclick="openBookingModal('consultation')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</button>
         <button onclick="startCheckoutFunnel('100211')" style="background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
       </div>
     </div>
@@ -481,111 +432,6 @@
 
 <script>
 (function() {
-  var s4wjpDateCounter = 0;
-  var s4wjpFromLabel = '{{ t.conflictDateFrom }}';
-  var s4wjpToLabel = '{{ t.conflictDateTo }}';
-
-  window.s4wjpToggleBusyRow = function(cb) {
-    var row = cb.closest('.s4wjp-busy-row');
-    var times = row.querySelector('.s4wjp-busy-times');
-    if (cb.checked) { row.style.background = '#F5F3F0'; times.style.opacity = '1'; times.style.pointerEvents = 'auto'; }
-    else { row.style.background = 'transparent'; times.style.opacity = '.3'; times.style.pointerEvents = 'none'; }
-  };
-
-  window.s4wjpAddSpecificDate = function() {
-    var wrap = document.getElementById('s4wjp-specific-dates');
-    if (!wrap) return;
-    var row = document.createElement('div');
-    row.className = 's4wjp-specific-row';
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:#F5F3F0;flex-wrap:wrap;';
-    row.innerHTML =
-      '<input type="date" class="s4wjp-sd-date" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;flex:1;min-width:130px;">' +
-      '<span style="color:#6F6A66;font-size:.75rem;">' + s4wjpFromLabel + '</span>' +
-      '<input type="time" value="09:00" class="s4wjp-sd-from" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:90px;">' +
-      '<span style="color:#6F6A66;font-size:.75rem;">' + s4wjpToLabel + '</span>' +
-      '<input type="time" value="17:00" class="s4wjp-sd-to" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:90px;">' +
-      '<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;padding:4px;color:#6F6A66;font-size:1.1rem;line-height:1;" aria-label="Remove">&times;</button>';
-    wrap.appendChild(row);
-  };
-  s4wjpAddSpecificDate();
-
-  function s4wjpTimeMin(t) { var p = t.split(':'); return parseInt(p[0]) * 60 + parseInt(p[1]); }
-
-  var s4wjpSchedule = [
-    {d:'2026-07-06',s:'09:00',e:'15:00'},{d:'2026-07-07',s:'11:00',e:'17:00'},{d:'2026-07-09',s:'11:00',e:'17:00'},{d:'2026-07-11',s:'13:00',e:'18:00'},{d:'2026-07-12',s:'14:00',e:'18:00'},
-    {d:'2026-07-13',s:'09:00',e:'15:00'},{d:'2026-07-14',s:'11:00',e:'17:00'},{d:'2026-07-15',s:'10:00',e:'15:00'},{d:'2026-07-16',s:'11:00',e:'17:00'},{d:'2026-07-18',s:'13:00',e:'18:00'},{d:'2026-07-19',s:'13:00',e:'17:00'},
-    {d:'2026-07-20',s:'10:00',e:'15:00'},{d:'2026-07-21',s:'09:00',e:'15:00'},{d:'2026-07-23',s:'11:00',e:'15:00'},{d:'2026-07-24',s:'11:00',e:'16:00'},{d:'2026-07-25',s:'13:00',e:'18:00'},{d:'2026-07-26',s:'13:00',e:'17:00'},
-    {d:'2026-07-27',s:'10:00',e:'15:00'},{d:'2026-07-29',s:'09:00',e:'15:00'},{d:'2026-07-31',s:'11:00',e:'17:00'},{d:'2026-08-01',s:'13:00',e:'18:00'},{d:'2026-08-02',s:'14:00',e:'17:00'}
-  ];
-  s4wjpSchedule.forEach(function(item) {
-    var dt = new Date(item.d + 'T12:00:00');
-    item.dow = dt.getDay();
-    item.sMin = s4wjpTimeMin(item.s);
-    item.eMin = s4wjpTimeMin(item.e);
-    var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    item.label = days[item.dow] + ' ' + item.d.split('-')[2].replace(/^0/,'') + '/' + item.d.split('-')[1].replace(/^0/,'');
-  });
-
-  window.s4wjpCheckConflicts = function() {
-    var busySlots = {};
-    document.querySelectorAll('.s4wjp-busy-row').forEach(function(row) {
-      var cb = row.querySelector('input[name="s4wjp-busy"]');
-      if (!cb.checked) return;
-      var dow = parseInt(cb.value);
-      var from = row.querySelector('.s4wjp-time-from').value || '09:00';
-      var to = row.querySelector('.s4wjp-time-to').value || '17:00';
-      busySlots[dow] = { s: s4wjpTimeMin(from), e: s4wjpTimeMin(to) };
-    });
-
-    var specificDates = [];
-    document.querySelectorAll('.s4wjp-specific-row').forEach(function(row) {
-      var dateVal = row.querySelector('.s4wjp-sd-date').value;
-      if (!dateVal) return;
-      var from = row.querySelector('.s4wjp-sd-from').value || '09:00';
-      var to = row.querySelector('.s4wjp-sd-to').value || '17:00';
-      specificDates.push({ date: dateVal, s: s4wjpTimeMin(from), e: s4wjpTimeMin(to) });
-    });
-
-    var conflicts = [];
-    s4wjpSchedule.forEach(function(item) {
-      var hit = false;
-      var slot = busySlots[item.dow];
-      if (slot && item.sMin < slot.e && item.eMin > slot.s) hit = true;
-      specificDates.forEach(function(sd) {
-        if (sd.date === item.d && sd.s < item.eMin && sd.e > item.sMin) hit = true;
-      });
-      if (hit) conflicts.push(item);
-    });
-
-    var el = document.getElementById('s4wjp-conflict-results');
-    if (!el) return;
-    el.style.display = 'block';
-    var total = s4wjpSchedule.length;
-    var html = '';
-    if (conflicts.length === 0) {
-      html += '<div style="background:#f0fff0;border:1px solid #c3e6c3;border-radius:12px;padding:16px;text-align:center;"><p style="font-weight:700;color:#2ecc71;">{{ t.conflictNone }}</p></div>';
-    } else {
-      html += '<div style="background:#FFF8F3;border:1px solid #FFE5D0;border-radius:12px;padding:16px;">';
-      html += '<p style="font-size:.92rem;font-weight:700;margin-bottom:8px;"><span style="color:#f75c03;font-size:1.4rem;">' + conflicts.length + '</span> / ' + total + ' {{ t.conflictSome }}</p>';
-      html += '<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-bottom:12px;"><div style="background:#2ecc71;height:100%;width:' + Math.round(((total - conflicts.length) / total) * 100) + '%;border-radius:50px;"></div></div>';
-      html += '<ul style="margin:0;padding:0 0 0 18px;font-size:.82rem;color:#0F0F0F;">';
-      conflicts.forEach(function(c) {
-        html += '<li style="margin-bottom:4px;">' + c.label + ' <span style="color:#6F6A66;">(' + c.s + '–' + c.e + ')</span></li>';
-      });
-      html += '</ul></div>';
-    }
-    el.innerHTML = html;
-  };
-
-  /* Chevron toggle */
-  var cfDetails = document.getElementById('s4wjp-conflict-finder');
-  if (cfDetails) {
-    cfDetails.addEventListener('toggle', function() {
-      var chev = cfDetails.querySelector('.s4wjp-cf-chevron');
-      if (chev) chev.style.transform = cfDetails.open ? 'rotate(180deg)' : '';
-    });
-  }
-
   /* Tokenized visit tracking */
   var params = new URLSearchParams(window.location.search);
   var tid = params.get('tid');
