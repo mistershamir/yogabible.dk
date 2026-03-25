@@ -634,7 +634,7 @@ async function handleProcess() {
           selectedBody = step.email_body_de || step.email_body_en || step.email_body;
           // Append language note — Shamir is not a German speaker
           if (selectedBody) {
-            selectedBody += '<p style="margin-top:24px;padding-top:16px;border-top:1px solid #E8E4E0;color:#6F6A66;font-size:13px;"><em>P.S. Diese E-Mail wurde f\u00FCr dich auf Deutsch verfasst, damit alles leicht verst\u00E4ndlich ist. Ich selbst spreche Englisch \u2014 bitte antworte mir auf Englisch, damit ich dir am besten helfen kann!</em></p>';
+            selectedBody += '<p style="margin-top:24px;padding-top:16px;border-top:1px solid #E8E4E0;color:#6F6A66;font-size:13px;"><em>P.S. Diese E-Mail wurde f\u00FCr dich auf Deutsch verfasst, damit alles leicht verst\u00E4ndlich ist. Ich selbst spreche Englisch \u2014 bitte antworte mir auf Englisch, damit ich dir am besten helfen kann. Wir haben aber auch deutschsprachige Lehrkr\u00E4fte im Studio \u2014 falls du lieber auf Deutsch sprechen m\u00F6chtest, bringe ich dich gerne mit ihnen in Kontakt!</em></p>';
           }
         } else if (!isDanish) {
           selectedSubject = step.email_subject_en || step.email_subject;
