@@ -113,11 +113,11 @@ async function processBackfillLead(rawLead, form, dryRun) {
 
   const fullName = fields.full_name || fields.name || '';
   const nameParts = fullName.trim().split(/\s+/);
-  const firstName = fields.first_name || nameParts[0] || '';
-  const lastName = fields.last_name || nameParts.slice(1).join(' ') || '';
-  const email = (fields.email || '').toLowerCase().trim();
-  const phone = fields.phone_number || fields.phone || '';
-  const city = fields.city || fields.location || '';
+  const firstName = fields.first_name || fields.fornavn || fields.fornavne || nameParts[0] || '';
+  const lastName = fields.last_name || fields.efternavn || fields.etternavn || nameParts.slice(1).join(' ') || '';
+  const email = (fields.email || fields['e-mail'] || fields['e-mailadresse'] || fields['e-post'] || '').toLowerCase().trim();
+  const phone = fields.phone_number || fields.phone || fields.telefonnummer || fields.telefon || '';
+  const city = fields.city || fields.location || fields.by || '';
   const program = fields.program || fields.which_program || fields.interested_in || '';
 
   if (!email) return 'no_email';
