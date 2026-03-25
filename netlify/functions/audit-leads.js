@@ -24,6 +24,7 @@ const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 const { detectLeadCountry } = require('./shared/country-detect');
+const { getDisplayProgram } = require('./shared/config');
 
 const GRAPH_API_VERSION = 'v25.0';
 const PAGE_ID = '878172732056415';
@@ -313,7 +314,7 @@ async function handleRefetchRecovery(event) {
         phone,
         type: 'ytt',
         ytt_program_type: resolvedType,
-        program: rawLead.ad_name || 'Facebook Lead Form (refetch recovery)',
+        program: getDisplayProgram({ ytt_program_type: resolvedType, lang: metaLang }, metaLang) || 'Facebook Lead Form',
         course_id: '',
         cohort_label: '',
         preferred_month: '',
@@ -326,7 +327,7 @@ async function handleRefetchRecovery(event) {
         service: '',
         subcategories: '',
         message: '',
-        source: 'Meta Lead – Facebook – refetch recovery via audit-leads',
+        source: (rawLead.platform || '').toLowerCase() === 'instagram' ? 'Instagram Ad' : 'Facebook Ad',
         meta_form_id: formId,
         meta_form_name: '',
         meta_ad_id: rawLead.ad_id || '',
