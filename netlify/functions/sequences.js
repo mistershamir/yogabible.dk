@@ -16,11 +16,14 @@
  * POST   /.netlify/functions/sequences?action=process                 — process all due sequence steps (scheduler)
  */
 
+const crypto = require('crypto');
 const { getDb, serverTimestamp } = require('./shared/firestore');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse, buildUnsubscribeUrl } = require('./shared/utils');
 const { sendSingleViaResend } = require('./shared/resend-service');
 const { detectLeadCountry } = require('./shared/country-detect');
+
+const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
 const SEQUENCES_COL = 'sequences';
 const ENROLLMENTS_COL = 'sequence_enrollments';
@@ -694,10 +697,16 @@ async function handleProcess() {
         // Send email
         if (wantsEmail) {
           if (lead.email && hasEmailContent) {
+            // Inject schedule tracking tokens into any schedule URLs in the body
+            var finalBody = injectScheduleTokens(
+              substituteVars(selectedBody, vars),
+              enrollment.lead_id,
+              lead.email
+            );
             var emailResult = await sendSequenceEmail(
               lead.email,
               substituteVars(selectedSubject, vars),
-              substituteVars(selectedBody, vars)
+              finalBody
             );
 
             if (emailResult.success) {
@@ -950,6 +959,33 @@ function calculateNextSendAt(fromISO, step) {
   // Return Date object so Firestore stores it as a Timestamp.
   // The processor query uses a Date object for comparison — types must match.
   return date;
+}
+
+function generateScheduleToken(leadId, email) {
+  var hmac = crypto.createHmac('sha256', TOKEN_SECRET);
+  hmac.update(leadId + ':' + (email || '').toLowerCase().trim());
+  return hmac.digest('hex');
+}
+
+/**
+ * Inject schedule tracking tokens into any yogabible.dk schedule URLs in the email body.
+ * Matches: yogabible.dk/skema/*, yogabible.dk/en/schedule/*, yogabible.dk/tidsplan/*
+ * Adds ?tid=LEAD_ID&tok=TOKEN (or &tid=&tok= if URL already has query params).
+ */
+function injectScheduleTokens(html, leadId, email) {
+  if (!html || !leadId || !email) return html;
+  var token = generateScheduleToken(leadId, email);
+  // Match schedule URLs on yogabible.dk (with or without www, http/https)
+  // Covers: /skema/*, /en/schedule/*, /tidsplan/*
+  return html.replace(
+    /(https?:\/\/(?:www\.)?yogabible\.dk)(\/(?:skema|en\/schedule|tidsplan)\/[^"'<\s]*)/g,
+    function (match, domain, path) {
+      // Don't double-inject if tokens already present
+      if (path.indexOf('tid=') !== -1 && path.indexOf('tok=') !== -1) return match;
+      var sep = path.indexOf('?') !== -1 ? '&' : '?';
+      return domain + path + sep + 'tid=' + encodeURIComponent(leadId) + '&tok=' + encodeURIComponent(token);
+    }
+  );
 }
 
 function substituteVars(template, vars) {

@@ -72,6 +72,12 @@ exports.handler = async (event) => {
       updated_at: new Date()
     });
 
+    // Store schedule tracking token on lead doc for sequence email injection
+    const scheduleTokenForDoc = generateScheduleToken(docRef.id, leadData.email);
+    await db.collection('leads').doc(docRef.id).update({
+      schedule_token: scheduleTokenForDoc
+    });
+
     console.log(`[lead] New lead saved: ${docRef.id} (${leadData.email})`);
 
     // Send notifications (admin email + welcome email + welcome SMS)
