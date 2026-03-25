@@ -773,6 +773,37 @@
         }
       }
 
+      // Email engagement badge
+      var emailBadge = '';
+      var ee = l.email_engagement;
+      if (ee) {
+        var opens = ee.total_opens || 0;
+        var clicks = ee.total_clicks || 0;
+        if (clicks >= 3) {
+          emailBadge = ' <span style="color:#155724" title="' + opens + ' opens, ' + clicks + ' clicks">\u2709\ufe0f\ud83d\udd25</span>';
+        } else if (clicks >= 1 || opens >= 3) {
+          emailBadge = ' <span style="color:#856404" title="' + opens + ' opens, ' + clicks + ' clicks">\u2709\ufe0f</span>';
+        }
+      }
+
+      // Site browsing badge
+      var siteBadge = '';
+      var ste = l.site_engagement;
+      if (ste && ste.total_pageviews >= 3) {
+        var sitePages = ste.total_pageviews || 0;
+        var interests = (ste.interests || []).join(', ');
+        siteBadge = ' <span style="color:#0d47a1" title="Browsed ' + sitePages + ' pages. Interests: ' + interests + '">\ud83c\udf10</span>';
+      }
+
+      // Re-engagement badge (came back after silence)
+      var reEngBadge = '';
+      if (l.re_engaged && l.re_engaged_at) {
+        var reEvents = l.re_engagement_events || [];
+        var lastRe = reEvents.length > 0 ? reEvents[reEvents.length - 1] : null;
+        var reDays = lastRe ? lastRe.days_inactive : '?';
+        reEngBadge = ' <span style="color:#f75c03;font-weight:700" title="Came back after ' + reDays + ' days of silence!">\ud83d\udd04</span>';
+      }
+
       // Notes count
       var notesCount = Array.isArray(l.notes) ? l.notes.length : 0;
 
@@ -788,7 +819,7 @@
         '<td class="yb-lead__cell-name">' +
           priorityBadgeHtml(l.priority) +
           esc((l.first_name || '') + ' ' + (l.last_name || '')).trim() +
-          unreadBadge + schedBadge +
+          unreadBadge + reEngBadge + schedBadge + emailBadge + siteBadge +
         '</td>' +
         '<td class="yb-lead__cell-contact">' +
           '<div class="yb-lead__cell-email-text">' + esc(l.email || '') +
@@ -1511,6 +1542,145 @@
         html += '</div>';
       }
       html += '</div>'; // end card 4
+    }
+
+    // Card 5: Email Engagement
+    var ee = l.email_engagement;
+    if (ee && (ee.total_opens || ee.total_clicks)) {
+      html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+      html += '<h4 class="yb-lead__card-title">EMAIL ENGAGEMENT</h4>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Opens</span>' +
+        '<span class="yb-lead__card-value"><strong>' + (ee.total_opens || 0) + '</strong></span>' +
+      '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Clicks</span>' +
+        '<span class="yb-lead__card-value"><strong>' + (ee.total_clicks || 0) + '</strong></span>' +
+      '</div>';
+      if (ee.last_opened) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Last Opened</span>' +
+          '<span class="yb-lead__card-value">' + fmtDateTime(ee.last_opened) + '</span>' +
+        '</div>';
+      }
+      if (ee.last_clicked) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Last Clicked</span>' +
+          '<span class="yb-lead__card-value">' + fmtDateTime(ee.last_clicked) + '</span>' +
+        '</div>';
+      }
+      // Recent clicked links
+      var clicks = ee.clicks || [];
+      if (clicks.length > 0) {
+        html += '<div style="margin-top:8px;border-top:1px solid #E8E4E0;padding-top:8px;">';
+        html += '<div style="font-size:.75rem;font-weight:600;color:#6F6A66;margin-bottom:4px;">RECENT CLICKS</div>';
+        var recentClicks = clicks.slice(-8).reverse();
+        recentClicks.forEach(function (c) {
+          var shortUrl = (c.url || '').replace('https://www.yogabible.dk', '').replace('https://yogabible.dk', '') || c.url;
+          html += '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:.78rem;">' +
+            '<span style="color:#f75c03;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%;">' + esc(shortUrl) + '</span>' +
+            '<span style="color:#6F6A66;">' + (c.at ? fmtDateTime(c.at) : '') + '</span>' +
+          '</div>';
+        });
+        html += '</div>';
+      }
+      html += '</div>'; // end card 5
+    }
+
+    // Card 6: Website Browsing Activity
+    var ste = l.site_engagement;
+    if (ste && ste.total_pageviews) {
+      html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+      html += '<h4 class="yb-lead__card-title">WEBSITE ACTIVITY</h4>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Total Pageviews</span>' +
+        '<span class="yb-lead__card-value"><strong>' + (ste.total_pageviews || 0) + '</strong></span>' +
+      '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Sessions</span>' +
+        '<span class="yb-lead__card-value">' + (ste.total_sessions || 0) + '</span>' +
+      '</div>';
+      var totalTimeSecs = ste.total_time_seconds || 0;
+      var totalTimeMins = totalTimeSecs >= 60 ? Math.floor(totalTimeSecs / 60) + 'm ' + (totalTimeSecs % 60) + 's' : totalTimeSecs + 's';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Total Time</span>' +
+        '<span class="yb-lead__card-value">' + totalTimeMins + '</span>' +
+      '</div>';
+      if (ste.last_visit) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Last Visit</span>' +
+          '<span class="yb-lead__card-value">' + fmtDateTime(ste.last_visit) + '</span>' +
+        '</div>';
+      }
+      // Interests
+      var interests = ste.interests || [];
+      if (interests.length > 0) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Interests</span>' +
+          '<span class="yb-lead__card-value">' + interests.map(function (i) {
+            return '<span class="yb-lead__badge" style="background:#FFF3CD;color:#856404;margin:1px 2px;">' + esc(i) + '</span>';
+          }).join(' ') + '</span>' +
+        '</div>';
+      }
+      // Top pages
+      var sitePages = ste.pages || {};
+      var spSlugs = Object.keys(sitePages).sort(function (a, b) {
+        return (sitePages[b].views || 0) - (sitePages[a].views || 0);
+      }).slice(0, 10);
+      if (spSlugs.length > 0) {
+        html += '<div style="margin-top:8px;border-top:1px solid #E8E4E0;padding-top:8px;">';
+        html += '<div style="font-size:.75rem;font-weight:600;color:#6F6A66;margin-bottom:4px;">TOP PAGES</div>';
+        spSlugs.forEach(function (slug) {
+          var sp = sitePages[slug];
+          var views = sp.views || 0;
+          var scroll = sp.max_scroll || 0;
+          var secs = sp.total_seconds || 0;
+          var mins = secs >= 60 ? Math.floor(secs / 60) + 'm ' + (secs % 60) + 's' : secs + 's';
+          html += '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;flex-wrap:wrap;font-size:.78rem;">' +
+            '<span style="font-weight:600;color:#1a1a1a;min-width:40%;">' + esc(sp.path || slug) + '</span>' +
+            '<span style="color:#6F6A66;margin-left:auto;">' +
+              views + ' view' + (views !== 1 ? 's' : '') +
+              ' · ' + scroll + '% · ' + mins +
+            '</span>' +
+          '</div>';
+        });
+        html += '</div>';
+      }
+      // CTA clicks
+      var ctaClicks = ste.cta_clicks || [];
+      if (ctaClicks.length > 0) {
+        html += '<div style="margin-top:8px;border-top:1px solid #E8E4E0;padding-top:8px;">';
+        html += '<div style="font-size:.75rem;font-weight:600;color:#6F6A66;margin-bottom:4px;">CTA CLICKS</div>';
+        ctaClicks.slice(-6).reverse().forEach(function (c) {
+          html += '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:.78rem;">' +
+            '<span style="color:#f75c03;">' + esc(c.text || '') + '</span>' +
+            '<span style="color:#6F6A66;">' + (c.at ? fmtDateTime(c.at) : '') + '</span>' +
+          '</div>';
+        });
+        html += '</div>';
+      }
+      html += '</div>'; // end card 6
+    }
+
+    // Card 7: Re-Engagement Events
+    var reEvents = l.re_engagement_events || [];
+    if (reEvents.length > 0) {
+      html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+      html += '<h4 class="yb-lead__card-title" style="color:#f75c03;">\ud83d\udd04 RE-ENGAGEMENT HISTORY</h4>';
+      reEvents.slice().reverse().forEach(function (re) {
+        var triggerLabel = re.trigger === 'email_open' ? 'Opened email' :
+          re.trigger === 'email_click' ? 'Clicked email link' :
+          re.trigger === 'site_visit' ? 'Visited website' : re.trigger;
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F5F3F0;">' +
+          '<div>' +
+            '<span style="font-weight:600;font-size:.82rem;">' + esc(triggerLabel) + '</span>' +
+            '<span class="yb-lead__badge" style="background:#FFF3CD;color:#856404;margin-left:6px;">after ' + re.days_inactive + ' days</span>' +
+            (re.detail ? '<div style="font-size:.72rem;color:#6F6A66;margin-top:2px;">' + esc(re.detail) + '</div>' : '') +
+          '</div>' +
+          '<span style="font-size:.72rem;color:#6F6A66;">' + (re.at ? fmtDateTime(re.at) : '') + '</span>' +
+        '</div>';
+      });
+      html += '</div>'; // end card 7
     }
 
     html += '</div>'; // end yb-lead__detail-cards wrapper
