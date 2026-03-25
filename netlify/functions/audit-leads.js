@@ -65,6 +65,13 @@ exports.handler = async (event) => {
     return jsonResp(401, { error: 'Invalid secret' });
   }
 
+  // ─── Re-fetch Mode: recover leads by leadgen_id from Graph API ──────────────
+  // POST with ?secret=...&mode=refetch and JSON body:
+  // { "leadgen_ids": ["1323569482954788", "2808798966135506", ...] }
+  if (params.mode === 'refetch' && event.httpMethod === 'POST') {
+    return handleRefetchRecovery(event);
+  }
+
   // ─── Manual Recovery Mode ───────────────────────────────────────────────────
   // POST with ?secret=...&mode=recover and JSON body with leads array:
   // { "leads": [{ "email": "...", "first_name": "...", "last_name": "...",
@@ -221,6 +228,173 @@ exports.handler = async (event) => {
 };
 
 // ─── Manual Recovery — process leads from CSV/manual input ───────────────────
+
+async function handleRefetchRecovery(event) {
+  let body;
+  try {
+    body = JSON.parse(event.body || '{}');
+  } catch (e) {
+    return jsonResp(400, { error: 'Invalid JSON body' });
+  }
+
+  const leadgenIds = body.leadgen_ids || [];
+  if (!leadgenIds.length) {
+    return jsonResp(400, { error: 'Provide leadgen_ids array', example: { leadgen_ids: ['1323569482954788'] } });
+  }
+
+  const results = { processed: [], skipped: [], errors: [] };
+  const db = getDb();
+  const token = process.env.FB_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
+
+  for (const leadgenId of leadgenIds) {
+    try {
+      // Check if already in Firestore
+      const existing = await db.collection('leads')
+        .where('meta_leadgen_id', '==', leadgenId)
+        .limit(1)
+        .get();
+      if (!existing.empty) {
+        results.skipped.push({ leadgen_id: leadgenId, reason: 'Already in Firestore' });
+        continue;
+      }
+
+      // Fetch full lead data from Graph API
+      const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${leadgenId}?fields=field_data,form_id,ad_id,ad_name,created_time,platform&access_token=${token}`;
+      const rawLead = await graphGet(url);
+
+      // Parse field_data
+      const fields = {};
+      for (const field of (rawLead.field_data || [])) {
+        fields[field.name] = Array.isArray(field.values) ? field.values[0] : field.values;
+      }
+
+      // Parse identity (same logic as facebook-leads-webhook with e-post fix)
+      const fullName = fields.full_name || fields.name || fields['for- og efternavn'] || findFieldByKeyword(fields, ['fulde navn', 'full name', 'navn']) || '';
+      const nameParts = fullName.trim().split(/\s+/);
+      const firstName = fields.first_name || fields.fornavn || fields.fornavne || findFieldByKeyword(fields, ['fornavn', 'first name', 'förnamn', 'vorname', 'etunimi', 'voornaam']) || nameParts[0] || '';
+      const lastName = fields.last_name || fields.efternavn || findFieldByKeyword(fields, ['efternavn', 'last name', 'efternamn', 'nachname', 'sukunimi', 'achternaam', 'etternavn']) || nameParts.slice(1).join(' ') || '';
+      const email = (fields.email || fields['e-mail'] || fields['e-mailadresse'] || fields['e-post'] || findFieldByKeyword(fields, ['email', 'e-mail', 'e-post', 'epost', 'mail', 'sähköposti']) || '').toLowerCase().trim();
+      const phone = fields.phone_number || fields.phone || fields.telefonnummer || fields.telefon || fields.mobil || findFieldByKeyword(fields, ['telefon', 'phone', 'mobil', 'puhelinnumero', 'telefoonnummer']) || '';
+      const city = fields.city || fields.location || fields.by || findFieldByKeyword(fields, ['by', 'city', 'stad', 'ort', 'stadt', 'kaupunki', 'plaats', 'sted']) || '';
+      const country = fields.country || fields.land || findFieldByKeyword(fields, ['country', 'land', 'maa']) || '';
+
+      if (!email) {
+        results.errors.push({ leadgen_id: leadgenId, error: 'Still no email after re-fetch', fields: Object.keys(fields) });
+        continue;
+      }
+
+      // Check if email already exists
+      const byEmail = await db.collection('leads').where('email', '==', email).limit(1).get();
+      if (!byEmail.empty) {
+        results.skipped.push({ leadgen_id: leadgenId, email, reason: 'Email already in Firestore' });
+        continue;
+      }
+
+      // Parse custom questions
+      const yogaExpAnswer = findFieldByKeyword(fields, ['yoga experience', 'yogaerfaring', 'yogaerfarenhet', 'yogaerfahrung', 'joogakokemust', 'yoga-ervaring']) || '';
+      const accommodationAnswer = findFieldByKeyword(fields, ['stay in copenhagen', 'oppholdet', 'vistelse', 'aufenthalt', 'oleskeluu', 'verblijf', 'overnatning', 'hjælpe', 'hjelpe', 'helfen', 'auttaa', 'helpen']) || '';
+      const englishComfortAnswer = findFieldByKeyword(fields, ['english', 'engelsk', 'engelska', 'englisch', 'englanniksi', 'engels']) || '';
+      const metaLang = fields.lang || 'da';
+      const formId = rawLead.form_id || '';
+
+      // Resolve program type
+      let resolvedType;
+      const formMapType = FORM_ID_MAP[formId];
+      if (formMapType && formMapType !== 'from-answer') {
+        resolvedType = formMapType;
+      } else {
+        resolvedType = detectYTTType('', rawLead.ad_name || '', formId);
+      }
+
+      const lead = {
+        email,
+        first_name: firstName,
+        last_name: lastName,
+        phone,
+        type: 'ytt',
+        ytt_program_type: resolvedType,
+        program: rawLead.ad_name || 'Facebook Lead Form (refetch recovery)',
+        course_id: '',
+        cohort_label: '',
+        preferred_month: '',
+        accommodation: normalizeAccommodationAnswer(accommodationAnswer) || 'No',
+        yoga_experience: normalizeYogaExperience(yogaExpAnswer),
+        english_comfort: normalizeEnglishComfort(englishComfortAnswer),
+        city_country: country ? (city ? city + ', ' + country : country) : city,
+        country: country || '',
+        housing_months: '',
+        service: '',
+        subcategories: '',
+        message: '',
+        source: 'Meta Lead – Facebook – refetch recovery via audit-leads',
+        meta_form_id: formId,
+        meta_form_name: '',
+        meta_ad_id: rawLead.ad_id || '',
+        meta_campaign: rawLead.ad_name || '',
+        meta_leadgen_id: leadgenId,
+        meta_page_id: PAGE_ID,
+        meta_platform: (rawLead.platform || '').toLowerCase(),
+        meta_lang: metaLang,
+        lang: metaLang,
+        converted: false,
+        converted_at: null,
+        application_id: null,
+        status: 'New',
+        notes: '(recovered via audit-leads refetch)',
+        unsubscribed: false,
+        call_attempts: 0,
+        sms_status: '',
+        last_contact: null,
+        followup_date: null,
+        multi_format: '',
+        all_formats: '',
+        created_at: rawLead.created_time ? new Date(rawLead.created_time) : new Date(),
+        updated_at: new Date()
+      };
+
+      // Detect country
+      lead.country = detectLeadCountry(lead);
+
+      // Save to Firestore
+      const docRef = await db.collection('leads').add(lead);
+      console.log(`[audit-leads] Refetch recovery: saved ${docRef.id} (${email}) — type=${resolvedType}, lang=${metaLang}, country=${lead.country}`);
+
+      // Generate schedule token + email action
+      const scheduleToken = crypto
+        .createHmac('sha256', TOKEN_SECRET)
+        .update(docRef.id + ':' + email)
+        .digest('hex');
+      const emailAction = yttTypeToAction(resolvedType);
+
+      // Send notifications
+      await Promise.all([
+        sendAdminNotification(lead).catch(e => console.error('[audit-leads] Admin email failed:', e.message)),
+        sendWelcomeEmail(lead, emailAction, { leadId: docRef.id, token: scheduleToken })
+          .catch(e => console.error('[audit-leads] Welcome email failed:', e.message)),
+        phone && process.env.GATEWAYAPI_TOKEN
+          ? sendWelcomeSMS(lead, docRef.id).catch(e => console.error('[audit-leads] SMS failed:', e.message))
+          : Promise.resolve(),
+        triggerNewLeadSequences(docRef.id, lead).catch(e => console.error('[audit-leads] Sequence trigger failed:', e.message))
+      ]);
+
+      results.processed.push({
+        leadgen_id: leadgenId,
+        email,
+        name: `${firstName} ${lastName}`.trim(),
+        program_type: resolvedType,
+        lang: metaLang,
+        country: lead.country,
+        firestore_id: docRef.id,
+        email_action: emailAction
+      });
+    } catch (err) {
+      console.error(`[audit-leads] Refetch error for ${leadgenId}:`, err.message);
+      results.errors.push({ leadgen_id: leadgenId, error: err.message });
+    }
+  }
+
+  return jsonResp(200, { ok: true, mode: 'refetch_recovery', ...results });
+}
 
 async function handleManualRecovery(event) {
   let body;
