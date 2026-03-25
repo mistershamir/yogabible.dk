@@ -620,11 +620,23 @@ async function handleProcess() {
         var smsSent = false;
 
         // Language branching — determine lead language for content selection
-        var leadLang = (lead.lang || lead.meta_lang || lead.language || 'da').toLowerCase().substring(0, 2);
-        var isDanish = ['da', 'dk'].includes(leadLang);
+        // Use explicit lang field first, then fall back to country detection
+        var rawLang = (lead.lang || lead.meta_lang || lead.language || '').toLowerCase().trim();
         var leadCountry = detectLeadCountry(lead);
-        // German-speaking leads: explicit de lang OR Austrian/Swiss by country
-        var isGerman = leadLang === 'de' || ['AT', 'CH'].includes(leadCountry);
+        var leadLang, isDanish, isGerman;
+
+        if (rawLang) {
+          // Explicit language set (from website Weglot detection or form field)
+          leadLang = rawLang.substring(0, 2);
+          isDanish = ['da', 'dk'].includes(leadLang);
+          isGerman = leadLang === 'de' || ['AT', 'CH'].includes(leadCountry);
+        } else {
+          // No explicit language — use country detection as fallback
+          // Prevents international leads (e.g. from Facebook forms) defaulting to Danish
+          isDanish = leadCountry === 'DK';
+          isGerman = ['DE', 'AT', 'CH'].includes(leadCountry);
+          leadLang = isDanish ? 'da' : (isGerman ? 'de' : 'en');
+        }
 
         // Select language-appropriate email content
         // Priority: DE (if available) → EN (non-Danish) → DA (default)
