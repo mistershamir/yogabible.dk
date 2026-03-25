@@ -198,20 +198,24 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       return result;
     }
 
-    // Determine language: use explicit lang field, then country detection fallback
+    // Determine language — country detection is the source of truth
+    // because the old Facebook webhook stamped lang='da' on all leads
     const rawLang = (leadData.lang || leadData.meta_lang || '').toLowerCase().trim();
+    const leadCountry = detectLeadCountry(leadData);
     let lang, isDanish, isGerman;
-    if (rawLang) {
+
+    if (leadCountry === 'DK') {
+      isDanish = true; isGerman = false; lang = 'da';
+    } else if (['DE', 'AT', 'CH'].includes(leadCountry)) {
+      isDanish = false; isGerman = true; lang = 'de';
+    } else if (leadCountry !== 'OTHER') {
+      isDanish = false; isGerman = false; lang = 'en';
+    } else if (rawLang) {
       lang = rawLang.substring(0, 2);
       isDanish = ['da', 'dk'].includes(lang);
-      const leadCountry = detectLeadCountry(leadData);
-      isGerman = lang === 'de' || ['AT', 'CH'].includes(leadCountry);
+      isGerman = lang === 'de';
     } else {
-      // No explicit language — use country detection (prevents intl leads getting Danish)
-      const leadCountry = detectLeadCountry(leadData);
-      isDanish = leadCountry === 'DK';
-      isGerman = ['DE', 'AT', 'CH'].includes(leadCountry);
-      lang = isDanish ? 'da' : (isGerman ? 'de' : 'en');
+      isDanish = true; isGerman = false; lang = 'da';
     }
 
     // German leads get DE templates (falling back to EN via i18n lookups)

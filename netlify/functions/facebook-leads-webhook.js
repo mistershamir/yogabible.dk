@@ -150,13 +150,13 @@ async function processLeadgenChange(value) {
   const metaAdsetName = fields.adset_name || '';
   const metaAdName = fields.ad_name || '';
   const metaFormNameParam = fields.form_name || '';
-  // Language detection: use form's lang field, then derive from country, then default 'da'
-  var rawMetaLang = fields.lang || '';
-  var metaLang;
-  if (rawMetaLang) {
-    metaLang = rawMetaLang;
-  } else {
-    // No lang field on form — derive from country/city fields
+  // Language detection priority:
+  // 1. Form ID map (bulletproof — Meta hidden fields sometimes don't arrive)
+  // 2. Form's lang field (if Meta passes it in field_data)
+  // 3. Country detection from form fields
+  // 4. Default 'da' (domestic market)
+  var metaLang = FORM_LANG_MAP[form_id] || fields.lang || '';
+  if (!metaLang) {
     var detectedCountry = detectLeadCountry({
       country: country,
       city_country: country ? (city ? city + ', ' + country : country) : city,
@@ -169,7 +169,7 @@ async function processLeadgenChange(value) {
     } else if (detectedCountry !== 'OTHER') {
       metaLang = 'en';
     } else {
-      metaLang = 'da'; // True unknown — default Danish (domestic market)
+      metaLang = 'da';
     }
   }
   const metaCohort = fields.cohort || '';
@@ -340,14 +340,26 @@ function fetchFormNameFromGraph(formId) {
 const FORM_ID_MAP = {
   '1974647360148367': '18-week',        // 18 Ugers Fleksibelt YTT — March–June 2026 cohort
   '961808297026346':  'from-answer',    // General YTT form — program determined by Q2 answer
-  // July Vinyasa Plus — International instant forms (lang set via form hidden field)
+  // July Vinyasa Plus — International instant forms
   '827004866473769':  '4-week-jul',     // july-vinyasa-plus-en  (UK / English)
-  '25716246641411656':'4-week-jul',     // july-vinyasa-plus-no  (Norway, lang=no)
-  '4318151781759438': '4-week-jul',     // july-vinyasa-plus-se  (Sweden, lang=sv)
-  '2450631555377690': '4-week-jul',     // july-vinyasa-plus-de  (Germany/Austria, lang=de)
-  '1668412377638315': '4-week-jul',     // july-vinyasa-plus-fi  (Finland, lang=fi)
-  '960877763097239':  '4-week-jul',     // july-vinyasa-plus-nl  (Netherlands, lang=nl)
-  '1344364364192542': '4-week-jul'      // july-vinyasa-plus-dk  (Denmark, lang=da)
+  '25716246641411656':'4-week-jul',     // july-vinyasa-plus-no  (Norway)
+  '4318151781759438': '4-week-jul',     // july-vinyasa-plus-se  (Sweden)
+  '2450631555377690': '4-week-jul',     // july-vinyasa-plus-de  (Germany/Austria)
+  '1668412377638315': '4-week-jul',     // july-vinyasa-plus-fi  (Finland)
+  '960877763097239':  '4-week-jul',     // july-vinyasa-plus-nl  (Netherlands)
+  '1344364364192542': '4-week-jul'      // july-vinyasa-plus-dk  (Denmark)
+};
+
+// Form ID → Language override — bulletproof, doesn't rely on Meta passing hidden fields
+// Meta tracking parameters sometimes don't arrive in field_data, so we map form_id directly.
+const FORM_LANG_MAP = {
+  '827004866473769':  'en',     // july-vinyasa-plus-en
+  '25716246641411656':'en',     // july-vinyasa-plus-no  (Norwegian leads get EN emails)
+  '4318151781759438': 'en',     // july-vinyasa-plus-se  (Swedish leads get EN emails)
+  '2450631555377690': 'de',     // july-vinyasa-plus-de  (German/Austrian leads get DE emails)
+  '1668412377638315': 'en',     // july-vinyasa-plus-fi  (Finnish leads get EN emails)
+  '960877763097239':  'en',     // july-vinyasa-plus-nl  (Dutch leads get EN emails)
+  '1344364364192542': 'da'      // july-vinyasa-plus-dk  (Danish leads get DA emails)
 };
 
 // ─── Program Answer → Type Map ───────────────────────────────────────────────
