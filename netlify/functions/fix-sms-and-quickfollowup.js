@@ -92,7 +92,7 @@ exports.handler = async (event) => {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // FIX 3: Quick Follow-up — ensure English content exists
+  // FIX 3: Quick Follow-up — ensure English + German content exists
   // ══════════════════════════════════════════════════════════════════════════
 
   var qfSnap = await db.collection('sequences')
@@ -106,9 +106,14 @@ exports.handler = async (event) => {
     if (qfSteps.length > 0) {
       var oldEnSubject = qfSteps[0].email_subject_en || '';
       var oldEnBody = qfSteps[0].email_body_en || '';
+      var oldDeSubject = qfSteps[0].email_subject_de || '';
+      var oldDeBody = qfSteps[0].email_body_de || '';
 
       qfSteps[0].email_subject_en = 'Did you get everything, {{first_name}}?';
       qfSteps[0].email_body_en = '<p>Hi {{first_name}},</p><p>It\u2019s Shamir from Yoga Bible. Just wanted to make sure you received the schedule and information we sent?</p><p>If you have any questions about the education, just reply here \u2014 or call me directly at +45 53 88 12 09.</p>';
+
+      qfSteps[0].email_subject_de = 'Hast du alles bekommen, {{first_name}}?';
+      qfSteps[0].email_body_de = '<p>Hi {{first_name}},</p><p>Hier ist Shamir von Yoga Bible. Ich wollte nur kurz sichergehen, dass du den Zeitplan und alle Infos bekommen hast, die wir dir geschickt haben?</p><p>Falls du Fragen zur Ausbildung hast, antworte einfach hier \u2014 oder ruf mich direkt an unter +45 53 88 12 09.</p>';
 
       await qfDoc.ref.update({ steps: qfSteps, updated_at: new Date().toISOString() });
 
@@ -118,7 +123,11 @@ exports.handler = async (event) => {
         previous_en_subject: oldEnSubject || '(empty)',
         previous_en_body: oldEnBody ? oldEnBody.substring(0, 50) + '...' : '(empty)',
         new_en_subject: qfSteps[0].email_subject_en,
-        new_en_body_preview: qfSteps[0].email_body_en.substring(0, 60) + '...'
+        new_en_body_preview: qfSteps[0].email_body_en.substring(0, 60) + '...',
+        previous_de_subject: oldDeSubject || '(empty)',
+        previous_de_body: oldDeBody ? oldDeBody.substring(0, 50) + '...' : '(empty)',
+        new_de_subject: qfSteps[0].email_subject_de,
+        new_de_body_preview: qfSteps[0].email_body_de.substring(0, 60) + '...'
       };
     }
   } else {
