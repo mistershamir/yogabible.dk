@@ -65,6 +65,16 @@ exports.handler = async (event) => {
     return jsonResp(401, { error: 'Invalid secret' });
   }
 
+  // ─── Manual Recovery Mode ───────────────────────────────────────────────────
+  // POST with ?secret=...&mode=recover and JSON body with leads array:
+  // { "leads": [{ "email": "...", "first_name": "...", "last_name": "...",
+  //   "phone": "...", "city": "...", "country": "FI", "lang": "fi",
+  //   "form_id": "1668412377638315", "accommodation": "kyllä",
+  //   "yoga_experience": "...", "english_comfort": "..." }] }
+  if (params.mode === 'recover' && event.httpMethod === 'POST') {
+    return handleManualRecovery(event);
+  }
+
   const dryRun = event.httpMethod === 'GET';
   const sinceTs = params.since
     ? Math.floor(new Date(params.since).getTime() / 1000)
@@ -209,6 +219,170 @@ exports.handler = async (event) => {
     return jsonResp(500, { ok: false, error: err.message });
   }
 };
+
+// ─── Manual Recovery — process leads from CSV/manual input ───────────────────
+
+async function handleManualRecovery(event) {
+  let body;
+  try {
+    body = JSON.parse(event.body || '{}');
+  } catch (e) {
+    return jsonResp(400, { error: 'Invalid JSON body' });
+  }
+
+  const leads = body.leads || [];
+  if (!leads.length) {
+    return jsonResp(400, {
+      error: 'No leads provided',
+      example: {
+        leads: [{
+          email: 'aino@example.com',
+          first_name: 'Aino',
+          last_name: 'Heikkinen',
+          phone: '+358440414142',
+          city: 'Turku',
+          country: 'FI',
+          lang: 'fi',
+          form_id: '1668412377638315',
+          accommodation: 'kyllä',
+          yoga_experience: '',
+          english_comfort: '_ei_ongelmaa'
+        }]
+      }
+    });
+  }
+
+  const results = { processed: [], skipped: [], errors: [] };
+  const db = getDb();
+
+  for (const input of leads) {
+    const email = (input.email || '').toLowerCase().trim();
+    if (!email) {
+      results.errors.push({ input, error: 'No email' });
+      continue;
+    }
+
+    // Check if already in Firestore
+    const existing = await db.collection('leads')
+      .where('email', '==', email)
+      .limit(1)
+      .get();
+    if (!existing.empty) {
+      results.skipped.push({ email, reason: 'Already in Firestore' });
+      continue;
+    }
+
+    try {
+      const firstName = input.first_name || '';
+      const lastName = input.last_name || '';
+      const phone = input.phone || '';
+      const city = input.city || '';
+      const country = input.country || '';
+      const lang = input.lang || 'da';
+      const formId = input.form_id || '';
+
+      // Resolve program type from form_id or fallback
+      let resolvedType;
+      if (formId && FORM_ID_MAP[formId] && FORM_ID_MAP[formId] !== 'from-answer') {
+        resolvedType = FORM_ID_MAP[formId];
+      } else {
+        resolvedType = input.program_type || '4-week-jul';
+      }
+
+      // Normalize Q answers
+      const accommodationValue = normalizeAccommodationAnswer(input.accommodation || '');
+      const yogaExperience = normalizeYogaExperience(input.yoga_experience || '');
+      const englishComfort = normalizeEnglishComfort(input.english_comfort || '');
+
+      const lead = {
+        email,
+        first_name: firstName,
+        last_name: lastName,
+        phone,
+        type: 'ytt',
+        ytt_program_type: resolvedType,
+        program: input.program || 'Facebook Lead Form (manual recovery)',
+        course_id: '',
+        cohort_label: '',
+        preferred_month: '',
+        accommodation: accommodationValue || 'No',
+        yoga_experience: yogaExperience,
+        english_comfort: englishComfort,
+        city_country: country ? (city ? city + ', ' + country : country) : city,
+        country: country || '',
+        housing_months: '',
+        service: '',
+        subcategories: '',
+        message: '',
+        source: 'Meta Lead – Facebook – manual recovery via audit-leads',
+        meta_form_id: formId,
+        meta_form_name: '',
+        meta_ad_id: '',
+        meta_campaign: input.campaign || '',
+        meta_leadgen_id: '',
+        meta_page_id: PAGE_ID,
+        meta_lang: lang,
+        lang: lang,
+        converted: false,
+        converted_at: null,
+        application_id: null,
+        status: 'New',
+        notes: '(recovered via audit-leads manual recovery)',
+        unsubscribed: false,
+        call_attempts: 0,
+        sms_status: '',
+        last_contact: null,
+        followup_date: null,
+        multi_format: '',
+        all_formats: '',
+        created_at: input.created_at ? new Date(input.created_at) : new Date(),
+        updated_at: new Date()
+      };
+
+      // Detect country
+      lead.country = detectLeadCountry(lead);
+
+      // Save to Firestore
+      const docRef = await db.collection('leads').add(lead);
+      console.log(`[audit-leads] Manual recovery: saved ${docRef.id} (${email}) — type=${resolvedType}, lang=${lang}, country=${lead.country}`);
+
+      // Generate schedule token
+      const scheduleToken = crypto
+        .createHmac('sha256', TOKEN_SECRET)
+        .update(docRef.id + ':' + email)
+        .digest('hex');
+
+      // Map program type → email action
+      const emailAction = yttTypeToAction(resolvedType);
+
+      // Send notifications
+      await Promise.all([
+        sendAdminNotification(lead).catch(e => console.error('[audit-leads] Admin email failed:', e.message)),
+        sendWelcomeEmail(lead, emailAction, { leadId: docRef.id, token: scheduleToken })
+          .catch(e => console.error('[audit-leads] Welcome email failed:', e.message)),
+        phone && process.env.GATEWAYAPI_TOKEN
+          ? sendWelcomeSMS(lead, docRef.id).catch(e => console.error('[audit-leads] SMS failed:', e.message))
+          : Promise.resolve(),
+        triggerNewLeadSequences(docRef.id, lead).catch(e => console.error('[audit-leads] Sequence trigger failed:', e.message))
+      ]);
+
+      results.processed.push({
+        email,
+        name: `${firstName} ${lastName}`.trim(),
+        program_type: resolvedType,
+        lang,
+        country: lead.country,
+        firestore_id: docRef.id,
+        email_action: emailAction
+      });
+    } catch (err) {
+      console.error(`[audit-leads] Manual recovery error for ${email}:`, err.message);
+      results.errors.push({ email, error: err.message });
+    }
+  }
+
+  return jsonResp(200, { ok: true, mode: 'manual_recovery', ...results });
+}
 
 // ─── Process a missing lead (full pipeline, mirrors facebook-leads-webhook) ──
 
