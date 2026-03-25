@@ -37,14 +37,6 @@
     en: 'The remaining balance is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.'
   };
 
-  // Product-specific remaining note overrides
-  var PRODUCT_REMAINING_NOTE = {
-    '100211': {
-      da: 'Restbeløbet er 20.000 DKK og afregnes inden uddannelsesstart — enten som engangsbeløb eller i rater. Din uddannelsesleder vil kontakte dig med alle detaljer og næste skridt.',
-      en: 'The remaining balance is 20,000 DKK (~2,680 EUR) and is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.'
-    }
-  };
-
   // Prep phase benefits (for teacher training)
   var PREP_BENEFITS = {
     da: [
@@ -63,24 +55,29 @@
     ]
   };
 
-  // Product-specific benefit overrides
-  var PRODUCT_BENEFITS = {
-    '100211': {
-      en: [
-        'Secure your spot in the July cohort',
-        'We help you find accommodation in Copenhagen',
-        'Start preparing travel, flights & logistics',
-        'Access to preparation materials and community',
-        'Refundable if the course is cancelled by Yoga Bible'
-      ],
-      da: [
-        'Sikr din plads på juli-holdet',
-        'Vi hjælper dig med at finde bolig i København',
-        'Start med at forberede rejse, fly og logistik',
-        'Adgang til forberedelsesmaterialer og fællesskab',
-        'Refunderbar hvis kurset aflyses af Yoga Bible'
-      ]
-    }
+  // International schedule page overrides (page-based, not product-based)
+  var isInternationalSchedulePage = window.location.pathname.indexOf('/schedule/4-weeks-july-plan') !== -1 || window.location.pathname.indexOf('/skema/4-uger-juli-plan') !== -1;
+
+  var INTL_BENEFITS = {
+    en: [
+      'Secure your spot in the July cohort',
+      'We help you find accommodation in Copenhagen',
+      'Start preparing travel, flights & logistics',
+      'Access to preparation materials and community',
+      'Refundable if the course is cancelled by Yoga Bible'
+    ],
+    da: [
+      'Sikr din plads på juli-holdet',
+      'Vi hjælper dig med at finde bolig i København',
+      'Start med at forberede rejse, fly og logistik',
+      'Adgang til forberedelsesmaterialer og fællesskab',
+      'Refunderbar hvis kurset aflyses af Yoga Bible'
+    ]
+  };
+
+  var INTL_REMAINING_NOTE = {
+    da: 'Restbeløbet er 20.000 DKK og afregnes inden uddannelsesstart — enten som engangsbeløb eller i rater. Din uddannelsesleder vil kontakte dig med alle detaljer og næste skridt.',
+    en: 'The remaining balance is 20,000 DKK (~2,680 EUR) and is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.'
   };
 
   // ── State ──
@@ -237,7 +234,7 @@
     // Prep phase benefits (teacher training only)
     var prodBenefits = $('ycf-prod-benefits');
     if (prodBenefits && p.category === 'teacher') {
-      var benefitSrc = (PRODUCT_BENEFITS[currentProdId] && (isDa ? PRODUCT_BENEFITS[currentProdId].da : PRODUCT_BENEFITS[currentProdId].en)) || (isDa ? PREP_BENEFITS.da : PREP_BENEFITS.en);
+      var benefitSrc = isInternationalSchedulePage ? (isDa ? INTL_BENEFITS.da : INTL_BENEFITS.en) : (isDa ? PREP_BENEFITS.da : PREP_BENEFITS.en);
       prodBenefits.innerHTML = benefitSrc.map(function (b) {
         return '<li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>' + b + '</span></li>';
       }).join('');
@@ -248,8 +245,8 @@
 
     // Remaining payment note (teacher training only)
     if (prodNote && prodNoteText && p.category === 'teacher') {
-      var noteOverride = PRODUCT_REMAINING_NOTE[currentProdId];
-      prodNoteText.textContent = noteOverride ? (isDa ? noteOverride.da : noteOverride.en) : (isDa ? REMAINING_NOTE.da : REMAINING_NOTE.en);
+      var noteSrc = isInternationalSchedulePage ? INTL_REMAINING_NOTE : REMAINING_NOTE;
+      prodNoteText.textContent = isDa ? noteSrc.da : noteSrc.en;
       prodNote.hidden = false;
     } else if (prodNote) {
       prodNote.hidden = true;
