@@ -22,6 +22,7 @@ const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse, buildUnsubscribeUrl } = require('./shared/utils');
 const { sendSingleViaResend } = require('./shared/resend-service');
 const { detectLeadCountry } = require('./shared/country-detect');
+const { prepareTrackedEmail } = require('./shared/email-tracking');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
@@ -703,6 +704,10 @@ async function handleProcess() {
               enrollment.lead_id,
               lead.email
             );
+            // Inject email engagement tracking (pixel + link wrapping)
+            var sourceTag = 'seq:' + seqId + ':' + enrollment.current_step;
+            finalBody = prepareTrackedEmail(finalBody, enrollment.lead_id, sourceTag);
+
             var emailResult = await sendSequenceEmail(
               lead.email,
               substituteVars(selectedSubject, vars),
