@@ -150,7 +150,28 @@ async function processLeadgenChange(value) {
   const metaAdsetName = fields.adset_name || '';
   const metaAdName = fields.ad_name || '';
   const metaFormNameParam = fields.form_name || '';
-  const metaLang = fields.lang || 'da';
+  // Language detection: use form's lang field, then derive from country, then default 'da'
+  var rawMetaLang = fields.lang || '';
+  var metaLang;
+  if (rawMetaLang) {
+    metaLang = rawMetaLang;
+  } else {
+    // No lang field on form — derive from country/city fields
+    var detectedCountry = detectLeadCountry({
+      country: country,
+      city_country: country ? (city ? city + ', ' + country : country) : city,
+      phone: phone
+    });
+    if (detectedCountry === 'DK') {
+      metaLang = 'da';
+    } else if (['DE', 'AT', 'CH'].includes(detectedCountry)) {
+      metaLang = 'de';
+    } else if (detectedCountry !== 'OTHER') {
+      metaLang = 'en';
+    } else {
+      metaLang = 'da'; // True unknown — default Danish (domestic market)
+    }
+  }
   const metaCohort = fields.cohort || '';
 
   // Platform detection: Graph API returns "facebook", "instagram", or "messenger"

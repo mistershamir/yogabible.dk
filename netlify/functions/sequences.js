@@ -738,12 +738,22 @@ async function handleProcess() {
           }
         }
 
-        // Send SMS
+        // Send SMS — with language branching (sms_message_en, sms_message_de)
         if (wantsSms) {
+          var selectedSms;
+          if (isGerman && step.sms_message_de) {
+            selectedSms = step.sms_message_de;
+          } else if (!isDanish && step.sms_message_en) {
+            selectedSms = step.sms_message_en;
+          } else {
+            selectedSms = step.sms_message;
+          }
+          hasSmsContent = !!selectedSms;
+
           if (lead.phone && hasSmsContent) {
             var smsResult = await sendSequenceSMS(
               lead.phone,
-              substituteVars(step.sms_message, vars)
+              substituteVars(selectedSms, vars)
             );
 
             if (smsResult.success) {
