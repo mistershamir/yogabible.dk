@@ -18665,15 +18665,14 @@ button.yb-btn--outline-white:hover {
 .yphoto-model__portrait {
   width: 260px;
   min-width: 260px;
-  height: 340px;
   border-radius: 12px;
   overflow: hidden;
   flex-shrink: 0;
 }
 .yphoto-model__portrait img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  display: block;
 }
 .yphoto-model__info {
   padding-top: 16px;
@@ -18740,8 +18739,8 @@ button.yb-btn--outline-white:hover {
 .yphoto-model__photo.is-portrait  { flex: 0.8; min-width: 25%; max-width: 38%; }
 .yphoto-model__photo.is-square    { flex: 1;   min-width: 30%; }
 
-/* Constrain portrait photos height so they don't dominate */
-.yphoto-model__photo.is-portrait img { max-height: 520px; object-fit: cover; }
+/* Portrait gallery photos: let them show fully, no forced crop */
+.yphoto-model__photo.is-portrait img { object-fit: contain; }
 
 /* Variation A: Classic — portrait left, info right, gallery below as collage */
 .yphoto-model--a .yphoto-model__photo--2 { margin-top: -40px; }
