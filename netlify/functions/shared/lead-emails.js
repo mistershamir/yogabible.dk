@@ -445,7 +445,7 @@ async function sendEmail4wJulyYTT(leadData, tokenData = {}) {
 
   // Non-CPH Danish leads get the enhanced EN schedule page (includes accommodation info)
   const isCph = i18n.isCopenhagenLead(leadData);
-  const schedPath = isCph ? '/skema/4-uger-juli/' : '/en/schedule/4-weeks-july/';
+  const schedPath = isCph ? '/skema/4-uger-juli/' : '/en/schedule/4-weeks-july-plan/';
   const scheduleUrl = tokenData.leadId && tokenData.token
     ? 'https://www.yogabible.dk' + schedPath + '?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
     : 'https://www.yogabible.dk' + schedPath;
@@ -671,10 +671,10 @@ async function sendJulyVinyasaPlusEnEmail(leadData, tokenData) {
 
   var subject = firstName + ', here are all the dates for the 4-week Vinyasa Plus training (July)';
 
-  // Schedule URL (tokenized)
+  // Schedule URL (tokenized) — points to the international planning page
   var sUrl = tokenData && tokenData.leadId && tokenData.token
-    ? 'https://yogabible.dk/en/schedule/4-weeks-july/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://yogabible.dk/en/schedule/4-weeks-july/';
+    ? 'https://yogabible.dk/en/schedule/4-weeks-july-plan/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://yogabible.dk/en/schedule/4-weeks-july-plan/';
 
   var localizedPrice = getLocalizedPrepPrice(country);
 
@@ -808,8 +808,8 @@ async function sendJulyVinyasaPlusDeEmail(leadData, tokenData) {
   var subject = firstName + ', hier sind alle Termine für die 4-Wochen Vinyasa Plus Ausbildung (Juli)';
 
   var sUrl = tokenData && tokenData.leadId && tokenData.token
-    ? 'https://yogabible.dk/en/schedule/4-weeks-july/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://yogabible.dk/en/schedule/4-weeks-july/';
+    ? 'https://yogabible.dk/en/schedule/4-weeks-july-plan/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://yogabible.dk/en/schedule/4-weeks-july-plan/';
 
   var localizedPrice = getLocalizedPrepPrice(country);
 

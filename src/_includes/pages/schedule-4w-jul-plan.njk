@@ -129,7 +129,7 @@
       {% set cphItems = [
         { title: t.cphItem1Title, desc: t.cphItem1Desc },
         { title: t.cphItem2Title, desc: t.cphItem2Desc },
-        { title: t.cphItem3Title, desc: t.cphItem3Desc },
+        { title: t.cphItem3Title, desc: t.cphItem3Desc, address: t.cphItem3Address },
         { title: t.cphItem4Title, desc: t.cphItem4Desc }
       ] %}
       {% for item in cphItems %}
@@ -139,6 +139,12 @@
         </div>
         <p style="font-weight:700;font-size:.88rem;margin:0 0 4px;">{{ item.title }}</p>
         <p style="font-size:.82rem;color:#6F6A66;line-height:1.5;">{{ item.desc }}</p>
+        {% if item.address %}
+        <a href="https://maps.google.com/?q=Torvegade+66,+1400+Copenhagen,+Denmark" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;font-size:.8rem;color:#f75c03;text-decoration:underline;margin-top:6px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          {{ item.address }}
+        </a>
+        {% endif %}
       </div>
       {% endfor %}
     </div>

@@ -172,7 +172,7 @@ const SCHEDULE_PATHS = {
   },
   en: {
     '4-week':      '/en/schedule/4-weeks/',
-    '4-week-jul':  '/en/schedule/4-weeks-july/',
+    '4-week-jul':  '/en/schedule/4-weeks-july-plan/',
     '8-week':      '/en/schedule/8-weeks/',
     '18-week':     '/en/schedule/18-weeks/',
     '18-week-aug': '/en/schedule/18-weeks-august/'
