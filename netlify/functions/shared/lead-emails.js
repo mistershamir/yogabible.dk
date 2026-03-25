@@ -619,7 +619,7 @@ function julyPrepPhaseBlockHtml(accommodation, localizedPrice) {
     html += '✅ Fully refundable if the course is cancelled<br>';
   }
 
-  html += '<br><a href="https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Start Preparation Phase →</a>';
+  html += '<br><a href="https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Start Preparation Phase →</a>';
   html += '</div>';
   return html;
 }
@@ -780,7 +780,7 @@ async function sendJulyVinyasaPlusEnEmail(leadData, tokenData) {
   }
   plain += 'We have trained yoga teachers since 2014, and our graduates teach across Europe and beyond.\n\n';
   plain += 'Secure your spot: The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort.\n';
-  plain += 'Start Preparation Phase: https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211\n\n';
+  plain += 'Start Preparation Phase: https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211\n\n';
   plain += 'Book a Free Online Consultation: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
   plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
   plain += '\n---\nUnsubscribe: ' + buildUnsubscribeUrl(leadData.email);
@@ -924,7 +924,7 @@ async function sendJulyVinyasaPlusDeEmail(leadData, tokenData) {
     html += '✅ Vollständig erstattbar, falls der Kurs abgesagt wird<br>';
   }
 
-  html += '<br><a href="https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Vorbereitungsphase starten →</a>';
+  html += '<br><a href="https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Vorbereitungsphase starten →</a>';
   html += '</div>';
 
   // Block 12: Booking CTA
@@ -952,7 +952,7 @@ async function sendJulyVinyasaPlusDeEmail(leadData, tokenData) {
   plain += '• Alle Levels willkommen\n\n';
   plain += 'Wir bilden seit 2014 Yogalehrer aus, und unsere Absolventen unterrichten in ganz Europa und darüber hinaus.\n\n';
   plain += 'Sichere deinen Platz: Vorbereitungsphase (' + localizedPrice + ')\n';
-  plain += 'Vorbereitungsphase starten: https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211\n\n';
+  plain += 'Vorbereitungsphase starten: https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211\n\n';
   plain += 'Kostenloses Online-Gespräch buchen: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
   plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
   plain += '\n---\nAbmelden: ' + buildUnsubscribeUrl(leadData.email);
