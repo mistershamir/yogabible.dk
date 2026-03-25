@@ -129,7 +129,7 @@ async function processLeadgenChange(value) {
   const nameParts = fullName.trim().split(/\s+/);
   const firstName = fields.first_name || fields.fornavn || fields.fornavne || findFieldByKeyword(fields, ['fornavn', 'first name', 'first_name', 'förnamn', 'vorname', 'etunimi', 'voornaam']) || nameParts[0] || '';
   const lastName = fields.last_name || fields.efternavn || findFieldByKeyword(fields, ['efternavn', 'last name', 'last_name', 'efternamn', 'nachname', 'sukunimi', 'achternaam', 'etternavn']) || nameParts.slice(1).join(' ') || '';
-  const email = (fields.email || fields['e-mail'] || fields['e-mailadresse'] || findFieldByKeyword(fields, ['email', 'e-mail', 'mail', 'sähköposti']) || '').toLowerCase().trim();
+  const email = (fields.email || fields['e-mail'] || fields['e-mailadresse'] || fields['e-post'] || findFieldByKeyword(fields, ['email', 'e-mail', 'e-post', 'epost', 'mail', 'sähköposti']) || '').toLowerCase().trim();
   const phone = fields.phone_number || fields.phone || fields.telefonnummer || fields.telefon || fields.mobil || findFieldByKeyword(fields, ['telefon', 'phone', 'mobil', 'puhelinnumero', 'telefoonnummer']) || '';
   const city = fields.city || fields.location || fields.by || findFieldByKeyword(fields, ['by', 'city', 'location', 'hvor bor', 'stad', 'ort', 'stadt', 'kaupunki', 'plaats', 'sted']) || '';
   const country = fields.country || fields.land || findFieldByKeyword(fields, ['country', 'land', 'maa', 'pays']) || '';
