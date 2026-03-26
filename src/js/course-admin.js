@@ -65,30 +65,71 @@
   /* ═══════════════════════════════════════
      TAB SWITCHING
      ═══════════════════════════════════════ */
+  function switchTab(tabName) {
+    // Toggle active on all tab buttons (desktop + mobile drawer)
+    document.querySelectorAll('[data-yb-admin-tab]').forEach(function (b) { b.classList.remove('is-active'); });
+    document.querySelectorAll('[data-yb-admin-tab="' + tabName + '"]').forEach(function (b) { b.classList.add('is-active'); });
+    // Toggle active on panels
+    document.querySelectorAll('[data-yb-admin-panel]').forEach(function (p) { p.classList.remove('is-active'); });
+    var panel = document.querySelector('[data-yb-admin-panel="' + tabName + '"]');
+    if (panel) panel.classList.add('is-active');
+
+    // Update mobile toggle label
+    var activeBtn = document.querySelector('.yb-admin__mobile-tab-item[data-yb-admin-tab="' + tabName + '"]');
+    var mobileLabel = document.getElementById('yb-admin-mobile-tab-label');
+    if (activeBtn && mobileLabel) mobileLabel.textContent = activeBtn.textContent;
+
+    // Close mobile drawer
+    closeMobileTabDrawer();
+
+    // Load users on first visit
+    if (tabName === 'users' && !usersLoaded) {
+      loadAllUsers();
+      usersLoaded = true;
+    }
+
+    // Load analytics when analytics tab is clicked
+    if (tabName === 'analytics') {
+      loadAnalytics();
+    }
+  }
+
+  function closeMobileTabDrawer() {
+    var drawer = document.getElementById('yb-admin-mobile-tab-drawer');
+    var overlay = document.getElementById('yb-admin-mobile-tab-overlay');
+    var toggle = document.getElementById('yb-admin-mobile-tab-toggle');
+    if (drawer) drawer.classList.remove('is-open');
+    if (overlay) overlay.classList.remove('is-open');
+    if (toggle) toggle.classList.remove('is-open');
+  }
+
   function initTabs() {
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var tabName = btn.getAttribute('data-yb-admin-tab');
-        // Toggle active on buttons
-        document.querySelectorAll('[data-yb-admin-tab]').forEach(function (b) { b.classList.remove('is-active'); });
-        btn.classList.add('is-active');
-        // Toggle active on panels
-        document.querySelectorAll('[data-yb-admin-panel]').forEach(function (p) { p.classList.remove('is-active'); });
-        var panel = document.querySelector('[data-yb-admin-panel="' + tabName + '"]');
-        if (panel) panel.classList.add('is-active');
-
-        // Load users on first visit
-        if (tabName === 'users' && !usersLoaded) {
-          loadAllUsers();
-          usersLoaded = true;
-        }
-
-        // Load analytics when analytics tab is clicked
-        if (tabName === 'analytics') {
-          loadAnalytics();
-        }
+        switchTab(btn.getAttribute('data-yb-admin-tab'));
       });
     });
+
+    // Mobile tab toggle
+    var mobileToggle = document.getElementById('yb-admin-mobile-tab-toggle');
+    var drawer = document.getElementById('yb-admin-mobile-tab-drawer');
+    var overlay = document.getElementById('yb-admin-mobile-tab-overlay');
+
+    if (mobileToggle) {
+      mobileToggle.addEventListener('click', function () {
+        var isOpen = drawer && drawer.classList.contains('is-open');
+        if (isOpen) {
+          closeMobileTabDrawer();
+        } else {
+          if (drawer) drawer.classList.add('is-open');
+          if (overlay) overlay.classList.add('is-open');
+          mobileToggle.classList.add('is-open');
+        }
+      });
+    }
+    if (overlay) {
+      overlay.addEventListener('click', closeMobileTabDrawer);
+    }
   }
 
   /* ═══════════════════════════════════════

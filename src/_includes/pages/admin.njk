@@ -31,8 +31,32 @@
     {# ── Logged-in content ── #}
     <div id="yb-admin-panel" style="display:none">
 
-      {# Tab navigation #}
-      <div class="yb-profile__tabs">
+      {# Mobile tab toggle (visible ≤768px) #}
+      <button class="yb-admin__mobile-tab-toggle" id="yb-admin-mobile-tab-toggle" type="button">
+        <span id="yb-admin-mobile-tab-label">{{ t.tab_courses }}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="yb-admin__mobile-tab-overlay" id="yb-admin-mobile-tab-overlay"></div>
+      <div class="yb-admin__mobile-tab-drawer" id="yb-admin-mobile-tab-drawer">
+        <button class="yb-admin__mobile-tab-item is-active" type="button" data-yb-admin-tab="courses">{{ t.tab_courses }}</button>
+        <button class="yb-admin__mobile-tab-item" type="button" data-yb-admin-tab="users">{{ t.tab_users }}</button>
+        <button class="yb-admin__mobile-tab-item" type="button" data-yb-admin-tab="analytics">{{ t.tab_analytics }}</button>
+        <div class="yb-admin__mobile-tab-divider"></div>
+        <button class="yb-admin__mobile-tab-item" type="button" data-yb-admin-tab="leads">{{ t.tab_leads }}</button>
+        <button class="yb-admin__mobile-tab-item" type="button" data-yb-admin-tab="applications">{{ t.tab_applications }}</button>
+        <button class="yb-admin__mobile-tab-item" type="button" data-yb-admin-tab="careers">{{ t.tab_careers }}</button>
+        <div class="yb-admin__mobile-tab-divider"></div>
+        <button class="yb-admin__mobile-tab-item" type="button" data-yb-admin-tab="appointments">{{ t.tab_appointments }}</button>
+        <button class="yb-admin__mobile-tab-item" type="button" data-yb-admin-tab="catalog">{{ t.tab_catalog }}</button>
+        <button class="yb-admin__mobile-tab-item" type="button" data-yb-admin-tab="documents">{{ t.tab_documents }}</button>
+        <button class="yb-admin__mobile-tab-item" type="button" data-yb-admin-tab="live">{{ t.tab_live }}</button>
+        <div class="yb-admin__mobile-tab-divider"></div>
+        <button class="yb-admin__mobile-tab-item" type="button" data-yb-admin-tab="billing">{{ t.tab_billing }}</button>
+        <button class="yb-admin__mobile-tab-item" type="button" data-yb-admin-tab="knowledge">{{ t.tab_knowledge or "Knowledge" }}</button>
+      </div>
+
+      {# Desktop tab navigation (hidden ≤768px) #}
+      <div class="yb-profile__tabs yb-admin__desktop-tabs">
         <button class="yb-profile__tab is-active" type="button" data-yb-admin-tab="courses">{{ t.tab_courses }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="users">{{ t.tab_users }}</button>
         <button class="yb-profile__tab" type="button" data-yb-admin-tab="analytics">{{ t.tab_analytics }}</button>

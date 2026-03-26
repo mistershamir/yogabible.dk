@@ -25965,6 +25965,286 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   #yb-billing-invoice-filter { width: 100%; }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE ADMIN PANEL — Mobile-first improvements
+   Phases 1–7: Tab drawer, touch targets, billing, knowledge,
+   documents, live, polish
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Phase 1: Mobile Tab Navigation Drawer ── */
+
+/* Base: hidden on desktop */
+.yb-admin__mobile-tab-toggle {
+  display: none;
+  align-items: center; justify-content: space-between;
+  width: 100%; padding: 12px 16px;
+  background: #FFFCF9; border: 1.5px solid #E8E4E0;
+  border-radius: 10px; cursor: pointer;
+  font-family: inherit; font-size: 0.9rem; font-weight: 700;
+  color: #0F0F0F; margin-bottom: 0;
+  transition: border-color 0.2s;
+}
+.yb-admin__mobile-tab-toggle:hover { border-color: #f75c03; }
+.yb-admin__mobile-tab-toggle svg {
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+.yb-admin__mobile-tab-toggle.is-open svg { transform: rotate(180deg); }
+.yb-admin__mobile-tab-toggle.is-open { border-color: #f75c03; }
+
+.yb-admin__mobile-tab-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 99;
+  background: rgba(0,0,0,0.3);
+  opacity: 0; transition: opacity 0.25s ease;
+}
+.yb-admin__mobile-tab-overlay.is-open { display: block; opacity: 1; }
+
+.yb-admin__mobile-tab-drawer {
+  display: none;
+  flex-direction: column;
+  position: absolute; left: 12px; right: 12px;
+  z-index: 100;
+  background: #fff;
+  border: 1.5px solid #E8E4E0;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.25s ease;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.yb-admin__mobile-tab-drawer.is-open {
+  display: flex;
+  max-height: 80vh;
+  opacity: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.yb-admin__mobile-tab-item {
+  display: flex; align-items: center;
+  width: 100%; min-height: 48px;
+  padding: 12px 20px;
+  background: none; border: none; border-left: 4px solid transparent;
+  font-family: inherit; font-size: 0.88rem; font-weight: 500;
+  color: #6F6A66; cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  text-align: left;
+}
+.yb-admin__mobile-tab-item:hover { background: #F5F3F0; color: #0F0F0F; }
+.yb-admin__mobile-tab-item.is-active {
+  border-left-color: #f75c03;
+  color: #0F0F0F; font-weight: 700;
+  background: rgba(247,92,3,0.04);
+}
+
+.yb-admin__mobile-tab-divider {
+  height: 1px; background: #E8E4E0; margin: 4px 16px;
+}
+
+@media (max-width: 768px) {
+  .yb-admin__mobile-tab-toggle { display: flex; margin-bottom: 12px; }
+  .yb-admin__mobile-tab-drawer { display: flex; }
+  .yb-admin .yb-admin__desktop-tabs { display: none !important; }
+}
+
+/* ── Phase 2: Touch Targets ── */
+@media (max-width: 768px) {
+  .yb-admin__icon-btn { width: 40px; height: 40px; font-size: 1.1rem; }
+  .yb-admin .yb-btn--sm { min-height: 40px; }
+  .yb-admin__back-btn { min-height: 44px; padding: 0.5rem 1rem; font-size: 0.85rem; }
+  .yb-admin__checkbox-label {
+    min-height: 40px; display: inline-flex; align-items: center;
+    gap: 0.5rem; padding: 0.25rem 0;
+  }
+  .yb-admin__checkbox-label input[type="checkbox"] { width: 20px; height: 20px; }
+  .yb-billing__extra-remove { width: 36px; height: 36px; }
+  .yb-billing__customer-badge-clear {
+    min-width: 32px; min-height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .yb-doc-filter-chip { min-height: 36px; display: inline-flex; align-items: center; padding: 0.4rem 0.65rem; }
+}
+@media (max-width: 480px) {
+  .yb-admin__icon-btn { width: 44px; height: 44px; }
+}
+
+/* ── Phase 3: Billing Panel Responsive at 768px ── */
+@media (max-width: 768px) {
+  .yb-billing__search-row { flex-direction: column; }
+  .yb-billing__search-row .yb-lead__search-input { min-width: 0; width: 100%; }
+  .yb-billing__customer-badge { flex-wrap: wrap; gap: 0.35rem; padding: 0.4rem 0.6rem; font-size: 0.8rem; }
+  .yb-billing__customer-row { flex-wrap: wrap; }
+  .yb-billing__cr-email { margin-left: 0; }
+  .yb-billing__extra-line {
+    flex-direction: column; align-items: stretch; gap: 0.35rem;
+  }
+  .yb-billing__extra-line .yb-billing__input-with-suffix { flex: 1; }
+  .yb-billing__extra-header { flex-wrap: wrap; gap: 0.5rem; }
+  .yb-billing__actions { flex-wrap: wrap; }
+  .yb-billing__preview-row { flex-direction: column; gap: 0.15rem; }
+  .yb-billing__preview-label { min-width: 0; }
+  .yb-billing__source-tabs {
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .yb-billing__source-tabs::-webkit-scrollbar { display: none; }
+  .yb-billing__source-tab { white-space: nowrap; font-size: 0.8rem; padding: 0.4rem 0.75rem; }
+  .yb-billing__section .yb-admin__table-wrap {
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem; padding: 0 1rem;
+  }
+  .yb-billing__section .yb-admin__table { min-width: 500px; font-size: 0.78rem; }
+  .yb-billing__applicant-banner { flex-wrap: wrap; font-size: 0.8rem; padding: 0.5rem 0.75rem; }
+  .yb-billing__new-customer .yb-admin__form-row { grid-template-columns: 1fr; }
+  .yb-billing__modal-box { width: 96%; max-width: none; padding: 1rem; border-radius: 12px; }
+  .yb-billing__modal-header h3 { font-size: 0.95rem; }
+  .yb-billing__modal-footer { flex-wrap: wrap; gap: 0.4rem; }
+  .yb-billing__modal-footer .yb-btn { flex: 1; min-width: 0; text-align: center; font-size: 0.8rem; }
+}
+@media (max-width: 480px) {
+  .yb-billing__section { padding: 0.75rem; }
+  .yb-billing__section-title { font-size: 0.85rem; }
+  .yb-billing__actions { flex-direction: column; }
+  .yb-billing__actions .yb-btn { width: 100%; text-align: center; }
+  .yb-billing__modal-box {
+    width: 100%; max-width: 100%; border-radius: 16px 16px 0 0;
+    max-height: 92vh;
+  }
+  .yb-billing__modal-footer .yb-btn { width: 100%; }
+  .yb-billing__preview-table { font-size: 0.78rem; }
+  .yb-billing__preview-table th,
+  .yb-billing__preview-table td { padding: 0.3rem 0.35rem; }
+}
+
+/* ── Phase 4: Knowledge Base Panel Responsive ── */
+@media (max-width: 768px) {
+  .yb-kb__brand-tabs { flex-wrap: wrap; gap: 0.35rem; }
+  .yb-kb__brand-tab { padding: 0.4rem 0.65rem; font-size: 0.8rem; }
+  .yb-kb__toolbar { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  .yb-kb__toolbar div { justify-content: flex-start; }
+  .yb-kb__card-footer { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+  .yb-kb__editor-header { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+  .yb-kb__editor-actions { flex-wrap: wrap; }
+  .yb-kb__textarea { font-size: 16px; }
+  .yb-kb__card { padding: 0.85rem; }
+  .yb-kb__card-preview { font-size: 0.78rem; }
+}
+@media (max-width: 480px) {
+  .yb-kb__brand-tab { flex: 1; text-align: center; justify-content: center; font-size: 0.75rem; }
+  .yb-kb__card { padding: 0.75rem; }
+  .yb-kb__card-title { font-size: 0.9rem; }
+  .yb-kb__editor-actions { flex-direction: column; }
+  .yb-kb__editor-actions .yb-btn { width: 100%; text-align: center; }
+  .yb-kb__delete-btn { margin-left: 0 !important; }
+}
+
+/* ── Phase 5: Documents Panel Responsive ── */
+/* Base classes (extracted from inline styles in template) */
+.yb-doc__form-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;
+}
+.yb-doc__perm-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}
+.yb-doc__filter-bar {
+  display: flex; gap: 0.75rem; align-items: center;
+  margin-bottom: 0.75rem; flex-wrap: wrap;
+}
+.yb-doc__header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;
+}
+.yb-doc__seed-header {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.85rem 1.25rem; background: #f5f3f0; flex-wrap: wrap;
+}
+.yb-doc__seed-actions {
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+}
+.yb-doc__url-row {
+  display: flex; gap: 0.5rem; align-items: center;
+}
+.yb-doc__form-actions {
+  display: flex; gap: 0.75rem;
+}
+@media (max-width: 768px) {
+  .yb-doc__form-grid { grid-template-columns: 1fr; }
+  .yb-doc__perm-grid { grid-template-columns: 1fr; }
+  .yb-doc__filter-bar { flex-direction: column; align-items: stretch; }
+  .yb-doc__url-row { flex-direction: column; }
+  .yb-doc__url-row input { width: 100%; }
+  .yb-doc__form-actions { flex-direction: column; }
+  .yb-doc__form-actions .yb-btn { width: 100%; text-align: center; }
+  .yb-doc-browser { padding: 0.5rem; }
+  .yb-doc-browser__toolbar { flex-wrap: wrap; gap: 0.5rem; }
+  .yb-doc-browser__search { width: 100%; min-width: 0; }
+}
+@media (max-width: 480px) {
+  .yb-doc__seed-header { flex-direction: column; align-items: stretch; }
+  .yb-doc__seed-actions { width: 100%; }
+  .yb-doc__seed-actions .yb-btn { flex: 1; text-align: center; }
+}
+
+/* ── Phase 6: Live Panel Responsive ── */
+.yb-live__bulk-access {
+  background: #FFFCF9; border: 1px solid var(--yb-border,#E8E4E0);
+  border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;
+}
+.yb-live__bulk-access-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 0.75rem;
+}
+.yb-live__perm-group { margin-bottom: 0.6rem; }
+.yb-live__perm-group-label {
+  font-size: 0.75rem; font-weight: 600; color: #6F6A66;
+}
+@media (max-width: 768px) {
+  .yb-live__bulk-access { padding: 0.85rem; }
+  .yb-live__bulk-access .yb-admin__form-row { gap: 0.5rem; }
+  #yb-live-admin-table th:nth-child(6),
+  #yb-live-admin-table td:nth-child(6),
+  #yb-live-admin-table th:nth-child(7),
+  #yb-live-admin-table td:nth-child(7) { display: none; }
+}
+@media (max-width: 480px) {
+  .yb-live__bulk-access { padding: 0.65rem; }
+  #yb-live-admin-table th:nth-child(5),
+  #yb-live-admin-table td:nth-child(5) { display: none; }
+}
+
+/* ── Phase 7: Polish ── */
+
+/* Table scroll hint gradient on right edge */
+@media (max-width: 768px) {
+  .yb-admin__table-wrap,
+  .yb-lead__table-wrap {
+    position: relative;
+  }
+  .yb-admin__table-wrap::after,
+  .yb-lead__table-wrap::after {
+    content: '';
+    position: sticky; right: 0; top: 0;
+    display: block; width: 24px; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,252,249,0.85));
+    pointer-events: none;
+    margin-top: -100%; float: right;
+  }
+}
+
+/* Safe area insets for bottom-sheet modals */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 480px) {
+    .yb-billing__modal-box { padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
+    .yb-lead__campaign-box { padding-bottom: calc(0.75rem + env(safe-area-inset-bottom)); }
+    .yb-admin__mobile-tab-drawer { padding-bottom: env(safe-area-inset-bottom); }
+  }
+}
+
+/* ── End Responsive Admin Panel ── */
+
 /* ═══════════════════════════════════════════════════════
    VIDEO TUTORIAL WIDGET  (.yvt-*)
    Floating bottom-right widget — per-page video guides
