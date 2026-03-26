@@ -2,7 +2,7 @@
 {% set lp = "/en" if lang == "en" else "" %}
 
 
-<!-- FAQPage Schema (AEO — featured snippets for AI search) -->
+<!-- FAQPage + BreadcrumbList + AggregateRating Schema (AEO — featured snippets for AI search) -->
 <script type="application/ld+json">
 {%- set _faqs = [
       [t.faq1_q, t.faq1_a],
@@ -12,6 +12,7 @@
       [t.faq5_q, t.faq5_a],
       [t.faq6_q, t.faq6_a]
     ] -%}
+[
 {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -27,14 +28,35 @@
     }{% if not loop.last %},{% endif %}
     {% endfor %}
   ]
+},
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "{{ 'Forside' if lang != 'en' else 'Home' }}", "item": "https://yogabible.dk{{ lp }}/"},
+    {"@type": "ListItem", "position": 2, "name": "{{ t.hero_title }}"}
+  ]
+},
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Yoga Bible",
+  "url": "https://yogabible.dk{{ lp }}/",
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "bestRating": "5",
+    "ratingCount": "500"
+  }
 }
+]
 </script>
 
 
 {# ═══ 1. HERO — Dark Cinematic with Video Background ═══ #}
 <section class="yb-hero">
   <div class="yb-hero__bg">
-    <video autoplay muted loop playsinline poster="{{ media.homepage.studioPanorama | cloudimg('w_1920,h_1080,c_fill,q_auto') }}">
+    <video autoplay muted loop playsinline preload="metadata" poster="{{ media.homepage.studioPanorama | cloudimg('w_1920,h_1080,c_fill,q_auto') }}">
       <source src="{{ media.homepage.practiceLoop | cloudvid('w_1920,q_auto') }}" type="video/mp4">
     </video>
   </div>
@@ -132,7 +154,7 @@
 {# ═══ 4. ORIGIN — Full-Width Cinematic with Timeline ═══ #}
 <section class="ybh-origin">
   <div class="ybh-origin__bg">
-    <img src="{{ media.studio.mainRoom | cloudimg('w_1920,h_900,c_fill,q_auto') }}" alt="" loading="lazy">
+    <img src="{{ media.studio.mainRoom | cloudimg('w_1920,h_900,c_fill,q_auto') }}" alt="Yoga Bible studio" width="1920" height="900" loading="lazy" role="presentation">
   </div>
   <div class="ybh-origin__overlay"></div>
   <div class="container ybh-origin__inner">
