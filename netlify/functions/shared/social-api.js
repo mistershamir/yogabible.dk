@@ -507,14 +507,185 @@ function buildCaption(post) {
   return caption;
 }
 
+// ── Instagram & Facebook Comments / Conversations ────────────────
+
+/**
+ * Fetch comments on an Instagram media post.
+ */
+async function getInstagramComments(account, mediaId) {
+  try {
+    const url = `${IG_API}/${mediaId}/comments?fields=id,text,username,timestamp,replies{id,text,username,timestamp}&access_token=${account.accessToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] IG comments error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, comments: data.data || [] };
+  } catch (err) {
+    console.error('[social-api] IG comments exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Reply to an Instagram comment.
+ */
+async function replyToInstagramComment(account, commentId, text) {
+  try {
+    const res = await fetch(`${IG_API}/${commentId}/replies`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        message: text,
+        access_token: account.accessToken
+      })
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] IG reply error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, id: data.id };
+  } catch (err) {
+    console.error('[social-api] IG reply exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Fetch comments on a Facebook post.
+ */
+async function getFacebookComments(account, postId) {
+  try {
+    const url = `${FB_API}/${postId}/comments?fields=id,message,from,created_time,comments{id,message,from,created_time}&access_token=${account.accessToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] FB comments error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, comments: data.data || [] };
+  } catch (err) {
+    console.error('[social-api] FB comments exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Reply to a Facebook comment.
+ */
+async function replyToFacebookComment(account, commentId, text) {
+  try {
+    const res = await fetch(`${FB_API}/${commentId}/comments`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        message: text,
+        access_token: account.accessToken
+      })
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] FB reply error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, id: data.id };
+  } catch (err) {
+    console.error('[social-api] FB reply exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Fetch Instagram DM conversations (via Page-connected IG account).
+ */
+async function getInstagramConversations(account) {
+  try {
+    const url = `${IG_API}/${account.igAccountId}/conversations?fields=id,participants,messages{id,message,from,created_time}&platform=instagram&access_token=${account.accessToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] IG conversations error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, conversations: data.data || [] };
+  } catch (err) {
+    console.error('[social-api] IG conversations exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Fetch Facebook Page conversations.
+ */
+async function getFacebookConversations(account) {
+  try {
+    const url = `${FB_API}/${account.pageId}/conversations?fields=id,participants,messages.limit(10){id,message,from,created_time}&access_token=${account.accessToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] FB conversations error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, conversations: data.data || [] };
+  } catch (err) {
+    console.error('[social-api] FB conversations exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Send a message in a Facebook conversation.
+ */
+async function sendFacebookMessage(account, conversationId, text) {
+  try {
+    const res = await fetch(`${FB_API}/${conversationId}/messages`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        message: text,
+        access_token: account.accessToken
+      })
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] FB send message error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, id: data.id };
+  } catch (err) {
+    console.error('[social-api] FB send message exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
 module.exports = {
   publishToInstagram,
   publishCarouselToInstagram,
   getInstagramMetrics,
   getInstagramAccountInfo,
+  getInstagramComments,
+  replyToInstagramComment,
+  getInstagramConversations,
   publishToFacebook,
   getFacebookMetrics,
   getFacebookPageInfo,
+  getFacebookComments,
+  replyToFacebookComment,
+  getFacebookConversations,
+  sendFacebookMessage,
   waitForMediaProcessing,
   buildCaption
 };
