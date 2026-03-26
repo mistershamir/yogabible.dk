@@ -166,9 +166,12 @@
   function updatePublishBtn() {
     var btn = $('yb-social-publish-btn');
     if (!btn) return;
-    var isSchedule = document.querySelector('input[name="social-schedule"]:checked');
-    if (isSchedule && isSchedule.value === 'schedule') {
+    var schedMode = document.querySelector('input[name="social-schedule"]:checked');
+    var mode = schedMode ? schedMode.value : 'now';
+    if (mode === 'schedule') {
       btn.textContent = t('social_schedule_btn');
+    } else if (mode === 'queue') {
+      btn.textContent = t('social_queue_btn');
     } else {
       btn.textContent = t('social_publish');
     }
@@ -267,7 +270,7 @@
     if (!modal) return;
     modal.hidden = false;
     composer.mediaSelected = [];
-    composer.currentPath = 'yoga-bible-DK/social';
+    composer.currentPath = 'yoga-bible-DK';
     loadMediaFolder(composer.currentPath);
   }
 
@@ -600,8 +603,10 @@
     if (action === 'social-composer-close') closeComposer();
     else if (action === 'social-save-draft') savePost('draft');
     else if (action === 'social-publish-post') {
-      var isSchedule = document.querySelector('input[name="social-schedule"]:checked');
-      savePost(isSchedule && isSchedule.value === 'schedule' ? 'scheduled' : 'published');
+      var schedMode = document.querySelector('input[name="social-schedule"]:checked');
+      var mode = schedMode ? schedMode.value : 'now';
+      if (mode === 'schedule' || mode === 'queue') savePost('scheduled');
+      else savePost('published');
     }
 
     // Media
@@ -683,10 +688,9 @@
       }
     }
 
-    // Best time placeholder
+    // Best time — fetch from analytics
     else if (action === 'social-best-time') {
-      S.toast('Best time: 10:00 AM (based on general engagement patterns)');
-      $('yb-social-schedule-time').value = '10:00';
+      fetchBestTime();
     }
   });
 
@@ -709,6 +713,7 @@
     if (e.target.name === 'social-schedule') {
       var picker = $('yb-social-schedule-picker');
       if (picker) picker.hidden = (e.target.value !== 'schedule');
+      if (e.target.value === 'queue') autoScheduleQueue();
       updatePublishBtn();
     }
     if (e.target.id === 'yb-social-hashtag-set-select' && e.target.value) {
@@ -724,6 +729,87 @@
       e.target.value = '';
     }
   });
+
+  /* ═══ BEST TIME / QUEUE ═══ */
+  var cachedBestTime = null;
+
+  async function fetchBestTime() {
+    S.toast('Analyzing best times...');
+    try {
+      var data = await S.api('social-analytics?action=best-times&days=90');
+      if (data && data.bestHour !== undefined) {
+        var hour = data.bestHour;
+        var time = String(hour).padStart(2, '0') + ':00';
+        $('yb-social-schedule-time').value = time;
+        cachedBestTime = { hour: hour, day: data.bestDay };
+        var dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][data.bestDay] || '';
+        S.toast('Best time: ' + time + (dayName ? ' on ' + dayName : '') + ' (based on your engagement data)');
+      } else {
+        // Fallback
+        $('yb-social-schedule-time').value = '10:00';
+        S.toast('No engagement data yet — defaulting to 10:00');
+      }
+    } catch (err) {
+      $('yb-social-schedule-time').value = '10:00';
+      S.toast('Could not fetch best times — defaulting to 10:00');
+    }
+  }
+
+  async function autoScheduleQueue() {
+    // Find the next available best-time slot
+    if (!cachedBestTime) {
+      try {
+        var data = await S.api('social-analytics?action=best-times&days=90');
+        if (data && data.bestHour !== undefined) {
+          cachedBestTime = { hour: data.bestHour, day: data.bestDay };
+        }
+      } catch (e) {}
+    }
+
+    var bestHour = cachedBestTime ? cachedBestTime.hour : 10;
+    var bestDay = cachedBestTime ? cachedBestTime.day : null; // 0=Sun, 1=Mon...
+
+    // Find next slot: start from tomorrow, find the next matching best day (or next day if no day preference)
+    var now = new Date();
+    var candidate = new Date(now);
+    candidate.setDate(candidate.getDate() + 1);
+    candidate.setHours(bestHour, 0, 0, 0);
+
+    // If we have a best day, find the next occurrence
+    if (bestDay !== null) {
+      while (candidate.getDay() !== bestDay) {
+        candidate.setDate(candidate.getDate() + 1);
+      }
+    }
+
+    // Check against existing scheduled posts to avoid collision
+    if (S.state && S.state.posts) {
+      var maxAttempts = 14;
+      while (maxAttempts-- > 0) {
+        var candidateISO = candidate.toISOString().split('T')[0];
+        var collision = S.state.posts.some(function (p) {
+          if (p.status !== 'scheduled' || !p.scheduledAt) return false;
+          var pDate = p.scheduledAt._seconds ? new Date(p.scheduledAt._seconds * 1000) : new Date(p.scheduledAt);
+          return pDate.toISOString().split('T')[0] === candidateISO;
+        });
+        if (!collision) break;
+        candidate.setDate(candidate.getDate() + (bestDay !== null ? 7 : 1));
+      }
+    }
+
+    // Set the date/time in the picker
+    var dateStr = candidate.toISOString().split('T')[0];
+    var timeStr = String(bestHour).padStart(2, '0') + ':00';
+    $('yb-social-schedule-date').value = dateStr;
+    $('yb-social-schedule-time').value = timeStr;
+
+    // Show the picker briefly so user can see/adjust
+    var picker = $('yb-social-schedule-picker');
+    if (picker) picker.hidden = false;
+
+    var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    S.toast('Queued for ' + dayNames[candidate.getDay()] + ' ' + dateStr + ' at ' + timeStr);
+  }
 
   /* ═══ INIT ═══ */
   function init() {

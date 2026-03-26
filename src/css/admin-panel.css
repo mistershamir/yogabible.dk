@@ -6376,3 +6376,4 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-social__template-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .yb-social__template-caption { font-size: 13px; color: var(--yb-muted, #6F6A66); margin: 0 0 8px; line-height: 1.4; }
 .yb-social__template-meta { display: flex; gap: 12px; font-size: 11px; color: var(--yb-muted, #6F6A66); }
+.yb-social__queue-hint { font-size: 11px; color: var(--yb-muted, #6F6A66); margin-left: 4px; }

@@ -17,6 +17,7 @@ const BUNNY_STORAGE_KEY  = process.env.BUNNY_STORAGE_API_KEY || '';
 const BUNNY_CDN_HOST     = process.env.BUNNY_CDN_HOST || 'yogabible.b-cdn.net';
 const BUNNY_STORAGE_HOST = 'storage.bunnycdn.com';
 const ROOT_PREFIX = 'yoga-bible-DK/materials';
+const ALLOWED_PREFIXES = ['yoga-bible-DK/'];
 
 // ── Helper: authenticated request to Bunny Storage API ──
 function bunnyRequest(method, path, body) {
@@ -152,12 +153,14 @@ exports.handler = async (event) => {
   const path = params.path || ROOT_PREFIX;
   const folder = params.folder || ROOT_PREFIX;
 
-  // Security: ensure path/folder starts with ROOT_PREFIX
-  if (!path.startsWith(ROOT_PREFIX)) {
-    return jsonResponse(403, { ok: false, error: 'Access denied: outside materials folder' });
+  // Security: ensure path/folder starts with an allowed prefix
+  const pathOk = ALLOWED_PREFIXES.some(p => path.startsWith(p));
+  if (!pathOk) {
+    return jsonResponse(403, { ok: false, error: 'Access denied: outside allowed folders' });
   }
-  if (!folder.startsWith(ROOT_PREFIX)) {
-    return jsonResponse(403, { ok: false, error: 'Access denied: outside materials folder' });
+  const folderOk = ALLOWED_PREFIXES.some(p => folder.startsWith(p));
+  if (!folderOk) {
+    return jsonResponse(403, { ok: false, error: 'Access denied: outside allowed folders' });
   }
 
   switch (action) {
