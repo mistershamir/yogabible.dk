@@ -1,4 +1,5 @@
 {% set t = i18n.yoga_bible_historie[lang or "da"] %}
+{% set lp = "/en" if lang == "en" else "" %}
 
 
 <!-- FAQPage Schema (AEO — featured snippets for AI search) -->
@@ -8,7 +9,8 @@
       [t.faq2_q, t.faq2_a],
       [t.faq3_q, t.faq3_a],
       [t.faq4_q, t.faq4_a],
-      [t.faq5_q, t.faq5_a]
+      [t.faq5_q, t.faq5_a],
+      [t.faq6_q, t.faq6_a]
     ] -%}
 {
   "@context": "https://schema.org",
@@ -28,8 +30,14 @@
 }
 </script>
 
-<!-- Hero -->
+
+{# ═══ 1. HERO — Dark Cinematic with Video Background ═══ #}
 <section class="yb-hero">
+  <div class="yb-hero__bg">
+    <video autoplay muted loop playsinline poster="{{ media.homepage.studioPanorama | cloudimg('w_1920,h_1080,c_fill,q_auto') }}">
+      <source src="{{ media.homepage.practiceLoop | cloudvid('w_1920,q_auto') }}" type="video/mp4">
+    </video>
+  </div>
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
     <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
@@ -42,6 +50,8 @@
       <span>{{ t.hero_trust2 }}</span>
       <span class="yb-hero__trust-dot"></span>
       <span>{{ t.hero_trust3 }}</span>
+      <span class="yb-hero__trust-dot"></span>
+      <span>{{ t.hero_trust4 }}</span>
     </div>
   </div>
   <div class="yb-hero__scroll">
@@ -50,103 +60,282 @@
   </div>
 </section>
 
-<!-- Introduction -->
-<section class="program-overview">
+
+{# ═══ 2. PHILOSOPHY — Split Dark/Light with Logo ═══ #}
+<section class="ybh-philosophy">
+  <div class="ybh-philosophy__inner">
+    <div class="ybh-philosophy__left">
+      <span class="ybh-philosophy__number" data-ybh-counter>{{ t.philosophy_number }}</span>
+      <span class="ybh-philosophy__label">{{ t.philosophy_label }}</span>
+    </div>
+    <div class="ybh-philosophy__right">
+      <img src="{{ media.brand.logo | cloudimg('w_200,q_auto') }}" alt="Yoga Bible" class="ybh-philosophy__logo" width="160" height="40" loading="lazy">
+      <p class="ybh-philosophy__text">{{ t.philosophy_text }}</p>
+      <blockquote class="ybh-philosophy__quote">{{ t.philosophy_quote }}</blockquote>
+    </div>
+  </div>
+  {# Scroll-draw vine connecting philosophy to essence #}
+  <svg class="ybh-vine ybh-vine--philosophy" viewBox="0 0 100 200" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true">
+    <path class="ybh-vine__path" d="M50 0 C50 40, 20 60, 50 100 S80 140, 50 200" stroke="var(--yb-brand)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  </svg>
+</section>
+
+
+{# ═══ 3. ESSENCE — Three-Step Journey Timeline ═══ #}
+<section class="ybh-essence">
   <div class="container">
-    <p class="section-subtitle">
-      {{ t.intro_p1 }}
-    </p>
-    <p class="section-subtitle" style="margin-top:16px;">
-      {{ t.intro_p2 }}
-    </p>
+    <p class="ybh-essence__eyebrow">{{ t.essence_eyebrow }}</p>
+    <h2 class="ybh-essence__title">{{ t.essence_title }}</h2>
+
+    <div class="ybh-essence__timeline">
+      <div class="ybh-essence__line" aria-hidden="true"></div>
+
+      <div class="ybh-essence__step ybh-scroll-reveal">
+        <div class="ybh-essence__dot">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="var(--yb-brand)" stroke-width="2"/><path d="M12 6c0 3.3-6 6-6 6s6 2.7 6 6c0-3.3 6-6 6-6s-6-2.7-6-6z" fill="var(--yb-brand)" opacity="0.8"/></svg>
+        </div>
+        <div class="ybh-essence__content">
+          <span class="ybh-essence__step-label">{{ t.ess1_step }}</span>
+          <h3>{{ t.ess1_title }}</h3>
+          <p>{{ t.ess1_desc }}</p>
+        </div>
+      </div>
+
+      <div class="ybh-essence__step ybh-scroll-reveal">
+        <div class="ybh-essence__dot">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="var(--yb-brand)" stroke-width="2"/><path d="M7 12h10M12 7v10" stroke="var(--yb-brand)" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="ybh-essence__content">
+          <span class="ybh-essence__step-label">{{ t.ess2_step }}</span>
+          <h3>{{ t.ess2_title }}</h3>
+          <p>{{ t.ess2_desc }}</p>
+        </div>
+      </div>
+
+      <div class="ybh-essence__step ybh-scroll-reveal">
+        <div class="ybh-essence__dot">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="var(--yb-brand)" stroke-width="2"/><path d="M8 12l3 3 5-5" stroke="var(--yb-brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="ybh-essence__content">
+          <span class="ybh-essence__step-label">{{ t.ess3_step }}</span>
+          <h3>{{ t.ess3_title }}</h3>
+          <p>{{ t.ess3_desc }}</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="ybh-essence__closing">{{ t.essence_closing }}</p>
   </div>
 </section>
 
-<!-- Timeline -->
-<section class="program-schedule">
-  <div class="container">
-    <h2 class="section-title">{{ t.timeline_title }}</h2>
-    <p class="section-subtitle">{{ t.timeline_subtitle }}</p>
 
-    <div class="schedule-options">
-      <div class="schedule-card">
-        <h3>{{ t.timeline1_title }}</h3>
-        <p>{{ t.timeline1_desc }}</p>
+{# ═══ 4. ORIGIN — Full-Width Cinematic with Timeline ═══ #}
+<section class="ybh-origin">
+  <div class="ybh-origin__bg">
+    <img src="{{ media.studio.mainRoom | cloudimg('w_1920,h_900,c_fill,q_auto') }}" alt="" loading="lazy">
+  </div>
+  <div class="ybh-origin__overlay"></div>
+  <div class="container ybh-origin__inner">
+    <p class="ybh-origin__eyebrow">{{ t.origin_eyebrow }}</p>
+    <h2 class="ybh-origin__title">{{ t.origin_title }}</h2>
+
+    <div class="ybh-origin__cards">
+      <div class="ybh-origin__card ybh-scroll-reveal">
+        <span class="ybh-origin__year">{{ t.origin1_year }}</span>
+        <h3 class="ybh-origin__name">{{ t.origin1_name }}</h3>
+        <p>{{ t.origin1_desc }}</p>
       </div>
-      <div class="schedule-card">
-        <h3>{{ t.timeline2_title }}</h3>
-        <p>{{ t.timeline2_desc }}</p>
+
+      {# SVG connecting arrow between cards #}
+      <div class="ybh-origin__connector" aria-hidden="true">
+        <svg viewBox="0 0 80 24" fill="none" width="80" height="24">
+          <path d="M0 12h60M60 12l-8-6M60 12l-8 6" stroke="var(--yb-brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="ybh-origin__card ybh-origin__card--current ybh-scroll-reveal">
+        <span class="ybh-origin__year">{{ t.origin2_year }}</span>
+        <h3 class="ybh-origin__name">{{ t.origin2_name }}</h3>
+        <p>{{ t.origin2_desc }}</p>
+        <img src="{{ media.programs.certificate | cloudimg('w_200,q_auto') }}" alt="Yoga Alliance RYT-200" class="ybh-origin__badge" width="120" loading="lazy">
+      </div>
+    </div>
+
+    <p class="ybh-origin__note">{{ t.origin_note }}</p>
+  </div>
+</section>
+
+
+{# ═══ 5. STATS — Animated Number Counters ═══ #}
+<section class="ybh-stats">
+  <div class="container">
+    <p class="ybh-stats__eyebrow">{{ t.stats_eyebrow }}</p>
+    <div class="ybh-stats__grid">
+      <div class="ybh-stats__item ybh-scroll-reveal">
+        <span class="ybh-stats__value" data-ybh-target="500">0</span><span class="ybh-stats__plus">+</span>
+        <span class="ybh-stats__label">{{ t.stat1_label }}</span>
+      </div>
+      <div class="ybh-stats__item ybh-scroll-reveal">
+        <span class="ybh-stats__value" data-ybh-target="10">0</span><span class="ybh-stats__plus">+</span>
+        <span class="ybh-stats__label">{{ t.stat2_label }}</span>
+      </div>
+      <div class="ybh-stats__item ybh-scroll-reveal">
+        <span class="ybh-stats__value" data-ybh-target="4.8" data-ybh-decimal="true">0</span><span class="ybh-stats__star">&#9733;</span>
+        <span class="ybh-stats__label">{{ t.stat3_label }}</span>
+      </div>
+      <div class="ybh-stats__item ybh-scroll-reveal">
+        <span class="ybh-stats__value" data-ybh-target="30">0</span><span class="ybh-stats__plus">+</span>
+        <span class="ybh-stats__label">{{ t.stat4_label }}</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Essence -->
-<section class="program-overview">
+
+{# ═══ 6. CONCEPTS — Three Concept Cards ═══ #}
+<section class="ybh-concepts">
   <div class="container">
-    <h2 class="section-title">{{ t.essence_title }}</h2>
+    <p class="ybh-concepts__eyebrow">{{ t.concepts_eyebrow }}</p>
+    <h2 class="ybh-concepts__title">{{ t.concepts_title }}</h2>
+    <p class="ybh-concepts__subtitle">{{ t.concepts_subtitle }}</p>
 
-    <div class="program-grid" style="max-width: 800px; margin: 0 auto;">
-      <div class="program-feature">
-        <div class="program-feature__icon">🧘</div>
-        <h3>{{ t.ess1_title }}</h3>
-        <p>{{ t.ess1_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">📚</div>
-        <h3>{{ t.ess2_title }}</h3>
-        <p>{{ t.ess2_desc }}</p>
-      </div>
-      <div class="program-feature">
-        <div class="program-feature__icon">🌍</div>
-        <h3>{{ t.ess3_title }}</h3>
-        <p>{{ t.ess3_desc }}</p>
-      </div>
-    </div>
+    <div class="ybh-concepts__grid">
+      <a href="{{ lp }}/hot-yoga-copenhagen" class="ybh-concepts__card ybh-concepts__card--hyc ybh-scroll-reveal">
+        <div class="ybh-concepts__img">
+          <img src="{{ media.concepts.hotyogaHero | cloudimg('w_600,h_400,c_fill') }}" alt="Hot Yoga Copenhagen" loading="lazy" width="600" height="400">
+        </div>
+        <div class="ybh-concepts__info">
+          <h3>{{ t.concept1_name }}</h3>
+          <span class="ybh-concepts__tag">{{ t.concept1_tag }}</span>
+          <p>{{ t.concept1_desc }}</p>
+        </div>
+      </a>
 
-    <p class="section-subtitle" style="margin-top:32px; font-style:italic;">{{ t.essence_closing }}</p>
-  </div>
-</section>
+      <a href="{{ lp }}/yoga-bible-concepts" class="ybh-concepts__card ybh-scroll-reveal">
+        <div class="ybh-concepts__img">
+          <img src="{{ media.concepts.namasteHero | cloudimg('w_600,h_400,c_fill') }}" alt="Namasté Online" loading="lazy" width="600" height="400">
+        </div>
+        <div class="ybh-concepts__info">
+          <h3>{{ t.concept2_name }}</h3>
+          <span class="ybh-concepts__tag">{{ t.concept2_tag }}</span>
+          <p>{{ t.concept2_desc }}</p>
+        </div>
+      </a>
 
-<!-- FAQ -->
-<section class="program-faq">
-  <div class="container">
-    <h2 class="section-title">{{ t.faq_title }}</h2>
-
-    <div class="faq-list">
-      <details class="faq-item">
-        <summary>{{ t.faq1_q }}</summary>
-        <p>{{ t.faq1_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq2_q }}</summary>
-        <p>{{ t.faq2_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq3_q }}</summary>
-        <p>{{ t.faq3_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq4_q }}</summary>
-        <p>{{ t.faq4_a }}</p>
-      </details>
-
-      <details class="faq-item">
-        <summary>{{ t.faq5_q }}</summary>
-        <p>{{ t.faq5_a }}</p>
-      </details>
+      <a href="{{ lp }}/vibro-yoga" class="ybh-concepts__card ybh-scroll-reveal">
+        <div class="ybh-concepts__img">
+          <img src="{{ media.concepts.vibroHero | cloudimg('w_600,h_400,c_fill') }}" alt="Vibro Yoga" loading="lazy" width="600" height="400">
+        </div>
+        <div class="ybh-concepts__info">
+          <h3>{{ t.concept3_name }}</h3>
+          <span class="ybh-concepts__tag">{{ t.concept3_tag }}</span>
+          <p>{{ t.concept3_desc }}</p>
+        </div>
+      </a>
     </div>
   </div>
 </section>
 
-<!-- CTA -->
-<section class="cta-section">
+
+{# ═══ 7. COPENHAGEN — Horizontal Scroll Gallery ═══ #}
+<section class="ybh-copenhagen">
   <div class="container">
-    <h2 class="cta-section__title">{{ t.cta_title }}</h2>
-    <p class="cta-section__text">{{ t.cta_text }}</p>
-    <a href="{% if lang == 'en' %}/en/om-200hrs-yogalreruddannelser{% else %}/om-200hrs-yogalreruddannelser{% endif %}" class="btn btn--large btn--primary">{{ t.cta_btn }}</a>
+    <p class="ybh-copenhagen__eyebrow">{{ t.copenhagen_eyebrow }}</p>
+    <h2 class="ybh-copenhagen__title">{{ t.copenhagen_title }}</h2>
+    <p class="ybh-copenhagen__text">{{ t.copenhagen_text }}</p>
+  </div>
+  <div class="ybh-copenhagen__gallery">
+    <div class="ybh-copenhagen__track">
+      <img src="{{ media.copenhagen.canalPanorama | cloudimg('w_600,h_400,c_fill') }}" alt="Christianshavn canal" loading="lazy" width="600" height="400">
+      <img src="{{ media.copenhagen.locationGallery2 | cloudimg('w_600,h_400,c_fill') }}" alt="Christianshavn colorful houses" loading="lazy" width="600" height="400">
+      <img src="{{ media.studio.entrance | cloudimg('w_600,h_400,c_fill') }}" alt="Yoga Bible studio entrance" loading="lazy" width="600" height="400">
+      <img src="{{ media.copenhagen.nyhavn | cloudimg('w_600,h_400,c_fill') }}" alt="Nyhavn harbor" loading="lazy" width="600" height="400">
+      <img src="{{ media.copenhagen.bikeCulture | cloudimg('w_600,h_400,c_fill') }}" alt="Copenhagen bike culture" loading="lazy" width="600" height="400">
+      <img src="{{ media.copenhagen.cafeScene | cloudimg('w_600,h_400,c_fill') }}" alt="Copenhagen café scene" loading="lazy" width="600" height="400">
+    </div>
   </div>
 </section>
+
+
+{# ═══ 8. TESTIMONIAL — Dark Cinematic Quote ═══ #}
+<section class="ybh-testimonial">
+  <div class="ybh-testimonial__inner">
+    <div class="ybh-testimonial__media">
+      <video muted loop playsinline poster="{{ media.programs.testimonialVideo | cloudvid('w_608,c_fill,so_1,q_60') }}">
+        <source src="{{ media.programs.testimonialVideo | cloudvid('w_608,q_auto') }}" type="video/mp4">
+      </video>
+      <button class="ybh-testimonial__play" aria-label="Play" type="button">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="23" stroke="#fff" stroke-width="2"/><path d="M19 15l14 9-14 9V15z" fill="#fff"/></svg>
+      </button>
+    </div>
+    <div class="ybh-testimonial__content">
+      <p class="ybh-testimonial__eyebrow">{{ t.testimonial_eyebrow }}</p>
+      <blockquote class="ybh-testimonial__quote">{{ t.testimonial_quote }}</blockquote>
+      <cite class="ybh-testimonial__author">— {{ t.testimonial_author }}</cite>
+      <div class="ybh-testimonial__stars" aria-label="5 stars">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="var(--yb-brand)"><path d="M10 1l2.5 5.5L18 7.5l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-1z"/></svg>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="var(--yb-brand)"><path d="M10 1l2.5 5.5L18 7.5l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-1z"/></svg>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="var(--yb-brand)"><path d="M10 1l2.5 5.5L18 7.5l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-1z"/></svg>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="var(--yb-brand)"><path d="M10 1l2.5 5.5L18 7.5l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-1z"/></svg>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="var(--yb-brand)"><path d="M10 1l2.5 5.5L18 7.5l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-1z"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{# ═══ 9. FAQ — Two-Column Accordion ═══ #}
+<section class="ybh-faq">
+  <div class="container">
+    <h2 class="ybh-faq__title">{{ t.faq_title }}</h2>
+    <p class="ybh-faq__subtitle">{{ t.faq_subtitle }}</p>
+
+    <div class="ybh-faq__grid">
+      <div class="ybh-faq__col">
+        <details class="faq-item">
+          <summary>{{ t.faq1_q }}</summary>
+          <p>{{ t.faq1_a }}</p>
+        </details>
+        <details class="faq-item">
+          <summary>{{ t.faq3_q }}</summary>
+          <p>{{ t.faq3_a }}</p>
+        </details>
+        <details class="faq-item">
+          <summary>{{ t.faq5_q }}</summary>
+          <p>{{ t.faq5_a }}</p>
+        </details>
+      </div>
+      <div class="ybh-faq__col">
+        <details class="faq-item">
+          <summary>{{ t.faq2_q }}</summary>
+          <p>{{ t.faq2_a }}</p>
+        </details>
+        <details class="faq-item">
+          <summary>{{ t.faq4_q }}</summary>
+          <p>{{ t.faq4_a }}</p>
+        </details>
+        <details class="faq-item">
+          <summary>{{ t.faq6_q }}</summary>
+          <p>{{ t.faq6_a }}</p>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{# ═══ 10. CTA — Dark Gradient with Dual Buttons ═══ #}
+<section class="ybh-cta">
+  <div class="ybh-cta__glow" aria-hidden="true"></div>
+  <div class="container ybh-cta__inner">
+    <h2 class="ybh-cta__title">{{ t.cta_title }}</h2>
+    <p class="ybh-cta__text">{{ t.cta_text }}</p>
+    <div class="ybh-cta__buttons">
+      <a href="{{ lp }}/om-200hrs-yogalaereruddannelser" class="btn btn--large btn--primary">{{ t.cta_btn_primary }}</a>
+      <a href="{{ lp }}/weekly-schedule" class="btn btn--large btn--outline-light">{{ t.cta_btn_secondary }}</a>
+    </div>
+    <p class="ybh-cta__trust">{{ t.cta_trust }}</p>
+  </div>
+</section>
+
+<script src="/js/historie.js" defer></script>

@@ -1295,3 +1295,187 @@
     font-size: 0.72rem !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   COMING SOON BANNER
+   ═══════════════════════════════════════════════════════════ */
+.p300-coming-soon {
+  background: linear-gradient(135deg, #fff7f0 0%, #fff3e8 100%);
+  border-bottom: 2px solid var(--yb-brand);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+/* When banner sits directly above the waitlist form, merge visually */
+.p300-coming-soon + .p300-waitlist {
+  padding-top: 2.5rem;
+}
+.p300-coming-soon__inner {
+  max-width: 700px;
+  margin: 0 auto;
+}
+.p300-coming-soon__badge {
+  display: inline-block;
+  background: var(--yb-brand);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.35rem 1rem;
+  border-radius: 100px;
+  margin-bottom: 1rem;
+}
+.p300-coming-soon__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f0f0f;
+  margin: 0 0 0.75rem;
+}
+.p300-coming-soon__text {
+  font-size: 1.05rem;
+  color: var(--ds-text-muted, #6F6A66);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   WAITLIST FORM SECTION
+   ═══════════════════════════════════════════════════════════ */
+.p300-waitlist {
+  background: var(--ds-bg-light, #F5F3F0);
+  padding: 5rem 1.5rem;
+}
+.p300-waitlist__inner {
+  max-width: 640px;
+  margin: 0 auto;
+}
+.p300-waitlist__head {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+.p300-waitlist__title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f0f0f;
+  margin: 0.5rem 0 0.75rem;
+}
+.p300-waitlist__lead {
+  font-size: 1.05rem;
+  color: var(--ds-text-muted, #6F6A66);
+  line-height: 1.6;
+  margin: 0;
+}
+.p300-waitlist__form-wrap {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+.p300-waitlist__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.p300-waitlist__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.p300-waitlist__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.p300-waitlist__field span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f0f0f;
+}
+.p300-waitlist__field input {
+  height: 50px;
+  border: 1px solid var(--yb-brand, #f75c03);
+  border-radius: 12px;
+  padding: 0 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #fff;
+  color: #0f0f0f;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.p300-waitlist__field input:focus {
+  border-color: var(--yb-brand, #f75c03);
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.12);
+}
+.p300-waitlist__error {
+  background: #fff0f0;
+  color: #c0392b;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+.p300-waitlist__error a {
+  color: #c0392b;
+  text-decoration: underline;
+}
+.p300-waitlist__submit {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+.p300-waitlist__fine {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--ds-text-muted, #6F6A66);
+  margin: 0;
+}
+.p300-waitlist__fine a {
+  color: var(--yb-brand, #f75c03);
+  text-decoration: underline;
+}
+
+/* Success state */
+.p300-waitlist__success {
+  text-align: center;
+  padding: 2rem 0;
+}
+.p300-waitlist__success-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--yb-brand, #f75c03);
+  color: #fff;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}
+.p300-waitlist__success-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f0f0f;
+  margin: 0 0 0.75rem;
+}
+.p300-waitlist__success-text {
+  font-size: 1.05rem;
+  color: var(--ds-text-muted, #6F6A66);
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .p300-waitlist__grid {
+    grid-template-columns: 1fr;
+  }
+  .p300-waitlist__form-wrap {
+    padding: 1.5rem;
+  }
+  .p300-waitlist__title {
+    font-size: 1.5rem;
+  }
+  .p300-coming-soon__title {
+    font-size: 1.25rem;
+  }
+}

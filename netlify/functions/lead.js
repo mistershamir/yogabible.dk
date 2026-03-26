@@ -8,7 +8,7 @@
 
 const crypto = require('crypto');
 const { getDb } = require('./shared/firestore');
-const { CONFIG } = require('./shared/config');
+const { CONFIG, getDisplayProgram } = require('./shared/config');
 const {
   jsonResponse, optionsResponse, formatDate, normalizeYesNo,
   detectAction
@@ -16,6 +16,8 @@ const {
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
+const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
+const { detectLeadCountry } = require('./shared/country-detect');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
@@ -50,6 +52,11 @@ exports.handler = async (event) => {
     // Process the lead
     const leadData = processLead(payload, action);
 
+    // Detect and normalize country for nurture sequence country blocks
+    if (!leadData.country) {
+      leadData.country = detectLeadCountry(leadData);
+    }
+
     // Check for existing applicant in Firestore
     const existingAppId = await getExistingApplicationId(leadData.email);
     if (existingAppId) {
@@ -65,12 +72,28 @@ exports.handler = async (event) => {
       updated_at: new Date()
     });
 
+    // Store schedule tracking token on lead doc for sequence email injection
+    const scheduleTokenForDoc = generateScheduleToken(docRef.id, leadData.email);
+    await db.collection('leads').doc(docRef.id).update({
+      schedule_token: scheduleTokenForDoc
+    });
+
     console.log(`[lead] New lead saved: ${docRef.id} (${leadData.email})`);
 
     // Send notifications (admin email + welcome email + welcome SMS)
     // Must await — Netlify Functions terminate after response is sent
     await triggerNotifications(leadData, docRef.id, action).catch(err => {
       console.error('[lead] Notification error (non-blocking):', err.message);
+    });
+
+    // Auto-enroll in matching sequences (non-blocking)
+    triggerNewLeadSequences(docRef.id, leadData).catch(err => {
+      console.error('[lead] Sequence enrollment error (non-blocking):', err.message);
+    });
+
+    // Auto-add to lead-synced email lists (non-blocking)
+    autoAddLeadToLists(db, docRef.id, leadData).catch(err => {
+      console.error('[lead] Auto-add to email list error (non-blocking):', err.message);
     });
 
     const response = jsonResponse(200, { ok: true, message: 'Request received successfully' });
@@ -126,6 +149,68 @@ function wrapCallback(callback, response) {
   };
 }
 
+/**
+ * Auto-add new lead to email lists with lead_auto_sync enabled
+ */
+async function autoAddLeadToLists(db, leadId, leadData) {
+  const listSnap = await db.collection('email_lists')
+    .where('lead_auto_sync', '==', true)
+    .get();
+
+  if (listSnap.empty) return;
+
+  const email = (leadData.email || '').toLowerCase().trim();
+  if (!email) return;
+
+  const tags = ['lead', 'new-lead'];
+  if (leadData.type) tags.push(leadData.type);
+  if (leadData.temperature) tags.push(leadData.temperature);
+
+  for (const listDoc of listSnap.docs) {
+    // Check for duplicate
+    const existing = await db.collection('email_list_contacts')
+      .where('list_id', '==', listDoc.id)
+      .where('email', '==', email)
+      .limit(1)
+      .get();
+
+    if (!existing.empty) continue;
+
+    await db.collection('email_list_contacts').add({
+      list_id: listDoc.id,
+      email,
+      first_name: leadData.first_name || '',
+      last_name: leadData.last_name || '',
+      lead_id: leadId,
+      lead_data: {
+        status: leadData.status || 'New',
+        type: leadData.type || '',
+        program: leadData.program || leadData.ytt_program_type || '',
+        ytt_program_type: leadData.ytt_program_type || '',
+        temperature: leadData.temperature || '',
+        source: leadData.source || '',
+        channel: leadData.channel || '',
+        phone: leadData.phone || '',
+        lang: leadData.lang || 'da',
+        lead_created_at: new Date().toISOString()
+      },
+      lead_synced_at: new Date().toISOString(),
+      tags,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      engagement: {
+        emails_sent: 0, emails_opened: 0, emails_clicked: 0,
+        last_sent_at: null, last_opened_at: null, last_clicked_at: null
+      }
+    });
+
+    await db.collection('email_lists').doc(listDoc.id).update({
+      contact_count: (listDoc.data().contact_count || 0) + 1,
+      updated_at: new Date().toISOString()
+    });
+  }
+}
+
 function processLead(payload, action) {
   const base = {
     email: (payload.email || '').toLowerCase().trim(),
@@ -143,7 +228,17 @@ function processLead(payload, action) {
     last_contact: null,
     followup_date: null,
     multi_format: payload.multiFormat || '',
-    all_formats: payload.allFormats || ''
+    all_formats: payload.allFormats || '',
+    lang: payload.lang || '',
+    // Attribution / channel tracking
+    channel: payload.channel || '',
+    utm_source: payload.utm_source || '',
+    utm_medium: payload.utm_medium || '',
+    utm_campaign: payload.utm_campaign || '',
+    gclid: payload.gclid || '',
+    fbclid: payload.fbclid || '',
+    referrer: payload.referrer || '',
+    landing_page: payload.landing_page || ''
   };
 
   switch (action) {
@@ -153,9 +248,9 @@ function processLead(payload, action) {
         ...base,
         type: 'ytt',
         ytt_program_type: '18-week',
-        program: payload.program || '18 UGERS FLEKSIBELT PROGRAM - Marts-Juni 2026',
+        program: payload.program || '18-Week Flexible YTT (March–June 2026)',
         course_id: '',
-        cohort_label: extractCohortLabel(payload.program),
+        cohort_label: 'March–June 2026',
         preferred_month: '',
         accommodation: normalizeYesNo(payload.housing || payload.accommodation || 'No'),
         city_country: payload.origin || payload.cityCountry || '',
@@ -163,7 +258,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_18w-aug':
@@ -171,9 +266,9 @@ function processLead(payload, action) {
         ...base,
         type: 'ytt',
         ytt_program_type: '18-week-aug',
-        program: payload.program || '18 UGERS FLEKSIBELT PROGRAM - August-December 2026',
+        program: payload.program || '18-Week Flexible YTT (August–December 2026)',
         course_id: '',
-        cohort_label: 'August-December 2026',
+        cohort_label: 'August–December 2026',
         preferred_month: '',
         accommodation: normalizeYesNo(payload.housing || payload.accommodation || 'No'),
         city_country: payload.origin || payload.cityCountry || '',
@@ -181,7 +276,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_4w':
@@ -190,9 +285,9 @@ function processLead(payload, action) {
         ...base,
         type: 'ytt',
         ytt_program_type: '4-week',
-        program: payload.program || '4-Week Intensive YTT',
+        program: payload.program || '4-Week Intensive YTT (April 2026)',
         course_id: '',
-        cohort_label: payload.program || '',
+        cohort_label: payload.program || 'April 2026',
         preferred_month: '',
         accommodation: normalizeYesNo(payload.accommodation || 'No'),
         city_country: payload.cityCountry || '',
@@ -200,7 +295,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_4w-jul':
@@ -208,9 +303,9 @@ function processLead(payload, action) {
         ...base,
         type: 'ytt',
         ytt_program_type: '4-week-jul',
-        program: payload.program || '4-Week Vinyasa Plus YTT (July)',
+        program: payload.program || '4-Week Vinyasa Plus YTT (July 2026)',
         course_id: '',
-        cohort_label: 'Juli 2026',
+        cohort_label: 'July 2026',
         preferred_month: '',
         accommodation: normalizeYesNo(payload.accommodation || 'No'),
         city_country: payload.cityCountry || '',
@@ -218,7 +313,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_8w':
@@ -226,9 +321,9 @@ function processLead(payload, action) {
         ...base,
         type: 'ytt',
         ytt_program_type: '8-week',
-        program: payload.program || '8-Week Semi-Intensive YTT',
+        program: payload.program || '8-Week Semi-Intensive YTT (May–June 2026)',
         course_id: '',
-        cohort_label: payload.cohort || '',
+        cohort_label: payload.cohort || 'May–June 2026',
         preferred_month: '',
         accommodation: normalizeYesNo(payload.accommodation || 'No'),
         city_country: payload.cityCountry || '',
@@ -236,23 +331,30 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_multi': {
       // User selected multiple 200h formats (e.g. 4w,8w,18w)
       const allFmts = (payload.allFormats || '').split(',').filter(f => f);
-      const fmtMap = { '4w': '4-week', '8w': '8-week', '18w': '18-week' };
-      const labelMap = { '4w': '4-ugers intensiv', '8w': '8-ugers semi-intensiv', '18w': '18-ugers fleksibel' };
+      const fmtMap = { '4w': '4-week', '8w': '8-week', '18w': '18-week', '4w-apr': '4-week', '4w-jul': '4-week-jul', '18w-aug': '18-week-aug' };
       const programTypes = allFmts.map(f => fmtMap[f] || f);
-      const programLabels = allFmts.map(f => labelMap[f] || f);
+      // Human-readable names with cohort dates
+      const displayMap = {
+        '4-week': '4-Week Intensive (April 2026)',
+        '4-week-jul': '4-Week Vinyasa Plus (July 2026)',
+        '8-week': '8-Week Semi-Intensive (May–June 2026)',
+        '18-week': '18-Week Flexible (March–June 2026)',
+        '18-week-aug': '18-Week Flexible (August–December 2026)'
+      };
+      const displayNames = programTypes.map(t => displayMap[t] || t);
       return {
         ...base,
         type: 'ytt',
         ytt_program_type: programTypes.join(','),
-        program: programLabels.join(' + ') + ' yogalæreruddannelse',
+        program: displayNames.join(' + ') + ' YTT',
         course_id: '',
-        cohort_label: '',
+        cohort_label: displayNames.join(' + '),
         preferred_month: '',
         accommodation: normalizeYesNo(payload.accommodation || 'No'),
         city_country: payload.cityCountry || '',
@@ -260,7 +362,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: '200h YTT',
+        source: 'Website',
         all_formats: payload.allFormats || ''
       };
     }
@@ -280,7 +382,25 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: payload.message || '',
-        source: '300h YTT'
+        source: 'Website'
+      };
+
+    case 'lead_waitlist_300h':
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: '300h',
+        program: payload.program || '300-Hour Advanced Yoga Teacher Training',
+        course_id: '',
+        cohort_label: 'waitlist',
+        preferred_month: '',
+        accommodation: 'No',
+        city_country: '',
+        housing_months: '',
+        service: '',
+        subcategories: 'waitlist',
+        message: '',
+        source: 'Website'
       };
 
     case 'lead_schedule_50h':
@@ -298,7 +418,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: payload.specialty || '',
         message: payload.message || '',
-        source: '50h YTT'
+        source: 'Website'
       };
 
     case 'lead_schedule_30h':
@@ -316,7 +436,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: payload.module || '',
         message: payload.message || '',
-        source: '30h YTT'
+        source: 'Website'
       };
 
     case 'lead_courses': {
@@ -336,7 +456,7 @@ function processLead(payload, action) {
         service: '',
         subcategories: '',
         message: '',
-        source: 'Courses'
+        source: 'Website'
       };
     }
 
@@ -357,7 +477,7 @@ function processLead(payload, action) {
         service: payload.service || '',
         subcategories,
         message: payload.message || '',
-        source: 'Mentorship'
+        source: 'Website'
       };
     }
 
@@ -396,6 +516,7 @@ function processLead(payload, action) {
         subcategories: '',
         message: payload.message || '',
         source: 'Facebook Ad',
+        channel: payload.meta_platform === 'instagram' ? 'Instagram Ads' : 'Meta Ads',
         meta_form_id: payload.form_id || '',
         meta_ad_id: payload.ad_id || '',
         meta_campaign: payload.campaign_name || ''

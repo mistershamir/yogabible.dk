@@ -51,16 +51,16 @@
   <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
     <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">{{ t.hoursTitle }}</p>
     {% set hoursData4jul = [
-      { pct: 30,  hours: 60, color: "#f75c03", key: "hLabel0" },
-      { pct: 5,   hours: 10, color: "#ff9966", key: "hLabel1" },
-      { pct: 22,  hours: 44, color: "#1a1a1a", key: "hLabel2" },
-      { pct: 7,   hours: 14, color: "#3d3d3d", key: "hLabel3" },
-      { pct: 6,   hours: 12, color: "#666666", key: "hLabel4" },
-      { pct: 6,   hours: 12, color: "#6F6A66", key: "hLabel5" },
-      { pct: 7,   hours: 14, color: "#ffb380", key: "hLabel6" },
-      { pct: 5.5, hours: 11, color: "#ffd5b8", key: "hLabel7" },
-      { pct: 10,  hours: 20, color: "#E8E4E0", key: "hLabel8" },
-      { pct: 1.5, hours: 3,  color: "#F0EDEA", key: "hLabel9" }
+      { pct: 28.5, hours: 57, color: "#f75c03", key: "hLabel0" },
+      { pct: 5,    hours: 10, color: "#ff9966", key: "hLabel1" },
+      { pct: 22,   hours: 44, color: "#1a1a1a", key: "hLabel2" },
+      { pct: 8,    hours: 16, color: "#3d3d3d", key: "hLabel3" },
+      { pct: 6,    hours: 12, color: "#666666", key: "hLabel4" },
+      { pct: 6,    hours: 12, color: "#6F6A66", key: "hLabel5" },
+      { pct: 7,    hours: 14, color: "#ffb380", key: "hLabel6" },
+      { pct: 5.5,  hours: 11, color: "#ffd5b8", key: "hLabel7" },
+      { pct: 10,   hours: 20, color: "#E8E4E0", key: "hLabel8" },
+      { pct: 2,    hours: 4,  color: "#F0EDEA", key: "hLabel9" }
     ] %}
 
     {# Stacked segment bar #}
@@ -83,6 +83,61 @@
     <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:10px;font-style:italic;">{{ t.hoursTotal }}</p>
   </div>
 
+  {# ── CONFLICT FINDER ──────────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:24px 24px 0;">
+    <details id="s4wj-conflict-finder" style="background:#fff;border:1.5px solid #E8E4E0;border-radius:16px;overflow:hidden;">
+      <summary style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;list-style:none;-webkit-appearance:none;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="background:#FFF0E6;color:#f75c03;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">&#128197;</span>
+          <div>
+            <p style="font-weight:700;font-size:.92rem;">{{ t.conflictTitle }}</p>
+            <p style="font-size:.78rem;color:#6F6A66;">{{ t.conflictDesc }}</p>
+          </div>
+        </div>
+        <svg class="s4wj-cf-chevron" style="flex-shrink:0;transition:transform .25s;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </summary>
+      <div style="padding:0 20px 20px;border-top:1px solid #E8E4E0;">
+        <p style="font-size:.8rem;color:#6F6A66;padding:14px 0 10px;margin:0;">{{ t.conflictDesc }}</p>
+        <div style="display:flex;flex-direction:column;gap:6px;" id="s4wj-busy-days">
+          {% set busyDays4j = [
+            { val: "1", label: "Mandag" if lang != "en" else "Monday", checked: true, start: "09:00", end: "17:00" },
+            { val: "2", label: "Tirsdag" if lang != "en" else "Tuesday", checked: true, start: "09:00", end: "17:00" },
+            { val: "3", label: "Onsdag" if lang != "en" else "Wednesday", checked: true, start: "09:00", end: "17:00" },
+            { val: "4", label: "Torsdag" if lang != "en" else "Thursday", checked: true, start: "09:00", end: "17:00" },
+            { val: "5", label: "Fredag" if lang != "en" else "Friday", checked: true, start: "09:00", end: "17:00" },
+            { val: "6", label: "Lørdag" if lang != "en" else "Saturday", checked: false, start: "10:00", end: "14:00" },
+            { val: "0", label: "Søndag" if lang != "en" else "Sunday", checked: false, start: "10:00", end: "14:00" }
+          ] %}
+          {% for d in busyDays4j %}
+          <div class="s4wj-busy-row" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:{% if d.checked %}#F5F3F0{% else %}transparent{% endif %};transition:background .2s;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:110px;">
+              <input type="checkbox" name="s4wj-busy" value="{{ d.val }}" {% if d.checked %}checked{% endif %} onchange="s4wjToggleBusyRow(this)" style="accent-color:#f75c03;width:16px;height:16px;">
+              <span style="font-size:.85rem;font-weight:600;">{{ d.label }}</span>
+            </label>
+            <div class="s4wj-busy-times" style="display:flex;align-items:center;gap:6px;{% if not d.checked %}opacity:.3;pointer-events:none;{% endif %}">
+              <input type="time" value="{{ d.start }}" class="s4wj-time-from" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:100px;">
+              <span style="color:#6F6A66;font-size:.75rem;">{{ "til" if lang != "en" else "to" }}</span>
+              <input type="time" value="{{ d.end }}" class="s4wj-time-to" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:100px;">
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        {# Specific dates #}
+        <div style="margin-top:18px;padding-top:14px;border-top:1px dashed #E8E4E0;">
+          <p style="font-size:.82rem;font-weight:700;margin:0 0 2px;">{{ t.conflictSpecificLabel }}</p>
+          <p style="font-size:.72rem;color:#6F6A66;margin:0 0 10px;">{{ t.conflictSpecificHint }}</p>
+          <div id="s4wj-specific-dates" style="display:flex;flex-direction:column;gap:6px;"></div>
+          <button type="button" onclick="s4wjAddSpecificDate()" style="margin-top:8px;background:none;border:1.5px dashed #E8E4E0;border-radius:10px;padding:8px 16px;font-size:.78rem;font-weight:600;color:#f75c03;cursor:pointer;font-family:inherit;transition:border-color .2s;" onmouseenter="this.style.borderColor='#f75c03'" onmouseleave="this.style.borderColor='#E8E4E0'">{{ t.conflictAddDate }}</button>
+        </div>
+
+        <button onclick="s4wjCheckConflicts()" style="margin-top:16px;background:#f75c03;color:#fff;border:none;padding:12px 24px;border-radius:50px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.conflictBtn }}</button>
+        <div id="s4wj-conflict-results" style="display:none;margin-top:16px;"></div>
+        <p style="font-size:.75rem;color:#6F6A66;margin:16px 0 0;line-height:1.5;">{{ t.conflictNote | safe }}</p>
+      </div>
+    </details>
+  </div>
+
   {# ── SCHEDULE BODY ─────────────────────────────────────── #}
   <div style="max-width:700px;margin:0 auto;padding:40px 24px 0;">
 
@@ -97,35 +152,32 @@
       { name: "Juli", name_en: "July", year: "2026", weeks: [
         { num: 1, label: "Introduktion", label_en: "Introduction", range: "6–12 jul", range_en: "Jul 6–12", days: [
           { dn: "6",  dd: "Man", dd_en: "Mon", time: "09:00–15:00", topic: "Vinyasa Flow & Creative Sequencing — Introduktion", topic_en: "Vinyasa Flow & Creative Sequencing — Introduction", type: "workshop" },
-          { dn: "7",  dd: "Tir", dd_en: "Tue", time: "11:00–17:00", topic: "Yin Yoga & Recovery — Introduktion", topic_en: "Yin Yoga & Recovery — Introduction", type: "workshop" },
-          { dn: "9",  dd: "Tor", dd_en: "Thu", time: "11:00–17:00", topic: "Vinyasa Flow & Class Management", type: "workshop" },
+          { dn: "7",  dd: "Tir", dd_en: "Tue", time: "10:00–16:00", topic: "Yin Yoga & Recovery — Introduktion", topic_en: "Yin Yoga & Recovery — Introduction", type: "workshop" },
+          { dn: "9",  dd: "Tor", dd_en: "Thu", time: "10:00–16:00", topic: "Vinyasa Flow & Class Management", type: "workshop" },
           { dn: "11", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
           { dn: "12", dd: "Søn", dd_en: "Sun", time: "14:00–18:00", topic: "Yogafilosofi 01 — Online", topic_en: "Yoga Philosophy 01 — Online", type: "online" }
         ]},
         { num: 2, range: "13–19 jul", range_en: "Jul 13–19", days: [
           { dn: "13", dd: "Man", dd_en: "Mon", time: "09:00–15:00", topic: "Vinyasa Flow & Creative Sequencing", type: "workshop" },
-          { dn: "14", dd: "Tir", dd_en: "Tue", time: "11:00–17:00", topic: "Hot Yoga & Heated Vinyasa", type: "workshop" },
+          { dn: "14", dd: "Tir", dd_en: "Tue", time: "10:00–16:00", topic: "Hot Yoga & Heated Vinyasa", type: "workshop" },
           { dn: "15", dd: "Ons", dd_en: "Wed", time: "10:00–15:00", topic: "Vinyasa Flow & Class Management", type: "workshop" },
-          { dn: "16", dd: "Tor", dd_en: "Thu", time: "11:00–17:00", topic: "Yin Yoga & Recovery", type: "workshop" },
+          { dn: "16", dd: "Tor", dd_en: "Thu", time: "10:00–16:00", topic: "Yin Yoga & Recovery", type: "workshop" },
           { dn: "18", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
           { dn: "19", dd: "Søn", dd_en: "Sun", time: "13:00–17:00", topic: "Yogafilosofi 02 — Online", topic_en: "Yoga Philosophy 02 — Online", type: "online" }
         ]},
         { num: 3, range: "20–26 jul", range_en: "Jul 20–26", days: [
           { dn: "20", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa Flow & Creative Sequencing", type: "workshop" },
-          { dn: "21", dd: "Tir", dd_en: "Tue", time: "09:00–15:00", topic: "Hot Yoga & Heated Vinyasa", type: "workshop" },
-          { dn: "23", dd: "Tor", dd_en: "Thu", time: "11:00–15:00", topic: "Yin Yoga & Recovery", type: "workshop" },
+          { dn: "21", dd: "Tir", dd_en: "Tue", time: "10:00–16:00", topic: "Hot Yoga & Heated Vinyasa", type: "workshop" },
+          { dn: "23", dd: "Tor", dd_en: "Thu", time: "10:00–16:00", topic: "Yin Yoga & Recovery", type: "workshop" },
           { dn: "24", dd: "Fre", dd_en: "Fri", time: "11:00–16:00", topic: "Vinyasa Flow & Class Management", type: "workshop" },
           { dn: "25", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
           { dn: "26", dd: "Søn", dd_en: "Sun", time: "13:00–17:00", topic: "Yogafilosofi 03 — Online", topic_en: "Yoga Philosophy 03 — Online", type: "online" }
-        ]}
-      ]},
-      { name: "August", name_en: "August", year: "2026", weeks: [
-        { num: 4, label: "Eksamen & Graduation", label_en: "Exam & Graduation", range: "27 jul – 2 aug", range_en: "Jul 27 – Aug 2", graduation: true, days: [
+        ]},
+        { num: 4, label: "Eksamen & Graduation", label_en: "Exam & Graduation", range: "27 – 31 jul", range_en: "Jul 27 – 31", graduation: true, days: [
           { dn: "27", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa Flow & Creative Sequencing", type: "workshop" },
-          { dn: "29", dd: "Ons", dd_en: "Wed", time: "09:00–15:00", topic: "Business of Yoga", type: "workshop" },
-          { dn: "31", dd: "Fre", dd_en: "Fri", time: "11:00–17:00", topic: "Hot Yoga & Heated Vinyasa", type: "workshop" },
-          { dn: "1",  dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa Flow — Eksamen", topic_en: "Vinyasa Flow — Exam", type: "exam" },
-          { dn: "2",  dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Yin Yoga & Hot Yoga — Eksamen + Graduation 🎓", topic_en: "Yin Yoga & Hot Yoga — Exam + Graduation 🎓", type: "graduation" }
+          { dn: "28", dd: "Tir", dd_en: "Tue", time: "10:00–14:00", topic: "Business of Yoga", type: "workshop" },
+          { dn: "30", dd: "Tor", dd_en: "Thu", time: "10:00–16:00", topic: "Hot Yoga & Heated Vinyasa", type: "workshop" },
+          { dn: "31", dd: "Fre", dd_en: "Fri", time: "10:00–16:00", topic: "Vinyasa Flow & Yin Yoga — Eksamen + Graduation 🎓", topic_en: "Vinyasa Flow & Yin Yoga — Exam + Graduation 🎓", type: "graduation" }
         ]}
       ]}
     ] %}
@@ -167,6 +219,10 @@
             {% if day.type == 'graduation' %}<span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.graduationLabel }}</span>{% elif day.type == 'exam' %}<span style="background:#FFF0E6;color:#f75c03;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.examLabel }}</span>{% endif %}
           </div>
           {% endfor %}
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0 4px;color:#6F6A66;">
+            <span style="font-size:1.1rem;">→</span>
+            <span style="font-size:.85rem;font-style:italic;">{% if lang == "en" %}Dinner & celebration with the group{% else %}Middag & fejring med holdet{% endif %}</span>
+          </div>
         </div>
       </details>
       {% else %}
@@ -258,6 +314,113 @@
 
 <script>
 (function() {
+  /* ── Conflict Finder ────────────────────────── */
+  var s4wjDateCounter = 0;
+  var s4wjFromLabel = '{{ t.conflictDateFrom }}';
+  var s4wjToLabel = '{{ t.conflictDateTo }}';
+
+  window.s4wjToggleBusyRow = function(cb) {
+    var row = cb.closest('.s4wj-busy-row');
+    var times = row.querySelector('.s4wj-busy-times');
+    if (cb.checked) { row.style.background = '#F5F3F0'; times.style.opacity = '1'; times.style.pointerEvents = 'auto'; }
+    else { row.style.background = 'transparent'; times.style.opacity = '.3'; times.style.pointerEvents = 'none'; }
+  };
+
+  window.s4wjAddSpecificDate = function() {
+    var wrap = document.getElementById('s4wj-specific-dates');
+    if (!wrap) return;
+    var row = document.createElement('div');
+    row.className = 's4wj-specific-row';
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:#F5F3F0;flex-wrap:wrap;';
+    row.innerHTML =
+      '<input type="date" class="s4wj-sd-date" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;flex:1;min-width:130px;">' +
+      '<span style="color:#6F6A66;font-size:.75rem;">' + s4wjFromLabel + '</span>' +
+      '<input type="time" value="09:00" class="s4wj-sd-from" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:90px;">' +
+      '<span style="color:#6F6A66;font-size:.75rem;">' + s4wjToLabel + '</span>' +
+      '<input type="time" value="17:00" class="s4wj-sd-to" style="border:1px solid #E8E4E0;border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.8rem;width:90px;">' +
+      '<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;padding:4px;color:#6F6A66;font-size:1.1rem;line-height:1;" aria-label="Remove">&times;</button>';
+    wrap.appendChild(row);
+  };
+  s4wjAddSpecificDate();
+
+  function s4wjTimeMin(t) { var p = t.split(':'); return parseInt(p[0]) * 60 + parseInt(p[1]); }
+
+  /* All 4w-jul training dates */
+  var s4wjSchedule = [
+    {d:'2026-07-06',s:'09:00',e:'15:00'},{d:'2026-07-07',s:'10:00',e:'16:00'},{d:'2026-07-09',s:'10:00',e:'16:00'},{d:'2026-07-11',s:'13:00',e:'18:00'},{d:'2026-07-12',s:'14:00',e:'18:00'},
+    {d:'2026-07-13',s:'09:00',e:'15:00'},{d:'2026-07-14',s:'10:00',e:'16:00'},{d:'2026-07-15',s:'10:00',e:'15:00'},{d:'2026-07-16',s:'10:00',e:'16:00'},{d:'2026-07-18',s:'13:00',e:'18:00'},{d:'2026-07-19',s:'13:00',e:'17:00'},
+    {d:'2026-07-20',s:'10:00',e:'15:00'},{d:'2026-07-21',s:'10:00',e:'16:00'},{d:'2026-07-23',s:'10:00',e:'16:00'},{d:'2026-07-24',s:'11:00',e:'16:00'},{d:'2026-07-25',s:'13:00',e:'18:00'},{d:'2026-07-26',s:'13:00',e:'17:00'},
+    {d:'2026-07-27',s:'10:00',e:'15:00'},{d:'2026-07-28',s:'10:00',e:'14:00'},{d:'2026-07-30',s:'10:00',e:'16:00'},{d:'2026-07-31',s:'10:00',e:'16:00'}
+  ];
+  s4wjSchedule.forEach(function(item) {
+    var dt = new Date(item.d + 'T12:00:00');
+    item.dow = dt.getDay();
+    item.sMin = s4wjTimeMin(item.s);
+    item.eMin = s4wjTimeMin(item.e);
+    var days = {% if lang == "en" %}['Sun','Mon','Tue','Wed','Thu','Fri','Sat']{% else %}['Søn','Man','Tir','Ons','Tor','Fre','Lør']{% endif %};
+    item.label = days[item.dow] + ' ' + item.d.split('-')[2].replace(/^0/,'') + '/' + item.d.split('-')[1].replace(/^0/,'');
+  });
+
+  window.s4wjCheckConflicts = function() {
+    var busySlots = {};
+    document.querySelectorAll('.s4wj-busy-row').forEach(function(row) {
+      var cb = row.querySelector('input[name="s4wj-busy"]');
+      if (!cb.checked) return;
+      var dow = parseInt(cb.value);
+      var from = row.querySelector('.s4wj-time-from').value || '09:00';
+      var to = row.querySelector('.s4wj-time-to').value || '17:00';
+      busySlots[dow] = { s: s4wjTimeMin(from), e: s4wjTimeMin(to) };
+    });
+
+    var specificDates = [];
+    document.querySelectorAll('.s4wj-specific-row').forEach(function(row) {
+      var dateVal = row.querySelector('.s4wj-sd-date').value;
+      if (!dateVal) return;
+      var from = row.querySelector('.s4wj-sd-from').value || '09:00';
+      var to = row.querySelector('.s4wj-sd-to').value || '17:00';
+      specificDates.push({ date: dateVal, s: s4wjTimeMin(from), e: s4wjTimeMin(to) });
+    });
+
+    var conflicts = [];
+    s4wjSchedule.forEach(function(item) {
+      var hit = false;
+      var slot = busySlots[item.dow];
+      if (slot && item.sMin < slot.e && item.eMin > slot.s) hit = true;
+      specificDates.forEach(function(sd) {
+        if (sd.date === item.d && sd.s < item.eMin && sd.e > item.sMin) hit = true;
+      });
+      if (hit) conflicts.push(item);
+    });
+
+    var el = document.getElementById('s4wj-conflict-results');
+    if (!el) return;
+    el.style.display = 'block';
+    var total = s4wjSchedule.length;
+    var html = '';
+    if (conflicts.length === 0) {
+      html += '<div style="background:#f0fff0;border:1px solid #c3e6c3;border-radius:12px;padding:16px;text-align:center;"><p style="font-weight:700;color:#2ecc71;">{{ t.conflictNone }}</p></div>';
+    } else {
+      html += '<div style="background:#FFF8F3;border:1px solid #FFE5D0;border-radius:12px;padding:16px;">';
+      html += '<p style="font-size:.92rem;font-weight:700;margin-bottom:8px;"><span style="color:#f75c03;font-size:1.4rem;">' + conflicts.length + '</span> / ' + total + ' {{ t.conflictSome }}</p>';
+      html += '<div style="background:#E8E4E0;border-radius:50px;height:6px;overflow:hidden;margin-bottom:12px;"><div style="background:#2ecc71;height:100%;width:' + Math.round(((total - conflicts.length) / total) * 100) + '%;border-radius:50px;"></div></div>';
+      html += '<ul style="margin:0;padding:0 0 0 18px;font-size:.82rem;color:#0F0F0F;">';
+      conflicts.forEach(function(c) {
+        html += '<li style="margin-bottom:4px;">' + c.label + ' <span style="color:#6F6A66;">(' + c.s + '–' + c.e + ')</span></li>';
+      });
+      html += '</ul></div>';
+    }
+    el.innerHTML = html;
+  };
+
+  /* Chevron toggle */
+  var cfDetails = document.getElementById('s4wj-conflict-finder');
+  if (cfDetails) {
+    cfDetails.addEventListener('toggle', function() {
+      var chev = cfDetails.querySelector('.s4wj-cf-chevron');
+      if (chev) chev.style.transform = cfDetails.open ? 'rotate(180deg)' : '';
+    });
+  }
+
   var params = new URLSearchParams(window.location.search);
   var tid = params.get('tid');
   var tok = params.get('tok');

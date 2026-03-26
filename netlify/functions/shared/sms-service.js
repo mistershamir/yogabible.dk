@@ -7,7 +7,7 @@
  *   SMS_SENDER        — Sender phone (default: +4553881209)
  */
 
-const { AUTO_SMS_CONFIG } = require('./config');
+const { AUTO_SMS_CONFIG, getDisplayProgram } = require('./config');
 const { getDb } = require('./firestore');
 const { formatDate } = require('./utils');
 
@@ -110,6 +110,11 @@ async function sendWelcomeSMS(leadData, leadDocId) {
     return { success: false, reason: 'no_phone' };
   }
 
+  // Determine language: use lang field (set by website modal or meta_lang from ads)
+  // Danish if lang === 'da', German if lang === 'de' or country is AT/CH, otherwise English
+  var rawLang = (leadData.lang || leadData.meta_lang || 'en').toLowerCase().substring(0, 2);
+  const lang = (rawLang === 'de' || ['at', 'ch'].includes(rawLang)) ? 'de' : rawLang;
+
   // Select template based on lead type
   const program = String(leadData.program || '').toLowerCase();
   let templateKey = 'default';
@@ -117,13 +122,18 @@ async function sendWelcomeSMS(leadData, leadDocId) {
   // Multi-format YTT request (user asked for multiple schedules)
   const isMulti = leadData.all_formats && leadData.all_formats.includes(',');
 
+  // Detect if international lead (non-DK country)
+  const leadCountry = (leadData.country || '').toUpperCase();
+  const isDK = !leadCountry || leadCountry === 'DK' || leadCountry === 'DENMARK' || leadCountry === 'DANMARK';
+
   if (isMulti) {
     templateKey = 'ytt_multi';
   } else if (program.includes('week') || program.includes('uge') || program.includes('ytt') ||
       program.includes('200') || program.includes('300') || program.includes('teacher training') ||
       program.includes('intensive') || program.includes('flexible') ||
       leadData.type === 'ytt') {
-    templateKey = 'ytt';
+    // International YTT leads get online consultation link instead of physical info meeting
+    templateKey = (!isDK && lang !== 'da') ? 'ytt_intl' : 'ytt';
   } else if (program.includes('inversion') || program.includes('backbend') || program.includes('split') ||
              program.includes('bundle') || leadData.type === 'course' || leadData.type === 'bundle') {
     templateKey = 'course';
@@ -131,9 +141,12 @@ async function sendWelcomeSMS(leadData, leadDocId) {
     templateKey = 'mentorship';
   }
 
-  const template = AUTO_SMS_CONFIG.templates[templateKey] || AUTO_SMS_CONFIG.templates['default'];
-  const firstName = leadData.first_name || 'there';
-  const programName = leadData.program || 'yoga program';
+  // Select language-appropriate template
+  const langTemplates = AUTO_SMS_CONFIG.templates[lang] || AUTO_SMS_CONFIG.templates.en;
+  const template = langTemplates[templateKey] || langTemplates['default'];
+  const firstName = leadData.first_name || (lang === 'da' ? 'der' : 'there');
+  // Use getDisplayProgram for clean, human-readable program name
+  const programName = getDisplayProgram(leadData, lang);
 
   const message = template
     .replace(/\{\{first_name\}\}/gi, firstName)

@@ -198,6 +198,12 @@
     var isEdit = !!item;
     $('yb-live-admin-form-title').textContent = isEdit ? t('live_form_edit_title') : t('live_form_title');
     $('yb-la-id').value = isEdit ? item.id : '';
+    var idDisplay = $('yb-la-id-display');
+    var idText = $('yb-la-id-text');
+    if (idDisplay && idText) {
+      if (isEdit) { idText.textContent = item.id; idDisplay.style.display = 'block'; }
+      else { idDisplay.style.display = 'none'; }
+    }
     $('yb-la-source').value = (item && item.source) || 'manual';
     $('yb-la-status').value = (item && item.status) || 'scheduled';
     $('yb-la-title-da').value = (item && item.title_da) || '';
@@ -205,6 +211,7 @@
     $('yb-la-desc-da').value = (item && item.description_da) || '';
     $('yb-la-desc-en').value = (item && item.description_en) || '';
     $('yb-la-instructor').value = (item && item.instructor) || '';
+    if ($('yb-la-teacher-email')) $('yb-la-teacher-email').value = (item && item.teacherEmail) || '';
     $('yb-la-mux-playback').value = (item && item.muxPlaybackId) || '';
     $('yb-la-recording-id').value = (item && item.recordingPlaybackId) || '';
     $('yb-la-recurrence').value = (item && item.recurrence && item.recurrence.type) || 'none';
@@ -263,13 +270,21 @@
       var showAi = isEdit && item.status === 'ended' && item.recordingPlaybackId;
       aiSection.hidden = !showAi;
       if (showAi) {
+        // Bilingual fields (prefer _da/_en, fall back to legacy)
+        $('yb-la-ai-summary-da').value = item.aiSummary_da || item.aiSummary || '';
+        $('yb-la-ai-summary-en').value = item.aiSummary_en || item.aiSummary || '';
+        $('yb-la-ai-quiz-da').value = item.aiQuiz_da ? (typeof item.aiQuiz_da === 'string' ? formatJsonStr(item.aiQuiz_da) : JSON.stringify(item.aiQuiz_da, null, 2)) : (item.aiQuiz ? (typeof item.aiQuiz === 'string' ? formatJsonStr(item.aiQuiz) : JSON.stringify(item.aiQuiz, null, 2)) : '');
+        $('yb-la-ai-quiz-en').value = item.aiQuiz_en ? (typeof item.aiQuiz_en === 'string' ? formatJsonStr(item.aiQuiz_en) : JSON.stringify(item.aiQuiz_en, null, 2)) : (item.aiQuiz ? (typeof item.aiQuiz === 'string' ? formatJsonStr(item.aiQuiz) : JSON.stringify(item.aiQuiz, null, 2)) : '');
+        // Legacy fields
         $('yb-la-ai-summary').value = item.aiSummary || '';
         $('yb-la-ai-quiz').value = item.aiQuiz ? (typeof item.aiQuiz === 'string' ? formatJsonStr(item.aiQuiz) : JSON.stringify(item.aiQuiz, null, 2)) : '';
         var statusEl = $('yb-la-ai-status');
         var st = item.aiStatus || 'none';
-        statusEl.textContent = st;
-        statusEl.style.background = st === 'complete' ? '#34c759' : st === 'processing' || st === 'captions_requested' ? '#ff9500' : st === 'error' ? '#ff453a' : '#E8E4E0';
+        statusEl.textContent = st === 'translating' ? 'translating' : st;
+        statusEl.style.background = st === 'complete' ? '#34c759' : st === 'processing' || st === 'preparing_audio' || st === 'transcribing' || st === 'generating_summary' || st === 'translating' || st === 'captions_requested' ? '#ff9500' : st === 'error' ? '#ff453a' : '#E8E4E0';
         statusEl.style.color = st === 'none' ? '#6F6A66' : '#fff';
+        // Default to DA tab
+        if (window._aiLangTab) window._aiLangTab('da');
         // Hide preview
         var previewEl = $('yb-la-ai-preview');
         if (previewEl) previewEl.hidden = true;
@@ -322,6 +337,7 @@
       description_da: $('yb-la-desc-da').value.trim(),
       description_en: $('yb-la-desc-en').value.trim(),
       instructor: $('yb-la-instructor').value.trim(),
+      teacherEmail: $('yb-la-teacher-email') ? $('yb-la-teacher-email').value.trim() || null : null,
       startDateTime: $('yb-la-start').value ? new Date($('yb-la-start').value).toISOString() : '',
       endDateTime: $('yb-la-end').value ? new Date($('yb-la-end').value).toISOString() : '',
       muxPlaybackId: $('yb-la-mux-playback').value.trim() || null,
@@ -368,23 +384,29 @@
       data.recurrence = { type: 'none' };
     }
 
-    // AI content — only include if the section is visible (ended sessions)
+    // AI content — bilingual fields + legacy fallback
     var aiSection = $('yb-la-ai-section');
     if (aiSection && !aiSection.hidden) {
-      var summaryVal = $('yb-la-ai-summary').value.trim();
-      var quizVal = $('yb-la-ai-quiz').value.trim();
-      if (summaryVal !== undefined) data.aiSummary = summaryVal;
-      if (quizVal) {
-        // Validate JSON before sending
-        try {
-          JSON.parse(quizVal);
-          data.aiQuiz = quizVal;
-        } catch (e) {
-          // Show error but still allow save — the old value stays
-          var quizErr = $('yb-la-ai-quiz-error');
-          if (quizErr) { quizErr.textContent = 'Quiz JSON er ugyldig: ' + e.message; quizErr.hidden = false; }
+      var summaryDa = $('yb-la-ai-summary-da').value.trim();
+      var summaryEn = $('yb-la-ai-summary-en').value.trim();
+      var quizDa = $('yb-la-ai-quiz-da').value.trim();
+      var quizEn = $('yb-la-ai-quiz-en').value.trim();
+      data.aiSummary_da = summaryDa;
+      data.aiSummary_en = summaryEn;
+      data.aiSummary = summaryDa || summaryEn; // legacy field
+      var quizErr = $('yb-la-ai-quiz-error');
+      if (quizErr) quizErr.hidden = true;
+      if (quizDa) {
+        try { JSON.parse(quizDa); data.aiQuiz_da = quizDa; } catch (e) {
+          if (quizErr) { quizErr.textContent = 'Quiz DA JSON ugyldig: ' + e.message; quizErr.hidden = false; }
         }
       }
+      if (quizEn) {
+        try { JSON.parse(quizEn); data.aiQuiz_en = quizEn; } catch (e) {
+          if (quizErr) { quizErr.textContent = 'Quiz EN JSON invalid: ' + e.message; quizErr.hidden = false; }
+        }
+      }
+      data.aiQuiz = quizDa || quizEn; // legacy field
     }
 
     return data;
@@ -1048,12 +1070,32 @@
       if (el) el.addEventListener('change', renderMbTable);
     });
 
+    // AI language tab switcher
+    var _currentAiLang = 'da';
+    window._aiLangTab = function (lang) {
+      _currentAiLang = lang;
+      var daEls = document.querySelectorAll('.yb-la-ai-lang-da');
+      var enEls = document.querySelectorAll('.yb-la-ai-lang-en');
+      for (var i = 0; i < daEls.length; i++) daEls[i].hidden = lang !== 'da';
+      for (var j = 0; j < enEls.length; j++) enEls[j].hidden = lang !== 'en';
+      var tabDa = $('yb-la-ai-tab-da');
+      var tabEn = $('yb-la-ai-tab-en');
+      if (tabDa) { tabDa.className = lang === 'da' ? 'yb-btn yb-btn--sm' : 'yb-btn yb-btn--outline yb-btn--sm'; tabDa.style.borderRadius = '8px 0 0 8px'; tabDa.style.minWidth = '60px'; }
+      if (tabEn) { tabEn.className = lang === 'en' ? 'yb-btn yb-btn--sm' : 'yb-btn yb-btn--outline yb-btn--sm'; tabEn.style.borderRadius = '0 8px 8px 0'; tabEn.style.minWidth = '60px'; }
+      // Hide preview on tab switch
+      var previewEl = $('yb-la-ai-preview');
+      if (previewEl) previewEl.hidden = true;
+      var previewBtn2 = $('yb-la-ai-preview-btn');
+      if (previewBtn2) previewBtn2.textContent = 'Preview summary';
+    };
+
     // AI summary preview toggle
     var previewBtn = $('yb-la-ai-preview-btn');
     if (previewBtn) previewBtn.addEventListener('click', function () {
       var previewEl = $('yb-la-ai-preview');
       if (previewEl.hidden) {
-        previewEl.innerHTML = $('yb-la-ai-summary').value;
+        var activeField = _currentAiLang === 'en' ? $('yb-la-ai-summary-en') : $('yb-la-ai-summary-da');
+        previewEl.innerHTML = activeField ? activeField.value : '';
         previewEl.hidden = false;
         previewBtn.textContent = 'Hide preview';
       } else {
@@ -1081,6 +1123,10 @@
             // Reload the item to get fresh AI content
             apiFetch('get', { params: { id: id } }).then(function (r) {
               if (r.ok && r.item) {
+                $('yb-la-ai-summary-da').value = r.item.aiSummary_da || r.item.aiSummary || '';
+                $('yb-la-ai-summary-en').value = r.item.aiSummary_en || r.item.aiSummary || '';
+                $('yb-la-ai-quiz-da').value = r.item.aiQuiz_da ? formatJsonStr(r.item.aiQuiz_da) : (r.item.aiQuiz ? formatJsonStr(r.item.aiQuiz) : '');
+                $('yb-la-ai-quiz-en').value = r.item.aiQuiz_en ? formatJsonStr(r.item.aiQuiz_en) : (r.item.aiQuiz ? formatJsonStr(r.item.aiQuiz) : '');
                 $('yb-la-ai-summary').value = r.item.aiSummary || '';
                 $('yb-la-ai-quiz').value = r.item.aiQuiz ? formatJsonStr(r.item.aiQuiz) : '';
                 var statusEl = $('yb-la-ai-status');

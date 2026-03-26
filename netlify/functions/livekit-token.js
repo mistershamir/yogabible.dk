@@ -64,6 +64,10 @@ exports.handler = async function (event) {
         return handleCloseRoom(event);
       case 'room-status':
         return handleRoomStatus(params);
+      case 'stop-all-egresses':
+        return handleStopAllEgresses(event);
+      case 'start-egress':
+        return handleStartEgress(event);
       default:
         return jsonResponse(400, { ok: false, error: 'Unknown action: ' + action });
     }
@@ -137,6 +141,9 @@ function createToken(opts) {
   if (opts.roomAdmin) {
     payload.video.roomAdmin = true;
   }
+  if (opts.roomRecord) {
+    payload.video.roomRecord = true;
+  }
 
   var segments = base64url(JSON.stringify(header)) + '.' + base64url(JSON.stringify(payload));
   var signature = crypto.createHmac('sha256', apiSecret).update(segments).digest();
@@ -168,6 +175,7 @@ async function livekitApi(method, body, service) {
     canSubscribe: false,
     roomCreate: true,
     roomAdmin: true,
+    roomRecord: true,
     ttl: 60
   });
 
@@ -222,6 +230,22 @@ async function handleCreateRoom(event) {
   // Room name derived from session ID for consistency
   var roomName = 'yb-live-' + sessionId;
 
+  // Auto-close any previous room for this session (prevents zombie rooms)
+  if (session.livekitRoom && session.livekitRoom !== roomName) {
+    try {
+      var oldEgresses = await livekitApi('ListEgress', { room_name: session.livekitRoom }, 'livekit.Egress');
+      var oldItems = oldEgresses.items || oldEgresses.egresses || [];
+      for (var oe = 0; oe < oldItems.length; oe++) {
+        var oeid = oldItems[oe].egress_id || oldItems[oe].egressId;
+        if (oeid) try { await livekitApi('StopEgress', { egress_id: oeid }, 'livekit.Egress'); } catch (e) {}
+      }
+      await livekitApi('DeleteRoom', { room: session.livekitRoom });
+      console.log('[livekit-token] Auto-closed previous room:', session.livekitRoom);
+    } catch (cleanupErr) {
+      console.log('[livekit-token] Previous room cleanup skipped:', cleanupErr.message);
+    }
+  }
+
   // Create the room via LiveKit API
   try {
     await livekitApi('CreateRoom', {
@@ -259,35 +283,66 @@ async function handleCreateRoom(event) {
   });
 
   // ── Set up Mux recording via Room Composite Egress ──
-  var muxStreamId = null;
-  var muxPlaybackId = null;
-  try {
-    var muxResult = await muxFetch('/video/v1/live-streams', 'POST', {
-      playback_policy: ['public'],
-      new_asset_settings: { playback_policy: ['public'] },
-      latency_mode: 'low',
-      reconnect_window: 60,
-      max_continuous_duration: 21600
-    });
-    var muxStream = muxResult.data;
-    muxStreamId = muxStream.id;
-    muxPlaybackId = muxStream.playback_ids && muxStream.playback_ids[0]
-      ? muxStream.playback_ids[0].id : null;
+  // Skip if session already has a Mux stream (teacher is rejoining)
+  var isRejoin = session.status === 'live' && session.muxLiveStreamId;
+  var muxStreamId = session.muxLiveStreamId || null;
+  var muxPlaybackId = session.muxPlaybackId || null;
 
-    // Start LiveKit Room Composite Egress → RTMP to Mux
-    var rtmpUrl = 'rtmps://global-live.mux.com:443/app/' + muxStream.stream_key;
-    await livekitApi('StartRoomCompositeEgress', {
-      room_name: roomName,
-      stream_urls: [rtmpUrl],
-      layout: 'grid',
-      audio_only: false,
-      video_only: false
-    }, 'livekit.Egress');
+  if (!isRejoin) {
+    // Check for active egresses on this room first — prevent duplicates
+    var hasActiveEgress = false;
+    try {
+      var existingEgresses = await livekitApi('ListEgress', { room_name: roomName }, 'livekit.Egress');
+      var egressItems = existingEgresses.items || existingEgresses.egresses || [];
+      for (var ei = 0; ei < egressItems.length; ei++) {
+        var st = egressItems[ei].status;
+        if (st === 'EGRESS_STARTING' || st === 'EGRESS_ACTIVE' || st === 0 || st === 1) {
+          hasActiveEgress = true;
+          console.log('[livekit-token] Active egress already exists:', egressItems[ei].egress_id, 'status:', st);
+          break;
+        }
+      }
+    } catch (checkErr) {
+      console.log('[livekit-token] Could not check existing egresses:', checkErr.message);
+    }
 
-    console.log('[livekit-token] Recording egress started → Mux stream:', muxStreamId);
-  } catch (egressErr) {
-    // Recording failure should not block the session
-    console.error('[livekit-token] Recording setup failed (non-blocking):', egressErr.message);
+    if (hasActiveEgress) {
+      console.log('[livekit-token] Skipping egress creation — active egress exists for room:', roomName);
+    } else {
+      try {
+        var muxResult = await muxFetch('/video/v1/live-streams', 'POST', {
+          playback_policy: ['public'],
+          new_asset_settings: { playback_policy: ['public'] },
+          latency_mode: 'low',
+          reconnect_window: 60,
+          max_continuous_duration: 21600
+        });
+        var muxStream = muxResult.data;
+        muxStreamId = muxStream.id;
+        muxPlaybackId = muxStream.playback_ids && muxStream.playback_ids[0]
+          ? muxStream.playback_ids[0].id : null;
+
+        // Start LiveKit Room Composite Egress → RTMP to Mux
+        var rtmpUrl = 'rtmps://global-live.mux.com:443/app/' + muxStream.stream_key;
+        await livekitApi('StartRoomCompositeEgress', {
+          room_name: roomName,
+          layout: 'grid',
+          audio_only: false,
+          video_only: false,
+          stream_outputs: [{
+            urls: [rtmpUrl],
+            protocol: 0
+          }]
+        }, 'livekit.Egress');
+
+        console.log('[livekit-token] Recording egress started → Mux stream:', muxStreamId);
+      } catch (egressErr) {
+        // Recording failure should not block the session
+        console.error('[livekit-token] Recording setup failed (non-blocking):', egressErr.message);
+      }
+    }
+  } else {
+    console.log('[livekit-token] Rejoin — reusing existing Mux stream:', muxStreamId);
   }
 
   // Update session with LiveKit room info + Mux recording info
@@ -297,9 +352,10 @@ async function handleCreateRoom(event) {
     livekitRoom: roomName,
     streamSource: 'remote',
     status: 'live',
-    liveStartedAt: new Date().toISOString(),
     updated_by: user.email
   };
+  // Only set liveStartedAt on first go-live, not on rejoin
+  if (!isRejoin) sessionUpdate.liveStartedAt = new Date().toISOString();
   if (muxStreamId) sessionUpdate.muxLiveStreamId = muxStreamId;
   if (muxPlaybackId) sessionUpdate.muxPlaybackId = muxPlaybackId;
 
@@ -467,6 +523,24 @@ async function handleCloseRoom(event) {
     return jsonResponse(400, { ok: false, error: 'roomName is required' });
   }
 
+  // Stop any active egresses for this room before deleting it
+  try {
+    var egressList = await livekitApi('ListEgress', { room_name: roomName }, 'livekit.Egress');
+    var egresses = egressList.items || egressList.egresses || [];
+    for (var e = 0; e < egresses.length; e++) {
+      var eid = egresses[e].egress_id || egresses[e].egressId;
+      if (!eid) continue;
+      try {
+        await livekitApi('StopEgress', { egress_id: eid }, 'livekit.Egress');
+        console.log('[livekit-token] Egress stopped:', eid);
+      } catch (stopErr) {
+        console.log('[livekit-token] Egress stop failed:', eid, stopErr.message);
+      }
+    }
+  } catch (listErr) {
+    console.log('[livekit-token] ListEgress failed (room may not exist):', listErr.message);
+  }
+
   try {
     await livekitApi('DeleteRoom', { room: roomName });
     console.log('[livekit-token] Room deleted:', roomName, 'by:', user.email);
@@ -474,9 +548,26 @@ async function handleCloseRoom(event) {
     console.log('[livekit-token] Room delete failed (may not exist):', err.message);
   }
 
-  // Update session status
+  // Update session status + stop Mux stream
   if (sessionId) {
     var session = await getDoc(COLLECTION, sessionId);
+
+    // Stop Mux live stream if one was created (prevents orphan recording after room deletion)
+    if (session && session.muxLiveStreamId) {
+      try {
+        await muxFetch('/video/v1/live-streams/' + session.muxLiveStreamId + '/complete', 'PUT');
+        console.log('[livekit-token] Mux stream completed:', session.muxLiveStreamId);
+      } catch (muxErr) {
+        console.log('[livekit-token] Mux stream complete failed (may already be idle):', muxErr.message);
+      }
+      try {
+        await muxFetch('/video/v1/live-streams/' + session.muxLiveStreamId + '/disable', 'PUT');
+        console.log('[livekit-token] Mux stream disabled:', session.muxLiveStreamId);
+      } catch (muxErr2) {
+        console.log('[livekit-token] Mux stream disable failed:', muxErr2.message);
+      }
+    }
+
     if (session && session.status === 'live') {
       var liveStarted = session.liveStartedAt ? new Date(session.liveStartedAt) : null;
       var durationMs = liveStarted ? (Date.now() - liveStarted.getTime()) : Infinity;
@@ -500,6 +591,162 @@ async function handleCloseRoom(event) {
   }
 
   return jsonResponse(200, { ok: true });
+}
+
+// ═══════════════════════════════════════════════════════
+// Start egress for an active room (admin only)
+// Stops orphaned egresses first, then starts a new one
+// ═══════════════════════════════════════════════════════
+async function handleStartEgress(event) {
+  var user = await requireAuth(event, ['admin']);
+  if (user.error) return user.error;
+
+  var body = JSON.parse(event.body || '{}');
+  var sessionId = body.sessionId;
+  if (!sessionId) return jsonResponse(400, { ok: false, error: 'sessionId is required' });
+
+  var session = await getDoc(COLLECTION, sessionId);
+  if (!session) return jsonResponse(404, { ok: false, error: 'Session not found' });
+  if (!session.livekitRoom) return jsonResponse(400, { ok: false, error: 'Session has no active LiveKit room' });
+
+  var roomName = session.livekitRoom;
+
+  // Step 1: Check for active egresses on this room — prevent duplicates
+  try {
+    var egressList = await livekitApi('ListEgress', { room_name: roomName }, 'livekit.Egress');
+    var egresses = egressList.items || egressList.egresses || [];
+    for (var i = 0; i < egresses.length; i++) {
+      var st = egresses[i].status;
+      if (st === 'EGRESS_STARTING' || st === 'EGRESS_ACTIVE' || st === 0 || st === 1) {
+        return jsonResponse(200, {
+          ok: true,
+          roomName: roomName,
+          muxStreamId: session.muxLiveStreamId,
+          message: 'Egress already active — skipped duplicate',
+          existingEgressId: egresses[i].egress_id
+        });
+      }
+    }
+    // Stop any completed/failed egresses (cleanup)
+    for (var j = 0; j < egresses.length; j++) {
+      var eid = egresses[j].egress_id || egresses[j].egressId;
+      if (!eid) continue;
+      try {
+        await livekitApi('StopEgress', { egress_id: eid }, 'livekit.Egress');
+      } catch (stopErr) { /* already complete/stopped */ }
+    }
+  } catch (listErr) {
+    console.log('[livekit-token] ListEgress failed:', listErr.message);
+  }
+
+  // Step 2: Get or create Mux live stream
+  var muxStreamId = session.muxLiveStreamId;
+  var streamKey = null;
+
+  if (muxStreamId) {
+    // Fetch existing stream key from Mux
+    try {
+      var muxData = await muxFetch('/video/v1/live-streams/' + muxStreamId, 'GET');
+      streamKey = muxData.data.stream_key;
+      // Re-enable the stream if it was disabled
+      if (muxData.data.status === 'disabled') {
+        await muxFetch('/video/v1/live-streams/' + muxStreamId + '/enable', 'PUT');
+      }
+    } catch (muxErr) {
+      console.log('[livekit-token] Could not fetch existing Mux stream, creating new one:', muxErr.message);
+      muxStreamId = null;
+    }
+  }
+
+  if (!muxStreamId) {
+    // Create a new Mux live stream
+    var muxResult = await muxFetch('/video/v1/live-streams', 'POST', {
+      playback_policy: ['public'],
+      new_asset_settings: { playback_policy: ['public'], master_access: 'temporary' },
+      latency_mode: 'low',
+      reconnect_window: 60,
+      max_continuous_duration: 21600
+    });
+    muxStreamId = muxResult.data.id;
+    streamKey = muxResult.data.stream_key;
+    var muxPlaybackId = muxResult.data.playback_ids && muxResult.data.playback_ids[0]
+      ? muxResult.data.playback_ids[0].id : null;
+
+    await updateDoc(COLLECTION, sessionId, {
+      muxLiveStreamId: muxStreamId,
+      muxPlaybackId: muxPlaybackId
+    });
+  }
+
+  if (!streamKey) {
+    return jsonResponse(500, { ok: false, error: 'Could not get Mux stream key' });
+  }
+
+  // Step 3: Start Room Composite Egress → RTMP to Mux
+  var rtmpUrl = 'rtmps://global-live.mux.com:443/app/' + streamKey;
+  try {
+    await livekitApi('StartRoomCompositeEgress', {
+      room_name: roomName,
+      layout: 'grid',
+      audio_only: false,
+      video_only: false,
+      stream_outputs: [{
+        urls: [rtmpUrl],
+        protocol: 0
+      }]
+    }, 'livekit.Egress');
+    console.log('[livekit-token] Egress started for room:', roomName, '→ Mux:', muxStreamId);
+  } catch (egressErr) {
+    return jsonResponse(500, { ok: false, error: 'Failed to start egress: ' + egressErr.message });
+  }
+
+  return jsonResponse(200, {
+    ok: true,
+    roomName: roomName,
+    muxStreamId: muxStreamId,
+    message: 'Egress started — recording from now'
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// Stop all active egresses (admin only)
+// ═══════════════════════════════════════════════════════
+async function handleStopAllEgresses(event) {
+  var user = await requireAuth(event, ['admin']);
+  if (user.error) return user.error;
+
+  try {
+    var egressList = await livekitApi('ListEgress', {}, 'livekit.Egress');
+    var egresses = egressList.items || egressList.egresses || [];
+    var stopped = [];
+
+    for (var i = 0; i < egresses.length; i++) {
+      var eg = egresses[i];
+      var eid = eg.egress_id || eg.egressId;
+      if (!eid) continue;
+      try {
+        await livekitApi('StopEgress', { egress_id: eid }, 'livekit.Egress');
+        stopped.push(eid);
+      } catch (stopErr) {
+        console.log('[livekit-token] Egress stop failed:', eid, stopErr.message);
+      }
+    }
+
+    // Return raw egress data for debugging
+    var debugInfo = egresses.map(function(eg) {
+      return { keys: Object.keys(eg), egress_id: eg.egress_id, egressId: eg.egressId, status: eg.status, room_name: eg.room_name, roomName: eg.roomName };
+    });
+
+    return jsonResponse(200, {
+      ok: true,
+      total: egresses.length,
+      stopped: stopped.length,
+      stoppedIds: stopped,
+      debug: debugInfo
+    });
+  } catch (err) {
+    return jsonResponse(500, { ok: false, error: err.message });
+  }
 }
 
 // ═══════════════════════════════════════════════════════

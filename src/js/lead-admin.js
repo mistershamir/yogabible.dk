@@ -35,7 +35,7 @@
   var currentLeadId = null;
   var currentLead = null;
   var lastDoc = null;
-  var PAGE_SIZE = 50;
+  var PAGE_SIZE = 10000; // Load all leads at once for instant search
   var totalLeadCount = null; // true DB count (from aggregation query)
   var searchTerm = '';
   var filterStatuses = []; // multi-select array
@@ -332,6 +332,7 @@
     }).join('');
 
     modal.hidden = false;
+    positionModalInIframe(modal);
 
     function close() {
       modal.hidden = true;
@@ -394,6 +395,23 @@
     return labels[(type || '').toLowerCase()] || type || '\u2014';
   }
 
+  /** Render a colored channel badge */
+  function channelBadgeHtml(channel) {
+    if (!channel) return '\u2014';
+    var ch = channel.toLowerCase();
+    var color = '#6B7280'; // default gray
+    if (ch.includes('google ads')) color = '#4285F4';
+    else if (ch.includes('google') && ch.includes('organic')) color = '#34A853';
+    else if (ch.includes('meta ads') || ch.includes('instagram ads')) color = '#1877F2';
+    else if (ch.includes('ai referral')) color = '#8B5CF6';
+    else if (ch.includes('social')) color = '#E4405F';
+    else if (ch.includes('email')) color = '#f75c03';
+    else if (ch.includes('sms')) color = '#22C55E';
+    else if (ch.includes('referral')) color = '#F59E0B';
+    else if (ch === 'direct') color = '#6B7280';
+    return '<span class="yb-lead__channel-badge" style="background:' + color + '">' + esc(channel.substring(0, 25)) + '</span>';
+  }
+
   function lcRecencyColor(d) {
     if (!d) return '#6F6A66';
     var date = d.toDate ? d.toDate() : new Date(d);
@@ -422,30 +440,22 @@
       query = query.where('archived', '==', true);
     }
 
-    // When any chip filter is active, load a large batch and filter client-side.
-    // This avoids composite index requirements and supports multi-select combinations.
-    var hasFilters = filterStatuses.length > 0 || filterTypes.length > 0 ||
-      filterSource || filterPriority || filterTemperature || filterSubType;
-
-    var batchSize = hasFilters ? 1000 : PAGE_SIZE;
-    if (!hasFilters && lastDoc) query = query.startAfter(lastDoc);
-
-    query.limit(batchSize).get().then(function (snap) {
+    query.limit(PAGE_SIZE).get().then(function (snap) {
       snap.forEach(function (doc) {
         var data = Object.assign({ id: doc.id }, doc.data());
         if (!showArchived && data.archived === true) return;
         leads.push(data);
       });
 
-      // Pagination only applies when no client-side filters are active
-      lastDoc = (!hasFilters && snap.docs.length) ? snap.docs[snap.docs.length - 1] : null;
+      lastDoc = null; // No pagination needed — all loaded at once
 
       renderLeadView();
       renderLeadStats();
       updateBulkBar();
 
+      // Hide Load More — everything is already loaded
       var loadMore = $('yb-lead-load-more-wrap');
-      if (loadMore) loadMore.hidden = hasFilters || snap.docs.length < PAGE_SIZE;
+      if (loadMore) loadMore.hidden = true;
 
     }).catch(function (err) {
       console.error('[lead-admin] Load error:', err);
@@ -496,15 +506,11 @@
     var countEl = $('yb-lead-count');
     if (!countEl) return;
     var filtered = getFilteredLeads();
-    var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
-    if (filtered.length < leads.length) {
-      // Search filter active: "X matching / Y loaded / Z total"
-      countEl.textContent = filtered.length + ' ' + t('leads_matching') + ' / ' + leads.length + ' ' + t('leads_loaded') + ' / ' + dbTotal + ' ' + t('leads_stat_total').toLowerCase();
-    } else if (leads.length < dbTotal) {
-      // Not all loaded yet: "Y loaded / Z total"
-      countEl.textContent = leads.length + ' ' + t('leads_loaded') + ' ' + t('leads_of') + ' ' + dbTotal;
+    var total = leads.length;
+    if (filtered.length < total) {
+      countEl.textContent = filtered.length + ' ' + t('leads_matching') + ' ' + t('leads_of') + ' ' + total;
     } else {
-      countEl.textContent = filtered.length + ' ' + t('leads_of') + ' ' + dbTotal;
+      countEl.textContent = total + ' ' + t('leads_stat_total').toLowerCase();
     }
   }
 
@@ -514,6 +520,13 @@
      so that old leads with verbose sources still match.
      ══════════════════════════════════════════ */
   function matchesSourceFilter(lead, filterValue) {
+    // Channel-based filters (prefixed with "ch:")
+    if (filterValue.indexOf('ch:') === 0) {
+      var chFilter = filterValue.substring(3).toLowerCase();
+      var ch = (lead.channel || '').toLowerCase();
+      return ch.indexOf(chFilter) !== -1;
+    }
+
     var src  = (lead.source || '').toLowerCase();
     var type = (lead.type   || '').toLowerCase();
     var ytt  = (lead.ytt_program_type || '').toLowerCase();
@@ -718,7 +731,7 @@
     updateCountDisplay();
 
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;padding:2rem;color:var(--yb-muted)">' + t('leads_no_leads') + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="16" style="text-align:center;padding:2rem;color:var(--yb-muted)">' + t('leads_no_leads') + '</td></tr>';
       return;
     }
 
@@ -744,6 +757,53 @@
         unreadBadge = ' <span class="yb-lead__sms-unread-icon" title="Unread SMS">\ud83d\udce9</span>';
       }
 
+      // Schedule engagement badge
+      var schedBadge = '';
+      var se = l.schedule_engagement;
+      if (se && se.total_visits) {
+        var sePages = se.pages || {};
+        var seMaxScroll = 0;
+        for (var sk in sePages) { if (sePages[sk].max_scroll > seMaxScroll) seMaxScroll = sePages[sk].max_scroll; }
+        if (se.total_visits >= 3 && seMaxScroll >= 75) {
+          schedBadge = ' <span class="yb-lead__sched-badge" style="color:#155724" title="Viewed schedule ' + se.total_visits + 'x, scrolled ' + seMaxScroll + '%">\ud83d\udcc5\ud83d\udd25</span>';
+        } else if (se.total_visits >= 2 || seMaxScroll >= 50) {
+          schedBadge = ' <span class="yb-lead__sched-badge" style="color:#856404" title="Viewed schedule ' + se.total_visits + 'x, scrolled ' + seMaxScroll + '%">\ud83d\udcc5</span>';
+        } else {
+          schedBadge = ' <span class="yb-lead__sched-badge" style="color:#6F6A66" title="Viewed schedule ' + se.total_visits + 'x, scrolled ' + seMaxScroll + '%">\ud83d\udcc5</span>';
+        }
+      }
+
+      // Email engagement badge
+      var emailBadge = '';
+      var ee = l.email_engagement;
+      if (ee) {
+        var opens = ee.total_opens || 0;
+        var clicks = ee.total_clicks || 0;
+        if (clicks >= 3) {
+          emailBadge = ' <span style="color:#155724" title="' + opens + ' opens, ' + clicks + ' clicks">\u2709\ufe0f\ud83d\udd25</span>';
+        } else if (clicks >= 1 || opens >= 3) {
+          emailBadge = ' <span style="color:#856404" title="' + opens + ' opens, ' + clicks + ' clicks">\u2709\ufe0f</span>';
+        }
+      }
+
+      // Site browsing badge
+      var siteBadge = '';
+      var ste = l.site_engagement;
+      if (ste && ste.total_pageviews >= 3) {
+        var sitePages = ste.total_pageviews || 0;
+        var interests = (ste.interests || []).join(', ');
+        siteBadge = ' <span style="color:#0d47a1" title="Browsed ' + sitePages + ' pages. Interests: ' + interests + '">\ud83c\udf10</span>';
+      }
+
+      // Re-engagement badge (came back after silence)
+      var reEngBadge = '';
+      if (l.re_engaged && l.re_engaged_at) {
+        var reEvents = l.re_engagement_events || [];
+        var lastRe = reEvents.length > 0 ? reEvents[reEvents.length - 1] : null;
+        var reDays = lastRe ? lastRe.days_inactive : '?';
+        reEngBadge = ' <span style="color:#f75c03;font-weight:700" title="Came back after ' + reDays + ' days of silence!">\ud83d\udd04</span>';
+      }
+
       // Notes count
       var notesCount = Array.isArray(l.notes) ? l.notes.length : 0;
 
@@ -759,14 +819,17 @@
         '<td class="yb-lead__cell-name">' +
           priorityBadgeHtml(l.priority) +
           esc((l.first_name || '') + ' ' + (l.last_name || '')).trim() +
-          unreadBadge +
+          unreadBadge + reEngBadge + schedBadge + emailBadge + siteBadge +
         '</td>' +
         '<td class="yb-lead__cell-contact">' +
-          '<div class="yb-lead__cell-email-text">' + esc(l.email || '') + '</div>' +
+          '<div class="yb-lead__cell-email-text">' + esc(l.email || '') +
+          (l.email_bounced ? ' <span class="yb-lead__bounce-badge" title="Email bounced ' + (l.bounce_count || '') + ' time(s)">BOUNCED</span>' : '') +
+          '</div>' +
           (l.phone ? '<a href="tel:' + esc(l.phone) + '" class="yb-lead__cell-phone-link" onclick="event.stopPropagation()">' + esc(l.phone) + '</a>' : '') +
         '</td>' +
         '<td><span class="yb-lead__type-badge">' + typeBadge(l.type) + '</span></td>' +
         '<td class="yb-lead__cell-program">' + esc((l.program || l.cohort_label || '').substring(0, 30)) + '</td>' +
+        '<td class="yb-lead__cell-channel">' + channelBadgeHtml(l.channel) + '</td>' +
         '<td class="yb-lead__cell-source">' + esc((l.source || '').substring(0, 20)) + '</td>' +
         '<td>' + statusBadgeHtml(l.status) +
           (l.sub_status ? '<div class="yb-lead__sub-status">' + esc(l.sub_status) + '</div>' : '') +
@@ -802,7 +865,7 @@
   /* ── Expandable inline row ── */
   function buildExpandedRow(l) {
     var notes = Array.isArray(l.notes) ? l.notes : [];
-    var lastTwoNotes = notes.slice(-2).reverse();
+    var lastFiveNotes = notes.slice(-5).reverse();
 
     var lcColor = lcRecencyColor(l.last_contact);
 
@@ -810,8 +873,23 @@
       ? '<span class="yb-lead__app-badge--inline" style="color:#155724">\u2713 App</span>'
       : '<span style="color:#6F6A66">\u2014</span>';
 
+    // Status options for inline dropdown
+    var statusOptions = [
+      { v: 'New', l: '\u2728 New' }, { v: 'Contacted', l: '\ud83d\udce7 Contacted' },
+      { v: 'No Answer', l: '\ud83d\udd14 No Answer' }, { v: 'Follow-up', l: '\ud83d\udd04 Follow-up' },
+      { v: 'Engaged', l: '\ud83d\udcac Engaged' }, { v: 'Strongly Interested', l: '\u2b50 Strongly Interested' },
+      { v: 'Qualified', l: '\u2705 Qualified' }, { v: 'Negotiating', l: '\ud83e\udd1d Negotiating' },
+      { v: 'Converted', l: '\ud83c\udf89 Converted' }, { v: 'On Hold', l: '\u23f8\ufe0f On Hold' },
+      { v: 'Interested In Next Round', l: '\ud83d\udcc5 Next Round' },
+      { v: 'Not too keen', l: '\ud83d\ude10 Not too keen' },
+      { v: 'Lost', l: '\ud83d\udc4e Lost' }, { v: 'Closed', l: '\u2716 Closed' }
+    ];
+    var statusOpts = statusOptions.map(function (o) {
+      return '<option value="' + esc(o.v) + '"' + (l.status === o.v ? ' selected' : '') + '>' + o.l + '</option>';
+    }).join('');
+
     var html = '<tr class="yb-lead__expanded-row" data-expanded-for="' + l.id + '">' +
-      '<td colspan="15" class="yb-lead__expanded-cell">' +
+      '<td colspan="16" class="yb-lead__expanded-cell">' +
       '<div class="yb-lead__expanded-panel">' +
 
       // Row 1: Quick stats
@@ -840,7 +918,36 @@
         '</div>' +
       '</div>';
 
-    // Row 2: Location + Accommodation
+    // Row 2: Inline status change
+    html += '<div class="yb-lead__exp-row yb-lead__exp-status-row">' +
+      '<div class="yb-lead__exp-stat" style="flex:0 0 auto">' +
+        '<span class="yb-lead__exp-label">' + t('leads_col_status') + '</span>' +
+        '<select class="yb-admin__select yb-lead__exp-status-select" data-lead-id="' + l.id + '" data-field="status">' +
+          statusOpts +
+        '</select>' +
+      '</div>' +
+      '<div class="yb-lead__exp-stat" style="flex:0 0 auto">' +
+        '<span class="yb-lead__exp-label">' + t('leads_temperature') + '</span>' +
+        '<select class="yb-admin__select yb-lead__exp-status-select" data-lead-id="' + l.id + '" data-field="temperature">' +
+          '<option value=""' + (!l.temperature ? ' selected' : '') + '>\u2014</option>' +
+          '<option value="hot"' + (l.temperature === 'hot' ? ' selected' : '') + '>\ud83d\udd25 Hot</option>' +
+          '<option value="warm"' + (l.temperature === 'warm' ? ' selected' : '') + '>\u2600\ufe0f Warm</option>' +
+          '<option value="cold"' + (l.temperature === 'cold' ? ' selected' : '') + '>\u2744\ufe0f Cold</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="yb-lead__exp-stat" style="flex:0 0 auto">' +
+        '<span class="yb-lead__exp-label">' + t('leads_priority') + '</span>' +
+        '<select class="yb-admin__select yb-lead__exp-status-select" data-lead-id="' + l.id + '" data-field="priority">' +
+          '<option value=""' + (!l.priority ? ' selected' : '') + '>\u2014</option>' +
+          '<option value="urgent"' + (l.priority === 'urgent' ? ' selected' : '') + '>\ud83d\udd34 Urgent</option>' +
+          '<option value="high"' + (l.priority === 'high' ? ' selected' : '') + '>\ud83d\udfe0 High</option>' +
+          '<option value="normal"' + (l.priority === 'normal' ? ' selected' : '') + '>\ud83d\udfe2 Normal</option>' +
+          '<option value="low"' + (l.priority === 'low' ? ' selected' : '') + '>\u26aa Low</option>' +
+        '</select>' +
+      '</div>' +
+    '</div>';
+
+    // Row 3: Location + Accommodation
     if (l.city_country || (l.accommodation && l.accommodation !== 'No')) {
       html += '<div class="yb-lead__exp-row">';
       if (l.city_country) {
@@ -852,21 +959,33 @@
       html += '</div>';
     }
 
-    // Row 3: Notes preview
-    if (lastTwoNotes.length) {
+    // Row 4: Notes timeline (show last 5 + add note input)
+    html += '<div class="yb-lead__exp-notes-section">' +
+      '<div class="yb-lead__exp-notes-header">' +
+        '<span class="yb-lead__exp-label">\ud83d\udcdd ' + t('leads_notes') + ' (' + notes.length + ')</span>' +
+      '</div>';
+    if (lastFiveNotes.length) {
       html += '<div class="yb-lead__exp-notes">';
-      lastTwoNotes.forEach(function (n) {
+      lastFiveNotes.forEach(function (n) {
         var noteIcons = { call: '\ud83d\udcde', email: '\u2709\ufe0f', sms: '\ud83d\udcf1', note: '\ud83d\udcdd', system: '\u2699\ufe0f' };
         html += '<div class="yb-lead__exp-note">' +
           '<span class="yb-lead__exp-note-icon">' + (noteIcons[n.type] || '\ud83d\udcdd') + '</span>' +
           '<span class="yb-lead__exp-note-time">' + relativeTime(n.timestamp) + '</span>' +
-          '<span class="yb-lead__exp-note-text">' + esc((n.text || '').substring(0, 120)) + (n.text && n.text.length > 120 ? '\u2026' : '') + '</span>' +
+          '<span class="yb-lead__exp-note-text">' + esc((n.text || '').substring(0, 200)) + (n.text && n.text.length > 200 ? '\u2026' : '') + '</span>' +
         '</div>';
       });
       html += '</div>';
+    } else {
+      html += '<div style="color:#6F6A66;font-size:0.82rem;padding:0.25rem 0">' + t('leads_no_notes') + '</div>';
     }
+    // Add note inline
+    html += '<div class="yb-lead__exp-add-note">' +
+      '<input type="text" class="yb-lead__exp-note-input" data-lead-id="' + l.id + '" placeholder="' + t('leads_note_placeholder') + '">' +
+      '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="add-note-inline" data-id="' + l.id + '">' + t('leads_add_note_btn') + '</button>' +
+    '</div>';
+    html += '</div>';
 
-    // Row 4: Message excerpt
+    // Row 5: Message excerpt
     if (l.message) {
       html += '<div class="yb-lead__exp-message">\ud83d\udcac ' + esc(l.message.substring(0, 200)) + (l.message.length > 200 ? '\u2026' : '') + '</div>';
     }
@@ -1057,6 +1176,7 @@
       (followupText
         ? '<div class="yb-lead__kanban-followup' + followupUrgency + '">\ud83d\udcc5 ' + followupText + '</div>'
         : '') +
+      (l.channel ? '<div class="yb-lead__kanban-channel">' + channelBadgeHtml(l.channel) + '</div>' : '') +
       (l.source ? '<div class="yb-lead__kanban-source">' + esc(l.source.substring(0, 25)) + '</div>' : '') +
     '</div>';
   }
@@ -1215,9 +1335,25 @@
       '</div>';
     }
     html += '<div class="yb-lead__card-row">' +
+      '<span class="yb-lead__card-label">' + t('leads_channel') + '</span>' +
+      '<span class="yb-lead__card-value">' + channelBadgeHtml(l.channel) + '</span>' +
+    '</div>';
+    html += '<div class="yb-lead__card-row">' +
       '<span class="yb-lead__card-label">' + t('leads_source') + '</span>' +
       '<span class="yb-lead__card-value">' + esc(l.source || '\u2014') + '</span>' +
     '</div>';
+    if (l.utm_campaign) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">UTM Campaign</span>' +
+        '<span class="yb-lead__card-value">' + esc(l.utm_campaign) + '</span>' +
+      '</div>';
+    }
+    if (l.landing_page) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Landing Page</span>' +
+        '<span class="yb-lead__card-value">' + esc(l.landing_page) + '</span>' +
+      '</div>';
+    }
     html += '<div class="yb-lead__card-row">' +
       '<span class="yb-lead__card-label">' + t('leads_col_date') + '</span>' +
       '<span class="yb-lead__card-value">' + fmtDateTime(l.created_at) + '</span>' +
@@ -1350,6 +1486,203 @@
 
     html += '</div>'; // end card 3
 
+    // Card 4: Schedule Engagement (from visit tracking)
+    var eng = l.schedule_engagement;
+    if (eng && eng.pages && Object.keys(eng.pages).length > 0) {
+      html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+      html += '<h4 class="yb-lead__card-title">SCHEDULE ENGAGEMENT</h4>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Total Visits</span>' +
+        '<span class="yb-lead__card-value"><strong>' + (eng.total_visits || 0) + '</strong></span>' +
+      '</div>';
+      if (eng.last_visit) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Last Visit</span>' +
+          '<span class="yb-lead__card-value">' + fmtDateTime(eng.last_visit) + '</span>' +
+        '</div>';
+      }
+      if (eng.last_page) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Last Page</span>' +
+          '<span class="yb-lead__card-value">' + esc(eng.last_page) + '</span>' +
+        '</div>';
+      }
+      // Per-page breakdown
+      var pages = eng.pages || {};
+      var slugs = Object.keys(pages);
+      if (slugs.length > 0) {
+        html += '<div style="margin-top:8px;border-top:1px solid #E8E4E0;padding-top:8px;">';
+        slugs.forEach(function (slug) {
+          var p = pages[slug];
+          var visits = p.visit_count || 0;
+          var scroll = p.max_scroll || 0;
+          var secs = p.total_seconds || 0;
+          var mins = secs >= 60 ? Math.floor(secs / 60) + 'm ' + (secs % 60) + 's' : secs + 's';
+          // Engagement level badges
+          var level = '';
+          if (visits >= 3 && scroll >= 75) {
+            level = '<span class="yb-lead__badge" style="background:#d4edda;color:#155724;margin-left:6px;">🔥 High</span>';
+          } else if (visits >= 2 || scroll >= 50) {
+            level = '<span class="yb-lead__badge" style="background:#FFF3CD;color:#856404;margin-left:6px;">📊 Medium</span>';
+          } else {
+            level = '<span class="yb-lead__badge" style="background:#F5F3F0;color:#6F6A66;margin-left:6px;">👀 Low</span>';
+          }
+          html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;flex-wrap:wrap;">';
+          html += '<span style="font-weight:600;font-size:.82rem;">' + esc(slug) + '</span>' + level;
+          html += '<span style="font-size:.75rem;color:#6F6A66;margin-left:auto;">' +
+            visits + ' visit' + (visits !== 1 ? 's' : '') +
+            ' · ' + scroll + '% scrolled' +
+            ' · ' + mins + ' on page' +
+          '</span>';
+          if (p.last_visit) {
+            html += '<span style="font-size:.72rem;color:#6F6A66;">(last: ' + fmtDateTime(p.last_visit) + ')</span>';
+          }
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+      html += '</div>'; // end card 4
+    }
+
+    // Card 5: Email Engagement
+    var ee = l.email_engagement;
+    if (ee && (ee.total_opens || ee.total_clicks)) {
+      html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+      html += '<h4 class="yb-lead__card-title">EMAIL ENGAGEMENT</h4>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Opens</span>' +
+        '<span class="yb-lead__card-value"><strong>' + (ee.total_opens || 0) + '</strong></span>' +
+      '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Clicks</span>' +
+        '<span class="yb-lead__card-value"><strong>' + (ee.total_clicks || 0) + '</strong></span>' +
+      '</div>';
+      if (ee.last_opened) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Last Opened</span>' +
+          '<span class="yb-lead__card-value">' + fmtDateTime(ee.last_opened) + '</span>' +
+        '</div>';
+      }
+      if (ee.last_clicked) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Last Clicked</span>' +
+          '<span class="yb-lead__card-value">' + fmtDateTime(ee.last_clicked) + '</span>' +
+        '</div>';
+      }
+      // Recent clicked links
+      var clicks = ee.clicks || [];
+      if (clicks.length > 0) {
+        html += '<div style="margin-top:8px;border-top:1px solid #E8E4E0;padding-top:8px;">';
+        html += '<div style="font-size:.75rem;font-weight:600;color:#6F6A66;margin-bottom:4px;">RECENT CLICKS</div>';
+        var recentClicks = clicks.slice(-8).reverse();
+        recentClicks.forEach(function (c) {
+          var shortUrl = (c.url || '').replace('https://www.yogabible.dk', '').replace('https://yogabible.dk', '') || c.url;
+          html += '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:.78rem;">' +
+            '<span style="color:#f75c03;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%;">' + esc(shortUrl) + '</span>' +
+            '<span style="color:#6F6A66;">' + (c.at ? fmtDateTime(c.at) : '') + '</span>' +
+          '</div>';
+        });
+        html += '</div>';
+      }
+      html += '</div>'; // end card 5
+    }
+
+    // Card 6: Website Browsing Activity
+    var ste = l.site_engagement;
+    if (ste && ste.total_pageviews) {
+      html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+      html += '<h4 class="yb-lead__card-title">WEBSITE ACTIVITY</h4>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Total Pageviews</span>' +
+        '<span class="yb-lead__card-value"><strong>' + (ste.total_pageviews || 0) + '</strong></span>' +
+      '</div>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Sessions</span>' +
+        '<span class="yb-lead__card-value">' + (ste.total_sessions || 0) + '</span>' +
+      '</div>';
+      var totalTimeSecs = ste.total_time_seconds || 0;
+      var totalTimeMins = totalTimeSecs >= 60 ? Math.floor(totalTimeSecs / 60) + 'm ' + (totalTimeSecs % 60) + 's' : totalTimeSecs + 's';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Total Time</span>' +
+        '<span class="yb-lead__card-value">' + totalTimeMins + '</span>' +
+      '</div>';
+      if (ste.last_visit) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Last Visit</span>' +
+          '<span class="yb-lead__card-value">' + fmtDateTime(ste.last_visit) + '</span>' +
+        '</div>';
+      }
+      // Interests
+      var interests = ste.interests || [];
+      if (interests.length > 0) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Interests</span>' +
+          '<span class="yb-lead__card-value">' + interests.map(function (i) {
+            return '<span class="yb-lead__badge" style="background:#FFF3CD;color:#856404;margin:1px 2px;">' + esc(i) + '</span>';
+          }).join(' ') + '</span>' +
+        '</div>';
+      }
+      // Top pages
+      var sitePages = ste.pages || {};
+      var spSlugs = Object.keys(sitePages).sort(function (a, b) {
+        return (sitePages[b].views || 0) - (sitePages[a].views || 0);
+      }).slice(0, 10);
+      if (spSlugs.length > 0) {
+        html += '<div style="margin-top:8px;border-top:1px solid #E8E4E0;padding-top:8px;">';
+        html += '<div style="font-size:.75rem;font-weight:600;color:#6F6A66;margin-bottom:4px;">TOP PAGES</div>';
+        spSlugs.forEach(function (slug) {
+          var sp = sitePages[slug];
+          var views = sp.views || 0;
+          var scroll = sp.max_scroll || 0;
+          var secs = sp.total_seconds || 0;
+          var mins = secs >= 60 ? Math.floor(secs / 60) + 'm ' + (secs % 60) + 's' : secs + 's';
+          html += '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;flex-wrap:wrap;font-size:.78rem;">' +
+            '<span style="font-weight:600;color:#1a1a1a;min-width:40%;">' + esc(sp.path || slug) + '</span>' +
+            '<span style="color:#6F6A66;margin-left:auto;">' +
+              views + ' view' + (views !== 1 ? 's' : '') +
+              ' · ' + scroll + '% · ' + mins +
+            '</span>' +
+          '</div>';
+        });
+        html += '</div>';
+      }
+      // CTA clicks
+      var ctaClicks = ste.cta_clicks || [];
+      if (ctaClicks.length > 0) {
+        html += '<div style="margin-top:8px;border-top:1px solid #E8E4E0;padding-top:8px;">';
+        html += '<div style="font-size:.75rem;font-weight:600;color:#6F6A66;margin-bottom:4px;">CTA CLICKS</div>';
+        ctaClicks.slice(-6).reverse().forEach(function (c) {
+          html += '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:.78rem;">' +
+            '<span style="color:#f75c03;">' + esc(c.text || '') + '</span>' +
+            '<span style="color:#6F6A66;">' + (c.at ? fmtDateTime(c.at) : '') + '</span>' +
+          '</div>';
+        });
+        html += '</div>';
+      }
+      html += '</div>'; // end card 6
+    }
+
+    // Card 7: Re-Engagement Events
+    var reEvents = l.re_engagement_events || [];
+    if (reEvents.length > 0) {
+      html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+      html += '<h4 class="yb-lead__card-title" style="color:#f75c03;">\ud83d\udd04 RE-ENGAGEMENT HISTORY</h4>';
+      reEvents.slice().reverse().forEach(function (re) {
+        var triggerLabel = re.trigger === 'email_open' ? 'Opened email' :
+          re.trigger === 'email_click' ? 'Clicked email link' :
+          re.trigger === 'site_visit' ? 'Visited website' : re.trigger;
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F5F3F0;">' +
+          '<div>' +
+            '<span style="font-weight:600;font-size:.82rem;">' + esc(triggerLabel) + '</span>' +
+            '<span class="yb-lead__badge" style="background:#FFF3CD;color:#856404;margin-left:6px;">after ' + re.days_inactive + ' days</span>' +
+            (re.detail ? '<div style="font-size:.72rem;color:#6F6A66;margin-top:2px;">' + esc(re.detail) + '</div>' : '') +
+          '</div>' +
+          '<span style="font-size:.72rem;color:#6F6A66;">' + (re.at ? fmtDateTime(re.at) : '') + '</span>' +
+        '</div>';
+      });
+      html += '</div>'; // end card 7
+    }
+
     html += '</div>'; // end yb-lead__detail-cards wrapper
 
     el.innerHTML = html;
@@ -1368,6 +1701,7 @@
     el = $('yb-lead-edit-phone'); if (el) el.value = l.phone || '';
     el = $('yb-lead-edit-city'); if (el) el.value = l.city_country || '';
     el = $('yb-lead-edit-source'); if (el) el.value = l.source || '';
+    el = $('yb-lead-edit-channel'); if (el) el.value = l.channel || '';
     el = $('yb-lead-edit-type'); if (el) el.value = l.type || '';
     el = $('yb-lead-edit-program'); if (el) el.value = l.program || '';
     el = $('yb-lead-edit-preferred-month'); if (el) el.value = l.preferred_month || '';
@@ -1390,6 +1724,7 @@
       { id: 'yb-lead-edit-phone', key: 'phone' },
       { id: 'yb-lead-edit-city', key: 'city_country' },
       { id: 'yb-lead-edit-source', key: 'source' },
+      { id: 'yb-lead-edit-channel', key: 'channel' },
       { id: 'yb-lead-edit-type', key: 'type' },
       { id: 'yb-lead-edit-program', key: 'program' },
       { id: 'yb-lead-edit-preferred-month', key: 'preferred_month' },
@@ -2040,6 +2375,7 @@
     if (prog) prog.hidden = true;
 
     modal.hidden = false;
+    positionModalInIframe(modal);
     modal._recipients = recipients;
     modal._isBulk = isBulk;
 
@@ -2175,6 +2511,7 @@
     if (prog) prog.hidden = true;
 
     modal.hidden = false;
+    positionModalInIframe(modal);
     modal._recipients = recipients;
     modal._isBulk = isBulk;
 
@@ -2413,7 +2750,7 @@
     var filtered = getFilteredLeads();
     if (!filtered.length) { toast(t('leads_no_leads'), true); return; }
 
-    var headers = ['Name', 'Email', 'Phone', 'Type', 'Program', 'Status', 'Sub-Status', 'Priority', 'Temperature', 'Source', 'Accommodation', 'City', 'Follow-up', 'Last Contact', 'Call Attempts', 'Created'];
+    var headers = ['Name', 'Email', 'Phone', 'Type', 'Program', 'Status', 'Sub-Status', 'Priority', 'Temperature', 'Channel', 'Source', 'UTM Campaign', 'Landing Page', 'Accommodation', 'City', 'Follow-up', 'Last Contact', 'Call Attempts', 'Created'];
     var rows = filtered.map(function (l) {
       return [
         (l.first_name || '') + ' ' + (l.last_name || ''),
@@ -2425,7 +2762,10 @@
         l.sub_status || '',
         l.priority || '',
         l.temperature || '',
+        l.channel || '',
         l.source || '',
+        l.utm_campaign || '',
+        l.landing_page || '',
         l.accommodation || '',
         l.city_country || '',
         fmtDate(l.followup_date),
@@ -2486,7 +2826,7 @@
   function loadApplications() {
     applications = [];
 
-    db.collection('applications').orderBy('created_at', 'desc').limit(200).get().then(function (snap) {
+    db.collection('applications').orderBy('created_at', 'desc').limit(10000).get().then(function (snap) {
       snap.forEach(function (doc) {
         applications.push(Object.assign({ id: doc.id }, doc.data()));
       });
@@ -3118,6 +3458,7 @@
     html += '</div>';
     body.innerHTML = html;
     modal.hidden = false;
+    positionModalInIframe(modal);
   }
 
   function appInvoiceDownloadPdf(bookedNumber) {
@@ -4001,7 +4342,7 @@
     if (!appLoaded) {
       // Load first, then navigate
       applications = [];
-      db.collection('applications').orderBy('created_at', 'desc').limit(200).get().then(function (snap) {
+      db.collection('applications').orderBy('created_at', 'desc').limit(10000).get().then(function (snap) {
         snap.forEach(function (doc) {
           applications.push(Object.assign({ id: doc.id }, doc.data()));
         });
@@ -4066,6 +4407,19 @@
   function bindLeadEvents() {
     // Delegated click handler
     document.addEventListener('click', function (e) {
+      // Close modals on overlay click (must run BEFORE the data-action guard)
+      if (e.target.classList.contains('yb-lead__modal-overlay')) {
+        var parentModal = e.target.closest('.yb-lead__modal');
+        if (parentModal) parentModal.hidden = true;
+        return;
+      }
+      // Close modal via X button
+      if (e.target.closest('.yb-lead__modal-close')) {
+        var parentM = e.target.closest('.yb-lead__modal');
+        if (parentM) parentM.hidden = true;
+        return;
+      }
+
       var btn = e.target.closest('[data-action]');
       if (!btn) return;
       var action = btn.getAttribute('data-action');
@@ -4075,7 +4429,7 @@
         // Lead actions
         case 'view-lead': e.preventDefault(); showLeadDetail(id); break;
         case 'back-leads': backToLeadList(); break;
-        case 'leads-refresh': loadLeads(); loadTotalLeadCount(); break;
+        case 'leads-refresh': loadLeads(); break;
         case 'leads-load-more': loadLeads(true); break;
         case 'delete-lead': deleteLead(id || currentLeadId); break;
         case 'restore-lead': restoreLead(id || currentLeadId); break;
@@ -4113,6 +4467,32 @@
             currentLeadId = id;
             currentLead = leads.find(function (l) { return l.id === id; });
             logCall();
+          }
+          break;
+        case 'add-note-inline':
+          if (id) {
+            var noteInput = document.querySelector('.yb-lead__exp-note-input[data-lead-id="' + id + '"]');
+            if (noteInput && noteInput.value.trim()) {
+              var inlineLead = leads.find(function (ll) { return ll.id === id; });
+              if (inlineLead) {
+                var inlineNote = {
+                  text: noteInput.value.trim(),
+                  timestamp: new Date().toISOString(),
+                  author: (firebase.auth().currentUser || {}).email || 'admin',
+                  type: 'note'
+                };
+                var existingNotes = Array.isArray(inlineLead.notes) ? inlineLead.notes.slice() : [];
+                existingNotes.push(inlineNote);
+                db.collection('leads').doc(id).update({
+                  notes: existingNotes,
+                  updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(function () {
+                  inlineLead.notes = existingNotes;
+                  toast(t('leads_note_added'));
+                  renderLeadTable();
+                }).catch(function (err) { toast('Error: ' + err.message, true); });
+              }
+            }
           }
           break;
         case 'leads-export-csv': exportCSV(); break;
@@ -4175,15 +4555,28 @@
           break;
       }
 
-      // Close modals on overlay click
-      if (e.target.classList.contains('yb-lead__modal-overlay')) {
-        var parentModal = e.target.closest('.yb-lead__modal');
-        if (parentModal) parentModal.hidden = true;
-      }
     });
 
-    // Checkbox changes
+    // Checkbox and inline status changes
     document.addEventListener('change', function (e) {
+      // Inline status/temperature/priority change from quick view
+      if (e.target.classList.contains('yb-lead__exp-status-select')) {
+        var selLeadId = e.target.getAttribute('data-lead-id');
+        var selField = e.target.getAttribute('data-field');
+        var selValue = e.target.value;
+        if (selLeadId && selField) {
+          var updateData = {};
+          updateData[selField] = selValue;
+          updateData.updated_at = firebase.firestore.FieldValue.serverTimestamp();
+          db.collection('leads').doc(selLeadId).update(updateData).then(function () {
+            var ll = leads.find(function (x) { return x.id === selLeadId; });
+            if (ll) ll[selField] = selValue;
+            toast(selField + ' updated');
+            renderLeadView();
+          }).catch(function (err) { toast('Error: ' + err.message, true); });
+        }
+        return;
+      }
       if (e.target.classList.contains('yb-lead__cb')) {
         toggleSelectLead(e.target.getAttribute('data-lead-id'));
       }
@@ -4571,6 +4964,51 @@
   }
 
   /* ══════════════════════════════════════════
+     IFRAME MODAL POSITIONING
+     In auto-sized iframes (member area), position:fixed doesn't work
+     because the iframe viewport equals the full document height.
+     We switch to position:absolute + calculate the visible offset.
+     ══════════════════════════════════════════ */
+  var isInIframe = window.self !== window.top;
+
+  function positionModalInIframe(modal) {
+    if (!isInIframe) return;
+    // In an auto-sized iframe, position:fixed is effectively position:absolute
+    // relative to the full iframe document. We need to calculate where the
+    // user's visible viewport is within the iframe document.
+    modal.style.position = 'absolute';
+    try {
+      // Same-origin: get parent scroll position and iframe offset
+      var iframeEl = null;
+      var parentIframes = parent.document.querySelectorAll('iframe');
+      for (var i = 0; i < parentIframes.length; i++) {
+        try {
+          if (parentIframes[i].contentWindow === window) {
+            iframeEl = parentIframes[i];
+            break;
+          }
+        } catch (e) { /* cross-origin */ }
+      }
+      if (iframeEl) {
+        var parentScrollY = parent.window.scrollY || parent.window.pageYOffset || 0;
+        var iframeRect = iframeEl.getBoundingClientRect();
+        var iframeTopInDoc = parentScrollY + iframeRect.top;
+        // The visible top within the iframe document
+        var visibleTop = Math.max(0, parentScrollY - iframeTopInDoc);
+        var viewportH = parent.window.innerHeight;
+        modal.style.top = visibleTop + 'px';
+        modal.style.height = viewportH + 'px';
+        modal.style.left = '0';
+        modal.style.right = '0';
+        modal.style.bottom = 'auto';
+      }
+    } catch (e) {
+      // Cross-origin fallback: just scroll to top
+      window.scrollTo(0, 0);
+    }
+  }
+
+  /* ══════════════════════════════════════════
      INIT
      ══════════════════════════════════════════ */
   function createModals() {
@@ -4583,6 +5021,7 @@
       sms.innerHTML =
         '<div class="yb-lead__modal-overlay"></div>' +
         '<div class="yb-lead__modal-box">' +
+          '<button type="button" class="yb-lead__modal-close" aria-label="Close">&times;</button>' +
           '<h3>\ud83d\udcf1 Send SMS</h3>' +
           '<div class="yb-lead__modal-to">' +
             'Til: <strong id="yb-sms-recipient-info"></strong>' +
@@ -4624,6 +5063,7 @@
       email.innerHTML =
         '<div class="yb-lead__modal-overlay"></div>' +
         '<div class="yb-lead__modal-box">' +
+          '<button type="button" class="yb-lead__modal-close" aria-label="Close">&times;</button>' +
           '<h3>\u2709\ufe0f Send Email</h3>' +
           '<div class="yb-lead__modal-to">' +
             'Til: <strong id="yb-email-recipient-info"></strong>' +
@@ -4678,7 +5118,6 @@
         var tab = btn.getAttribute('data-yb-admin-tab');
         if (tab === 'leads' && !leadsLoaded) {
           loadLeads();
-          loadTotalLeadCount();
           leadsLoaded = true;
         }
         if (tab === 'applications' && !appLoaded) {
@@ -4694,7 +5133,6 @@
         var tab = btn.getAttribute('data-yb-tab');
         if (tab === 'crm-leads' && !leadsLoaded) {
           loadLeads();
-          loadTotalLeadCount();
           leadsLoaded = true;
         }
         if (tab === 'crm-applications' && !appLoaded) {
@@ -4747,6 +5185,34 @@
         })
         .catch(function (err) { callback(err, null); });
     },
+
+    // Expose system enums for sequences admin
+    statuses: STATUSES,
+    subStatuses: SUB_STATUSES,
+    types: [
+      { value: 'ytt', label: 'YTT' },
+      { value: 'course', label: 'Course' },
+      { value: 'bundle', label: 'Bundle' },
+      { value: 'mentorship', label: 'Mentorship' },
+      { value: 'careers', label: 'Careers' },
+      { value: 'contact', label: 'Contact' }
+    ],
+    sources: [
+      '200h YTT', '300h YTT', '50h YTT', '30h YTT',
+      'Courses', 'Mentorship',
+      'Facebook Ad', 'Apply page', 'Contact page', 'Careers page', 'Manual entry'
+    ],
+    programs: [
+      { value: '4-week', label: '4-Week Intensive' },
+      { value: '4-week-jul', label: '4-Week Vinyasa Plus (Jul)' },
+      { value: '8-week', label: '8-Week Semi-Intensive' },
+      { value: '18-week', label: '18-Week Flexible (Spring)' },
+      { value: '18-week-aug', label: '18-Week Flexible (Autumn)' },
+      { value: '300h', label: '300h Advanced' },
+      { value: '50h', label: '50h Specialty' },
+      { value: '30h', label: '30h Module' }
+    ],
+    subTypeOptions: SUB_TYPE_OPTIONS,
 
     // Called by campaign wizard when a campaign send completes
     onCampaignSent: function (type, results) {

@@ -26,7 +26,7 @@
   var currentCareerId = null;
   var currentCareer = null;
   var careerLastDoc = null;
-  var PAGE_SIZE = 50;
+  var PAGE_SIZE = 10000; // Load all at once for instant search
   var careerSearch = '';
   var careerFilterStatus = '';
   var careerFilterCategory = '';
@@ -286,6 +286,7 @@
         renderCareersTable();
         renderCareerStats();
 
+        // Hide Load More — everything is already loaded
         var loadMore = $('yb-career-load-more-wrap');
         if (loadMore) loadMore.hidden = true;
 

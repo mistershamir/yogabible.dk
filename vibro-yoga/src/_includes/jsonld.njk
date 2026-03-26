@@ -1,0 +1,182 @@
+{# ═══════════════════════════════════════════
+   JSON-LD Structured Data for SEO & AEO
+   ═══════════════════════════════════════════ #}
+
+{# ── Organization (all pages) ── #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "{{ site.name }}",
+  "url": "{{ site.url }}",
+  "logo": "{{ site.url }}/assets/images/brand/logo-white.svg",
+  "email": "{{ site.email }}",
+  "telephone": "{{ site.phone }}",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "{{ site.address_street }}",
+    "addressLocality": "{{ site.address_city }}",
+    "postalCode": "{{ site.address_postal }}",
+    "addressCountry": "{{ site.address_country }}"
+  },
+  "founder": {
+    "@type": "Person",
+    "name": "{{ site.founder }}"
+  },
+  "foundingDate": "{{ site.founding_year }}"
+}
+</script>
+
+{# ── LocalBusiness (home, about, contact pages) ── #}
+{% if pageType == "home" or pageType == "about" or pageType == "contact" %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HealthAndBeautyBusiness",
+  "name": "{{ site.name }}",
+  "description": "{% if lang == 'en' %}{{ site.description_en }}{% else %}{{ site.description_da }}{% endif %}",
+  "url": "{{ site.url }}",
+  "logo": "{{ site.url }}/assets/images/brand/logo-white.svg",
+  "image": "{{ site.url }}{{ site.og_image }}",
+  "email": "{{ site.email }}",
+  "telephone": "{{ site.phone }}",
+  "priceRange": "$$",
+  "currenciesAccepted": "DKK",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "{{ site.address_street }}",
+    "addressLocality": "{{ site.address_city }}",
+    "postalCode": "{{ site.address_postal }}",
+    "addressCountry": "{{ site.address_country }}"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": {{ site.geo_lat }},
+    "longitude": {{ site.geo_lng }}
+  },
+  "hasMap": "https://maps.google.com/?q=Torvegade+66,+1400+K%C3%B8benhavn+K",
+  "areaServed": {
+    "@type": "City",
+    "name": "Copenhagen"
+  },
+  "founder": {
+    "@type": "Person",
+    "name": "{{ site.founder }}"
+  },
+  "foundingDate": "{{ site.founding_year }}",
+  "knowsAbout": ["vibroacoustic yoga", "vibroacoustic therapy", "sound healing", "yin yoga", "hot yoga", "vibration therapy", "vibroakustisk yoga", "lydterapi"],
+  "makesOffer": [
+    {
+      "@type": "Offer",
+      "name": "Vibration Shower",
+      "priceCurrency": "DKK",
+      "url": "{{ site.url }}/booking/"
+    },
+    {
+      "@type": "Offer",
+      "name": "Yin Yoga & Vibration",
+      "priceCurrency": "DKK",
+      "url": "{{ site.url }}/booking/"
+    },
+    {
+      "@type": "Offer",
+      "name": "Hot Yoga + Vibration Shower",
+      "priceCurrency": "DKK",
+      "url": "{{ site.url }}/booking/"
+    },
+    {
+      "@type": "Offer",
+      "name": "Solo Signatur",
+      "price": "1495",
+      "priceCurrency": "DKK",
+      "url": "{{ site.url }}/booking/"
+    }
+  ],
+  "inLanguage": ["da", "en"]
+}
+</script>
+{% endif %}
+
+{# ── WebSite (homepage only) ── #}
+{% if pageType == "home" %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "{{ site.name }}",
+  "url": "{{ site.url }}",
+  "description": "{% if lang == 'en' %}{{ site.description_en }}{% else %}{{ site.description_da }}{% endif %}",
+  "inLanguage": ["da", "en"]
+}
+</script>
+{% endif %}
+
+{# ── Article (blog posts only) ── #}
+{% if pageType == "article" and post %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{% if lang == 'en' %}{{ post.title_en }}{% else %}{{ post.title_da }}{% endif %}",
+  "description": "{% if lang == 'en' %}{{ post.excerpt_en }}{% else %}{{ post.excerpt_da }}{% endif %}",
+  {% if post.image %}"image": "{{ site.url }}{{ post.image }}",{% endif %}
+  "datePublished": "{{ post.date }}",
+  "dateModified": "{{ post.date }}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ post.author }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "{{ site.name }}",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ site.url }}/assets/images/brand/logo-white.svg"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ site.url }}{{ page.url }}"
+  },
+  "inLanguage": "{{ lang }}",
+  "articleSection": "{{ post.category }}"{% if post.tags %},
+  "keywords": "{{ post.tags | join(', ') }}"{% endif %}
+}
+</script>
+{% endif %}
+
+{# ── BreadcrumbList (all inner pages) ── #}
+{% if pageType != "home" %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "{% if lang == 'en' %}Home{% else %}Hjem{% endif %}",
+      "item": "{{ site.url }}{% if lang == 'en' %}/en/{% else %}/{% endif %}"
+    }{% if pageType == "article" %},
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{% if lang == 'en' %}Resources{% else %}Ressourcer{% endif %}",
+      "item": "{{ site.url }}{% if lang == 'en' %}/en/ressourcer/{% else %}/ressourcer/{% endif %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{% if lang == 'en' %}{{ post.title_en }}{% else %}{{ post.title_da }}{% endif %}",
+      "item": "{{ site.url }}{{ page.url }}"
+    }{% else %},
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ title }}",
+      "item": "{{ site.url }}{{ page.url }}"
+    }{% endif %}
+  ]
+}
+</script>
+{% endif %}

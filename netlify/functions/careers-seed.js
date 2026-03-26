@@ -285,7 +285,7 @@ exports.handler = async (event) => {
 
   // Admin-only: require auth token
   const authResult = await requireAuth(event);
-  if (!authResult.ok) return jsonResponse(401, { ok: false, error: 'Unauthorized' });
+  if (authResult.error) return authResult.error;
 
   if (event.httpMethod !== 'POST') {
     return jsonResponse(405, { ok: false, error: 'Method not allowed' });

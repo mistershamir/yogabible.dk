@@ -1,3 +1,32 @@
+{# ── Booking Links ── #}
+<details class="yb-admin__booking-links" style="margin-bottom:1.5rem;border:1px solid #E8E4E0;border-radius:12px;background:#FFFCF9;">
+  <summary style="padding:14px 20px;cursor:pointer;font-weight:700;font-size:0.95rem;display:flex;align-items:center;gap:8px;list-style:none;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    {{ t.appt_booking_links }}
+    <span style="font-weight:400;font-size:0.82rem;color:#6F6A66;margin-left:auto;">{{ t.appt_booking_links_desc }}</span>
+  </summary>
+  <div style="padding:0 20px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;">
+    {% set bookingTypes = [
+      { key: "info-session", label: t.appt_info_session, icon: "&#127963;", dur: "30 min" },
+      { key: "consultation", label: t.appt_consultation, icon: "&#128187;", dur: "30 min" },
+      { key: "intro-class", label: t.appt_intro_class, icon: "&#129495;", dur: "60 min" },
+      { key: "photo-session", label: t.appt_photo_session, icon: "&#128248;", dur: "60 min" }
+    ] %}
+    {% for bt in bookingTypes %}
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #E8E4E0;border-radius:8px;background:#fff;">
+      <span style="font-size:1.2rem;">{{ bt.icon }}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:0.85rem;">{{ bt.label }}</div>
+        <code id="yb-bl-{{ bt.key }}" style="font-size:0.72rem;color:#6F6A66;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">yogabible.dk/?booking={{ bt.key }}</code>
+      </div>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-admin__copy-link-btn" data-copy-booking="{{ bt.key }}" style="flex-shrink:0;font-size:0.78rem;padding:6px 12px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>{{ t.appt_copy_link }}
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+</details>
+
 {# ── Appointment List View ── #}
 <div id="yb-admin-v-appt-list">
   <div class="yb-admin__view-head">
@@ -85,6 +114,16 @@
     </div>
     <div style="padding:20px 24px;">
       <form id="yb-appt-new-form" class="yb-admin__form">
+        {# ── Contact Search (pull from leads/applications/careers) ── #}
+        <div class="yb-admin__field yb-admin__field--full" style="margin-bottom:16px;">
+          <label for="yb-appt-f-contact-search">{{ t.appt_search_contact }}</label>
+          <div style="position:relative;">
+            <input type="text" id="yb-appt-f-contact-search" class="yb-admin__select" autocomplete="off" placeholder="{{ t.appt_search_contact_placeholder }}">
+            <div id="yb-appt-contact-results" class="yb-appt__contact-dropdown" hidden></div>
+          </div>
+          <small style="color:#6F6A66;margin-top:4px;display:block;">{{ t.appt_search_contact_hint }}</small>
+        </div>
+
         <div class="yb-lead__status-grid">
           <div class="yb-admin__field">
             <label for="yb-appt-f-date">{{ t.appt_new_date }} *</label>
@@ -135,6 +174,22 @@
             <textarea id="yb-appt-f-notes" class="yb-admin__select" rows="2" placeholder=""></textarea>
           </div>
         </div>
+
+        {# ── Send confirmation options ── #}
+        <div class="yb-appt__notify-row" style="margin-top:16px;padding:14px 16px;background:#F5F3F0;border-radius:8px;">
+          <p style="margin:0 0 8px;font-weight:600;font-size:13px;color:#6F6A66;">{{ t.appt_notify_label }}</p>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;">
+              <input type="checkbox" id="yb-appt-f-notify-email" checked>
+              <span>&#9993; {{ t.appt_notify_email }}</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;">
+              <input type="checkbox" id="yb-appt-f-notify-sms">
+              <span>&#128241; {{ t.appt_notify_sms }}</span>
+            </label>
+          </div>
+        </div>
+
         <div class="yb-admin__form-actions" style="margin-top:16px;">
           <button type="submit" class="yb-btn yb-btn--primary" id="yb-appt-create-btn">{{ t.appt_create }}</button>
           <button type="button" class="yb-btn yb-btn--outline" data-action="appt-modal-close">{{ t.cancel }}</button>

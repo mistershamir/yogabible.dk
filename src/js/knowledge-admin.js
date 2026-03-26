@@ -171,12 +171,17 @@
     var method = id ? 'PUT' : 'POST';
     if (id) payload.id = id;
 
+    var saveBtn = e.target.querySelector('[type="submit"]') || e.target.querySelector('.yb-btn--primary');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.classList.add('yb-btn--muted'); }
+
     apiCall(method, null, payload).then(function (data) {
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('yb-btn--muted'); }
       if (!data.ok) { toast(data.error || 'Save error', true); return; }
       toast('Saved!');
       hideEditor();
       loadSections();
     }).catch(function (err) {
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove('yb-btn--muted'); }
       console.error('[knowledge-admin] Save error:', err);
       toast('Failed to save', true);
     });

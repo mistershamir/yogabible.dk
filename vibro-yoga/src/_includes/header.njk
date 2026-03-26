@@ -28,7 +28,7 @@
     <div class="vy-header__actions">
       <a href="{% if lang == 'en' %}/{% else %}/en/{% endif %}" class="vy-header__lang">{{ tc.lang_label }}</a>
       <a href="{{ lp }}/booking" class="btn btn--primary btn--pill vy-header__cta">{{ tc.nav_booking }}</a>
-      <button class="vy-header__burger" id="vy-burger" aria-label="Menu">
+      <button class="vy-header__burger" id="vy-burger" aria-label="Menu" aria-expanded="false" aria-controls="vy-drawer">
         <span></span><span></span><span></span>
       </button>
     </div>

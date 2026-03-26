@@ -147,7 +147,7 @@ async function sendClientReminderSMS(appt) {
   const token = generateToken(appt.id, appt.client_email);
   const baseUrl = CONFIG.SITE_URL;
   const manageUrl = baseUrl + '/appointment?id=' + appt.id + '&email=' + encodeURIComponent(appt.client_email) + '&token=' + token;
-  const locationShort = appt.location === 'online' ? 'Online' : 'Torvegade 66, Kbh';
+  const locationShort = appt.location === 'online' ? 'Online' : 'Christianshavn, Torvegade 66';
 
   const message = 'Hej ' + (appt.client_name || '').split(' ')[0] + '! ' +
     'Paamindelse: ' + (appt.type_name_da || 'Aftale') + ' i morgen kl. ' + appt.time + ' — ' + locationShort + '. ' +
@@ -186,7 +186,7 @@ async function sendAdminReminderSMS(appt) {
 // ─── 24-Hour Reminder Email ────────────────────────────────────────
 async function send24hReminder(appt) {
   const orange = '#f75c03';
-  const locationDa = appt.location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 København K';
+  const locationDa = appt.location === 'online' ? 'Online' : 'Christianshavn, Torvegade 66, 1400 København K';
 
   const html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;max-width:600px;margin:0 auto;">' +
     '<div style="background:' + orange + ';padding:24px 32px;border-radius:12px 12px 0 0;">' +
@@ -201,7 +201,7 @@ async function send24hReminder(appt) {
     '<p style="margin:4px 0;">&#128205; ' + locationDa + '</p>' +
     '</div>' +
     (appt.location !== 'online' ? '<p style="font-size:14px;color:#666;">&#128663; <a href="' + CONFIG.STUDIO_MAPS_URL + '" style="color:' + orange + ';">Se rute til studiet</a></p>' : '') +
-    '<p style="font-size:13px;color:#888;">&#127468;&#127463; Reminder: You have an appointment tomorrow at ' + appt.time + '. ' + (appt.location === 'online' ? 'Online meeting.' : 'Yoga Bible, Torvegade 66, Copenhagen.') + '</p>' +
+    '<p style="font-size:13px;color:#888;">&#127468;&#127463; Reminder: You have an appointment tomorrow at ' + appt.time + '. ' + (appt.location === 'online' ? 'Online meeting.' : 'Christianshavn, Torvegade 66, 1400 Copenhagen.') + '</p>' +
     getSignatureHtml() +
     '</div></div>';
 
@@ -221,7 +221,7 @@ async function send24hReminder(appt) {
 // ─── 1-Hour Reminder Email ─────────────────────────────────────────
 async function send1hReminder(appt) {
   const orange = '#f75c03';
-  const locationDa = appt.location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 København K';
+  const locationDa = appt.location === 'online' ? 'Online' : 'Christianshavn, Torvegade 66, 1400 København K';
 
   const html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;max-width:600px;margin:0 auto;">' +
     '<div style="background:' + orange + ';padding:24px 32px;border-radius:12px 12px 0 0;">' +

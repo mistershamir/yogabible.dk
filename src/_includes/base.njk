@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{% if lang == 'en' %}en{% else %}da-DK{% endif %}">
+<html lang="{% if lang == 'en' %}en{% else %}da-DK{% endif %}" data-media-base="{{ mediaBase }}">
 <head>
   {% include "head.njk" %}
 </head>
@@ -82,7 +82,9 @@
   {% include "modal-appointment.njk" %}
 
   <!-- Photo Session Request Modal -->
-  {% include "modal-photo-booking.njk" %}
+  {% if includePhotoBooking %}
+    {% include "modal-photo-booking.njk" %}
+  {% endif %}
 
   <!-- Workshop Browser Modal -->
   {% include "modal-workshops.njk" %}
@@ -92,36 +94,45 @@
     {% include "widget-video-tutorial.njk" %}
   {% endif %}
 
+  <!-- Lead Attribution Capture (runs before consent — no PII, just URL params + referrer) -->
+  <script>
+  (function(){try{var K='yb_attribution';window.ybAttribution=function(){try{var d=sessionStorage.getItem(K);return d?JSON.parse(d):{};}catch(e){return{};}};if(sessionStorage.getItem(K))return;var p=new URLSearchParams(location.search),r=document.referrer||'',h='';try{h=r?new URL(r).hostname.replace('www.',''):'';}catch(e){}var a={utm_source:p.get('utm_source')||'',utm_medium:p.get('utm_medium')||'',utm_campaign:p.get('utm_campaign')||'',utm_content:p.get('utm_content')||'',utm_term:p.get('utm_term')||'',gclid:p.get('gclid')||'',fbclid:p.get('fbclid')||'',referrer:r,referrer_host:h,landing_page:location.pathname,channel:''};var s=a.utm_source.toLowerCase(),m=a.utm_medium.toLowerCase(),AI={'chat.openai.com':'AI Referral (ChatGPT)','chatgpt.com':'AI Referral (ChatGPT)','perplexity.ai':'AI Referral (Perplexity)','claude.ai':'AI Referral (Claude)','gemini.google.com':'AI Referral (Gemini)','copilot.microsoft.com':'AI Referral (Copilot)','meta.ai':'AI Referral (Meta AI)','you.com':'AI Referral (You.com)','phind.com':'AI Referral (Phind)'},SO={'facebook.com':'Facebook','l.facebook.com':'Facebook','lm.facebook.com':'Facebook','m.facebook.com':'Facebook','instagram.com':'Instagram','l.instagram.com':'Instagram','tiktok.com':'TikTok','youtube.com':'YouTube','linkedin.com':'LinkedIn','twitter.com':'Twitter/X','x.com':'Twitter/X','t.co':'Twitter/X'},SE=['google.com','google.dk','google.co.uk','google.de','google.se','google.no','bing.com','yahoo.com','duckduckgo.com','ecosia.org'];function cap(x){return x.charAt(0).toUpperCase()+x.slice(1);}var ch='Direct';if(a.gclid||(s==='google'&&(m==='cpc'||m==='ppc')))ch='Google Ads';else if(a.fbclid)ch='Meta Ads';else if((s==='facebook'||s==='instagram'||s==='fb'||s==='ig'||s==='meta')&&(m==='cpc'||m==='paid'||m==='paidsocial'||m==='paid_social'))ch='Meta Ads';else if(s&&m){if(m==='email')ch='Email';else if(m==='sms')ch='SMS';else if(m==='social'||m==='organic_social')ch='Social ('+cap(s)+')';else if(m==='referral')ch='Referral ('+cap(s)+')';else if(m==='cpc'||m==='ppc'||m==='paid')ch=cap(s)+' Ads';else ch=cap(s)+' / '+m;}else if(h){var found=false;for(var ak in AI){if(h.indexOf(ak)!==-1){ch=AI[ak];found=true;break;}}if(!found)for(var sk in SO){if(h.indexOf(sk)!==-1){ch='Social ('+SO[sk]+')';found=true;break;}}if(!found)for(var i=0;i<SE.length;i++){if(h.indexOf(SE[i])!==-1){ch=cap(SE[i].split('.')[0])+' Organic';found=true;break;}}if(!found&&h.indexOf('yogabible')===-1)ch='Referral ('+h+')';}a.channel=ch;sessionStorage.setItem(K,JSON.stringify(a));}catch(e){}})();
+  </script>
+
   <!-- Cookie Consent -->
   {% include "cookies.njk" %}
-  <script src="/js/cookies.js"></script>
+  <script src="/js/cookies.js" defer></script>
 
   <!-- Firebase SDK (compat for broad browser support) -->
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js" defer></script>
 
-  <!-- Scripts -->
-  <script src="/js/header.js"></script>
-  <script src="/js/main.js"></script>
-  <script src="/js/footer.js"></script>
-  <script src="/js/roles-permissions.js"></script>
-  <script src="/js/firebase-auth.js"></script>
-  <script src="/js/appointment-booking.js"></script>
-  <script src="/js/photo-booking.js"></script>
-  <script src="/js/ytt-funnel.js"></script>
-  <script src="/js/checkout-flow.js"></script>
-  <script src="/js/workshop-browser.js"></script>
-  <script src="/js/mindbody.js"></script>
+  <!-- Scripts (deferred for faster paint) -->
+  <script src="/js/header.js" defer></script>
+  <script src="/js/main.js" defer></script>
+  <script src="/js/footer.js" defer></script>
+  <script src="/js/roles-permissions.js" defer></script>
+  <script src="/js/firebase-auth.js" defer></script>
+  <script src="/js/appointment-booking.js" defer></script>
+  {% if includePhotoBooking %}<script src="/js/photo-booking.js" defer></script>{% endif %}
+  <script src="/js/ytt-funnel.js" defer></script>
+  <script src="/js/checkout-flow.js" defer></script>
+  <script src="/js/workshop-browser.js" defer></script>
+  <script src="/js/mindbody.js" defer></script>
   {% if includeScheduleModal %}
-    <script src="/js/modal-200ytt.js"></script>
+    <script src="/js/modal-200ytt.js" defer></script>
   {% endif %}
   {% if includeScheduleModal300 %}
-    <script src="/js/modal-300ytt.js"></script>
+    <script src="/js/modal-300ytt.js" defer></script>
   {% endif %}
   {% if includeCourseJS %}
     <script src="/js/course.js" defer></script>
   {% endif %}
+  {% if includeScheduleTrack %}
+    <script src="/js/schedule-track.js" defer></script>
+  {% endif %}
+  <script src="/js/site-track.js" defer></script>
   {% if videoTutorial %}
     <script src="/js/video-tutorial.js" defer></script>
   {% endif %}

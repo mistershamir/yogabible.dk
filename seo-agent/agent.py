@@ -32,8 +32,13 @@ from checks import (
     check_pagespeed,
     check_keyword_rankings,
     check_price_consistency,
+    check_indexing_coverage,
+    check_sitemaps_status,
+    check_keyword_trends,
 )
-from telegram_notify import send_report
+from api_health import check_api_health
+from ai_analysis import analyze_with_ai
+from telegram_notify import send_report, send_ai_analysis
 
 
 def run_all_checks():
@@ -52,7 +57,11 @@ def run_all_checks():
         ('Price Consistency', check_price_consistency),
         ('PageSpeed', check_pagespeed),
         ('Search Console', check_search_console),
+        ('Indexing Coverage', check_indexing_coverage),
+        ('Sitemaps Status', check_sitemaps_status),
+        ('Keyword Trends', check_keyword_trends),
         ('Keyword Rankings', check_keyword_rankings),
+        ('API Health', check_api_health),
     ]
 
     for name, check_fn in checks:
@@ -85,6 +94,13 @@ def main():
         else:
             send_report(report)
             logger.info('Report sent to Telegram')
+            # AI analysis on weekly reports
+            if not report.get('is_daily'):
+                logger.info('Running AI analysis...')
+                analysis = analyze_with_ai(report)
+                if analysis:
+                    send_ai_analysis(analysis)
+                    logger.info('AI analysis sent to Telegram')
 
 
 def run_daemon():
@@ -93,9 +109,18 @@ def run_daemon():
 
     scheduler = BlockingScheduler()
 
-    # Weekly full report (Monday 8am CET)
+    # Weekly full report + AI analysis (Monday 8am CET)
+    def weekly_full():
+        report = run_all_checks()
+        send_report(report)
+        logger.info('Running AI analysis...')
+        analysis = analyze_with_ai(report)
+        if analysis:
+            send_ai_analysis(analysis)
+            logger.info('AI analysis sent')
+
     scheduler.add_job(
-        lambda: send_report(run_all_checks()),
+        weekly_full,
         'cron',
         day_of_week='mon',
         hour=7,  # UTC = 8am CET
