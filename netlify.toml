@@ -22,6 +22,10 @@
 [functions."social-schedule"]
   schedule = "*/5 * * * *"
 
+# Scheduled function: auto-sync social media post metrics every 6 hours
+[functions."social-metric-sync"]
+  schedule = "0 */6 * * *"
+
 # Redirect www to non-www (301)
 [[redirects]]
   from = "https://www.yogabible.dk/*"

@@ -8,6 +8,7 @@
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-analytics">{{ t.social_nav_analytics or "Analytics" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-inbox">{{ t.social_nav_inbox or "Inbox" }} <span class="yb-social__inbox-badge" id="yb-social-inbox-badge" hidden>0</span></button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-hashtags">{{ t.social_nav_hashtags or "Hashtags" }}</button>
+  <button class="yb-social__nav-btn" type="button" data-action="social-nav-templates">{{ t.social_nav_templates or "Templates" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-competitors">{{ t.social_nav_competitors or "Competitors" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-abtesting">{{ t.social_nav_abtesting or "A/B Tests" }}</button>
 </div>
@@ -220,6 +221,7 @@
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-sync-metrics">&#8635; {{ t.social_sync or "Sync" }}</button>
     </div>
   </div>
+  <div class="yb-social__last-sync" id="yb-social-last-sync" hidden></div>
 
   {# Stat cards #}
   <div class="yb-admin__stats-grid">
@@ -369,6 +371,21 @@
         <button type="button" class="yb-btn yb-btn--outline" data-action="social-cancel-hashtag-set">{{ t.social_cancel or "Cancel" }}</button>
       </div>
     </div>
+  </div>
+</div>
+
+{# ════════════════════════════════════════════════════════════════════════════ #}
+{# VIEW: Content Templates                                                      #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+<div id="yb-social-v-templates" hidden>
+  <div class="yb-admin__view-head">
+    <h2>{{ t.social_templates_title or "Content Templates" }}</h2>
+    <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-template-create">+ {{ t.social_new_template or "New Template" }}</button>
+  </div>
+
+  {# Template cards #}
+  <div id="yb-social-templates-list" class="yb-social__templates-grid">
+    <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
   </div>
 </div>
 
@@ -625,6 +642,7 @@
     {# Footer #}
     <div class="yb-social__composer-footer">
       <input type="hidden" id="yb-social-post-id">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-save-as-template" title="{{ t.social_save_as_template or 'Save as Template' }}">&#9734; {{ t.social_save_as_template or "Save as Template" }}</button>
       <button type="button" class="yb-btn yb-btn--outline" data-action="social-save-draft">{{ t.social_save_draft or "Save Draft" }}</button>
       <button type="button" class="yb-btn yb-btn--primary" data-action="social-publish-post" id="yb-social-publish-btn">{{ t.social_post_now or "Post Now" }}</button>
     </div>
