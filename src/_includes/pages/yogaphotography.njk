@@ -53,7 +53,10 @@
 <!-- ═══════════════════════════════════════════════════════
      Hero
      ═══════════════════════════════════════════════════════ -->
-<section class="yb-hero">
+<section class="yb-hero yphoto-hero--video">
+  <video class="yphoto-hero__video" autoplay muted loop playsinline poster="{{ 'yoga-bible-DK/yogaphotography/quote-hero.jpg' | cloudimg('w_1400') }}">
+    <source src="{{ 'yoga-bible-DK/yogaphotography/hero-video.mp4' | cloudvid }}" type="video/mp4" />
+  </video>
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
     <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
