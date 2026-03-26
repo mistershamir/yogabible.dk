@@ -804,6 +804,21 @@
         reEngBadge = ' <span style="color:#f75c03;font-weight:700" title="Came back after ' + reDays + ' days of silence!">\ud83d\udd04</span>';
       }
 
+      // Heat score badge (from pre-lead anonymous browsing)
+      var heatBadge = '';
+      if (l.lead_heat && l.lead_heat >= 1) {
+        var heatLevel = l.lead_heat;
+        var fires = '';
+        for (var hi = 0; hi < heatLevel; hi++) fires += '\ud83d\udd25';
+        var heatColor = heatLevel >= 4 ? '#d32f2f' : heatLevel >= 3 ? '#f57c00' : heatLevel >= 2 ? '#fbc02d' : '#9e9e9e';
+        var plj = l.pre_lead_journey || {};
+        var heatTitle = 'Heat ' + heatLevel + '/5';
+        if (plj.total_sessions) heatTitle += ' \u00b7 ' + plj.total_sessions + ' sessions';
+        if (plj.total_pageviews) heatTitle += ', ' + plj.total_pageviews + ' pages';
+        if (plj.days_before_signup) heatTitle += ' over ' + plj.days_before_signup + ' days';
+        heatBadge = ' <span style="color:' + heatColor + ';font-size:.75rem;" title="' + esc(heatTitle) + '">' + fires + '</span>';
+      }
+
       // Notes count
       var notesCount = Array.isArray(l.notes) ? l.notes.length : 0;
 
@@ -819,7 +834,7 @@
         '<td class="yb-lead__cell-name">' +
           priorityBadgeHtml(l.priority) +
           esc((l.first_name || '') + ' ' + (l.last_name || '')).trim() +
-          unreadBadge + reEngBadge + schedBadge + emailBadge + siteBadge +
+          unreadBadge + heatBadge + reEngBadge + schedBadge + emailBadge + siteBadge +
         '</td>' +
         '<td class="yb-lead__cell-contact">' +
           '<div class="yb-lead__cell-email-text">' + esc(l.email || '') +
@@ -1681,6 +1696,78 @@
         '</div>';
       });
       html += '</div>'; // end card 7
+    }
+
+    // Card 8: Pre-Lead Journey (anonymous browsing before signup)
+    var plj = l.pre_lead_journey;
+    if (plj) {
+      html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+      var heatFires = '';
+      var hScore = l.lead_heat || 0;
+      for (var hfi = 0; hfi < 5; hfi++) heatFires += hfi < hScore ? '\ud83d\udd25' : '\u2b1c';
+      html += '<h4 class="yb-lead__card-title" style="color:#d32f2f;">' + heatFires + ' PRE-LEAD JOURNEY (Heat ' + hScore + '/5)</h4>';
+
+      // Summary line
+      var summaryParts = [];
+      if (plj.total_sessions) summaryParts.push(plj.total_sessions + ' session' + (plj.total_sessions > 1 ? 's' : ''));
+      if (plj.total_pageviews) summaryParts.push(plj.total_pageviews + ' page' + (plj.total_pageviews > 1 ? 's' : ''));
+      if (plj.days_before_signup) summaryParts.push('over ' + plj.days_before_signup + ' day' + (plj.days_before_signup > 1 ? 's' : ''));
+      if (summaryParts.length > 0) {
+        html += '<div style="font-size:.85rem;margin-bottom:8px;color:#333;">Visited ' + summaryParts.join(', ') + ' before signing up</div>';
+      }
+
+      // Return visitor badge
+      if (plj.return_visitor) {
+        html += '<span class="yb-lead__badge" style="background:#E3F2FD;color:#1565C0;margin-right:6px;">\u21a9\ufe0f Return Visitor</span>';
+      }
+
+      // Key page badges
+      if (plj.viewed_schedule) {
+        html += '<span class="yb-lead__badge" style="background:#E8F5E9;color:#2E7D32;margin-right:6px;">\ud83d\udcc5 Schedule</span>';
+      }
+      if (plj.viewed_accommodation) {
+        html += '<span class="yb-lead__badge" style="background:#FFF3E0;color:#E65100;margin-right:6px;">\ud83c\udfe0 Accommodation</span>';
+      }
+      if (plj.viewed_copenhagen) {
+        html += '<span class="yb-lead__badge" style="background:#E0F7FA;color:#00695C;margin-right:6px;">\ud83c\udf0d Copenhagen</span>';
+      }
+      if (plj.viewed_pricing) {
+        html += '<span class="yb-lead__badge" style="background:#FCE4EC;color:#C62828;margin-right:6px;">\ud83d\udcb0 Pricing</span>';
+      }
+      if (plj.viewed_application) {
+        html += '<span class="yb-lead__badge" style="background:#F3E5F5;color:#6A1B9A;margin-right:6px;">\ud83d\udcdd Application</span>';
+      }
+
+      // Attribution
+      if (plj.attribution) {
+        var attrParts = [];
+        if (plj.attribution.utm_source) attrParts.push('Source: ' + plj.attribution.utm_source);
+        if (plj.attribution.utm_medium) attrParts.push('Medium: ' + plj.attribution.utm_medium);
+        if (plj.attribution.utm_campaign) attrParts.push('Campaign: ' + plj.attribution.utm_campaign);
+        if (plj.attribution.channel) attrParts.push('Channel: ' + plj.attribution.channel);
+        if (attrParts.length > 0) {
+          html += '<div style="font-size:.75rem;color:#6F6A66;margin-top:8px;">' + esc(attrParts.join(' \u00b7 ')) + '</div>';
+        }
+      }
+
+      // Top pages visited
+      var pljPages = plj.pages || {};
+      var pageKeys = Object.keys(pljPages);
+      if (pageKeys.length > 0) {
+        pageKeys.sort(function (a, b) { return (pljPages[b].views || 0) - (pljPages[a].views || 0); });
+        html += '<div style="margin-top:10px;font-size:.78rem;">';
+        html += '<div style="font-weight:600;color:#333;margin-bottom:4px;">Pages visited:</div>';
+        pageKeys.slice(0, 8).forEach(function (pk) {
+          var pg = pljPages[pk];
+          html += '<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #F5F3F0;">' +
+            '<span style="color:#333;">' + esc(pg.title || pg.path || pk) + '</span>' +
+            '<span style="color:#6F6A66;">' + (pg.views || 0) + 'x' + (pg.max_scroll ? ' \u00b7 ' + pg.max_scroll + '% scroll' : '') + '</span>' +
+          '</div>';
+        });
+        html += '</div>';
+      }
+
+      html += '</div>'; // end card 8
     }
 
     html += '</div>'; // end yb-lead__detail-cards wrapper

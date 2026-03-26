@@ -1,27 +1,31 @@
 /**
  * YOGA BIBLE — Site Behavior Tracker
- * Tracks website browsing behavior for identified leads.
- * A lead is identified via the yb_lid cookie (set by email click-through).
- * Tracks: pageviews, scroll depth, time on page, CTA clicks.
- * Sends data to /.netlify/functions/site-visit
+ * Tracks website browsing behavior for:
+ *   1. Identified leads (yb_lid cookie from email click-through) → site-visit.js
+ *   2. Anonymous visitors (yb_vid cookie from statistics consent) → anon-visit.js
+ *
+ * For identified leads: full tracking (pageviews, heartbeats, scroll, CTA clicks)
+ * For anonymous visitors: lightweight tracking (pageview + leave only, saves Firestore writes)
  */
 (function () {
   'use strict';
 
-  // ── Read lead ID from cookie ──────────────────────
+  // ── Read identity cookies ─────────────────────────
   function getCookie(name) {
     var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
     return match ? decodeURIComponent(match[1]) : null;
   }
 
   var lid = getCookie('yb_lid');
-  if (!lid) return; // Not an identified lead — do nothing
+  var vid = getCookie('yb_vid');
+  if (!lid && !vid) return; // No identity — do nothing
 
   // Skip admin pages
   var path = window.location.pathname;
   if (path.indexOf('/admin') === 0) return;
 
-  var API = '/.netlify/functions/site-visit';
+  var isAnon = !lid; // Anonymous if no lead ID
+  var API = isAnon ? '/.netlify/functions/anon-visit' : '/.netlify/functions/site-visit';
   var page = path;
   var maxScroll = 0;
   var startTime = Date.now();
@@ -30,13 +34,22 @@
   var heartbeatTimer = null;
   var sent = { leave: false };
 
+  // Session ID for anonymous visitors (group pages within a session)
+  var sessionId = isAnon ? ('s_' + Date.now().toString(36)) : null;
+
   // ── Send tracking event ─────────────────────────
   function track(evt, extra) {
     var payload = {
-      lid: lid,
       page: page,
       event: evt
     };
+    // Identify as lead or anonymous visitor
+    if (lid) {
+      payload.lid = lid;
+    } else {
+      payload.vid = vid;
+      payload.session = sessionId;
+    }
     if (extra) {
       for (var k in extra) {
         if (extra[k] !== undefined && extra[k] !== null) payload[k] = extra[k];
@@ -72,7 +85,7 @@
     if (depth > maxScroll) maxScroll = depth;
   }
 
-  // ── Heartbeat ───────────────────────────────────
+  // ── Heartbeat (leads only — skipped for anonymous to save writes) ──
   function heartbeat() {
     var elapsed = Math.round((Date.now() - lastHeartbeat) / 1000);
     lastHeartbeat = Date.now();
@@ -100,12 +113,26 @@
   }
 
   // ── Initialize ──────────────────────────────────
-  track('pageview', { referrer: document.referrer || null });
+  var pageviewExtra = { referrer: document.referrer || null };
+  if (isAnon) {
+    pageviewExtra.title = document.title || '';
+    // Pass attribution on first pageview for anonymous visitors
+    if (typeof window.ybAttribution === 'function') {
+      var attr = window.ybAttribution();
+      if (attr && (attr.utm_source || attr.channel || attr.referrer)) {
+        pageviewExtra.attribution = attr;
+      }
+    }
+  }
+  track('pageview', pageviewExtra);
 
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  heartbeatTimer = setInterval(heartbeat, HEARTBEAT_INTERVAL);
+  // Heartbeats only for identified leads (not anonymous — saves Firestore writes)
+  if (!isAnon) {
+    heartbeatTimer = setInterval(heartbeat, HEARTBEAT_INTERVAL);
+  }
 
   window.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'hidden') onLeave();

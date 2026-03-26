@@ -216,6 +216,11 @@
     }
     if (consent.statistics) {
       loadClarity();
+      // Generate anonymous visitor ID for pre-lead tracking (90-day cookie)
+      if (!getCookie('yb_vid') && !getCookie('yb_lid')) {
+        var vid = 'v_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 10);
+        setCookie('yb_vid', vid, 90);
+      }
     }
     if (gtmLoaded) {
       updateGTMConsent();
