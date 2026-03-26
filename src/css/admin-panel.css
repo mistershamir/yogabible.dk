@@ -6311,4 +6311,59 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   .yb-social__top-post-thumb { width: 44px; height: 44px; }
   .yb-social__top-post-metrics { flex-wrap: wrap; gap: 6px; }
   .yb-social__inbox-thread { width: 100vw; }
+  .yb-social__competitors-grid { grid-template-columns: 1fr; }
+  .yb-social__ab-variants { grid-template-columns: 1fr; }
+  .yb-social__ab-modal .yb-social__ab-box { width: 100vw; max-width: 100vw; border-radius: 0; }
 }
+
+/* ── Competitor Tracking ── */
+.yb-social__competitors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.yb-social__competitor-card { background: #fff; border: 1px solid var(--yb-border, #E8E4E0); border-radius: 12px; padding: 16px; }
+.yb-social__competitor-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.yb-social__competitor-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.yb-social__competitor-avatar-placeholder { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 16px; }
+.yb-social__competitor-handle { display: block; font-size: 12px; opacity: 0.7; }
+.yb-social__competitor-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
+.yb-social__competitor-stat { padding: 8px 4px; background: var(--yb-light, #F5F3F0); border-radius: 8px; }
+.yb-social__competitor-stat-val { display: block; font-size: 18px; font-weight: 700; color: var(--yb-black, #0F0F0F); }
+.yb-social__competitor-stat-label { font-size: 10px; color: var(--yb-muted, #6F6A66); text-transform: uppercase; letter-spacing: 0.5px; }
+.yb-social__competitor-meta { margin-top: 10px; font-size: 11px; color: var(--yb-muted, #6F6A66); }
+.yb-social__comp-bars { display: flex; flex-direction: column; gap: 10px; }
+.yb-social__comp-bar-row { display: flex; align-items: center; gap: 12px; }
+.yb-social__comp-bar-label { width: 120px; font-size: 13px; font-weight: 600; text-align: right; flex-shrink: 0; }
+.yb-social__comp-bar-track { flex: 1; height: 28px; background: var(--yb-light, #F5F3F0); border-radius: 6px; overflow: hidden; }
+.yb-social__comp-bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding: 0 10px; color: #fff; font-size: 12px; font-weight: 600; min-width: 60px; transition: width 0.4s ease; }
+
+/* ── A/B Testing ── */
+.yb-social__ab-list { display: flex; flex-direction: column; gap: 10px; }
+.yb-social__ab-card { background: #fff; border: 1px solid var(--yb-border, #E8E4E0); border-radius: 12px; padding: 16px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+.yb-social__ab-card:hover { border-color: var(--yb-brand, #f75c03); box-shadow: 0 2px 8px rgba(247, 92, 3, 0.1); }
+.yb-social__ab-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.yb-social__ab-card-meta { display: flex; gap: 16px; font-size: 13px; color: var(--yb-muted, #6F6A66); }
+.yb-social__ab-card-date { font-size: 11px; color: var(--yb-muted, #6F6A66); margin-top: 6px; }
+.yb-social__ab-platform { font-size: 12px; font-weight: 600; text-transform: uppercase; }
+.yb-social__ab-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.yb-social__ab-status--active { background: #e8f5e9; color: #2e7d32; }
+.yb-social__ab-status--completed { background: #e3f2fd; color: #1565c0; }
+.yb-social__ab-winner-badge { background: #fff3e0; color: #e65100; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+/* A/B Modal */
+.yb-social__ab-modal { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+.yb-social__ab-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+.yb-social__ab-box { position: relative; background: #fff; border-radius: 16px; width: 90vw; max-width: 640px; max-height: 85vh; overflow-y: auto; padding: 24px; }
+.yb-social__ab-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.yb-social__ab-header h3 { margin: 0; }
+.yb-social__ab-detail-meta { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.yb-social__ab-variants { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.yb-social__ab-variant-card { border: 1px solid var(--yb-border, #E8E4E0); border-radius: 10px; padding: 14px; }
+.yb-social__ab-variant-card.is-winner { border-color: var(--yb-brand, #f75c03); background: #fff8f4; }
+.yb-social__ab-variant-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.yb-social__ab-variant-caption-text { font-size: 13px; color: var(--yb-muted, #6F6A66); margin: 0 0 10px; line-height: 1.4; }
+.yb-social__ab-variant-metrics { display: flex; gap: 12px; font-size: 13px; margin-bottom: 8px; }
+.yb-social__ab-variant-bar { height: 6px; background: var(--yb-light, #F5F3F0); border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+.yb-social__ab-variant-bar-fill { height: 100%; background: var(--yb-brand, #f75c03); border-radius: 3px; transition: width 0.4s ease; }
+.yb-social__ab-variant-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.yb-social__ab-variant-field { margin-bottom: 12px; }
+.yb-social__ab-variant-label { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.yb-social__ab-form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.yb-social__close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--yb-muted, #6F6A66); padding: 0 4px; }
