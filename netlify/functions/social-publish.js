@@ -10,7 +10,9 @@ const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 const {
   publishToInstagram,
-  publishToFacebook
+  publishToFacebook,
+  publishToTikTok,
+  publishToLinkedIn
 } = require('./shared/social-api');
 
 const POSTS_COLLECTION = 'social_posts';
@@ -81,6 +83,16 @@ async function publishPost(db, postId, platformFilter) {
       } else if (platform === 'facebook') {
         result = await publishToFacebook(
           { accessToken: account.accessToken, pageId: account.pageId },
+          post
+        );
+      } else if (platform === 'tiktok') {
+        result = await publishToTikTok(
+          { accessToken: account.accessToken },
+          post
+        );
+      } else if (platform === 'linkedin') {
+        result = await publishToLinkedIn(
+          { accessToken: account.accessToken, organizationId: account.organizationId },
           post
         );
       } else {

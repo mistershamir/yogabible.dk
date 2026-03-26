@@ -132,14 +132,30 @@
 
   var PLATFORM_DEFAULTS = {
     facebook: { pageId: '878172732056415' },
-    instagram: { pageId: '17841474697451627' }
+    instagram: { pageId: '17841474697451627' },
+    tiktok: {},
+    linkedin: {}
   };
 
   function connectAccount(platform) {
     // Build and show branded connect modal
     var defaults = PLATFORM_DEFAULTS[platform] || {};
     var needsPageId = platform === 'facebook' || platform === 'instagram';
+    var needsOrgId = platform === 'linkedin';
     var pageIdLabel = platform === 'facebook' ? 'Facebook Page ID' : platform === 'instagram' ? 'Instagram Business Account ID' : '';
+
+    var extraFields = '';
+    if (needsPageId) {
+      extraFields = '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-pageid">' + pageIdLabel + '</label>' +
+        '<input type="text" id="yb-social-connect-pageid" value="' + (defaults.pageId || '') + '">' +
+        '</div>';
+    } else if (needsOrgId) {
+      extraFields = '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-orgid">LinkedIn Organization ID</label>' +
+        '<input type="text" id="yb-social-connect-orgid" placeholder="e.g. 12345678">' +
+        '</div>';
+    }
 
     var html = '<div class="yb-social__connect-modal" id="yb-social-connect-modal">' +
       '<div class="yb-social__connect-overlay" data-action="social-connect-cancel"></div>' +
@@ -151,10 +167,7 @@
       '<label for="yb-social-connect-token">Access Token</label>' +
       '<input type="text" id="yb-social-connect-token" placeholder="Paste token here...">' +
       '</div>' +
-      (needsPageId ? '<div class="yb-admin__field">' +
-        '<label for="yb-social-connect-pageid">' + pageIdLabel + '</label>' +
-        '<input type="text" id="yb-social-connect-pageid" value="' + (defaults.pageId || '') + '">' +
-        '</div>' : '') +
+      extraFields +
       '<div class="yb-social__connect-actions">' +
       '<button class="yb-btn yb-btn--outline" data-action="social-connect-cancel">Cancel</button>' +
       '<button class="yb-btn yb-btn--primary" data-action="social-connect-save" data-platform="' + platform + '">Connect</button>' +
@@ -173,7 +186,9 @@
     var icons = {
       instagram: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg> Instagram',
       facebook: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> Facebook',
-      tiktok: 'TikTok', linkedin: 'LinkedIn', youtube: 'YouTube', pinterest: 'Pinterest'
+      tiktok: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78c.27 0 .54.04.8.1v-3.5a6.37 6.37 0 0 0-.8-.05A6.34 6.34 0 0 0 3.15 15.3 6.34 6.34 0 0 0 9.49 21.6a6.34 6.34 0 0 0 6.34-6.34V8.7a8.16 8.16 0 0 0 4.77 1.52V6.77a4.83 4.83 0 0 1-1.01-.08z"/></svg> TikTok',
+      linkedin: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg> LinkedIn',
+      youtube: 'YouTube', pinterest: 'Pinterest'
     };
     return icons[p] || p;
   }
@@ -184,7 +199,12 @@
 
     var body = { platform: platform, accessToken: token.trim() };
     var pageIdEl = $('yb-social-connect-pageid');
-    if (pageIdEl && pageIdEl.value.trim()) body.pageId = pageIdEl.value.trim();
+    if (pageIdEl && pageIdEl.value.trim()) {
+      if (platform === 'instagram') body.igAccountId = pageIdEl.value.trim();
+      else body.pageId = pageIdEl.value.trim();
+    }
+    var orgIdEl = $('yb-social-connect-orgid');
+    if (orgIdEl && orgIdEl.value.trim()) body.organizationId = orgIdEl.value.trim();
 
     toast('Connecting...');
     var data = await api('social-accounts?action=save-token', {
