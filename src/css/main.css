@@ -2597,7 +2597,7 @@ section {
 }
 
 .faq-item summary {
-  padding: 25px 30px;
+  padding: 25px 60px 25px 30px;
   cursor: pointer;
   font-size: 18px;
   font-weight: 700;
@@ -4242,6 +4242,7 @@ section {
   display: flex;
   gap: 16px;
   width: max-content;
+  padding-right: 20px;
 }
 
 .ybh-copenhagen__track img {
@@ -4503,6 +4504,29 @@ section {
   .ybh-cta__buttons .btn {
     width: 100%;
     max-width: 300px;
+  }
+
+  .ybh-essence__timeline {
+    padding-left: 20px;
+  }
+
+  .ybh-copenhagen__track {
+    gap: 12px;
+    padding-right: 16px;
+  }
+}
+
+/* ── Historie: reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .ybh-vine,
+  .ybh-scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .yb-hero video {
+    display: none;
   }
 }
 
