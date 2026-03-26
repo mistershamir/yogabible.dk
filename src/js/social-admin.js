@@ -17,6 +17,7 @@
     hashtagSets: [],
     editingHashtagId: null,
     analyticsRange: 30,
+    templates: [],
     competitors: [],
     abTests: [],
     abTestFilter: 'all'
@@ -81,7 +82,7 @@
   /* ═══ VIEW MANAGEMENT ═══ */
   function showView(name) {
     state.view = name;
-    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags', 'competitors', 'abtesting'].forEach(function (v) {
+    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting'].forEach(function (v) {
       var el = $('yb-social-v-' + v);
       if (el) el.hidden = (v !== name);
     });
@@ -94,6 +95,7 @@
     if (name === 'analytics') loadAnalytics();
     if (name === 'inbox') loadInbox();
     if (name === 'hashtags') loadHashtags();
+    if (name === 'templates') loadTemplates();
     if (name === 'competitors') loadCompetitors();
     if (name === 'abtesting') loadAbTests();
   }
@@ -441,6 +443,7 @@
   /* ═══ ANALYTICS ═══ */
   async function loadAnalytics() {
     var days = state.analyticsRange;
+    showLastSyncTime();
 
     // Fetch all data in parallel
     var results = await Promise.all([
@@ -685,6 +688,18 @@
       toast('Synced ' + (data.synced || 0) + ' metrics');
       loadAnalytics();
     }
+  }
+
+  function showLastSyncTime() {
+    var el = $('yb-social-last-sync');
+    if (!el) return;
+    firebase.firestore().collection('system').doc('social_metric_sync').get().then(function (doc) {
+      if (doc.exists && doc.data().lastRun) {
+        var d = doc.data().lastRun.toDate ? doc.data().lastRun.toDate() : new Date(doc.data().lastRun);
+        el.textContent = t('social_last_auto_sync') + ': ' + fmtDateTime(d);
+        el.hidden = false;
+      }
+    }).catch(function () {});
   }
 
   /* ═══ INBOX ═══ */
@@ -1082,6 +1097,115 @@
     loadHashtags();
   }
 
+  /* ═══ CONTENT TEMPLATES ═══ */
+
+  async function loadTemplates() {
+    var el = $('yb-social-templates-list');
+    if (!el) return;
+    el.innerHTML = '<p class="yb-admin__muted">' + t('social_loading') + '</p>';
+
+    var db = firebase.firestore();
+    var snap = await db.collection('social_templates').orderBy('createdAt', 'desc').get();
+    state.templates = [];
+    snap.forEach(function (doc) { state.templates.push(Object.assign({ id: doc.id }, doc.data())); });
+    renderTemplates();
+  }
+
+  function renderTemplates() {
+    var el = $('yb-social-templates-list');
+    if (!el) return;
+    if (state.templates.length === 0) {
+      el.innerHTML = '<p class="yb-admin__muted">' + t('social_no_templates') + '</p>';
+      return;
+    }
+
+    var html = '';
+    state.templates.forEach(function (tpl) {
+      var platforms = (tpl.platforms || []).join(', ') || '—';
+      var caption = (tpl.caption || '').substring(0, 100);
+      if ((tpl.caption || '').length > 100) caption += '...';
+      var hashtags = (tpl.hashtagSetName || '');
+      html += '<div class="yb-social__template-card">' +
+        '<div class="yb-social__template-header">' +
+        '<strong>' + escapeHtml(tpl.name) + '</strong>' +
+        '<div style="display:flex;gap:6px">' +
+        '<button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-template-use" data-id="' + tpl.id + '">' + t('social_template_use') + '</button>' +
+        '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-template-delete" data-id="' + tpl.id + '" style="color:#c00">&times;</button>' +
+        '</div>' +
+        '</div>' +
+        '<p class="yb-social__template-caption">' + escapeHtml(caption) + '</p>' +
+        '<div class="yb-social__template-meta">' +
+        '<span>' + platforms + '</span>' +
+        (hashtags ? '<span>&#35; ' + escapeHtml(hashtags) + '</span>' : '') +
+        '</div>' +
+        '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  function createTemplate() {
+    var name = prompt(t('social_template_name') + ':', '');
+    if (!name || !name.trim()) return;
+    saveCurrentAsTemplate(name.trim());
+  }
+
+  async function saveAsTemplate() {
+    var name = prompt(t('social_template_name') + ':', '');
+    if (!name || !name.trim()) return;
+    saveCurrentAsTemplate(name.trim());
+  }
+
+  async function saveCurrentAsTemplate(name) {
+    // Read composer state — bridge to composer
+    var caption = ($('yb-social-caption') || {}).value || '';
+    var platforms = [];
+    qsa('#yb-social-composer-platforms input[name="platform"]:checked').forEach(function (cb) {
+      platforms.push(cb.value);
+    });
+
+    if (!caption.trim()) { toast('Write a caption first', true); return; }
+
+    var db = firebase.firestore();
+    await db.collection('social_templates').add({
+      name: name,
+      caption: caption,
+      platforms: platforms,
+      hashtagSetName: '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    toast(t('social_template_saved'));
+    if (state.view === 'templates') loadTemplates();
+  }
+
+  function useTemplate(id) {
+    var tpl = state.templates.find(function (t) { return t.id === id; });
+    if (!tpl) return;
+
+    // Open composer with template data
+    if (window.openSocialComposer) {
+      window.openSocialComposer(null);
+      // Short delay to let composer open
+      setTimeout(function () {
+        var captionEl = $('yb-social-caption');
+        if (captionEl) captionEl.value = tpl.caption || '';
+        // Check platforms
+        (tpl.platforms || []).forEach(function (p) {
+          var cb = document.querySelector('#yb-social-composer-platforms input[value="' + p + '"]');
+          if (cb) cb.checked = true;
+        });
+      }, 100);
+    }
+  }
+
+  async function deleteTemplate(id) {
+    if (!confirm(t('social_template_confirm_delete'))) return;
+    var db = firebase.firestore();
+    await db.collection('social_templates').doc(id).delete();
+    toast('Deleted');
+    loadTemplates();
+  }
+
   /* ═══ COMPETITORS ═══ */
 
   async function loadCompetitors() {
@@ -1475,6 +1599,7 @@
     else if (action === 'social-nav-analytics') showView('analytics');
     else if (action === 'social-nav-inbox') showView('inbox');
     else if (action === 'social-nav-hashtags') showView('hashtags');
+    else if (action === 'social-nav-templates') showView('templates');
     else if (action === 'social-nav-competitors') showView('competitors');
     else if (action === 'social-nav-abtesting') showView('abtesting');
 
@@ -1535,6 +1660,12 @@
     else if (action === 'social-inbox-open-conversation') openConversationThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
     else if (action === 'social-inbox-close-thread') closeThread();
     else if (action === 'social-inbox-send-reply') sendReply();
+
+    // Templates
+    else if (action === 'social-template-create') createTemplate();
+    else if (action === 'social-template-use') useTemplate(btn.getAttribute('data-id'));
+    else if (action === 'social-template-delete') deleteTemplate(btn.getAttribute('data-id'));
+    else if (action === 'social-save-as-template') saveAsTemplate();
 
     // Competitors
     else if (action === 'social-competitors-add') { var f = $('yb-social-competitor-form'); if (f) f.hidden = !f.hidden; }

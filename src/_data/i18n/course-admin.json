@@ -1341,7 +1341,18 @@
     "social_no_ab_tests": "Ingen A/B tests endnu.",
     "social_filter_active": "Aktive",
     "social_filter_completed": "Afsluttede",
-    "social_filter_all": "Alle"
+    "social_filter_all": "Alle",
+    "social_last_auto_sync": "Auto-sync",
+    "social_nav_templates": "Skabeloner",
+    "social_templates_title": "Indholdsskabeloner",
+    "social_new_template": "Ny Skabelon",
+    "social_no_templates": "Ingen skabeloner endnu.",
+    "social_template_name": "Skabelonnavn",
+    "social_template_name_placeholder": "f.eks. Ugentlig YTT promo",
+    "social_template_saved": "Skabelon gemt!",
+    "social_template_use": "Brug",
+    "social_template_confirm_delete": "Slet denne skabelon?",
+    "social_save_as_template": "Gem som Skabelon"
   },
   "en": {
     "page_title": "Administration",
@@ -2685,6 +2696,17 @@
     "social_no_ab_tests": "No A/B tests yet.",
     "social_filter_active": "Active",
     "social_filter_completed": "Completed",
-    "social_filter_all": "All"
+    "social_filter_all": "All",
+    "social_last_auto_sync": "Auto-sync",
+    "social_nav_templates": "Templates",
+    "social_templates_title": "Content Templates",
+    "social_new_template": "New Template",
+    "social_no_templates": "No templates yet.",
+    "social_template_name": "Template Name",
+    "social_template_name_placeholder": "e.g., Weekly YTT promo",
+    "social_template_saved": "Template saved!",
+    "social_template_use": "Use",
+    "social_template_confirm_delete": "Delete this template?",
+    "social_save_as_template": "Save as Template"
   }
 }
