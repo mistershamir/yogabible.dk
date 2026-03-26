@@ -18609,8 +18609,16 @@ button.yb-btn--outline-white:hover {
   font-weight: 700;
 }
 @media (max-width: 640px) {
+  .yphoto-quote__wrap {
+    max-height: 85vh;
+  }
+  .yphoto-quote__img {
+    height: 85vh;
+    object-position: center 20%;
+  }
   .yphoto-quote__overlay {
     align-items: flex-end;
+    padding-bottom: clamp(20px, 5vw, 40px);
   }
   .yphoto-quote__glass {
     max-width: 100%;
