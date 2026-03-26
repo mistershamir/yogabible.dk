@@ -16,8 +16,8 @@ const { jsonResponse, optionsResponse } = require('./shared/utils');
 
 const COLLECTION = 'social_posts';
 const ANALYTICS_SUB = 'social_analytics';
-const VALID_STATUSES = ['draft', 'scheduled', 'published', 'failed'];
-const VALID_PLATFORMS = ['instagram', 'facebook'];
+const VALID_STATUSES = ['draft', 'pending_review', 'approved', 'scheduled', 'published', 'failed', 'recycled'];
+const VALID_PLATFORMS = ['instagram', 'facebook', 'tiktok', 'linkedin'];
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -202,7 +202,8 @@ async function updatePost(db, body) {
   // Only allow updating known fields
   const allowed = [
     'caption', 'platforms', 'media', 'hashtags', 'hashtagSet',
-    'status', 'scheduledAt', 'firstComment', 'location', 'altTexts', 'mediaType'
+    'status', 'scheduledAt', 'firstComment', 'location', 'altTexts', 'mediaType',
+    'approvedBy', 'approvedAt', 'recycleConfig'
   ];
 
   const update = { updatedAt: serverTimestamp() };

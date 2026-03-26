@@ -15,7 +15,8 @@
     platforms: [],
     media: [],       // array of CDN URLs
     mediaSelected: [], // temp selection in media browser
-    currentPath: 'yoga-bible-DK/social'
+    currentPath: 'yoga-bible-DK/social',
+    uploadPlatform: 'general'  // tracks active platform for upload folder
   };
 
   var CHAR_LIMITS = {
@@ -287,7 +288,8 @@
     if (!modal) return;
     modal.hidden = false;
     composer.mediaSelected = [];
-    composer.currentPath = 'yoga-bible-DK';
+    // Start in the social folder by default, or the full CDN if browsing all
+    composer.currentPath = 'yoga-bible-DK/social';
     loadMediaFolder(composer.currentPath);
   }
 
@@ -388,9 +390,11 @@
     var token = await S.getToken();
     if (!token) return;
 
-    // Get upload URL
+    // Determine upload folder based on selected platform(s)
     var now = new Date();
-    var folder = 'yoga-bible-DK/social/' + now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var platformFolder = composer.platforms.length === 1 ? composer.platforms[0] : 'general';
+    var folder = 'yoga-bible-DK/social/' + platformFolder + '/' + yearMonth;
     var signRes = await fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(folder), {
       headers: { Authorization: 'Bearer ' + token }
     });

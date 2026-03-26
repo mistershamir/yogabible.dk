@@ -283,6 +283,15 @@
     loadAccounts();
   }
 
+  async function initCdnFolders() {
+    toast('Creating CDN folders...');
+    var data = await api('bunny-browser?action=init-social-folders');
+    if (data && data.folders) {
+      var created = data.folders.filter(function (f) { return f.status === 'created'; }).length;
+      toast(created + ' CDN folders initialized');
+    }
+  }
+
   /* ═══ CALENDAR ═══ */
   var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
@@ -445,7 +454,10 @@
         '<div class="yb-social__post-actions">' +
         '<button data-action="social-edit-post" data-id="' + p.id + '">' + t('social_edit') + '</button>' +
         '<button data-action="social-duplicate-post" data-id="' + p.id + '">' + t('social_duplicate') + '</button>' +
-        (p.status === 'draft' || p.status === 'scheduled' ? '<button data-action="social-publish-now" data-id="' + p.id + '">' + t('social_publish_now') + '</button>' : '') +
+        (p.status === 'draft' ? '<button data-action="social-submit-review" data-id="' + p.id + '">' + t('social_submit_review') + '</button>' : '') +
+        (p.status === 'pending_review' ? '<button data-action="social-approve-post" data-id="' + p.id + '" class="yb-social__approve-btn">' + t('social_approve') + '</button>' : '') +
+        (p.status === 'draft' || p.status === 'approved' || p.status === 'scheduled' ? '<button data-action="social-publish-now" data-id="' + p.id + '">' + t('social_publish_now') + '</button>' : '') +
+        (p.status === 'published' ? '<button data-action="social-recycle-post" data-id="' + p.id + '">' + t('social_recycle') + '</button>' : '') +
         '<button data-action="social-delete-post" data-id="' + p.id + '">' + t('social_delete') + '</button>' +
         '</div></div></div>';
     }).join('');
@@ -479,6 +491,69 @@
       method: 'POST', body: JSON.stringify({ postId: id })
     });
     if (data) { toast(t('social_published')); loadPosts(); }
+  }
+
+  // ── Approval Workflow ──────────────────────────────────────
+  async function submitForReview(id) {
+    var data = await api('social-posts?action=update', {
+      method: 'POST', body: JSON.stringify({ id: id, status: 'pending_review' })
+    });
+    if (data) { toast(t('social_submitted_review')); loadPosts(); }
+  }
+
+  async function approvePost(id) {
+    var data = await api('social-posts?action=update', {
+      method: 'POST', body: JSON.stringify({
+        id: id, status: 'approved',
+        approvedBy: 'admin',
+        approvedAt: new Date().toISOString()
+      })
+    });
+    if (data) { toast(t('social_approved')); loadPosts(); }
+  }
+
+  // ── Content Recycling ─────────────────────────────────────
+  async function recyclePost(id) {
+    var post = state.posts.find(function (p) { return p.id === id; });
+    if (!post) return;
+
+    var daysStr = prompt(t('social_recycle_prompt') || 'Re-post after how many days? (e.g., 30)', '30');
+    if (!daysStr) return;
+    var days = parseInt(daysStr);
+    if (isNaN(days) || days < 1) { toast('Invalid number', true); return; }
+
+    var nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + days);
+
+    // Create a new post as a recycled copy
+    var recycledPost = {
+      caption: post.caption,
+      platforms: post.platforms,
+      media: post.media,
+      hashtags: post.hashtags,
+      hashtagSet: post.hashtagSet,
+      firstComment: post.firstComment,
+      location: post.location,
+      altTexts: post.altTexts,
+      mediaType: post.mediaType || 'auto',
+      status: 'scheduled',
+      scheduledAt: nextDate.toISOString(),
+      recycledFrom: id,
+      recycleConfig: { intervalDays: days, originalPostId: id }
+    };
+
+    var data = await api('social-posts?action=create', {
+      method: 'POST', body: JSON.stringify(recycledPost)
+    });
+
+    // Mark original as recycled
+    if (data) {
+      await api('social-posts?action=update', {
+        method: 'POST', body: JSON.stringify({ id: id, status: 'recycled' })
+      });
+      toast(t('social_recycled') || 'Recycled — re-posting in ' + days + ' days');
+      loadPosts();
+    }
   }
 
   /* ═══ ANALYTICS ═══ */
@@ -527,6 +602,9 @@
 
     // 6. Recent performance table
     renderRecentTable(recent);
+
+    // 7. Cross-post comparison
+    renderCrossPostComparison();
   }
 
   function renderTrendChart(trend) {
@@ -717,6 +795,96 @@
     });
 
     tbody.innerHTML = rows.join('');
+  }
+
+  function renderCrossPostComparison() {
+    var grid = $('yb-social-cross-post-grid');
+    if (!grid) return;
+
+    // Find published posts that were posted to multiple platforms
+    var multiPosts = state.posts.filter(function (p) {
+      return p.status === 'published' && p.platforms && p.platforms.length > 1 && p.publishResults;
+    });
+
+    // Also find recycled posts that share the same caption (cross-posted separately)
+    var captionMap = {};
+    state.posts.forEach(function (p) {
+      if (p.status !== 'published' || !p.caption) return;
+      var key = p.caption.substring(0, 60);
+      if (!captionMap[key]) captionMap[key] = [];
+      captionMap[key].push(p);
+    });
+
+    // Build comparison cards
+    var comparisons = [];
+
+    // From multi-platform posts
+    multiPosts.forEach(function (p) {
+      var results = p.publishResults || {};
+      var platformData = [];
+      Object.keys(results).forEach(function (plat) {
+        var r = results[plat];
+        if (r && r.metrics) {
+          platformData.push({
+            platform: plat,
+            likes: r.metrics.likes || 0,
+            comments: r.metrics.comments || 0,
+            reach: r.metrics.reach || r.metrics.post_reach || 0,
+            engagement: (r.metrics.likes || 0) + (r.metrics.comments || 0) + (r.metrics.shares || 0)
+          });
+        }
+      });
+      if (platformData.length > 1) {
+        comparisons.push({ caption: p.caption, platforms: platformData, date: p.publishedAt });
+      }
+    });
+
+    // From duplicate-caption posts
+    Object.keys(captionMap).forEach(function (key) {
+      var group = captionMap[key];
+      if (group.length < 2) return;
+      var platformData = [];
+      group.forEach(function (p) {
+        var plat = p.platforms[0];
+        var results = (p.publishResults || {})[plat] || {};
+        platformData.push({
+          platform: plat,
+          likes: (results.metrics || {}).likes || 0,
+          comments: (results.metrics || {}).comments || 0,
+          reach: (results.metrics || {}).reach || 0,
+          engagement: ((results.metrics || {}).likes || 0) + ((results.metrics || {}).comments || 0)
+        });
+      });
+      if (platformData.length > 1) {
+        comparisons.push({ caption: group[0].caption, platforms: platformData, date: group[0].publishedAt });
+      }
+    });
+
+    if (comparisons.length === 0) {
+      grid.innerHTML = '<p class="yb-admin__muted">' + (t('social_no_cross_post') || 'No cross-platform posts yet. Post the same content to multiple platforms to see comparison.') + '</p>';
+      return;
+    }
+
+    grid.innerHTML = comparisons.slice(0, 5).map(function (comp) {
+      var maxEng = Math.max.apply(null, comp.platforms.map(function (p) { return p.engagement; })) || 1;
+      var winner = comp.platforms.reduce(function (a, b) { return a.engagement > b.engagement ? a : b; });
+
+      return '<div class="yb-social__cross-post-card">' +
+        '<p class="yb-social__cross-post-caption">' + truncate(comp.caption, 60) + '</p>' +
+        comp.platforms.map(function (p) {
+          var pct = Math.round((p.engagement / maxEng) * 100);
+          var isWinner = p === winner && comp.platforms.length > 1;
+          return '<div class="yb-social__cross-post-row' + (isWinner ? ' yb-social__cross-post-row--winner' : '') + '">' +
+            '<span class="yb-social__cross-post-platform">' + platformIcon(p.platform) + '</span>' +
+            '<div class="yb-social__cross-post-bar-wrap">' +
+            '<div class="yb-social__cross-post-bar" style="width:' + pct + '%"></div>' +
+            '</div>' +
+            '<span class="yb-social__cross-post-stats">' + p.likes + '❤️ ' + p.comments + '💬 ' + (p.reach ? p.reach.toLocaleString() + '👁' : '') + '</span>' +
+            (isWinner ? '<span class="yb-social__cross-post-winner">🏆</span>' : '') +
+          '</div>';
+        }).join('') +
+      '</div>';
+    }).join('');
   }
 
   async function syncMetrics() {
@@ -1878,6 +2046,7 @@
     else if (action === 'social-connect-cancel') closeConnectModal();
     else if (action === 'social-disconnect') disconnectAccount(btn.getAttribute('data-platform'));
     else if (action === 'social-refresh-accounts') refreshAccounts();
+    else if (action === 'social-init-cdn-folders') initCdnFolders();
 
     // Calendar
     else if (action === 'social-cal-prev') {
@@ -1909,6 +2078,9 @@
     else if (action === 'social-delete-post') deletePost(btn.getAttribute('data-id'));
     else if (action === 'social-duplicate-post') duplicatePost(btn.getAttribute('data-id'));
     else if (action === 'social-publish-now') publishNow(btn.getAttribute('data-id'));
+    else if (action === 'social-submit-review') submitForReview(btn.getAttribute('data-id'));
+    else if (action === 'social-approve-post') approvePost(btn.getAttribute('data-id'));
+    else if (action === 'social-recycle-post') recyclePost(btn.getAttribute('data-id'));
 
     // Hashtags
     else if (action === 'social-new-hashtag-set') showHashtagForm(null);

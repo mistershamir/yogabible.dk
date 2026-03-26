@@ -5745,9 +5745,13 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   border-radius: 10px; text-transform: uppercase; letter-spacing: 0.3px;
 }
 .yb-social__post-status--draft { background: #F5F3F0; color: #6F6A66; }
+.yb-social__post-status--pending_review { background: #FFF3E0; color: #e65100; }
+.yb-social__post-status--approved { background: #e8f5e9; color: #2e7d32; }
 .yb-social__post-status--scheduled { background: #dbeafe; color: #1d4ed8; }
 .yb-social__post-status--published { background: #dcfce7; color: #16a34a; }
 .yb-social__post-status--failed { background: #fee2e2; color: #dc2626; }
+.yb-social__post-status--recycled { background: #f3e5f5; color: #7b1fa2; }
+.yb-social__approve-btn { color: #16a34a !important; font-weight: 600; }
 .yb-social__post-actions {
   display: flex; gap: 4px; margin-top: 10px; padding-top: 10px;
   border-top: 1px solid #E8E4E0;
@@ -6420,6 +6424,30 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 }
 .yb-social__ai-priority--high { background: #FFEBEE; color: #c62828; }
 .yb-social__ai-priority--low { background: #e8f5e9; color: #2e7d32; }
+
+/* ── Cross-Post Comparison ── */
+.yb-social__cross-post-grid { display: flex; flex-direction: column; gap: 12px; }
+.yb-social__cross-post-card {
+  background: #fff; border: 1px solid #E8E4E0; border-radius: 10px; padding: 14px;
+}
+.yb-social__cross-post-caption {
+  font-size: 12px; color: #6F6A66; margin: 0 0 10px; font-style: italic;
+}
+.yb-social__cross-post-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.yb-social__cross-post-row--winner {
+  background: #FFF8E1; border-radius: 6px; padding: 4px 6px; margin: 0 -6px 6px;
+}
+.yb-social__cross-post-platform { width: 24px; flex-shrink: 0; }
+.yb-social__cross-post-bar-wrap {
+  flex: 1; height: 8px; background: #F5F3F0; border-radius: 4px; overflow: hidden;
+}
+.yb-social__cross-post-bar {
+  height: 100%; background: #f75c03; border-radius: 4px; transition: width 0.3s;
+}
+.yb-social__cross-post-stats { font-size: 11px; color: #6F6A66; white-space: nowrap; }
+.yb-social__cross-post-winner { font-size: 14px; }
 
 /* ── UTM Builder ── */
 .yb-social__utm-builder {

@@ -19,7 +19,10 @@
 <div id="yb-social-v-accounts">
   <div class="yb-admin__view-head">
     <h2>{{ t.social_accounts_title or "Connected Accounts" }}</h2>
-    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-refresh-accounts">&#8635; {{ t.social_refresh or "Refresh" }}</button>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-init-cdn-folders" title="{{ t.social_init_folders or 'Create CDN folder structure' }}">📁 {{ t.social_init_folders or "Init CDN" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-refresh-accounts">&#8635; {{ t.social_refresh or "Refresh" }}</button>
+    </div>
   </div>
 
   <div class="yb-social__accounts-grid" id="yb-social-accounts-grid">
@@ -228,6 +231,8 @@
   <div class="yb-social__filter-bar" id="yb-social-status-filter">
     <button class="yb-social__filter-btn is-active" type="button" data-action="social-filter-status" data-status="all">{{ t.social_filter_all or "All" }}</button>
     <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="draft">{{ t.social_filter_draft or "Drafts" }}</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="pending_review">{{ t.social_filter_pending or "Pending" }}</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="approved">{{ t.social_filter_approved or "Approved" }}</button>
     <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="scheduled">{{ t.social_filter_scheduled or "Scheduled" }}</button>
     <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="published">{{ t.social_filter_published or "Published" }}</button>
     <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="failed">{{ t.social_filter_failed or "Failed" }}</button>
@@ -319,6 +324,15 @@
   <div class="yb-social__analytics-section">
     <h3>{{ t.social_top_posts or "Top Performing Posts" }}</h3>
     <div class="yb-social__top-posts" id="yb-social-top-posts">
+      <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+    </div>
+  </div>
+
+  {# Cross-Post Comparison #}
+  <div class="yb-social__analytics-section">
+    <h3>{{ t.social_cross_post_title or "Cross-Platform Comparison" }}</h3>
+    <p class="yb-admin__muted" style="margin-bottom:12px">{{ t.social_cross_post_desc or "Same content posted to multiple platforms — which performed best?" }}</p>
+    <div class="yb-social__cross-post-grid" id="yb-social-cross-post-grid">
       <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
     </div>
   </div>
