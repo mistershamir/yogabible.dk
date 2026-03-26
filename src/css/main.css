@@ -17986,6 +17986,23 @@ button.yb-btn--outline-white:hover {
 
 
 /* ─────────────────────────────────────────
+   Hero Video Background
+   ───────────────────────────────────────── */
+.yphoto-hero--video { position: relative; overflow: hidden; }
+.yphoto-hero__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  opacity: 0.35;
+}
+.yphoto-hero--video .yb-hero__glow,
+.yphoto-hero--video .yb-hero__content,
+.yphoto-hero--video .yb-hero__scroll { position: relative; z-index: 1; }
+
+/* ─────────────────────────────────────────
    Purpose Statement (dark cinematic quote)
    Pattern: DS Section 18 — Dark Cinematic Quote
    ───────────────────────────────────────── */
