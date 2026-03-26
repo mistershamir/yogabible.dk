@@ -336,7 +336,7 @@ async function rescheduleAppointment(body) {
 
 // ─── Photo Session Request ────────────────────────────────────────
 async function photoSessionRequest(body) {
-  const { name, email, phone, message, preferred_slots, location_pref } = body;
+  const { name, email, phone, message, preferred_slots, location_pref, lang } = body;
 
   if (!name || !email || !preferred_slots || preferred_slots.length < 1) {
     return jsonResponse(400, { ok: false, error: 'Missing required fields (name, email, at least 1 date/time)' });
@@ -374,6 +374,7 @@ async function photoSessionRequest(body) {
     client_phone: phone || '',
     message: message || '',
     location_pref: location_pref || 'studio',
+    lang: lang || 'da',
     preferred_slots: preferred_slots, // [{date, time}, {date, time}, {date, time}]
     status: 'pending_request',
     location: 'studio',
@@ -908,38 +909,108 @@ async function sendAdminRequestNotification(id, appointment, clientToken) {
 // ─── Photo Request Received — Client ────────────────────────────
 async function sendPhotoRequestReceivedEmail(id, appointment) {
   const orange = '#f75c03';
+  const isEn = appointment.lang === 'en';
   const slots = appointment.preferred_slots || [];
+  const cancelToken = generateToken(id, appointment.client_email);
+  const baseUrl = CONFIG.SITE_URL;
+  const cancelUrl = baseUrl + '/appointment?id=' + id + '&email=' + encodeURIComponent(appointment.client_email) + '&token=' + cancelToken + '&action=cancel';
 
   let slotsHtml = '';
   let slotsText = '';
   slots.forEach(function(s, i) {
-    slotsHtml += '<tr><td style="padding:6px 12px 6px 0;font-weight:bold;color:#6F6A66;">Forslag ' + (i + 1) + ':</td><td>' + formatDateDa(s.date) + ' kl. ' + s.time + '</td></tr>';
-    slotsText += 'Forslag ' + (i + 1) + ': ' + s.date + ' kl. ' + s.time + '\n';
+    const label = isEn ? 'Option ' + (i + 1) : 'Forslag ' + (i + 1);
+    const dateStr = isEn ? formatDateEn(s.date) + ' at ' + s.time : formatDateDa(s.date) + ' kl. ' + s.time;
+    slotsHtml += '<tr><td style="padding:8px 16px 8px 0;font-weight:700;color:' + orange + ';white-space:nowrap;vertical-align:top;">' + label + '</td><td style="padding:8px 0;color:#1a1a1a;">' + dateStr + '</td></tr>';
+    slotsText += label + ': ' + s.date + (isEn ? ' at ' : ' kl. ') + s.time + '\n';
   });
 
-  const html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;max-width:600px;margin:0 auto;">' +
-    '<div style="background:#1a1a1a;padding:24px 32px;border-radius:12px 12px 0 0;">' +
-    '<h1 style="color:#fff;margin:0;font-size:22px;">&#128247; Anmodning om fotosession modtaget</h1>' +
+  const t = {
+    subject: isEn ? '📷 Photo session — request received' : '📷 Fotosession — anmodning modtaget',
+    greeting: isEn ? 'Hi' : 'Hej',
+    p1: isEn
+      ? 'Thank you for your interest in a <strong>yoga photo session</strong> at Yoga Bible!'
+      : 'Tak for din interesse i en <strong>yoga fotosession</strong> hos Yoga Bible!',
+    p2: isEn
+      ? 'We\'ve received your request and will get back to you within <strong>24–48 hours</strong> with a confirmation — or suggest an alternative time for your approval.'
+      : 'Vi har modtaget din anmodning og vender tilbage inden for <strong>24–48 timer</strong> med en bekræftelse — eller foreslår et alternativt tidspunkt, som du kan godkende.',
+    slotsTitle: isEn ? 'Your preferred times' : 'Dine foretrukne tidspunkter',
+    locationLabel: isEn ? 'Location' : 'Lokation',
+    locationVal: appointment.location_pref === 'on-location'
+      ? (isEn ? 'On-location (to be confirmed)' : 'On-location (aftales nærmere)')
+      : (isEn ? 'Yoga Bible Studio · Christianshavn, Copenhagen' : 'Yoga Bible Studio · Christianshavn, København'),
+    whatNext: isEn ? 'What happens next?' : 'Hvad sker der nu?',
+    step1: isEn ? 'We review your preferred times' : 'Vi gennemgår dine foretrukne tidspunkter',
+    step2: isEn ? 'You\'ll receive a confirmation email with the final date' : 'Du modtager en bekræftelsesmail med den endelige dato',
+    step3: isEn ? 'If needed, we\'ll suggest an alternative — you can accept or reply' : 'Hvis nødvendigt foreslår vi et alternativ — du kan acceptere eller svare',
+    cancelLabel: isEn ? 'Changed your mind? Cancel request' : 'Fortrudt? Annuller anmodning',
+    textPlainGreeting: isEn ? 'Hi ' : 'Hej ',
+    textPlainThanks: isEn ? 'Thank you for your photo session request!' : 'Tak for din fotosession-anmodning!',
+    textPlainReply: isEn ? 'We\'ll get back to you within 24-48 hours.' : 'Vi vender tilbage inden for 24-48 timer.'
+  };
+
+  const html = '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f5f3f0;">' +
+    '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;max-width:600px;margin:0 auto;padding:20px;">' +
+
+    // Header with dark background + orange accent line
+    '<div style="background:#1a1a1a;padding:28px 32px 24px;border-radius:12px 12px 0 0;">' +
+    '<div style="width:40px;height:3px;background:' + orange + ';border-radius:2px;margin-bottom:16px;"></div>' +
+    '<h1 style="color:#fff;margin:0;font-size:20px;font-weight:700;letter-spacing:-0.02em;">Yoga Bible · Photography</h1>' +
     '</div>' +
-    '<div style="background:#FFFCF9;padding:28px 32px;border:1px solid #E8E4E0;border-top:none;border-radius:0 0 12px 12px;">' +
-    '<p>Hej <strong>' + escapeHtml(appointment.client_name) + '</strong>,</p>' +
-    '<p>Tak for din interesse i en <strong>yoga fotosession</strong>! Vi har modtaget dine onsker og vender tilbage med en bekraeftelse.</p>' +
-    '<div style="background:#F5F3F0;border-radius:8px;padding:16px 20px;margin:16px 0;">' +
-    '<p style="font-weight:bold;margin:0 0 8px;">Dine foretrukne tidspunkter:</p>' +
-    '<table style="width:100%;border-collapse:collapse;font-size:15px;">' +
-    slotsHtml +
+
+    // Orange accent bar
+    '<div style="height:3px;background:' + orange + ';"></div>' +
+
+    // Body
+    '<div style="background:#fff;padding:32px;border:1px solid #E8E4E0;border-top:none;">' +
+    '<p style="margin:0 0 16px;">' + t.greeting + ' <strong>' + escapeHtml(appointment.client_name) + '</strong>,</p>' +
+    '<p style="margin:0 0 16px;">' + t.p1 + '</p>' +
+    '<p style="margin:0 0 24px;">' + t.p2 + '</p>' +
+
+    // Slots card
+    '<div style="background:#FFFCF9;border:1px solid #E8E4E0;border-radius:10px;padding:20px 24px;margin:0 0 24px;">' +
+    '<p style="font-weight:700;margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:0.08em;color:#6F6A66;">' + t.slotsTitle + '</p>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:15px;">' + slotsHtml + '</table>' +
+    '<div style="margin-top:12px;padding-top:12px;border-top:1px solid #E8E4E0;">' +
+    '<span style="font-size:13px;font-weight:700;color:#6F6A66;">' + t.locationLabel + ':</span> ' +
+    '<span style="font-size:13px;color:#1a1a1a;">' + t.locationVal + '</span>' +
+    '</div>' +
+    '</div>' +
+
+    // What happens next — 3 steps
+    '<p style="font-weight:700;margin:0 0 10px;font-size:14px;color:#1a1a1a;">' + t.whatNext + '</p>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:14px;color:#6F6A66;margin:0 0 24px;">' +
+    '<tr><td style="padding:4px 10px 4px 0;color:' + orange + ';font-weight:700;vertical-align:top;">1.</td><td style="padding:4px 0;">' + t.step1 + '</td></tr>' +
+    '<tr><td style="padding:4px 10px 4px 0;color:' + orange + ';font-weight:700;vertical-align:top;">2.</td><td style="padding:4px 0;">' + t.step2 + '</td></tr>' +
+    '<tr><td style="padding:4px 10px 4px 0;color:' + orange + ';font-weight:700;vertical-align:top;">3.</td><td style="padding:4px 0;">' + t.step3 + '</td></tr>' +
     '</table>' +
+
+    // Cancel link
+    '<div style="text-align:center;margin:24px 0 8px;">' +
+    '<a href="' + cancelUrl + '" style="font-size:13px;color:#999;text-decoration:underline;">' + t.cancelLabel + '</a>' +
     '</div>' +
-    '<p style="font-size:14px;color:#6F6A66;">Vi gennemgar dine forslag og bekraefter en dato — eller foreslaar et alternativ, som du kan godkende. Du horer fra os inden for 24-48 timer.</p>' +
-    '<p style="font-size:13px;color:#888;">&#127468;&#127463; Thank you for your interest in a yoga photo session! We\'ve received your preferred dates and will get back to you with a confirmation.</p>' +
+
     getSignatureHtml() +
-    '</div></div>';
+    '</div>' +
+
+    // Footer
+    '<div style="background:#1a1a1a;padding:16px 32px;border-radius:0 0 12px 12px;text-align:center;">' +
+    '<p style="margin:0;font-size:12px;color:rgba(255,255,255,.4);">Yoga Bible · Torvegade 66 · 1400 K\u00f8benhavn K</p>' +
+    '</div>' +
+
+    '</div></body></html>';
+
+  const text = t.textPlainGreeting + appointment.client_name + ',\n\n' +
+    t.textPlainThanks + '\n\n' +
+    t.slotsTitle + ':\n' + slotsText + '\n' +
+    t.textPlainReply + '\n' +
+    '\n' + t.cancelLabel + ': ' + cancelUrl + '\n' +
+    getSignaturePlain();
 
   return sendRawEmail({
     to: appointment.client_email,
-    subject: '📷 Fotosession — anmodning modtaget',
+    subject: t.subject,
     html,
-    text: 'Hej ' + appointment.client_name + ',\n\nTak for din interesse i en yoga fotosession!\n\nDine foretrukne tidspunkter:\n' + slotsText + '\nVi vender tilbage med en bekraeftelse inden for 24-48 timer.\n' + getSignaturePlain()
+    text
   });
 }
 

@@ -18,6 +18,10 @@
 [functions."live-room-cleanup"]
   schedule = "*/5 * * * *"
 
+# Scheduled function: publish due social media posts every 5 minutes
+[functions."social-schedule"]
+  schedule = "*/5 * * * *"
+
 # Redirect www to non-www (301)
 [[redirects]]
   from = "https://www.yogabible.dk/*"

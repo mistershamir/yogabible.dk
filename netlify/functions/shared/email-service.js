@@ -98,16 +98,34 @@ function getGermanPsLinePlain() {
   return '\n\nPS: Wir schreiben dir auf Deutsch, weil wir möchten, dass du dich bei uns willkommen fühlst — noch bevor du in Kopenhagen ankommst. Antworte gerne auf Deutsch oder Englisch, wir verstehen beides.\n';
 }
 
-function getUnsubscribeFooterHtml(email) {
+function getUnsubscribeFooterHtml(email, lang) {
   const url = buildUnsubscribeUrl(email);
+  var l = (lang || 'da').toLowerCase().substring(0, 2);
+  var text;
+  if (l === 'de') {
+    text = 'Du m\u00F6chtest keine E-Mails mehr erhalten? Hier abmelden';
+  } else if (['da', 'dk'].includes(l)) {
+    text = '\u00d8nsker du ikke at modtage flere e-mails? Afmeld her';
+  } else {
+    text = "Don't want to receive more emails? Unsubscribe here";
+  }
   return '<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;">' +
-    '<a href="' + url + '" style="color:#999;font-size:11px;text-decoration:none;">\u00d8nsker du ikke at modtage flere e-mails? Afmeld her</a>' +
+    '<a href="' + url + '" style="color:#999;font-size:11px;text-decoration:none;">' + text + '</a>' +
     '</div>';
 }
 
-function getUnsubscribeFooterPlain(email) {
+function getUnsubscribeFooterPlain(email, lang) {
   const url = buildUnsubscribeUrl(email);
-  return '\n\n---\nAfmeld nyhedsbrev: ' + url;
+  var l = (lang || 'da').toLowerCase().substring(0, 2);
+  var label;
+  if (l === 'de') {
+    label = 'Abmelden: ';
+  } else if (['da', 'dk'].includes(l)) {
+    label = 'Afmeld nyhedsbrev: ';
+  } else {
+    label = 'Unsubscribe: ';
+  }
+  return '\n\n---\n' + label + url;
 }
 
 function getAccommodationSectionHtml(cityCountry) {

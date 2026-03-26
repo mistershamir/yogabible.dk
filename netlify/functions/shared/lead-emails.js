@@ -33,6 +33,18 @@ const {
 } = require('./email-service');
 const { getDb } = require('./firestore');
 const { prepareTrackedEmail } = require('./email-tracking');
+const { detectLeadCountry, normalizeCountryName, detectCountryFromPhone } = require('./country-detect');
+
+// Form ID → language map (same as facebook-leads-webhook.js)
+const FORM_LANG_MAP = {
+  '827004866473769':  'en',     // july-vinyasa-plus-en
+  '25716246641411656':'en',     // july-vinyasa-plus-no
+  '4318151781759438': 'en',     // july-vinyasa-plus-se
+  '2450631555377690': 'de',     // july-vinyasa-plus-de
+  '1668412377638315': 'en',     // july-vinyasa-plus-fi
+  '960877763097239':  'en',     // july-vinyasa-plus-nl
+  '1344364364192542': 'da'      // july-vinyasa-plus-dk
+};
 
 // =========================================================================
 // Shared HTML helpers
@@ -194,10 +206,43 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
   }
 
   try {
-    // Determine language: 'da' for Danish website/ads, 'de' for German, otherwise English
-    const lang = (leadData.lang || leadData.meta_lang || '').toLowerCase().substring(0, 2);
-    const isDanish = lang === 'da';
-    const isGerman = lang === 'de' || ['at', 'ch'].includes(lang);
+    // Waitlist 300h — bilingual, handles lang internally
+    if (action === 'lead_waitlist_300h') {
+      const result = await sendWaitlist300hEmail(leadData, tokenData);
+      if (result && result.success) {
+        await logWelcomeEmail(leadData.email, result.subject || 'Waitlist 300h email');
+      }
+      return result;
+    }
+
+    // Determine language — multi-layer detection
+    // The old Facebook webhook stamped lang='da' on ALL leads, so lang field
+    // and country detection (which uses lang as fallback) are unreliable.
+    // Priority: form_id map → country/phone (no lang) → non-da rawLang → default da
+    const rawLang = (leadData.lang || leadData.meta_lang || '').toLowerCase().trim();
+    const formLang = FORM_LANG_MAP[leadData.meta_form_id];
+    const hardCountryField = normalizeCountryName(leadData.country || leadData.city_country);
+    const hardCountryPhone = !hardCountryField ? detectCountryFromPhone(leadData.phone) : null;
+    const hardCountry = hardCountryField || hardCountryPhone;
+    let lang, isDanish, isGerman;
+
+    if (formLang) {
+      lang = formLang.substring(0, 2);
+      isDanish = ['da', 'dk'].includes(lang);
+      isGerman = lang === 'de';
+    } else if (hardCountry === 'DK') {
+      isDanish = true; isGerman = false; lang = 'da';
+    } else if (hardCountry && ['DE', 'AT', 'CH'].includes(hardCountry)) {
+      isDanish = false; isGerman = true; lang = 'de';
+    } else if (hardCountry && hardCountry !== 'OTHER') {
+      isDanish = false; isGerman = false; lang = 'en';
+    } else if (rawLang && rawLang !== 'da' && rawLang !== 'dk') {
+      lang = rawLang.substring(0, 2);
+      isDanish = false;
+      isGerman = lang === 'de';
+    } else {
+      isDanish = true; isGerman = false; lang = 'da';
+    }
 
     // German leads get DE templates (falling back to EN via i18n lookups)
     if (isGerman) {
@@ -316,6 +361,9 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         break;
       case 'lead_schedule_300h':
         result = await sendEmail300hYTT(leadData, tokenData);
+        break;
+      case 'lead_waitlist_300h':
+        result = await sendWaitlist300hEmail(leadData, tokenData);
         break;
       case 'lead_schedule_50h':
       case 'lead_schedule_30h':
@@ -458,7 +506,7 @@ async function sendEmail4wJulyYTT(leadData, tokenData = {}) {
 
   // Non-CPH Danish leads get the enhanced EN schedule page (includes accommodation info)
   const isCph = i18n.isCopenhagenLead(leadData);
-  const schedPath = isCph ? '/skema/4-uger-juli/' : '/en/schedule/4-weeks-july/';
+  const schedPath = isCph ? '/skema/4-uger-juli/' : '/en/schedule/4-weeks-july-plan/';
   const scheduleUrl = tokenData.leadId && tokenData.token
     ? 'https://www.yogabible.dk' + schedPath + '?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
     : 'https://www.yogabible.dk' + schedPath;
@@ -632,7 +680,7 @@ function julyPrepPhaseBlockHtml(accommodation, localizedPrice) {
     html += '✅ Fully refundable if the course is cancelled<br>';
   }
 
-  html += '<br><a href="https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Start Preparation Phase →</a>';
+  html += '<br><a href="https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Start Preparation Phase →</a>';
   html += '</div>';
   return html;
 }
@@ -684,10 +732,10 @@ async function sendJulyVinyasaPlusEnEmail(leadData, tokenData) {
 
   var subject = firstName + ', here are all the dates for the 4-week Vinyasa Plus training (July)';
 
-  // Schedule URL (tokenized)
+  // Schedule URL (tokenized) — points to the international planning page
   var sUrl = tokenData && tokenData.leadId && tokenData.token
-    ? 'https://yogabible.dk/en/schedule/4-weeks-july/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://yogabible.dk/en/schedule/4-weeks-july/';
+    ? 'https://yogabible.dk/en/schedule/4-weeks-july-plan/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://yogabible.dk/en/schedule/4-weeks-july-plan/';
 
   var localizedPrice = getLocalizedPrepPrice(country);
 
@@ -793,7 +841,7 @@ async function sendJulyVinyasaPlusEnEmail(leadData, tokenData) {
   }
   plain += 'We have trained yoga teachers since 2014, and our graduates teach across Europe and beyond.\n\n';
   plain += 'Secure your spot: The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort.\n';
-  plain += 'Start Preparation Phase: https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211\n\n';
+  plain += 'Start Preparation Phase: https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211\n\n';
   plain += 'Book a Free Online Consultation: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
   plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
   plain += '\n---\nUnsubscribe: ' + buildUnsubscribeUrl(leadData.email);
@@ -821,8 +869,8 @@ async function sendJulyVinyasaPlusDeEmail(leadData, tokenData) {
   var subject = firstName + ', hier sind alle Termine für die 4-Wochen Vinyasa Plus Ausbildung (Juli)';
 
   var sUrl = tokenData && tokenData.leadId && tokenData.token
-    ? 'https://yogabible.dk/en/schedule/4-weeks-july/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://yogabible.dk/en/schedule/4-weeks-july/';
+    ? 'https://yogabible.dk/en/schedule/4-weeks-july-plan/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://yogabible.dk/en/schedule/4-weeks-july-plan/';
 
   var localizedPrice = getLocalizedPrepPrice(country);
 
@@ -937,7 +985,7 @@ async function sendJulyVinyasaPlusDeEmail(leadData, tokenData) {
     html += '✅ Vollständig erstattbar, falls der Kurs abgesagt wird<br>';
   }
 
-  html += '<br><a href="https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Vorbereitungsphase starten →</a>';
+  html += '<br><a href="https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Vorbereitungsphase starten →</a>';
   html += '</div>';
 
   // Block 12: Booking CTA
@@ -965,7 +1013,7 @@ async function sendJulyVinyasaPlusDeEmail(leadData, tokenData) {
   plain += '• Alle Levels willkommen\n\n';
   plain += 'Wir bilden seit 2014 Yogalehrer aus, und unsere Absolventen unterrichten in ganz Europa und darüber hinaus.\n\n';
   plain += 'Sichere deinen Platz: Vorbereitungsphase (' + localizedPrice + ')\n';
-  plain += 'Vorbereitungsphase starten: https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs?product=100211\n\n';
+  plain += 'Vorbereitungsphase starten: https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211\n\n';
   plain += 'Kostenloses Online-Gespräch buchen: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
   plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
   plain += '\n---\nAbmelden: ' + buildUnsubscribeUrl(leadData.email);
@@ -1697,6 +1745,74 @@ async function sendEmail300hYTT(leadData, tokenData = {}) {
 }
 
 // =========================================================================
+// 300h Waitlist Confirmation Email (Bilingual)
+// =========================================================================
+
+async function sendWaitlist300hEmail(leadData, tokenData = {}) {
+  const firstName = leadData.first_name || '';
+  const lang = (leadData.lang || 'da').toLowerCase();
+  const isEn = lang === 'en';
+
+  const subject = isEn
+    ? 'You\'re on the waitlist — 300-Hour Advanced Yoga Teacher Training'
+    : 'Du er på ventelisten — 300-timers avanceret yogalæreruddannelse';
+
+  let bodyHtml, bodyPlain;
+
+  if (isEn) {
+    bodyHtml = '<p>Hi ' + escapeHtml(firstName) + ',</p>';
+    bodyHtml += '<p>Thank you for your interest in our <strong>300-Hour Advanced Yoga Teacher Training</strong> — we\'re thrilled to have you on the waitlist.</p>';
+    bodyHtml += '<p>We are currently designing the most comprehensive 300-hour program in Scandinavia. As soon as the program opens for applications, you will be <strong>among the first to know</strong>.</p>';
+    bodyHtml += '<p>Here\'s what you can expect:</p>';
+    bodyHtml += '<ul style="margin:10px 0;padding-left:20px;">';
+    bodyHtml += '<li><strong>24 weeks</strong> of advanced training in Copenhagen</li>';
+    bodyHtml += '<li><strong>RYT-500 certification</strong> through Yoga Alliance</li>';
+    bodyHtml += '<li>Specializations in Yin Yoga, Yoga Therapy, Pre/Postnatal, Ayurveda &amp; more</li>';
+    bodyHtml += '<li>Max <strong>12 participants</strong> for close mentoring</li>';
+    bodyHtml += '</ul>';
+    bodyHtml += '<p>In the meantime, feel free to reply to this email if you have any questions — I\'m happy to chat.</p>';
+    bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book a free info session</a></p>';
+    bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+    bodyPlain = 'Hi ' + firstName + ',\n\n';
+    bodyPlain += 'Thank you for your interest in our 300-Hour Advanced Yoga Teacher Training — we\'re thrilled to have you on the waitlist.\n\n';
+    bodyPlain += 'We are currently designing the most comprehensive 300-hour program in Scandinavia. As soon as the program opens for applications, you will be among the first to know.\n\n';
+    bodyPlain += 'In the meantime, feel free to reply to this email if you have any questions.\n\n';
+    bodyPlain += 'Book a free info session: ' + CONFIG.MEETING_LINK;
+    bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  } else {
+    bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+    bodyHtml += '<p>Tak for din interesse i vores <strong>300-timers avancerede yogalæreruddannelse</strong> — vi er glade for at have dig på ventelisten.</p>';
+    bodyHtml += '<p>Vi er i gang med at designe det mest ambitiøse 300-timers program i Skandinavien. Så snart uddannelsen åbner for ansøgning, vil du være <strong>blandt de første til at høre det</strong>.</p>';
+    bodyHtml += '<p>Her er hvad du kan forvente:</p>';
+    bodyHtml += '<ul style="margin:10px 0;padding-left:20px;">';
+    bodyHtml += '<li><strong>24 ugers</strong> avanceret uddannelse i København</li>';
+    bodyHtml += '<li><strong>RYT-500 certificering</strong> gennem Yoga Alliance</li>';
+    bodyHtml += '<li>Specialiseringer i Yin Yoga, Yoga Terapi, Pre/Postnatal, Ayurveda og mere</li>';
+    bodyHtml += '<li>Max <strong>12 deltagere</strong> for tæt mentoring</li>';
+    bodyHtml += '</ul>';
+    bodyHtml += '<p>I mellemtiden er du meget velkommen til at svare på denne e-mail, hvis du har spørgsmål — jeg svarer gerne.</p>';
+    bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>';
+    bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+    bodyPlain = 'Hej ' + firstName + ',\n\n';
+    bodyPlain += 'Tak for din interesse i vores 300-timers avancerede yogalæreruddannelse — vi er glade for at have dig på ventelisten.\n\n';
+    bodyPlain += 'Vi er i gang med at designe det mest ambitiøse 300-timers program i Skandinavien. Så snart uddannelsen åbner for ansøgning, vil du være blandt de første til at høre det.\n\n';
+    bodyPlain += 'I mellemtiden er du meget velkommen til at svare på denne e-mail.\n\n';
+    bodyPlain += 'Book et gratis infomøde: ' + CONFIG.MEETING_LINK;
+    bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  }
+
+  const result = await sendRawEmail({
+    to: leadData.email,
+    subject,
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
+    text: bodyPlain
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
 // Specialty YTT Email (50h, 30h)
 // =========================================================================
 
@@ -1985,7 +2101,7 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   bodyHtml += i18nBookingCta(lang) + i18nQuestionPrompt(lang);
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // ---- Plain text ----
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2001,7 +2117,7 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   bodyPlain += t.lookingForward;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({
     to: leadData.email,
@@ -2084,7 +2200,7 @@ async function sendMultiFormatEmail(leadData, lang, tokenData) {
   bodyHtml += '<p>' + t.lookingForward + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // ---- Plain text ----
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2105,7 +2221,7 @@ async function sendMultiFormatEmail(leadData, lang, tokenData) {
   bodyPlain += t.lookingForward;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({
     to: leadData.email,
@@ -2173,7 +2289,7 @@ async function sendUndecidedEmail(leadData, lang, tokenData) {
   bodyHtml += '<p>' + u.replyOk + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // Plain text
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2186,7 +2302,7 @@ async function sendUndecidedEmail(leadData, lang, tokenData) {
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
@@ -2212,13 +2328,13 @@ async function sendEmailGenericBilingual(leadData, lang, tokenData = {}) {
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + g.intro.replace(/<[^>]+>/g, '') + '\n\n' +
     g.body + '\n\n' + g.bookLink + ': ' + CONFIG.MEETING_LINK + '\n' + g.visitLink + ': ' + g.visitUrl;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
@@ -2241,13 +2357,13 @@ async function sendMentorshipEmail(leadData, lang, tokenData = {}) {
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + p.intro.replace(/<[^>]+>/g, '').replace('{{service}}', service) + '\n\n' +
     p.description + '\n\n' + t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
@@ -2288,13 +2404,13 @@ async function sendCoursesEmail(leadData, lang, tokenData = {}) {
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + (isBundle ? c.introBundle : c.introSingle).replace(/<[^>]+>/g, '').replace('{{courses}}', courses) + '\n\n';
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };

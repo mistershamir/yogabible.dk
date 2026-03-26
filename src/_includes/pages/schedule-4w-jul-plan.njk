@@ -1,6 +1,13 @@
 {% set t = i18n.schedule_4w_jul_plan[lang or "en"] %}
 {% if not t %}{% set t = i18n.schedule_4w_jul_plan["en"] %}{% endif %}
 
+<style>
+  .s4wjp-explore-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:16px; }
+  @media (max-width:700px) {
+    .s4wjp-explore-grid { grid-template-columns:1fr;max-width:340px;margin:0 auto; }
+  }
+</style>
+
 <section id="schedule-4w-jul-plan">
 
   {# ── HERO (Copenhagen, Denmark prominent) ───────────── #}
@@ -25,7 +32,6 @@
         <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillPeriod }}</span>
         <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillFocus }}</span>
         <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillIntl }}</span>
-        <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillCph }}</span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;">
         <div>
@@ -119,7 +125,7 @@
       </details>
       {% endfor %}
     </div>
-    <p style="font-size:.85rem;color:#6F6A66;margin-top:16px;line-height:1.5;">{{ t.accomCta }} <a href="mailto:info@yogabible.dk" style="color:#f75c03;text-decoration:underline;">info@yogabible.dk</a></p>
+    <p style="font-size:.85rem;color:#6F6A66;margin-top:16px;line-height:1.5;">{{ t.accomCta }} <a href="mailto:info@yogabible.dk" style="color:#f75c03;text-decoration:underline;">info@yogabible.dk</a> · <a href="tel:+4553881209" style="color:#f75c03;text-decoration:underline;">+45 53 88 12 09</a></p>
   </div>
 
   {# ── LIFE IN COPENHAGEN ─────────────────────────────── #}
@@ -129,7 +135,7 @@
       {% set cphItems = [
         { title: t.cphItem1Title, desc: t.cphItem1Desc },
         { title: t.cphItem2Title, desc: t.cphItem2Desc },
-        { title: t.cphItem3Title, desc: t.cphItem3Desc },
+        { title: t.cphItem3Title, desc: t.cphItem3Desc, address: t.cphItem3Address },
         { title: t.cphItem4Title, desc: t.cphItem4Desc }
       ] %}
       {% for item in cphItems %}
@@ -139,8 +145,66 @@
         </div>
         <p style="font-weight:700;font-size:.88rem;margin:0 0 4px;">{{ item.title }}</p>
         <p style="font-size:.82rem;color:#6F6A66;line-height:1.5;">{{ item.desc }}</p>
+        {% if item.address %}
+        <a href="https://maps.google.com/?q=Torvegade+66,+1400+Copenhagen,+Denmark" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;font-size:.8rem;color:#f75c03;text-decoration:underline;margin-top:6px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          {{ item.address }}
+        </a>
+        {% endif %}
       </div>
       {% endfor %}
+    </div>
+  </div>
+
+  {# ── EXPLORE MORE (3 Video Boxes) ──────────────────── #}
+  <div style="padding:48px 24px 0;">
+    <div style="max-width:900px;margin:0 auto;">
+      <p style="font-size:.72rem;font-weight:600;letter-spacing:.08em;color:#f75c03;text-align:center;margin:0 0 24px;">{{ t.exploreEyebrow }}</p>
+      <div class="s4wjp-explore-grid">
+
+        {# Box 1 — The Program #}
+        <a href="{% if lang == 'en' %}/en/200-hours-4-weeks-intensive-programs/{% else %}/200-timers-4-ugers-intensiv-programmer/{% endif %}" target="_blank" rel="noopener" style="text-decoration:none;display:block;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:#0F0F0F;">
+          <video autoplay muted loop playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;">
+            <source src="{{ mediaBase }}/v1773250556/4_weeks_hero_compressed_a5w707.mp4" type="video/mp4">
+          </video>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,rgba(0,0,0,.1) 60%);"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;">
+            <p style="font-size:.65rem;font-weight:600;letter-spacing:.08em;color:#ff9966;margin:0 0 6px;">{{ t.exploreBox1Eyebrow }}</p>
+            <p style="font-size:1.1rem;font-weight:700;color:#fff;line-height:1.2;margin:0 0 6px;">{{ t.exploreBox1Title }}</p>
+            <p style="font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.4;margin:0 0 10px;">{{ t.exploreBox1Desc }}</p>
+            <span style="font-size:.78rem;font-weight:600;color:#f75c03;display:inline-flex;align-items:center;gap:4px;">{{ t.exploreBox1Cta }} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+          </div>
+        </a>
+
+        {# Box 2 — Copenhagen #}
+        <a href="{% if lang == 'en' %}/en/about-copenhagen/{% else %}/om-koebenhavn/{% endif %}" target="_blank" rel="noopener" style="text-decoration:none;display:block;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:#0F0F0F;">
+          <video autoplay muted loop playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;">
+            <source src="{{ "yoga-bible-DK/copenhagen/about-copenhagen-hero-loop" | cloudvid("w_800,q_auto") }}" type="video/mp4">
+          </video>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,rgba(0,0,0,.1) 60%);"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;">
+            <p style="font-size:.65rem;font-weight:600;letter-spacing:.08em;color:#ff9966;margin:0 0 6px;">{{ t.exploreBox2Eyebrow }}</p>
+            <p style="font-size:1.1rem;font-weight:700;color:#fff;line-height:1.2;margin:0 0 6px;">{{ t.exploreBox2Title }}</p>
+            <p style="font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.4;margin:0 0 10px;">{{ t.exploreBox2Desc }}</p>
+            <span style="font-size:.78rem;font-weight:600;color:#f75c03;display:inline-flex;align-items:center;gap:4px;">{{ t.exploreBox2Cta }} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+          </div>
+        </a>
+
+        {# Box 3 — Accommodation #}
+        <a href="{% if lang == 'en' %}/en/accommodation/{% else %}/overnatning/{% endif %}" target="_blank" rel="noopener" style="text-decoration:none;display:block;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:#0F0F0F;">
+          <video autoplay muted loop playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;">
+            <source src="{{ "yoga-bible-DK/accommodation/accommodation-hero-loop" | cloudvid("w_800,q_auto") }}" type="video/mp4">
+          </video>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,rgba(0,0,0,.1) 60%);"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;">
+            <p style="font-size:.65rem;font-weight:600;letter-spacing:.08em;color:#ff9966;margin:0 0 6px;">{{ t.exploreBox3Eyebrow }}</p>
+            <p style="font-size:1.1rem;font-weight:700;color:#fff;line-height:1.2;margin:0 0 6px;">{{ t.exploreBox3Title }}</p>
+            <p style="font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.4;margin:0 0 10px;">{{ t.exploreBox3Desc }}</p>
+            <span style="font-size:.78rem;font-weight:600;color:#f75c03;display:inline-flex;align-items:center;gap:4px;">{{ t.exploreBox3Cta }} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+          </div>
+        </a>
+
+      </div>
     </div>
   </div>
 
@@ -206,16 +270,16 @@
   <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
     <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">{{ t.hoursTitle }}</p>
     {% set hoursData4jul = [
-      { pct: 15,  hours: 30, color: "#f75c03", key: "hLabel0" },
-      { pct: 20,  hours: 40, color: "#ff9966", key: "hLabel1" },
-      { pct: 22,  hours: 44, color: "#1a1a1a", key: "hLabel2" },
-      { pct: 7,   hours: 14, color: "#3d3d3d", key: "hLabel3" },
-      { pct: 6,   hours: 12, color: "#666666", key: "hLabel4" },
-      { pct: 6,   hours: 12, color: "#6F6A66", key: "hLabel5" },
-      { pct: 7,   hours: 14, color: "#ffb380", key: "hLabel6" },
-      { pct: 5.5, hours: 11, color: "#ffd5b8", key: "hLabel7" },
-      { pct: 10,  hours: 20, color: "#E8E4E0", key: "hLabel8" },
-      { pct: 1.5, hours: 3,  color: "#F0EDEA", key: "hLabel9" }
+      { pct: 13.5, hours: 27, color: "#f75c03", key: "hLabel0" },
+      { pct: 20,   hours: 40, color: "#ff9966", key: "hLabel1" },
+      { pct: 22,   hours: 44, color: "#1a1a1a", key: "hLabel2" },
+      { pct: 8,    hours: 16, color: "#3d3d3d", key: "hLabel3" },
+      { pct: 6,    hours: 12, color: "#666666", key: "hLabel4" },
+      { pct: 6,    hours: 12, color: "#6F6A66", key: "hLabel5" },
+      { pct: 7,    hours: 14, color: "#ffb380", key: "hLabel6" },
+      { pct: 5.5,  hours: 11, color: "#ffd5b8", key: "hLabel7" },
+      { pct: 10,   hours: 20, color: "#E8E4E0", key: "hLabel8" },
+      { pct: 2,    hours: 4,  color: "#F0EDEA", key: "hLabel9" }
     ] %}
     <div style="height:22px;border-radius:50px;overflow:hidden;display:flex;gap:2px;margin-bottom:20px;">
       {% for h in hoursData4jul %}
@@ -247,35 +311,32 @@
       { name_en: "July", year: "2026", weeks: [
         { num: 1, label_en: "Introduction", range_en: "Jul 6–12", days: [
           { dn: "6",  dd_en: "Mon", time: "09:00–15:00", topic_en: "Vinyasa Flow & Creative Sequencing — Introduction", type: "workshop" },
-          { dn: "7",  dd_en: "Tue", time: "11:00–17:00", topic_en: "Yin Yoga & Recovery — Introduction", type: "workshop" },
-          { dn: "9",  dd_en: "Thu", time: "11:00–17:00", topic_en: "Vinyasa Flow & Class Management", type: "workshop" },
+          { dn: "7",  dd_en: "Tue", time: "10:00–16:00", topic_en: "Yin Yoga & Recovery — Introduction", type: "workshop" },
+          { dn: "9",  dd_en: "Thu", time: "10:00–16:00", topic_en: "Vinyasa Flow & Class Management", type: "workshop" },
           { dn: "11", dd_en: "Sat", time: "13:00–18:00", topic_en: "Yoga Anatomy", type: "workshop" },
           { dn: "12", dd_en: "Sun", time: "14:00–18:00", topic_en: "Yoga Philosophy 01 — Online", type: "online" }
         ]},
         { num: 2, range_en: "Jul 13–19", days: [
           { dn: "13", dd_en: "Mon", time: "09:00–15:00", topic_en: "Vinyasa Flow & Creative Sequencing", type: "workshop" },
-          { dn: "14", dd_en: "Tue", time: "11:00–17:00", topic_en: "Hot Yoga & Heated Vinyasa", type: "workshop" },
+          { dn: "14", dd_en: "Tue", time: "10:00–16:00", topic_en: "Hot Yoga & Heated Vinyasa", type: "workshop" },
           { dn: "15", dd_en: "Wed", time: "10:00–15:00", topic_en: "Vinyasa Flow & Class Management", type: "workshop" },
-          { dn: "16", dd_en: "Thu", time: "11:00–17:00", topic_en: "Yin Yoga & Recovery", type: "workshop" },
+          { dn: "16", dd_en: "Thu", time: "10:00–16:00", topic_en: "Yin Yoga & Recovery", type: "workshop" },
           { dn: "18", dd_en: "Sat", time: "13:00–18:00", topic_en: "Yoga Anatomy", type: "workshop" },
           { dn: "19", dd_en: "Sun", time: "13:00–17:00", topic_en: "Yoga Philosophy 02 — Online", type: "online" }
         ]},
         { num: 3, range_en: "Jul 20–26", days: [
           { dn: "20", dd_en: "Mon", time: "10:00–15:00", topic_en: "Vinyasa Flow & Creative Sequencing", type: "workshop" },
-          { dn: "21", dd_en: "Tue", time: "09:00–15:00", topic_en: "Hot Yoga & Heated Vinyasa", type: "workshop" },
-          { dn: "23", dd_en: "Thu", time: "11:00–15:00", topic_en: "Yin Yoga & Recovery", type: "workshop" },
+          { dn: "21", dd_en: "Tue", time: "10:00–16:00", topic_en: "Hot Yoga & Heated Vinyasa", type: "workshop" },
+          { dn: "23", dd_en: "Thu", time: "10:00–16:00", topic_en: "Yin Yoga & Recovery", type: "workshop" },
           { dn: "24", dd_en: "Fri", time: "11:00–16:00", topic_en: "Vinyasa Flow & Class Management", type: "workshop" },
           { dn: "25", dd_en: "Sat", time: "13:00–18:00", topic_en: "Yoga Anatomy", type: "workshop" },
           { dn: "26", dd_en: "Sun", time: "13:00–17:00", topic_en: "Yoga Philosophy 03 — Online", type: "online" }
-        ]}
-      ]},
-      { name_en: "August", year: "2026", weeks: [
-        { num: 4, label_en: "Exam & Graduation", range_en: "Jul 27 – Aug 2", graduation: true, days: [
+        ]},
+        { num: 4, label_en: "Exam & Graduation", range_en: "Jul 27 – 31", graduation: true, days: [
           { dn: "27", dd_en: "Mon", time: "10:00–15:00", topic_en: "Vinyasa Flow & Creative Sequencing", type: "workshop" },
-          { dn: "29", dd_en: "Wed", time: "09:00–15:00", topic_en: "Business of Yoga", type: "workshop" },
-          { dn: "31", dd_en: "Fri", time: "11:00–17:00", topic_en: "Hot Yoga & Heated Vinyasa", type: "workshop" },
-          { dn: "1",  dd_en: "Sat", time: "13:00–18:00", topic_en: "Vinyasa Flow — Exam", type: "exam" },
-          { dn: "2",  dd_en: "Sun", time: "14:00–17:00", topic_en: "Yin Yoga & Hot Yoga — Exam + Graduation", type: "graduation" }
+          { dn: "28", dd_en: "Tue", time: "10:00–14:00", topic_en: "Business of Yoga", type: "workshop" },
+          { dn: "30", dd_en: "Thu", time: "10:00–16:00", topic_en: "Hot Yoga & Heated Vinyasa", type: "workshop" },
+          { dn: "31", dd_en: "Fri", time: "10:00–16:00", topic_en: "Vinyasa Flow & Yin Yoga — Exam + Graduation", type: "graduation" }
         ]}
       ]}
     ] %}
@@ -317,6 +378,10 @@
             {% if day.type == 'graduation' %}<span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.graduationLabel }}</span>{% elif day.type == 'exam' %}<span style="background:#FFF0E6;color:#f75c03;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.examLabel }}</span>{% endif %}
           </div>
           {% endfor %}
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0 4px;color:#6F6A66;">
+            <span style="font-size:1.1rem;">→</span>
+            <span style="font-size:.85rem;font-style:italic;">Dinner & celebration with the group</span>
+          </div>
         </div>
       </details>
       {% else %}
@@ -412,7 +477,7 @@
       <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:8px;">{{ t.contactTitle }}</h2>
       <p style="font-size:.92rem;color:#6F6A66;line-height:1.55;margin-bottom:20px;">{{ t.contactDesc }}</p>
       <button onclick="openBookingModal('consultation')" style="background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.contactCta }}</button>
-      <p style="font-size:.82rem;color:#6F6A66;margin-top:14px;">{{ t.contactEmail }} <a href="mailto:info@yogabible.dk" style="color:#f75c03;">info@yogabible.dk</a></p>
+      <p style="font-size:.82rem;color:#6F6A66;margin-top:14px;">{{ t.contactEmail }} <a href="mailto:info@yogabible.dk" style="color:#f75c03;">info@yogabible.dk</a> · <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a></p>
     </div>
   </div>
 

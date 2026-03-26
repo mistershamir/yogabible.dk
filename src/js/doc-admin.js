@@ -292,7 +292,7 @@
   }
 
   // ═════════════════════════════════════
-  // CLOUDINARY FILE BROWSER
+  // BUNNY STORAGE FILE BROWSER
   // ═════════════════════════════════════
   var browserOpen = false, browserPath = 'yoga-bible-DK/materials';
   var browserFolders = [], browserResources = [], browserLoaded = false;

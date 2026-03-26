@@ -44,15 +44,10 @@
     <p class="p300-hero__styles">{{ t.hero_styles }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="?product=100212" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100212">{{ t.hero_cta_prep }}</a>
-      <button class="yb-btn yb-btn--outline-white yb-btn--large" onclick="openP300ScheduleModal()">{{ t.hero_cta_schedule }}</button>
-      <a class="yb-btn yb-btn--outline-white yb-btn--large" href="{% if lang == 'en' %}/en/300h-advanced-ytt?booking=info-session{% else %}/300h-ytt?booking=info-session{% endif %}" data-open-booking="info-session">{{ t.hero_cta_info }}</a>
+      <a href="#p300-waitlist" class="yb-btn yb-btn--primary yb-btn--large">{{ t.final_cta_waitlist }}</a>
     </div>
-    <p class="p300-hero__refund">{{ t.hero_refund_note }}</p>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
-      <span class="yb-hero__trust-dot"></span>
-      <span>{{ t.hero_trust2 }}</span>
       <span class="yb-hero__trust-dot"></span>
       <span>{{ t.hero_trust3 }}</span>
     </div>
@@ -60,6 +55,61 @@
   <div class="yb-hero__scroll">
     <span>Scroll</span>
     <div class="yb-hero__scroll-line"></div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   COMING SOON BANNER
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-coming-soon">
+  <div class="p300-coming-soon__inner">
+    <span class="p300-coming-soon__badge">{{ t.coming_soon_badge }}</span>
+    <h2 class="p300-coming-soon__title">{{ t.coming_soon_title }}</h2>
+    <p class="p300-coming-soon__text">{{ t.coming_soon_text }}</p>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   WAITLIST BANNER + FORM — Placement 1 (after hero)
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-waitlist p300-waitlist--top" id="p300-waitlist">
+  <div class="p300-waitlist__inner">
+    <header class="p300-waitlist__head">
+      <p class="p300-waitlist__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">{{ t.waitlist_eyebrow }}</p>
+      <h2 class="p300-waitlist__title">{{ t.waitlist_title }}</h2>
+      <p class="p300-waitlist__lead">{{ t.waitlist_lead }}</p>
+    </header>
+    <div class="p300-waitlist__form-wrap" data-wl-form-wrap>
+      <form class="p300-waitlist__form" data-wl-form novalidate>
+        <input type="text" name="p300_hp" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;overflow:hidden;" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="p300-waitlist__grid">
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_first_name }}</span>
+            <input type="text" name="firstName" inputmode="text" autocomplete="given-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_last_name }}</span>
+            <input type="text" name="lastName" inputmode="text" autocomplete="family-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_email }}</span>
+            <input type="email" name="email" inputmode="email" autocomplete="email" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_phone }}</span>
+            <input type="tel" name="phone" inputmode="tel" autocomplete="tel" required>
+          </label>
+        </div>
+        <p class="p300-waitlist__error" data-wl-error hidden>{{ t.waitlist_error | safe }}</p>
+        <button class="yb-btn yb-btn--primary yb-btn--large p300-waitlist__submit" data-wl-submit type="submit">{{ t.waitlist_submit }}</button>
+        <p class="p300-waitlist__fine">{{ t.waitlist_privacy | safe }}</p>
+      </form>
+    </div>
+    <div class="p300-waitlist__success" data-wl-success hidden>
+      <div class="p300-waitlist__success-icon">&#10003;</div>
+      <h3 class="p300-waitlist__success-title">{{ t.waitlist_success_title }}</h3>
+      <p class="p300-waitlist__success-text">{{ t.waitlist_success_text }}</p>
+    </div>
   </div>
 </section>
 
@@ -83,17 +133,7 @@
       {% endfor %}
     </div>
 
-    <div class="p300-snap__dates">
-      <div class="p300-snap__date-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span>{{ t.snap_dates }}</span>
-      </div>
-      <div class="p300-snap__date-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>{{ t.snap_break }}</span>
-      </div>
-    </div>
-
+    {# SAVED: dates section + snap_text removed while program is on waitlist — restore when cohort dates are confirmed #}
     <p class="p300-snap__text">{{ t.snap_text }}</p>
   </div>
 </section>
@@ -285,6 +325,57 @@
         <p class="yb-journey__item-desc">{{ t["timeline" + (i | string) + "_desc"] }}</p>
       </div>
       {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   WAITLIST BANNER + FORM — Placement 2 (after timeline, mid-page)
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-coming-soon">
+  <div class="p300-coming-soon__inner">
+    <span class="p300-coming-soon__badge">{{ t.coming_soon_badge }}</span>
+    <h2 class="p300-coming-soon__title">{{ t.coming_soon_title }}</h2>
+    <p class="p300-coming-soon__text">{{ t.coming_soon_text }}</p>
+  </div>
+</section>
+<section class="p300-waitlist p300-waitlist--mid">
+  <div class="p300-waitlist__inner">
+    <header class="p300-waitlist__head">
+      <p class="p300-waitlist__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">{{ t.waitlist_eyebrow }}</p>
+      <h2 class="p300-waitlist__title">{{ t.waitlist_title }}</h2>
+      <p class="p300-waitlist__lead">{{ t.waitlist_lead }}</p>
+    </header>
+    <div class="p300-waitlist__form-wrap" data-wl-form-wrap>
+      <form class="p300-waitlist__form" data-wl-form novalidate>
+        <input type="text" name="p300_hp" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;overflow:hidden;" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="p300-waitlist__grid">
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_first_name }}</span>
+            <input type="text" name="firstName" inputmode="text" autocomplete="given-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_last_name }}</span>
+            <input type="text" name="lastName" inputmode="text" autocomplete="family-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_email }}</span>
+            <input type="email" name="email" inputmode="email" autocomplete="email" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_phone }}</span>
+            <input type="tel" name="phone" inputmode="tel" autocomplete="tel" required>
+          </label>
+        </div>
+        <p class="p300-waitlist__error" data-wl-error hidden>{{ t.waitlist_error | safe }}</p>
+        <button class="yb-btn yb-btn--primary yb-btn--large p300-waitlist__submit" data-wl-submit type="submit">{{ t.waitlist_submit }}</button>
+        <p class="p300-waitlist__fine">{{ t.waitlist_privacy | safe }}</p>
+      </form>
+    </div>
+    <div class="p300-waitlist__success" data-wl-success hidden>
+      <div class="p300-waitlist__success-icon">&#10003;</div>
+      <h3 class="p300-waitlist__success-title">{{ t.waitlist_success_title }}</h3>
+      <p class="p300-waitlist__success-text">{{ t.waitlist_success_text }}</p>
     </div>
   </div>
 </section>
@@ -575,27 +666,63 @@
           </ul>
         </div>
 
-        <div class="p300-pricing__payment-split">
-          <div class="p300-pricing__payment-block p300-pricing__payment-block--prep">
-            <h4>{{ t.pricing_prep_title }}</h4>
-            <span class="p300-pricing__payment-amount">{{ t.pricing_prep_amount }}</span>
-            <p>{{ t.pricing_prep_desc }}</p>
-          </div>
-          <div class="p300-pricing__payment-block p300-pricing__payment-block--remaining">
-            <h4>{{ t.pricing_remaining_title }}</h4>
-            <span class="p300-pricing__payment-amount">{{ t.pricing_remaining_amount }}</span>
-            <p>{{ t.pricing_remaining_desc }}</p>
-          </div>
-        </div>
+        {# SAVED: pricing payment-split (prep phase + remaining balance) removed while on waitlist — restore when enrollment opens #}
 
         <div class="p300-pricing__ctas">
-          <a href="?product=100212" class="yb-btn yb-btn--primary" data-checkout-product="100212">{{ t.pricing_cta_prep }}</a>
-          <button class="yb-btn yb-btn--outline-brand" onclick="openP300ScheduleModal()">
-            <span>{{ t.pricing_cta_schedule }}</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </button>
+          <a href="#p300-waitlist" class="yb-btn yb-btn--primary">{{ t.final_cta_waitlist }}</a>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
+   WAITLIST BANNER + FORM — Placement 3 (before FAQ, after pricing)
+   ═══════════════════════════════════════════════════════════ #}
+<section class="p300-coming-soon">
+  <div class="p300-coming-soon__inner">
+    <span class="p300-coming-soon__badge">{{ t.coming_soon_badge }}</span>
+    <h2 class="p300-coming-soon__title">{{ t.coming_soon_title }}</h2>
+    <p class="p300-coming-soon__text">{{ t.coming_soon_text }}</p>
+  </div>
+</section>
+<section class="p300-waitlist p300-waitlist--bottom">
+  <div class="p300-waitlist__inner">
+    <header class="p300-waitlist__head">
+      <p class="p300-waitlist__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">{{ t.waitlist_eyebrow }}</p>
+      <h2 class="p300-waitlist__title">{{ t.waitlist_title }}</h2>
+      <p class="p300-waitlist__lead">{{ t.waitlist_lead }}</p>
+    </header>
+    <div class="p300-waitlist__form-wrap" data-wl-form-wrap>
+      <form class="p300-waitlist__form" data-wl-form novalidate>
+        <input type="text" name="p300_hp" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;overflow:hidden;" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="p300-waitlist__grid">
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_first_name }}</span>
+            <input type="text" name="firstName" inputmode="text" autocomplete="given-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_last_name }}</span>
+            <input type="text" name="lastName" inputmode="text" autocomplete="family-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_email }}</span>
+            <input type="email" name="email" inputmode="email" autocomplete="email" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_phone }}</span>
+            <input type="tel" name="phone" inputmode="tel" autocomplete="tel" required>
+          </label>
+        </div>
+        <p class="p300-waitlist__error" data-wl-error hidden>{{ t.waitlist_error | safe }}</p>
+        <button class="yb-btn yb-btn--primary yb-btn--large p300-waitlist__submit" data-wl-submit type="submit">{{ t.waitlist_submit }}</button>
+        <p class="p300-waitlist__fine">{{ t.waitlist_privacy | safe }}</p>
+      </form>
+    </div>
+    <div class="p300-waitlist__success" data-wl-success hidden>
+      <div class="p300-waitlist__success-icon">&#10003;</div>
+      <h3 class="p300-waitlist__success-title">{{ t.waitlist_success_title }}</h3>
+      <p class="p300-waitlist__success-text">{{ t.waitlist_success_text }}</p>
     </div>
   </div>
 </section>
@@ -634,10 +761,88 @@
     <h2 class="p300-final__title">{{ t.final_cta_title }}</h2>
     <p class="p300-final__text">{{ t.final_cta_text }}</p>
     <div class="p300-final__ctas">
-      <a href="?product=100212" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100212">{{ t.final_cta_prep }}</a>
-      <button class="yb-btn yb-btn--outline-white yb-btn--large" onclick="openP300ScheduleModal()">{{ t.final_cta_schedule }}</button>
-      <a class="yb-btn yb-btn--outline-white yb-btn--large" href="{% if lang == 'en' %}/en/300h-advanced-ytt?booking=info-session{% else %}/300h-ytt?booking=info-session{% endif %}" data-open-booking="info-session">{{ t.final_cta_info }}</a>
+      <a href="#p300-waitlist" class="yb-btn yb-btn--primary yb-btn--large">{{ t.final_cta_waitlist }}</a>
     </div>
-    <p class="p300-final__refund">{{ t.final_cta_refund }}</p>
   </div>
 </section>
+
+{# ═══════════════════════════════════════════════════════════
+   WAITLIST FORM JS — Inline submission
+   ═══════════════════════════════════════════════════════════ #}
+<script>
+(function () {
+  'use strict';
+  var forms = document.querySelectorAll('[data-wl-form]');
+  if (!forms.length) return;
+  var isDa = window.location.pathname.indexOf('/en/') !== 0;
+  var submitted = false;
+
+  function showAllSuccess() {
+    document.querySelectorAll('[data-wl-form-wrap]').forEach(function (w) { w.hidden = true; });
+    document.querySelectorAll('[data-wl-success]').forEach(function (s) { s.hidden = false; });
+  }
+
+  forms.forEach(function (form) {
+    var wrap = form.closest('[data-wl-form-wrap]') || form.parentElement;
+    var btn = form.querySelector('[data-wl-submit]');
+    var errEl = form.querySelector('[data-wl-error]');
+    var section = form.closest('.p300-waitlist');
+    var successEl = section ? section.querySelector('[data-wl-success]') : null;
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (submitted) { showAllSuccess(); return; }
+
+      var hp = form.querySelector('[name="p300_hp"]');
+      if (hp && hp.value) return;
+
+      var fn = form.querySelector('[name="firstName"]').value.trim();
+      var ln = form.querySelector('[name="lastName"]').value.trim();
+      var em = form.querySelector('[name="email"]').value.trim();
+      var ph = form.querySelector('[name="phone"]').value.trim();
+
+      if (!fn || !ln || !em || !ph) { errEl.hidden = false; return; }
+      errEl.hidden = true;
+      btn.disabled = true;
+      btn.textContent = isDa ? 'Sender...' : 'Sending...';
+
+      var p = new URLSearchParams();
+      p.append('lang', isDa ? 'da' : 'en');
+      p.append('action', 'lead_waitlist_300h');
+      p.append('firstName', fn);
+      p.append('lastName', ln);
+      p.append('email', em);
+      p.append('phone', ph);
+      p.append('source', 'Waitlist-300h');
+      p.append('allFormats', '300h');
+
+      if (typeof window.ybAttribution === 'function') {
+        var attr = window.ybAttribution();
+        if (attr.channel) p.append('channel', attr.channel);
+        if (attr.utm_source) p.append('utm_source', attr.utm_source);
+        if (attr.utm_medium) p.append('utm_medium', attr.utm_medium);
+        if (attr.utm_campaign) p.append('utm_campaign', attr.utm_campaign);
+        if (attr.gclid) p.append('gclid', attr.gclid);
+        if (attr.fbclid) p.append('fbclid', attr.fbclid);
+        if (attr.referrer) p.append('referrer', attr.referrer);
+        if (attr.landing_page) p.append('landing_page', attr.landing_page);
+      }
+
+      fetch('/.netlify/functions/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: p.toString()
+      })
+      .then(function () {
+        submitted = true;
+        showAllSuccess();
+      })
+      .catch(function () {
+        errEl.hidden = false;
+        btn.disabled = false;
+        btn.textContent = isDa ? 'Tilmeld ventelisten' : 'Join Waitlist';
+      });
+    });
+  });
+})();
+</script>
