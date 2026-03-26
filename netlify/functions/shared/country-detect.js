@@ -117,6 +117,11 @@ function normalizeCountryName(raw) {
     if (lower.includes(name)) return COUNTRY_NAME_MAP[name];
   }
 
+  // Check for 2-letter country code at end of string (handles "Alphen aan den Rijn, NL")
+  var KNOWN_CODES = { 'dk': 'DK', 'no': 'NO', 'se': 'SE', 'de': 'DE', 'fi': 'FI', 'nl': 'NL', 'uk': 'UK', 'at': 'AT', 'ch': 'CH' };
+  var match = lower.match(/,\s*([a-z]{2})\s*$/);
+  if (match && KNOWN_CODES[match[1]]) return KNOWN_CODES[match[1]];
+
   return null;
 }
 
