@@ -406,9 +406,25 @@
               <input type="text" id="yb-social-ai-topic" placeholder="{{ t.social_ai_topic_placeholder or 'e.g., Benefits of morning yoga practice' }}">
             </div>
             <div class="yb-social__ai-btns">
-              <button type="button" class="yb-btn yb-btn--sm yb-btn--outline" data-action="social-ai-caption">{{ t.social_ai_gen_caption or "Generate Caption" }}</button>
-              <button type="button" class="yb-btn yb-btn--sm yb-btn--outline" data-action="social-ai-hashtags">{{ t.social_ai_gen_hashtags or "Generate Hashtags" }}</button>
-              <button type="button" class="yb-btn yb-btn--sm yb-btn--outline" data-action="social-ai-improve">{{ t.social_ai_improve or "Improve Caption" }}</button>
+              <button type="button" class="yb-btn yb-btn--sm yb-btn--outline" data-action="social-ai-caption">Generate Caption</button>
+              <button type="button" class="yb-btn yb-btn--sm yb-btn--outline" data-action="social-ai-hashtags">Generate Hashtags</button>
+              <button type="button" class="yb-btn yb-btn--sm yb-btn--outline" data-action="social-ai-improve">Improve Caption</button>
+            </div>
+            <div class="yb-social__ai-btns" style="margin-top:6px">
+              <button type="button" class="yb-btn yb-btn--sm yb-btn--outline" data-action="social-ai-bilingual">DA + EN Bilingual</button>
+              <button type="button" class="yb-btn yb-btn--sm yb-btn--outline" data-action="social-ai-adapt-tone">Adapt Per Platform</button>
+              <button type="button" class="yb-btn yb-btn--sm yb-btn--outline" data-action="social-ai-translate">Translate DA/EN</button>
+            </div>
+            <div class="yb-social__ai-btns" style="margin-top:6px">
+              <button type="button" class="yb-btn yb-btn--sm yb-btn--primary" data-action="social-ai-repurpose">Repurpose Blog Post</button>
+            </div>
+            {# Blog content input for repurpose (hidden until clicked) #}
+            <div class="yb-admin__field" id="yb-social-ai-blog-field" hidden style="margin-top:10px">
+              <label for="yb-social-ai-blog-content">Blog / Article Content</label>
+              <textarea id="yb-social-ai-blog-content" rows="4" placeholder="Paste your blog post or article text here..."></textarea>
+              <div style="margin-top:8px">
+                <button type="button" class="yb-btn yb-btn--sm yb-btn--primary" data-action="social-ai-repurpose-go">Generate 5 Posts</button>
+              </div>
             </div>
             <div class="yb-social__ai-results" id="yb-social-ai-results"></div>
           </div>
