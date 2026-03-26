@@ -185,6 +185,10 @@
         if (attr.landing_page) p.append('landing_page', attr.landing_page);
       }
 
+      // Pass anonymous visitor ID for identity stitching
+      var vidMatch = document.cookie.match(/(?:^|; )yb_vid=([^;]*)/);
+      if (vidMatch) p.append('visitor_id', decodeURIComponent(vidMatch[1]));
+
       // POST to Netlify Function with query params as body
       fetch(FORM_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p.toString() })
         .finally(() => {

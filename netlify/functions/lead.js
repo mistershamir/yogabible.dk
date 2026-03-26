@@ -78,6 +78,14 @@ exports.handler = async (event) => {
       schedule_token: scheduleTokenForDoc
     });
 
+    // Identity stitching: merge anonymous browsing history into lead profile
+    const visitorId = payload.visitor_id || payload.visitorId || '';
+    if (visitorId) {
+      stitchAnonymousVisits(db, docRef.id, visitorId).catch(err => {
+        console.error('[lead] Anonymous visit stitching error (non-blocking):', err.message);
+      });
+    }
+
     console.log(`[lead] New lead saved: ${docRef.id} (${leadData.email})`);
 
     // Send notifications (admin email + welcome email + welcome SMS)
@@ -627,4 +635,113 @@ async function triggerNotifications(leadData, leadDocId, action) {
   }
 
   await Promise.all(promises);
+}
+
+// ── Anonymous visit stitching ─────────────────────────────────────────────────
+
+/**
+ * Merge anonymous browsing history into the lead profile and calculate heat score.
+ * Called when a lead form includes a visitor_id (yb_vid cookie).
+ */
+async function stitchAnonymousVisits(db, leadId, visitorId) {
+  const anonRef = db.collection('anonymous_visits').doc(visitorId);
+  const anonDoc = await anonRef.get();
+  if (!anonDoc.exists) return;
+
+  const anon = anonDoc.data();
+  const pages = anon.pages || {};
+  const visits = anon.visits || [];
+  const ctaClicks = anon.cta_clicks || [];
+
+  // Build pre-lead journey summary
+  const uniquePages = Object.keys(pages);
+  const totalPageviews = anon.total_pageviews || 0;
+  const totalSessions = anon.total_sessions || 0;
+
+  // Calculate days between first visit and now (lead signup)
+  let daysBeforeSignup = 0;
+  if (anon.created_at) {
+    const firstMs = anon.created_at.toDate ? anon.created_at.toDate().getTime() : new Date(anon.created_at).getTime();
+    daysBeforeSignup = Math.max(0, Math.round((Date.now() - firstMs) / (1000 * 60 * 60 * 24)));
+  }
+
+  // Key page flags
+  const allPaths = uniquePages.map(s => (pages[s].path || '').toLowerCase());
+  const viewedSchedule = allPaths.some(p => p.includes('/skema/') || p.includes('/schedule/') || p.includes('/tidsplan/'));
+  const viewedAccommodation = allPaths.some(p => p.includes('/bolig') || p.includes('/accommodation') || p.includes('/housing'));
+  const viewedCopenhagen = allPaths.some(p => p.includes('/koebenhavn') || p.includes('/copenhagen'));
+  const viewedPricing = allPaths.some(p =>
+    p.includes('/4-ugers-') || p.includes('/8-ugers-') || p.includes('/18-ugers-') ||
+    p.includes('/4-week-') || p.includes('/8-week-') || p.includes('/18-week-') ||
+    p.includes('/om-200') || p.includes('/about-200') || p.includes('/priser') || p.includes('/prices')
+  );
+  const viewedJournal = allPaths.some(p => p.includes('/yoga-journal'));
+
+  // Calculate heat score (1-5)
+  let leadHeat = 1;
+  if (totalSessions >= 4 && viewedSchedule && viewedAccommodation) {
+    leadHeat = 5;
+  } else if (totalSessions >= 2 && viewedSchedule) {
+    leadHeat = 4;
+  } else if (totalSessions === 1 && totalPageviews >= 3 && viewedSchedule) {
+    leadHeat = 3;
+  } else if (totalSessions >= 1 && totalPageviews >= 2) {
+    leadHeat = 2;
+  }
+
+  // Merge into lead doc
+  const updates = {
+    // Pre-lead journey summary
+    'pre_lead_journey.visitor_id': visitorId,
+    'pre_lead_journey.total_sessions': totalSessions,
+    'pre_lead_journey.total_pageviews': totalPageviews,
+    'pre_lead_journey.days_before_signup': daysBeforeSignup,
+    'pre_lead_journey.return_visitor': totalSessions > 1,
+    'pre_lead_journey.first_visit': anon.created_at || null,
+    'pre_lead_journey.pages': pages,
+    'pre_lead_journey.visits': visits.slice(-100), // keep last 100 entries
+    'pre_lead_journey.attribution': anon.attribution || null,
+    // Key page flags
+    'pre_lead_journey.viewed_schedule': viewedSchedule,
+    'pre_lead_journey.viewed_accommodation': viewedAccommodation,
+    'pre_lead_journey.viewed_copenhagen': viewedCopenhagen,
+    'pre_lead_journey.viewed_pricing': viewedPricing,
+    'pre_lead_journey.viewed_journal': viewedJournal,
+    // Heat score
+    lead_heat: leadHeat,
+    updated_at: new Date()
+  };
+
+  // Also seed site_engagement from anonymous data so it's immediately visible
+  updates['site_engagement.total_pageviews'] = totalPageviews;
+  updates['site_engagement.total_sessions'] = totalSessions;
+  updates['site_engagement.first_visit'] = anon.created_at || null;
+  updates['site_engagement.last_visit'] = anon.last_visit || null;
+  updates['site_engagement.pages'] = pages;
+  if (ctaClicks.length > 0) {
+    updates['site_engagement.cta_clicks'] = ctaClicks;
+  }
+
+  // Detect interests from pages
+  const interests = [];
+  allPaths.forEach(p => {
+    if ((p.includes('/skema/') || p.includes('/schedule/') || p.includes('/tidsplan/')) && interests.indexOf('schedule') === -1) interests.push('schedule');
+    if ((p.includes('/4-ugers-') || p.includes('/4-week-')) && interests.indexOf('4-week') === -1) interests.push('4-week');
+    if ((p.includes('/8-ugers-') || p.includes('/8-week-')) && interests.indexOf('8-week') === -1) interests.push('8-week');
+    if ((p.includes('/18-ugers-') || p.includes('/18-week-')) && interests.indexOf('18-week') === -1) interests.push('18-week');
+    if ((p.includes('/om-200') || p.includes('/about-200')) && interests.indexOf('teacher-training') === -1) interests.push('teacher-training');
+    if ((p.includes('/priser') || p.includes('/prices')) && interests.indexOf('pricing') === -1) interests.push('pricing');
+    if (p.includes('/yoga-journal') && interests.indexOf('blog') === -1) interests.push('blog');
+    if ((p.includes('/kurser') || p.includes('/courses')) && interests.indexOf('courses') === -1) interests.push('courses');
+  });
+  if (interests.length > 0) {
+    updates['site_engagement.interests'] = interests;
+  }
+
+  await db.collection('leads').doc(leadId).update(updates);
+
+  // Archive the anonymous visits doc (delete to save storage)
+  await anonRef.delete();
+
+  console.log(`[lead] Stitched anonymous visits for ${visitorId} → lead ${leadId} (heat: ${leadHeat}, sessions: ${totalSessions}, pages: ${totalPageviews})`);
 }
