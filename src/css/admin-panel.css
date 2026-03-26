@@ -5537,19 +5537,20 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── Sub-navigation ── */
-.yb-social__subnav {
-  display: flex; gap: 4px; margin-bottom: 24px;
-  border-bottom: 1px solid #E8E4E0; padding-bottom: 0;
+.yb-social__nav {
+  display: flex; gap: 0; margin-bottom: 24px;
+  border-bottom: 2px solid #E8E4E0;
 }
-.yb-social__subnav-btn {
+.yb-social__nav-btn {
   background: none; border: none; cursor: pointer;
-  padding: 10px 16px; font-size: 13px; font-weight: 600;
+  padding: 12px 20px; font-size: 13px; font-weight: 600;
   color: #6F6A66; border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
   transition: color 0.15s, border-color 0.15s;
-  font-family: inherit;
+  font-family: inherit; letter-spacing: 0.2px;
 }
-.yb-social__subnav-btn:hover { color: #0F0F0F; }
-.yb-social__subnav-btn.is-active {
+.yb-social__nav-btn:hover { color: #0F0F0F; }
+.yb-social__nav-btn.is-active {
   color: #f75c03; border-bottom-color: #f75c03;
 }
 
@@ -5759,7 +5760,7 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 /* ── Composer modal ── */
 .yb-social__composer-modal {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 200; display: flex; align-items: center; justify-content: center;
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
 }
 .yb-social__composer-overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -5768,8 +5769,9 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-social__composer-box {
   position: relative; background: #FFFCF9;
   border-radius: 16px; width: 95vw; max-width: 1100px;
-  max-height: 92vh; display: flex; flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  max-height: 88vh; margin-top: 2vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
   overflow: hidden;
 }
 .yb-social__composer-header {
@@ -5957,7 +5959,7 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 /* ── Media browser modal ── */
 .yb-social__media-modal {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 210; display: flex; align-items: center; justify-content: center;
+  z-index: 10000; display: flex; align-items: center; justify-content: center;
 }
 .yb-social__media-modal-overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -6062,6 +6064,49 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 }
 .yb-social__hashtag-card-actions button:hover {
   border-color: #f75c03; color: #f75c03;
+}
+
+/* ── Connect account modal ── */
+.yb-social__connect-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+}
+.yb-social__connect-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(15, 15, 15, 0.5); backdrop-filter: blur(4px);
+}
+.yb-social__connect-box {
+  position: relative; background: #FFFCF9;
+  border-radius: 16px; width: 90vw; max-width: 440px;
+  padding: 32px; box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+}
+.yb-social__connect-box h3 {
+  font-size: 18px; margin: 0 0 4px; font-weight: 700;
+}
+.yb-social__connect-box p {
+  font-size: 13px; color: #6F6A66; margin: 0 0 20px;
+}
+.yb-social__connect-box .yb-admin__field { margin-bottom: 14px; }
+.yb-social__connect-box .yb-admin__field label {
+  display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;
+}
+.yb-social__connect-box .yb-admin__field input {
+  width: 100%; border: 1px solid #f75c03; border-radius: 12px;
+  padding: 10px 14px; font-size: 13px; font-family: inherit;
+  background: #FFFCF9; transition: border-color 0.15s;
+}
+.yb-social__connect-box .yb-admin__field input:focus {
+  outline: none; border-color: #d94f02;
+  box-shadow: 0 0 0 3px rgba(247, 92, 3, 0.1);
+}
+.yb-social__connect-box .yb-admin__field input::placeholder { color: #c4bfba; }
+.yb-social__connect-actions {
+  display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;
+}
+.yb-social__connect-platform-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #F5F3F0; border-radius: 8px; padding: 8px 14px;
+  margin-bottom: 16px; font-size: 13px; font-weight: 600;
 }
 
 /* ── Responsive ── */

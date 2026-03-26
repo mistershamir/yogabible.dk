@@ -82,7 +82,7 @@
       var el = $('yb-social-v-' + v);
       if (el) el.hidden = (v !== name);
     });
-    qsa('.yb-social__subnav-btn').forEach(function (b) {
+    qsa('.yb-social__nav-btn').forEach(function (b) {
       b.classList.toggle('is-active', b.getAttribute('data-action') === 'social-nav-' + name);
     });
     if (name === 'accounts') loadAccounts();
@@ -129,20 +129,76 @@
     });
   }
 
-  async function connectAccount(platform) {
-    var token = prompt('Paste the access token for ' + platform + ':');
-    if (!token) return;
-    var pageId = '';
-    if (platform === 'facebook') pageId = prompt('Facebook Page ID:', '878172732056415') || '';
-    if (platform === 'instagram') pageId = prompt('IG Business Account ID:', '17841474697451627') || '';
+  var PLATFORM_DEFAULTS = {
+    facebook: { pageId: '878172732056415' },
+    instagram: { pageId: '17841474697451627' }
+  };
 
-    var body = { platform: platform, accessToken: token };
-    if (pageId) body.pageId = pageId;
+  function connectAccount(platform) {
+    // Build and show branded connect modal
+    var defaults = PLATFORM_DEFAULTS[platform] || {};
+    var needsPageId = platform === 'facebook' || platform === 'instagram';
+    var pageIdLabel = platform === 'facebook' ? 'Facebook Page ID' : platform === 'instagram' ? 'Instagram Business Account ID' : '';
 
+    var html = '<div class="yb-social__connect-modal" id="yb-social-connect-modal">' +
+      '<div class="yb-social__connect-overlay" data-action="social-connect-cancel"></div>' +
+      '<div class="yb-social__connect-box">' +
+      '<div class="yb-social__connect-platform-badge">' + platformLabel(platform) + '</div>' +
+      '<h3>Connect ' + platform.charAt(0).toUpperCase() + platform.slice(1) + '</h3>' +
+      '<p>Paste your access token to connect this account.</p>' +
+      '<div class="yb-admin__field">' +
+      '<label for="yb-social-connect-token">Access Token</label>' +
+      '<input type="text" id="yb-social-connect-token" placeholder="Paste token here...">' +
+      '</div>' +
+      (needsPageId ? '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-pageid">' + pageIdLabel + '</label>' +
+        '<input type="text" id="yb-social-connect-pageid" value="' + (defaults.pageId || '') + '">' +
+        '</div>' : '') +
+      '<div class="yb-social__connect-actions">' +
+      '<button class="yb-btn yb-btn--outline" data-action="social-connect-cancel">Cancel</button>' +
+      '<button class="yb-btn yb-btn--primary" data-action="social-connect-save" data-platform="' + platform + '">Connect</button>' +
+      '</div></div></div>';
+
+    // Remove existing modal if any
+    var existing = $('yb-social-connect-modal');
+    if (existing) existing.remove();
+
+    document.body.insertAdjacentHTML('beforeend', html);
+    var input = $('yb-social-connect-token');
+    if (input) setTimeout(function () { input.focus(); }, 100);
+  }
+
+  function platformLabel(p) {
+    var icons = {
+      instagram: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg> Instagram',
+      facebook: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> Facebook',
+      tiktok: 'TikTok', linkedin: 'LinkedIn', youtube: 'YouTube', pinterest: 'Pinterest'
+    };
+    return icons[p] || p;
+  }
+
+  async function saveConnection(platform) {
+    var token = ($('yb-social-connect-token') || {}).value || '';
+    if (!token.trim()) { toast('Enter a token', true); return; }
+
+    var body = { platform: platform, accessToken: token.trim() };
+    var pageIdEl = $('yb-social-connect-pageid');
+    if (pageIdEl && pageIdEl.value.trim()) body.pageId = pageIdEl.value.trim();
+
+    toast('Connecting...');
     var data = await api('social-accounts?action=save-token', {
       method: 'POST', body: JSON.stringify(body)
     });
+
+    var modal = $('yb-social-connect-modal');
+    if (modal) modal.remove();
+
     if (data) { toast(t('social_connected')); loadAccounts(); }
+  }
+
+  function closeConnectModal() {
+    var modal = $('yb-social-connect-modal');
+    if (modal) modal.remove();
   }
 
   async function disconnectAccount(platform) {
@@ -513,6 +569,8 @@
 
     // Accounts
     else if (action === 'social-connect') connectAccount(btn.getAttribute('data-platform'));
+    else if (action === 'social-connect-save') saveConnection(btn.getAttribute('data-platform'));
+    else if (action === 'social-connect-cancel') closeConnectModal();
     else if (action === 'social-disconnect') disconnectAccount(btn.getAttribute('data-platform'));
     else if (action === 'social-refresh-accounts') refreshAccounts();
 
