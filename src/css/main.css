@@ -17998,8 +17998,8 @@ button.yb-btn--outline-white:hover {
   z-index: 0;
   opacity: 0.35;
 }
-.yphoto-hero--video .yb-hero__glow,
-.yphoto-hero--video .yb-hero__content,
+.yphoto-hero--video .yb-hero__glow { z-index: 1; }
+.yphoto-hero--video .yb-hero__content { position: relative; z-index: 2; }
 .yphoto-hero--video .yb-hero__scroll { position: relative; z-index: 1; }
 
 /* ─────────────────────────────────────────
@@ -18187,8 +18187,8 @@ button.yb-btn--outline-white:hover {
 /* Highlight mini cards */
 .yphoto-session__highlights {
   display: grid;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 @media (min-width: 480px) {
   .yphoto-session__highlights { grid-template-columns: repeat(3, 1fr); }
@@ -18197,7 +18197,7 @@ button.yb-btn--outline-white:hover {
   border: 1px solid rgba(255,255,255,.06);
   border-top: 2px solid rgba(247,92,3,.5);
   border-radius: 12px;
-  padding: 14px;
+  padding: 18px 20px;
   background: #1a1a1a;
   transition: border-color .2s;
 }
@@ -18279,6 +18279,10 @@ button.yb-btn--outline-white:hover {
 }
 @media (max-width: 899px) {
   .yphoto-session__media { min-height: 350px; }
+  .yphoto-session__ctas { flex-direction: column; align-items: stretch; text-align: center; }
+}
+@media (max-width: 479px) {
+  .yphoto-session__highlights { grid-template-columns: 1fr; }
 }
 
 

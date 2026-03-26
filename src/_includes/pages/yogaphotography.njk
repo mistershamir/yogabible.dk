@@ -50,11 +50,47 @@
 }
 </script>
 
+<!-- Service Schema (AEO — structured data for AI search + rich results) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": {% if lang == "en" %}"Professional Yoga Photography"{% else %}"Professionel Yoga Fotografering"{% endif %},
+  "description": {% if lang == "en" %}"Professional yoga photography session in Copenhagen. Up to 60 minutes, 12-20 high-resolution edited photos. Guided posing for yoga teachers, studios and brands."{% else %}"Professionel yogafotografering i København. Op til 60 minutter, 12-20 redigerede billeder i høj opløsning. Guidet posering til yogalærere, studier og brands."{% endif %},
+  "serviceType": "Photography",
+  "provider": {
+    "@type": "LocalBusiness",
+    "name": "Yoga Bible",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Torvegade 66",
+      "addressLocality": "København K",
+      "postalCode": "1400",
+      "addressCountry": "DK"
+    },
+    "telephone": "+4553881209",
+    "url": "https://yogabible.dk"
+  },
+  "areaServed": {
+    "@type": "City",
+    "name": "Copenhagen"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "2950",
+    "priceCurrency": "DKK",
+    "description": {% if lang == "en" %}"Up to 60 min session, 12-20 edited photos in high resolution"{% else %}"Op til 60 min session, 12-20 redigerede billeder i høj opløsning"{% endif %},
+    "availability": "https://schema.org/InStock"
+  },
+  "url": "https://yogabible.dk{% if lang == 'en' %}/en{% endif %}/yogaphotography/"
+}
+</script>
+
 <!-- ═══════════════════════════════════════════════════════
      Hero
      ═══════════════════════════════════════════════════════ -->
 <section class="yb-hero yphoto-hero--video">
-  <video class="yphoto-hero__video" autoplay muted loop playsinline poster="{{ 'yoga-bible-DK/yogaphotography/quote-hero.jpg' | cloudimg('w_1400') }}">
+  <video class="yphoto-hero__video" autoplay muted loop playsinline preload="none" poster="{{ 'yoga-bible-DK/yogaphotography/quote-hero.jpg' | cloudimg('w_1400') }}">
     <source src="{{ 'yoga-bible-DK/yogaphotography/hero-video.mp4' | cloudvid }}" type="video/mp4" />
   </video>
   <div class="yb-hero__glow"></div>
@@ -110,6 +146,8 @@
           class="yphoto-session__img"
           src="{{ 'yoga-bible-DK/yogaphotography/session-hero' | cloudimg('w_1200,c_fill,g_auto') }}"
           alt="{{ t.session_img_alt }}"
+          width="600"
+          height="800"
           loading="lazy"
           decoding="async"
         />
@@ -154,7 +192,7 @@
         {# CTA row #}
         <div class="yphoto-session__ctas">
           <button class="yb-btn yb-btn--primary" data-open-photo-booking>{{ t.session_cta_book }}</button>
-          <a class="yb-btn yb-btn--outline" href="{{ mailto_ask }}">{{ t.session_cta_ask }}</a>
+          <a class="yb-btn yb-btn--outline-light" href="{{ mailto_ask }}">{{ t.session_cta_ask }}</a>
         </div>
         <p class="yphoto-session__note">{{ t.session_note }}</p>
       </div>
@@ -225,7 +263,7 @@
         </div>
 
         <div class="yphoto-prepfaq__card-foot yphoto-prepfaq__card-foot--split">
-          <a class="yb-btn yb-btn--ghost" href="{{ mailto_ask }}">{{ t.faq_cta_ask }}</a>
+          <a class="yb-btn yb-btn--outline-light" href="{{ mailto_ask }}">{{ t.faq_cta_ask }}</a>
           <button class="yb-btn yb-btn--primary" data-open-photo-booking>{{ t.faq_cta_book }}</button>
         </div>
       </div>
@@ -245,6 +283,8 @@
       class="yphoto-quote__img"
       src="{{ 'yoga-bible-DK/yogaphotography/quote-hero' | cloudimg('w_1400,c_fill,g_auto') }}"
       alt="Yoga Photography — Yoga Bible"
+      width="1159"
+      height="2048"
       loading="lazy"
       decoding="async"
     />
