@@ -66,6 +66,11 @@ exports.handler = async (event) => {
 
     // Write to Firestore
     const db = getDb();
+
+    // Calculate form score from lead answers (0-7)
+    const formScore = calculateFormScore(leadData);
+    if (formScore > 0) leadData.form_score = formScore;
+
     const docRef = await db.collection('leads').add({
       ...leadData,
       created_at: new Date(),
@@ -580,6 +585,50 @@ async function getExistingApplicationId(email) {
     console.error('getExistingApplicationId error:', err.message);
     return null;
   }
+}
+
+/**
+ * Calculate a form quality score from lead answers.
+ * Scores accommodation engagement level (0-7 scale, expandable).
+ * - accommodation_plus / "Yes, I need help finding accommodation" = +2 (most engaged)
+ * - accommodation / "Yes" = +1
+ * - self_arranged / lives_in_denmark / lives_in_copenhagen = +0
+ * - city_country provided (international) = +1
+ * - type is ytt = +1
+ * - multi-format interest = +1
+ */
+function calculateFormScore(leadData) {
+  let score = 0;
+
+  // Accommodation signal
+  const acc = (leadData.accommodation || '').toLowerCase();
+  if (acc === 'accommodation_plus' || acc.includes('help finding')) {
+    score += 2;
+  } else if (acc === 'yes' || acc === 'accommodation') {
+    score += 1;
+  }
+
+  // International lead (city/country filled = travelling for training)
+  if (leadData.city_country && leadData.city_country.trim().length > 0) {
+    score += 1;
+  }
+
+  // YTT interest = serious
+  if (leadData.type === 'ytt') {
+    score += 1;
+  }
+
+  // Multi-format interest = exploring, engaged
+  if (leadData.all_formats && leadData.all_formats.includes(',')) {
+    score += 1;
+  }
+
+  // Phone provided = higher intent
+  if (leadData.phone && leadData.phone.trim().length > 4) {
+    score += 1;
+  }
+
+  return Math.min(score, 7);
 }
 
 /**

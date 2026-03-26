@@ -149,15 +149,20 @@ async function handleClick(params) {
 async function logLeadOpen(leadId, source) {
   var db = getDb();
   var now = admin.firestore.Timestamp.now();
+  var nowMs = Date.now();
 
   var leadRef = db.collection('leads').doc(leadId);
   var leadDoc = await leadRef.get();
   if (!leadDoc.exists) return;
 
   var lead = leadDoc.data();
+  var ee = lead.email_engagement || {};
 
   // Check for re-engagement
   var reEngagement = checkReEngagement(lead, 'email_open', source);
+
+  // Categorize source: welcome vs sequence
+  var isWelcome = (source || '').startsWith('welcome');
 
   var updates = {
     'email_engagement.total_opens': admin.firestore.FieldValue.increment(1),
@@ -169,6 +174,37 @@ async function logLeadOpen(leadId, source) {
     last_activity: now,
     updated_at: now
   };
+
+  // Welcome email open tracking
+  if (isWelcome && !ee.welcome_opened) {
+    updates['email_engagement.welcome_opened'] = true;
+    updates['email_engagement.welcome_opened_at'] = now;
+    // Calculate time_to_first_open from welcome_sent_at or created_at
+    var sentAt = ee.welcome_sent_at || lead.welcome_email_sent_at || lead.created_at;
+    if (sentAt) {
+      var sentMs = sentAt.toDate ? sentAt.toDate().getTime() : new Date(sentAt).getTime();
+      updates['email_engagement.time_to_first_open_min'] = Math.round((nowMs - sentMs) / 60000);
+    }
+  }
+
+  // Sequence email tracking
+  if (!isWelcome && source) {
+    updates['email_engagement.sequence_opens'] = admin.firestore.FieldValue.increment(1);
+  }
+
+  // Track first-ever email open timing
+  if (!ee.first_opened_at) {
+    updates['email_engagement.first_opened_at'] = now;
+    var createdAt = lead.created_at;
+    if (createdAt) {
+      var createdMs = createdAt.toDate ? createdAt.toDate().getTime() : new Date(createdAt).getTime();
+      updates['email_engagement.time_to_first_open_min'] = Math.round((nowMs - createdMs) / 60000);
+    }
+  }
+
+  // Track days_active (distinct dates with engagement)
+  var todayStr = new Date().toISOString().slice(0, 10);
+  updates['email_engagement.active_dates'] = admin.firestore.FieldValue.arrayUnion(todayStr);
 
   if (reEngagement) {
     updates.re_engaged = true;
@@ -182,15 +218,20 @@ async function logLeadOpen(leadId, source) {
 async function logLeadClick(leadId, url, source) {
   var db = getDb();
   var now = admin.firestore.Timestamp.now();
+  var nowMs = Date.now();
 
   var leadRef = db.collection('leads').doc(leadId);
   var leadDoc = await leadRef.get();
   if (!leadDoc.exists) return;
 
   var lead = leadDoc.data();
+  var ee = lead.email_engagement || {};
 
   // Check for re-engagement
   var reEngagement = checkReEngagement(lead, 'email_click', url);
+
+  // Categorize source: welcome vs sequence
+  var isWelcome = (source || '').startsWith('welcome');
 
   var updates = {
     'email_engagement.total_clicks': admin.firestore.FieldValue.increment(1),
@@ -203,6 +244,32 @@ async function logLeadClick(leadId, url, source) {
     last_activity: now,
     updated_at: now
   };
+
+  // Welcome email click
+  if (isWelcome && !ee.welcome_clicked) {
+    updates['email_engagement.welcome_clicked'] = true;
+    updates['email_engagement.welcome_clicked_at'] = now;
+    updates['email_engagement.welcome_clicked_url'] = url;
+  }
+
+  // Sequence email click tracking
+  if (!isWelcome && source) {
+    updates['email_engagement.sequence_clicks'] = admin.firestore.FieldValue.increment(1);
+  }
+
+  // Track first-ever click timing
+  if (!ee.first_clicked_at) {
+    updates['email_engagement.first_clicked_at'] = now;
+    var createdAt = lead.created_at;
+    if (createdAt) {
+      var createdMs = createdAt.toDate ? createdAt.toDate().getTime() : new Date(createdAt).getTime();
+      updates['email_engagement.time_to_first_click_min'] = Math.round((nowMs - createdMs) / 60000);
+    }
+  }
+
+  // Track days_active
+  var todayStr = new Date().toISOString().slice(0, 10);
+  updates['email_engagement.active_dates'] = admin.firestore.FieldValue.arrayUnion(todayStr);
 
   if (reEngagement) {
     updates.re_engaged = true;
