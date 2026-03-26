@@ -157,7 +157,7 @@
         <span class="ybh-origin__year">{{ t.origin2_year }}</span>
         <h3 class="ybh-origin__name">{{ t.origin2_name }}</h3>
         <p>{{ t.origin2_desc }}</p>
-        <img src="{{ media.programs.certificate | cloudimg('w_200,q_auto') }}" alt="Yoga Alliance RYT-200" class="ybh-origin__badge" width="120" loading="lazy">
+        <img src="{{ media.historie.certificate | cloudimg('w_200,q_auto') }}" alt="Yoga Alliance RYT-200" class="ybh-origin__badge" width="120" loading="lazy">
       </div>
     </div>
 
@@ -202,7 +202,7 @@
     <div class="ybh-concepts__grid">
       <a href="{{ lp }}/hot-yoga-copenhagen" class="ybh-concepts__card ybh-concepts__card--hyc ybh-scroll-reveal">
         <div class="ybh-concepts__img">
-          <img src="{{ media.concepts.hotyogaHero | cloudimg('w_600,h_400,c_fill') }}" alt="Hot Yoga Copenhagen" loading="lazy" width="600" height="400">
+          <img src="{{ media.historie.hotYogaCph | cloudimg('w_600,h_400,c_fill') }}" alt="Hot Yoga Copenhagen" loading="lazy" width="600" height="400">
         </div>
         <div class="ybh-concepts__info">
           <h3>{{ t.concept1_name }}</h3>
@@ -213,7 +213,7 @@
 
       <a href="{{ lp }}/yoga-bible-concepts" class="ybh-concepts__card ybh-scroll-reveal">
         <div class="ybh-concepts__img">
-          <img src="{{ media.concepts.namasteHero | cloudimg('w_600,h_400,c_fill') }}" alt="Namasté Online" loading="lazy" width="600" height="400">
+          <img src="{{ media.historie.namasteOnline | cloudimg('w_600,h_400,c_fill') }}" alt="Namasté Online" loading="lazy" width="600" height="400">
         </div>
         <div class="ybh-concepts__info">
           <h3>{{ t.concept2_name }}</h3>
@@ -224,7 +224,7 @@
 
       <a href="{{ lp }}/vibro-yoga" class="ybh-concepts__card ybh-scroll-reveal">
         <div class="ybh-concepts__img">
-          <img src="{{ media.concepts.vibroHero | cloudimg('w_600,h_400,c_fill') }}" alt="Vibro Yoga" loading="lazy" width="600" height="400">
+          <img src="{{ media.historie.vibroYoga | cloudimg('w_600,h_400,c_fill') }}" alt="Vibro Yoga" loading="lazy" width="600" height="400">
         </div>
         <div class="ybh-concepts__info">
           <h3>{{ t.concept3_name }}</h3>
@@ -246,12 +246,12 @@
   </div>
   <div class="ybh-copenhagen__gallery">
     <div class="ybh-copenhagen__track">
-      <img src="{{ media.copenhagen.canalPanorama | cloudimg('w_600,h_400,c_fill') }}" alt="Christianshavn canal" loading="lazy" width="600" height="400">
-      <img src="{{ media.copenhagen.locationGallery2 | cloudimg('w_600,h_400,c_fill') }}" alt="Christianshavn colorful houses" loading="lazy" width="600" height="400">
-      <img src="{{ media.studio.entrance | cloudimg('w_600,h_400,c_fill') }}" alt="Yoga Bible studio entrance" loading="lazy" width="600" height="400">
-      <img src="{{ media.copenhagen.nyhavn | cloudimg('w_600,h_400,c_fill') }}" alt="Nyhavn harbor" loading="lazy" width="600" height="400">
+      <img src="{{ media.historie.colorfulHouses | cloudimg('w_600,h_400,c_fill') }}" alt="Christianshavn colorful houses" loading="lazy" width="600" height="400">
+      <img src="{{ media.historie.studioEntrance | cloudimg('w_600,h_400,c_fill') }}" alt="Yoga Bible studio entrance" loading="lazy" width="600" height="400">
+      <img src="{{ media.historie.nyhavn | cloudimg('w_600,h_400,c_fill') }}" alt="Nyhavn harbor" loading="lazy" width="600" height="400">
       <img src="{{ media.copenhagen.bikeCulture | cloudimg('w_600,h_400,c_fill') }}" alt="Copenhagen bike culture" loading="lazy" width="600" height="400">
-      <img src="{{ media.copenhagen.cafeScene | cloudimg('w_600,h_400,c_fill') }}" alt="Copenhagen café scene" loading="lazy" width="600" height="400">
+      <img src="{{ media.historie.cafeScene | cloudimg('w_600,h_400,c_fill') }}" alt="Copenhagen café scene" loading="lazy" width="600" height="400">
+      <img src="{{ media.copenhagen.canalPanorama | cloudimg('w_600,h_400,c_fill') }}" alt="Christianshavn canal" loading="lazy" width="600" height="400">
     </div>
   </div>
 </section>
@@ -261,8 +261,8 @@
 <section class="ybh-testimonial">
   <div class="ybh-testimonial__inner">
     <div class="ybh-testimonial__media">
-      <video muted loop playsinline poster="{{ media.programs.testimonialVideo | cloudvid('w_608,c_fill,so_1,q_60') }}">
-        <source src="{{ media.programs.testimonialVideo | cloudvid('w_608,q_auto') }}" type="video/mp4">
+      <video muted loop playsinline poster="{{ media.historie.testimonial | cloudvid('w_608,c_fill,so_1,q_60') }}">
+        <source src="{{ media.historie.testimonial | cloudvid('w_608,q_auto') }}" type="video/mp4">
       </video>
       <button class="ybh-testimonial__play" aria-label="Play" type="button">
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="23" stroke="#fff" stroke-width="2"/><path d="M19 15l14 9-14 9V15z" fill="#fff"/></svg>
