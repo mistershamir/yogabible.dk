@@ -1553,6 +1553,8 @@ When you create a new page, follow this order:
 ### TikTok Developer App
 
 - **App Name:** Yoga Bible DK
+- **Organization:** Yoga Bible
+- **Organization ID:** `7621584075303699477`
 - **Client Key:** `aw0ak2eupqflz21x`
 - **Client Secret:** `dxz3xIbgqPEw980FWUaGDeuRh15LxTfb`
 - **Platform:** Web
