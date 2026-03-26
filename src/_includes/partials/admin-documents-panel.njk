@@ -7,7 +7,7 @@
 <div class="yb-admin__view" id="yb-doc-v-list">
 
   {# ── Header ── #}
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem">
+  <div class="yb-doc__header">
     <h2 style="margin:0;font-size:1.3rem">{{ t.doc_title }}</h2>
     <button class="yb-btn yb-btn--primary yb-btn--small" data-action="new-doc">+ {{ t.doc_new }}</button>
   </div>
@@ -15,12 +15,12 @@
   {# ── Seed box ── #}
   <div style="border:1px solid var(--yb-border,#E8E4E0);border-radius:12px;margin-bottom:1.25rem;overflow:hidden">
     {# Header row #}
-    <div style="display:flex;align-items:center;gap:1rem;padding:0.85rem 1.25rem;background:#f5f3f0;flex-wrap:wrap">
+    <div class="yb-doc__seed-header">
       <div style="flex:1;min-width:200px">
         <p style="margin:0 0 0.15rem;font-size:0.85rem;font-weight:600">{{ t.doc_seed_title }}</p>
         <p style="margin:0;font-size:0.75rem;color:var(--yb-muted,#6F6A66)">{{ t.doc_seed_hint }}</p>
       </div>
-      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+      <div class="yb-doc__seed-actions">
         <button class="yb-btn yb-btn--outline yb-btn--small" id="yb-doc-seed-preview-btn" type="button">
           {{ t.doc_seed_preview }}
         </button>
@@ -37,7 +37,7 @@
   </div>
 
   {# ── Search + Filters ── #}
-  <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap">
+  <div class="yb-doc__filter-bar">
     <div style="position:relative;flex:1;min-width:180px">
       <svg style="position:absolute;left:0.65rem;top:50%;transform:translateY(-50%);color:var(--yb-muted,#6F6A66);pointer-events:none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="yb-doc-search" placeholder="{{ t.doc_search }}"
@@ -90,7 +90,7 @@
     </div>
 
     {# Title DA / EN #}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+    <div class="yb-doc__form-grid">
       <div>
         <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_title_da }}</label>
         <input type="text" id="yb-doc-title-da" required
@@ -104,7 +104,7 @@
     </div>
 
     {# Description DA / EN #}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+    <div class="yb-doc__form-grid">
       <div>
         <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_desc_da }}</label>
         <textarea id="yb-doc-desc-da" rows="2"
@@ -120,7 +120,7 @@
     {# Document URL — accepts Google Drive or Cloudinary #}
     <div style="margin-bottom:1rem">
       <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_url }}</label>
-      <div style="display:flex;gap:0.5rem;align-items:center">
+      <div class="yb-doc__url-row">
         <input type="url" id="yb-doc-url" required placeholder="https://drive.google.com/file/d/... or https://yogabible.b-cdn.net/..."
                style="flex:1;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem">
         <button type="button" class="yb-btn yb-btn--outline yb-btn--small" data-action="toggle-browser" style="white-space:nowrap">
@@ -156,7 +156,7 @@
     </div>
 
     {# Category + Order row #}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+    <div class="yb-doc__form-grid">
       <div>
         <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_category }}</label>
         <select id="yb-doc-category"
@@ -177,7 +177,7 @@
     {# Permissions — Program + Method checkboxes #}
     <div style="margin-bottom:1.5rem">
       <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.5rem">{{ t.doc_field_permissions }}</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="yb-doc__perm-grid">
         <fieldset style="border:1px solid var(--yb-border,#E8E4E0);border-radius:12px;padding:0.75rem 1rem;margin:0">
           <legend style="font-size:0.75rem;font-weight:600;color:var(--yb-muted,#6F6A66);padding:0 0.25rem">{{ t.doc_perm_program }}</legend>
           <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;font-size:0.85rem;cursor:pointer">
@@ -209,7 +209,7 @@
     </div>
 
     {# Save / Cancel #}
-    <div style="display:flex;gap:0.75rem">
+    <div class="yb-doc__form-actions">
       <button type="submit" class="yb-btn yb-btn--primary">{{ t.save }}</button>
       <button type="button" class="yb-btn yb-btn--outline" data-action="back-docs">{{ t.cancel }}</button>
     </div>
