@@ -1560,5 +1560,10 @@ When you create a new page, follow this order:
 - **Platform:** Web
 - **Required Scopes:** `video.publish`, `video.upload`, `user.info.basic`
 - **Required Products:** Content Posting API, TikTok Account
+- **Verified Domains:** `yogabible.dk`, `yogabible.com` (DNS TXT record method)
+- **DNS TXT Record:** `tiktok-developers-site-verification=Ak7sI4jD9mUC9h2a44GZ6iY0s9dzpDiR` (root domain, no hostname prefix)
+- **Terms URL:** `https://yogabible.dk/terms-conditions/`
+- **Privacy URL:** `https://yogabible.dk/privacy-policy/`
 - **Status:** Pending review (submitted March 2026)
 - **Admin UI:** `/admin/` → Social → Accounts → TikTok → paste access token
+- **Note:** Domain verification covers all subdomains (www included). No need to verify www separately.
