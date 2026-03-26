@@ -16,7 +16,10 @@
     calYear: new Date().getFullYear(),
     hashtagSets: [],
     editingHashtagId: null,
-    analyticsRange: 30
+    analyticsRange: 30,
+    competitors: [],
+    abTests: [],
+    abTestFilter: 'all'
   };
 
   /* ═══ HELPERS ═══ */
@@ -78,7 +81,7 @@
   /* ═══ VIEW MANAGEMENT ═══ */
   function showView(name) {
     state.view = name;
-    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags'].forEach(function (v) {
+    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags', 'competitors', 'abtesting'].forEach(function (v) {
       var el = $('yb-social-v-' + v);
       if (el) el.hidden = (v !== name);
     });
@@ -91,6 +94,8 @@
     if (name === 'analytics') loadAnalytics();
     if (name === 'inbox') loadInbox();
     if (name === 'hashtags') loadHashtags();
+    if (name === 'competitors') loadCompetitors();
+    if (name === 'abtesting') loadAbTests();
   }
 
   /* ═══ ACCOUNTS ═══ */
@@ -1077,6 +1082,371 @@
     loadHashtags();
   }
 
+  /* ═══ COMPETITORS ═══ */
+
+  async function loadCompetitors() {
+    var el = $('yb-social-competitors-list');
+    if (!el) return;
+    el.innerHTML = '<p class="yb-admin__muted">' + t('social_loading') + '</p>';
+
+    var data = await api('social-competitors?action=list');
+    if (!data) return;
+    state.competitors = data.competitors || [];
+    renderCompetitors();
+  }
+
+  function renderCompetitors() {
+    var el = $('yb-social-competitors-list');
+    if (!el) return;
+    var comps = state.competitors;
+
+    if (comps.length === 0) {
+      el.innerHTML = '<p class="yb-admin__muted">' + t('social_no_competitors') + '</p>';
+      var cmp = $('yb-social-competitors-comparison');
+      if (cmp) cmp.hidden = true;
+      return;
+    }
+
+    var platformColors = { instagram: '#E1306C', facebook: '#1877F2', tiktok: '#000000', linkedin: '#0A66C2' };
+    var html = '';
+    comps.forEach(function (c) {
+      var color = platformColors[c.platform] || '#888';
+      html += '<div class="yb-social__competitor-card">' +
+        '<div class="yb-social__competitor-header">' +
+        (c.profilePicture ? '<img src="' + c.profilePicture + '" class="yb-social__competitor-avatar" alt="">' : '<div class="yb-social__competitor-avatar-placeholder" style="background:' + color + '">' + (c.handle || '?').charAt(0).toUpperCase() + '</div>') +
+        '<div>' +
+        '<strong>' + escapeHtml(c.name) + '</strong>' +
+        '<span class="yb-social__competitor-handle" style="color:' + color + '">@' + escapeHtml(c.handle) + ' · ' + c.platform + '</span>' +
+        '</div>' +
+        '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-competitors-remove" data-id="' + c.id + '" style="margin-left:auto" title="Remove">&times;</button>' +
+        '</div>' +
+        '<div class="yb-social__competitor-stats">' +
+        '<div class="yb-social__competitor-stat"><span class="yb-social__competitor-stat-val">' + fmtNum(c.followerCount) + '</span><span class="yb-social__competitor-stat-label">' + t('social_stat_followers') + '</span></div>' +
+        '<div class="yb-social__competitor-stat"><span class="yb-social__competitor-stat-val">' + fmtNum(c.postCount) + '</span><span class="yb-social__competitor-stat-label">' + t('social_stat_posts') + '</span></div>' +
+        '<div class="yb-social__competitor-stat"><span class="yb-social__competitor-stat-val">' + (c.engagementRate || 0).toFixed(1) + '%</span><span class="yb-social__competitor-stat-label">' + t('social_stat_engagement') + '</span></div>' +
+        '<div class="yb-social__competitor-stat"><span class="yb-social__competitor-stat-val">' + fmtNum(c.avgLikes) + '</span><span class="yb-social__competitor-stat-label">' + t('social_stat_avg_likes') + '</span></div>' +
+        '</div>' +
+        (c.lastRefreshed ? '<div class="yb-social__competitor-meta">' + t('social_last_refreshed') + ': ' + fmtDateTime(c.lastRefreshed) + '</div>' : '') +
+        '</div>';
+    });
+    el.innerHTML = html;
+
+    // Show comparison if 2+
+    var cmp = $('yb-social-competitors-comparison');
+    if (cmp && comps.length >= 2) {
+      cmp.hidden = false;
+      renderCompetitorComparison();
+    }
+  }
+
+  function renderCompetitorComparison() {
+    var el = $('yb-social-competitors-chart');
+    if (!el || state.competitors.length < 2) return;
+
+    var comps = state.competitors;
+    var maxFollowers = Math.max.apply(null, comps.map(function (c) { return c.followerCount || 1; }));
+    var platformColors = { instagram: '#E1306C', facebook: '#1877F2', tiktok: '#000000', linkedin: '#0A66C2' };
+
+    var html = '<div class="yb-social__comp-bars">';
+    comps.forEach(function (c) {
+      var pct = Math.round(((c.followerCount || 0) / maxFollowers) * 100);
+      var color = platformColors[c.platform] || '#888';
+      html += '<div class="yb-social__comp-bar-row">' +
+        '<span class="yb-social__comp-bar-label">' + escapeHtml(c.name) + '</span>' +
+        '<div class="yb-social__comp-bar-track"><div class="yb-social__comp-bar-fill" style="width:' + pct + '%;background:' + color + '">' + fmtNum(c.followerCount) + '</div></div>' +
+        '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function fmtNum(n) {
+    if (!n) return '0';
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return String(n);
+  }
+
+  async function addCompetitor() {
+    var platform = ($('yb-social-comp-platform') || {}).value;
+    var handle = ($('yb-social-comp-handle') || {}).value || '';
+    var name = ($('yb-social-comp-name') || {}).value || '';
+
+    if (!handle.trim()) { toast('Enter a handle', true); return; }
+
+    toast('Adding...');
+    var data = await api('social-competitors', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'add', platform: platform, handle: handle.trim(), name: name.trim() || handle.trim() })
+    });
+
+    if (data) {
+      toast(t('social_saved'));
+      $('yb-social-competitor-form').hidden = true;
+      if ($('yb-social-comp-handle')) $('yb-social-comp-handle').value = '';
+      if ($('yb-social-comp-name')) $('yb-social-comp-name').value = '';
+      loadCompetitors();
+    }
+  }
+
+  async function removeCompetitor(id) {
+    if (!confirm(t('social_comp_confirm_remove'))) return;
+    var data = await api('social-competitors', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'remove', id: id })
+    });
+    if (data) { toast('Removed'); loadCompetitors(); }
+  }
+
+  async function refreshCompetitors() {
+    toast('Refreshing...');
+    await api('social-competitors', { method: 'POST', body: JSON.stringify({ action: 'refresh' }) });
+    loadCompetitors();
+  }
+
+  /* ═══ A/B TESTING ═══ */
+
+  async function loadAbTests() {
+    var el = $('yb-social-ab-list');
+    if (!el) return;
+    el.innerHTML = '<p class="yb-admin__muted">' + t('social_loading') + '</p>';
+
+    var filter = state.abTestFilter;
+    var url = 'social-ab-tests?action=list' + (filter !== 'all' ? '&status=' + filter : '');
+    var data = await api(url);
+    if (!data) return;
+    state.abTests = data.tests || [];
+    renderAbTests();
+  }
+
+  function renderAbTests() {
+    var el = $('yb-social-ab-list');
+    if (!el) return;
+    var tests = state.abTests;
+
+    if (tests.length === 0) {
+      el.innerHTML = '<p class="yb-admin__muted">' + t('social_no_ab_tests') + '</p>';
+      return;
+    }
+
+    var platformColors = { instagram: '#E1306C', facebook: '#1877F2', tiktok: '#000000', linkedin: '#0A66C2' };
+    var html = '';
+    tests.forEach(function (test) {
+      var color = platformColors[test.platform] || '#888';
+      var statusClass = test.status === 'completed' ? 'yb-social__ab-status--completed' : 'yb-social__ab-status--active';
+      html += '<div class="yb-social__ab-card" data-action="social-ab-detail" data-id="' + test.id + '">' +
+        '<div class="yb-social__ab-card-header">' +
+        '<strong>' + escapeHtml(test.name) + '</strong>' +
+        '<div style="display:flex;gap:6px;align-items:center">' +
+        '<span class="yb-social__ab-platform" style="color:' + color + '">' + test.platform + '</span>' +
+        '<span class="yb-social__ab-status ' + statusClass + '">' + test.status + '</span>' +
+        '</div>' +
+        '</div>' +
+        '<div class="yb-social__ab-card-meta">' +
+        '<span>' + test.variantCount + ' variants</span>' +
+        '<span>' + t('social_stat_engagement') + ': ' + fmtNum(test.totalEngagement) + '</span>' +
+        (test.winnerIndex !== null ? '<span class="yb-social__ab-winner-badge">&#9733; Winner: Variant ' + String.fromCharCode(65 + test.winnerIndex) + '</span>' : '') +
+        '</div>' +
+        '<div class="yb-social__ab-card-date">' + fmtDate(test.createdAt) + '</div>' +
+        '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  function showAbCreateModal() {
+    var modal = $('yb-social-ab-modal');
+    if (!modal) return;
+    var title = $('yb-social-ab-modal-title');
+    if (title) title.textContent = t('social_ab_new');
+
+    var body = $('yb-social-ab-modal-body');
+    body.innerHTML = '<div class="yb-social__ab-create-form">' +
+      '<div class="yb-admin__field">' +
+      '<label>' + t('social_ab_test_name') + '</label>' +
+      '<input type="text" id="yb-social-ab-name" placeholder="' + t('social_ab_name_placeholder') + '">' +
+      '</div>' +
+      '<div class="yb-admin__field">' +
+      '<label>' + t('social_col_platform') + '</label>' +
+      '<select id="yb-social-ab-platform"><option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="tiktok">TikTok</option><option value="linkedin">LinkedIn</option></select>' +
+      '</div>' +
+      '<div class="yb-admin__field">' +
+      '<label>' + t('social_ab_notes') + '</label>' +
+      '<input type="text" id="yb-social-ab-notes" placeholder="' + t('social_ab_notes_placeholder') + '">' +
+      '</div>' +
+      '<h4 style="margin:16px 0 8px">' + t('social_ab_variants') + '</h4>' +
+      '<div id="yb-social-ab-variants">' +
+      buildVariantField(0) +
+      buildVariantField(1) +
+      '</div>' +
+      '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-ab-add-variant" style="margin:8px 0 16px">+ ' + t('social_ab_add_variant') + '</button>' +
+      '<div class="yb-social__ab-form-actions">' +
+      '<button type="button" class="yb-btn yb-btn--outline" data-action="social-ab-close">' + t('social_cancel') + '</button>' +
+      '<button type="button" class="yb-btn yb-btn--primary" data-action="social-ab-save">' + t('social_ab_create_test') + '</button>' +
+      '</div>' +
+      '</div>';
+
+    modal.hidden = false;
+  }
+
+  function buildVariantField(idx) {
+    var letter = String.fromCharCode(65 + idx);
+    return '<div class="yb-social__ab-variant-field" data-variant-idx="' + idx + '">' +
+      '<div class="yb-social__ab-variant-label">Variant ' + letter + '</div>' +
+      '<textarea rows="3" class="yb-social__ab-variant-caption" placeholder="' + t('social_ab_caption_placeholder') + '"></textarea>' +
+      '</div>';
+  }
+
+  var abVariantCount = 2;
+
+  function addAbVariant() {
+    if (abVariantCount >= 5) { toast('Maximum 5 variants', true); return; }
+    var container = $('yb-social-ab-variants');
+    if (!container) return;
+    container.insertAdjacentHTML('beforeend', buildVariantField(abVariantCount));
+    abVariantCount++;
+  }
+
+  async function saveAbTest() {
+    var name = ($('yb-social-ab-name') || {}).value || '';
+    var platform = ($('yb-social-ab-platform') || {}).value || 'instagram';
+    var notes = ($('yb-social-ab-notes') || {}).value || '';
+
+    if (!name.trim()) { toast('Enter a test name', true); return; }
+
+    var fields = qsa('.yb-social__ab-variant-caption');
+    var variants = [];
+    fields.forEach(function (f, i) {
+      var caption = f.value.trim();
+      if (caption) variants.push({ label: 'Variant ' + String.fromCharCode(65 + i), caption: caption });
+    });
+
+    if (variants.length < 2) { toast('Need at least 2 variants with captions', true); return; }
+
+    toast('Creating...');
+    var data = await api('social-ab-tests', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create', name: name.trim(), platform: platform, notes: notes, variants: variants })
+    });
+
+    if (data) {
+      toast(t('social_saved'));
+      closeAbModal();
+      abVariantCount = 2;
+      loadAbTests();
+    }
+  }
+
+  async function showAbDetail(id) {
+    var modal = $('yb-social-ab-modal');
+    if (!modal) return;
+
+    var data = await api('social-ab-tests?action=detail&id=' + id);
+    if (!data || !data.test) return;
+
+    var test = data.test;
+    var title = $('yb-social-ab-modal-title');
+    if (title) title.textContent = escapeHtml(test.name);
+
+    var body = $('yb-social-ab-modal-body');
+    var platformColors = { instagram: '#E1306C', facebook: '#1877F2', tiktok: '#000000', linkedin: '#0A66C2' };
+    var color = platformColors[test.platform] || '#888';
+
+    var html = '<div class="yb-social__ab-detail">';
+    html += '<div class="yb-social__ab-detail-meta">' +
+      '<span class="yb-social__ab-platform" style="color:' + color + '">' + test.platform + '</span>' +
+      '<span class="yb-social__ab-status yb-social__ab-status--' + test.status + '">' + test.status + '</span>' +
+      (test.notes ? '<span class="yb-admin__muted">' + escapeHtml(test.notes) + '</span>' : '') +
+      '</div>';
+
+    // Variant comparison
+    html += '<div class="yb-social__ab-variants">';
+    var maxEng = 1;
+    test.variants.forEach(function (v) {
+      var eng = (v.metrics.likes || 0) + (v.metrics.comments || 0) + (v.metrics.shares || 0);
+      if (eng > maxEng) maxEng = eng;
+    });
+
+    test.variants.forEach(function (v) {
+      var m = v.metrics;
+      var eng = (m.likes || 0) + (m.comments || 0) + (m.shares || 0);
+      var pct = Math.round((eng / maxEng) * 100);
+      html += '<div class="yb-social__ab-variant-card' + (v.isWinner ? ' is-winner' : '') + '">' +
+        '<div class="yb-social__ab-variant-card-header">' +
+        '<strong>' + v.label + '</strong>' +
+        (v.isWinner ? '<span class="yb-social__ab-winner-badge">&#9733; ' + t('social_ab_winner') + '</span>' : '') +
+        '</div>' +
+        '<p class="yb-social__ab-variant-caption-text">' + escapeHtml(v.caption).substring(0, 120) + (v.caption.length > 120 ? '...' : '') + '</p>' +
+        '<div class="yb-social__ab-variant-metrics">' +
+        '<span title="Likes">&#9829; ' + fmtNum(m.likes) + '</span>' +
+        '<span title="Comments">&#128172; ' + fmtNum(m.comments) + '</span>' +
+        '<span title="Shares">&#8634; ' + fmtNum(m.shares) + '</span>' +
+        '<span title="Reach">&#128065; ' + fmtNum(m.reach) + '</span>' +
+        '</div>' +
+        '<div class="yb-social__ab-variant-bar"><div class="yb-social__ab-variant-bar-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="yb-social__ab-variant-actions">' +
+        '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-ab-update-metrics" data-test-id="' + id + '" data-variant="' + v.index + '">&#9998; ' + t('social_ab_update_metrics') + '</button>' +
+        (test.status === 'active' ? '<button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ab-declare-winner" data-test-id="' + id + '" data-variant="' + v.index + '">&#9733; ' + t('social_ab_declare_winner') + '</button>' : '') +
+        '</div>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    // Delete
+    html += '<div style="margin-top:16px;text-align:right">' +
+      '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" style="color:#c00" data-action="social-ab-delete" data-id="' + id + '">' + t('social_delete') + '</button>' +
+      '</div>';
+
+    html += '</div>';
+    body.innerHTML = html;
+    modal.hidden = false;
+  }
+
+  function showMetricsPrompt(testId, variantIndex) {
+    var likes = prompt('Likes:', '0');
+    if (likes === null) return;
+    var comments = prompt('Comments:', '0');
+    if (comments === null) return;
+    var shares = prompt('Shares:', '0');
+    if (shares === null) return;
+    var reach = prompt('Reach:', '0');
+    if (reach === null) return;
+
+    api('social-ab-tests', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'update-metrics',
+        id: testId,
+        variantIndex: parseInt(variantIndex),
+        metrics: { likes: parseInt(likes) || 0, comments: parseInt(comments) || 0, shares: parseInt(shares) || 0, reach: parseInt(reach) || 0 }
+      })
+    }).then(function (data) {
+      if (data) { toast(t('social_saved')); showAbDetail(testId); }
+    });
+  }
+
+  async function declareWinner(testId, variantIndex) {
+    if (!confirm(t('social_ab_confirm_winner'))) return;
+    var data = await api('social-ab-tests', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'declare-winner', id: testId, winnerIndex: parseInt(variantIndex) })
+    });
+    if (data) { toast('Winner declared!'); showAbDetail(testId); loadAbTests(); }
+  }
+
+  async function deleteAbTest(id) {
+    if (!confirm(t('social_confirm_delete_post'))) return;
+    var data = await api('social-ab-tests', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', id: id })
+    });
+    if (data) { toast('Deleted'); closeAbModal(); loadAbTests(); }
+  }
+
+  function closeAbModal() {
+    var modal = $('yb-social-ab-modal');
+    if (modal) modal.hidden = true;
+  }
+
   /* ═══ EXPORT FOR COMPOSER ═══ */
   window._ybSocial = {
     state: state,
@@ -1105,6 +1475,8 @@
     else if (action === 'social-nav-analytics') showView('analytics');
     else if (action === 'social-nav-inbox') showView('inbox');
     else if (action === 'social-nav-hashtags') showView('hashtags');
+    else if (action === 'social-nav-competitors') showView('competitors');
+    else if (action === 'social-nav-abtesting') showView('abtesting');
 
     // Accounts
     else if (action === 'social-connect') connectAccount(btn.getAttribute('data-platform'));
@@ -1163,6 +1535,30 @@
     else if (action === 'social-inbox-open-conversation') openConversationThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
     else if (action === 'social-inbox-close-thread') closeThread();
     else if (action === 'social-inbox-send-reply') sendReply();
+
+    // Competitors
+    else if (action === 'social-competitors-add') { var f = $('yb-social-competitor-form'); if (f) f.hidden = !f.hidden; }
+    else if (action === 'social-competitors-cancel') { var f = $('yb-social-competitor-form'); if (f) f.hidden = true; }
+    else if (action === 'social-competitors-save') addCompetitor();
+    else if (action === 'social-competitors-remove') removeCompetitor(btn.getAttribute('data-id'));
+    else if (action === 'social-competitors-refresh') refreshCompetitors();
+
+    // A/B Testing
+    else if (action === 'social-ab-create') showAbCreateModal();
+    else if (action === 'social-ab-close') closeAbModal();
+    else if (action === 'social-ab-add-variant') addAbVariant();
+    else if (action === 'social-ab-save') saveAbTest();
+    else if (action === 'social-ab-detail') showAbDetail(btn.getAttribute('data-id'));
+    else if (action === 'social-ab-filter') {
+      state.abTestFilter = btn.getAttribute('data-status');
+      qsa('#yb-social-ab-filters .yb-social__filter-btn').forEach(function (b) {
+        b.classList.toggle('is-active', b.getAttribute('data-status') === state.abTestFilter);
+      });
+      loadAbTests();
+    }
+    else if (action === 'social-ab-update-metrics') showMetricsPrompt(btn.getAttribute('data-test-id'), btn.getAttribute('data-variant'));
+    else if (action === 'social-ab-declare-winner') declareWinner(btn.getAttribute('data-test-id'), btn.getAttribute('data-variant'));
+    else if (action === 'social-ab-delete') deleteAbTest(btn.getAttribute('data-id'));
 
     // New post / Edit post — handled by composer
     else if (action === 'social-new-post' && window.openSocialComposer) {

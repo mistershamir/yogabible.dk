@@ -8,6 +8,8 @@
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-analytics">{{ t.social_nav_analytics or "Analytics" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-inbox">{{ t.social_nav_inbox or "Inbox" }} <span class="yb-social__inbox-badge" id="yb-social-inbox-badge" hidden>0</span></button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-hashtags">{{ t.social_nav_hashtags or "Hashtags" }}</button>
+  <button class="yb-social__nav-btn" type="button" data-action="social-nav-competitors">{{ t.social_nav_competitors or "Competitors" }}</button>
+  <button class="yb-social__nav-btn" type="button" data-action="social-nav-abtesting">{{ t.social_nav_abtesting or "A/B Tests" }}</button>
 </div>
 
 {# ════════════════════════════════════════════════════════════════════════════ #}
@@ -366,6 +368,93 @@
         <button type="button" class="yb-btn yb-btn--primary" data-action="social-save-hashtag-set">{{ t.social_save or "Save" }}</button>
         <button type="button" class="yb-btn yb-btn--outline" data-action="social-cancel-hashtag-set">{{ t.social_cancel or "Cancel" }}</button>
       </div>
+    </div>
+  </div>
+</div>
+
+{# ════════════════════════════════════════════════════════════════════════════ #}
+{# VIEW: Competitor Tracking                                                    #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+<div id="yb-social-v-competitors" hidden>
+  <div class="yb-admin__view-head">
+    <h2>{{ t.social_competitors_title or "Competitor Tracking" }}</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-competitors-refresh">&#8635; {{ t.social_refresh or "Refresh" }}</button>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-competitors-add">+ {{ t.social_add_competitor or "Add Competitor" }}</button>
+    </div>
+  </div>
+
+  {# Add competitor inline form #}
+  <div id="yb-social-competitor-form" hidden>
+    <div class="yb-admin__form" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;margin-bottom:20px">
+      <div class="yb-admin__field">
+        <label for="yb-social-comp-platform">{{ t.social_col_platform or "Platform" }}</label>
+        <select id="yb-social-comp-platform">
+          <option value="instagram">Instagram</option>
+          <option value="facebook">Facebook</option>
+          <option value="tiktok">TikTok</option>
+          <option value="linkedin">LinkedIn</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-social-comp-handle">{{ t.social_comp_handle or "Handle / Username" }}</label>
+        <input type="text" id="yb-social-comp-handle" placeholder="@yogastudio">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-social-comp-name">{{ t.social_comp_name or "Display Name" }}</label>
+        <input type="text" id="yb-social-comp-name" placeholder="{{ t.social_comp_name_placeholder or 'Optional' }}">
+      </div>
+      <div style="display:flex;gap:6px">
+        <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-competitors-save">{{ t.social_save or "Save" }}</button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-competitors-cancel">{{ t.social_cancel or "Cancel" }}</button>
+      </div>
+    </div>
+  </div>
+
+  {# Competitor cards grid #}
+  <div id="yb-social-competitors-list" class="yb-social__competitors-grid">
+    <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+  </div>
+
+  {# Comparison overview #}
+  <div id="yb-social-competitors-comparison" class="yb-social__competitors-compare" hidden>
+    <h3 style="margin:24px 0 12px">{{ t.social_comp_comparison or "Comparison Overview" }}</h3>
+    <div id="yb-social-competitors-chart"></div>
+  </div>
+</div>
+
+{# ════════════════════════════════════════════════════════════════════════════ #}
+{# VIEW: A/B Testing                                                           #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+<div id="yb-social-v-abtesting" hidden>
+  <div class="yb-admin__view-head">
+    <h2>{{ t.social_ab_title or "A/B Testing" }}</h2>
+    <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ab-create">+ {{ t.social_ab_new or "New Test" }}</button>
+  </div>
+
+  {# Filter bar #}
+  <div class="yb-social__filter-bar" id="yb-social-ab-filters">
+    <button class="yb-social__filter-btn is-active" type="button" data-action="social-ab-filter" data-status="all">{{ t.social_filter_all or "All" }}</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-ab-filter" data-status="active">{{ t.social_filter_active or "Active" }}</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-ab-filter" data-status="completed">{{ t.social_filter_completed or "Completed" }}</button>
+  </div>
+
+  {# Test list #}
+  <div id="yb-social-ab-list" class="yb-social__ab-list">
+    <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+  </div>
+</div>
+
+{# ── A/B Test Create/Detail Modal ── #}
+<div class="yb-social__ab-modal" id="yb-social-ab-modal" hidden>
+  <div class="yb-social__ab-overlay" data-action="social-ab-close"></div>
+  <div class="yb-social__ab-box">
+    <div class="yb-social__ab-header">
+      <h3 id="yb-social-ab-modal-title">{{ t.social_ab_new or "New Test" }}</h3>
+      <button type="button" class="yb-social__close-btn" data-action="social-ab-close">&times;</button>
+    </div>
+    <div id="yb-social-ab-modal-body">
+      {# Content rendered by JS — either create form or detail view #}
     </div>
   </div>
 </div>
