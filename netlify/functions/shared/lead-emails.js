@@ -32,7 +32,18 @@ const {
   getPricingSectionHtml
 } = require('./email-service');
 const { getDb } = require('./firestore');
-const { detectLeadCountry } = require('./country-detect');
+const { detectLeadCountry, normalizeCountryName, detectCountryFromPhone } = require('./country-detect');
+
+// Form ID → language map (same as facebook-leads-webhook.js)
+const FORM_LANG_MAP = {
+  '827004866473769':  'en',     // july-vinyasa-plus-en
+  '25716246641411656':'en',     // july-vinyasa-plus-no
+  '4318151781759438': 'en',     // july-vinyasa-plus-se
+  '2450631555377690': 'de',     // july-vinyasa-plus-de
+  '1668412377638315': 'en',     // july-vinyasa-plus-fi
+  '960877763097239':  'en',     // july-vinyasa-plus-nl
+  '1344364364192542': 'da'      // july-vinyasa-plus-dk
+};
 
 // =========================================================================
 // Shared HTML helpers
@@ -198,21 +209,30 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       return result;
     }
 
-    // Determine language — country detection is the source of truth
-    // because the old Facebook webhook stamped lang='da' on all leads
+    // Determine language — multi-layer detection
+    // The old Facebook webhook stamped lang='da' on ALL leads, so lang field
+    // and country detection (which uses lang as fallback) are unreliable.
+    // Priority: form_id map → country/phone (no lang) → non-da rawLang → default da
     const rawLang = (leadData.lang || leadData.meta_lang || '').toLowerCase().trim();
-    const leadCountry = detectLeadCountry(leadData);
+    const formLang = FORM_LANG_MAP[leadData.meta_form_id];
+    const hardCountryField = normalizeCountryName(leadData.country || leadData.city_country);
+    const hardCountryPhone = !hardCountryField ? detectCountryFromPhone(leadData.phone) : null;
+    const hardCountry = hardCountryField || hardCountryPhone;
     let lang, isDanish, isGerman;
 
-    if (leadCountry === 'DK') {
-      isDanish = true; isGerman = false; lang = 'da';
-    } else if (['DE', 'AT', 'CH'].includes(leadCountry)) {
-      isDanish = false; isGerman = true; lang = 'de';
-    } else if (leadCountry !== 'OTHER') {
-      isDanish = false; isGerman = false; lang = 'en';
-    } else if (rawLang) {
-      lang = rawLang.substring(0, 2);
+    if (formLang) {
+      lang = formLang.substring(0, 2);
       isDanish = ['da', 'dk'].includes(lang);
+      isGerman = lang === 'de';
+    } else if (hardCountry === 'DK') {
+      isDanish = true; isGerman = false; lang = 'da';
+    } else if (hardCountry && ['DE', 'AT', 'CH'].includes(hardCountry)) {
+      isDanish = false; isGerman = true; lang = 'de';
+    } else if (hardCountry && hardCountry !== 'OTHER') {
+      isDanish = false; isGerman = false; lang = 'en';
+    } else if (rawLang && rawLang !== 'da' && rawLang !== 'dk') {
+      lang = rawLang.substring(0, 2);
+      isDanish = false;
       isGerman = lang === 'de';
     } else {
       isDanish = true; isGerman = false; lang = 'da';
