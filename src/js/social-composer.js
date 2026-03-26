@@ -136,17 +136,52 @@
     el.classList.toggle('is-over', caption.length > limit);
   }
 
+  var previewPlatform = 'instagram';
+
+  function switchPreviewPlatform(platform) {
+    previewPlatform = platform;
+    document.querySelectorAll('.yb-social__preview-tab').forEach(function (tab) {
+      tab.classList.toggle('is-active', tab.getAttribute('data-platform') === platform);
+    });
+    var device = $('yb-social-preview-device');
+    if (device) device.setAttribute('data-preview-platform', platform);
+    updatePreview();
+  }
+
+  var PLATFORM_LAYOUTS = {
+    instagram: { username: 'yogabible', avatar: 'YB', showMedia: true, captionStyle: 'inline', charLimit: 2200 },
+    facebook: { username: 'Yoga Bible', avatar: 'YB', showMedia: true, captionStyle: 'above', charLimit: 63206 },
+    tiktok: { username: '@yogabible', avatar: 'YB', showMedia: true, captionStyle: 'overlay', charLimit: 2200 },
+    linkedin: { username: 'Yoga Bible', avatar: 'YB', showMedia: true, captionStyle: 'above', charLimit: 3000 }
+  };
+
   function updatePreview() {
     var caption = ($('yb-social-caption') || {}).value || '';
     var hashtags = ($('yb-social-hashtags') || {}).value || '';
     var fullCaption = caption + (hashtags ? '\n\n' + hashtags : '');
+    var layout = PLATFORM_LAYOUTS[previewPlatform] || PLATFORM_LAYOUTS.instagram;
 
-    var captionEl = $('yb-social-preview-caption');
-    if (captionEl) {
-      captionEl.innerHTML = '<strong>yogabible</strong> <span>' +
-        (fullCaption || 'Your caption will appear here...') + '</span>';
+    // Header
+    var headerEl = $('yb-social-preview-header');
+    if (headerEl) {
+      headerEl.innerHTML = '<span class="yb-social__preview-avatar">' + layout.avatar + '</span>' +
+        '<span class="yb-social__preview-username">' + layout.username + '</span>';
     }
 
+    // Caption
+    var captionEl = $('yb-social-preview-caption');
+    if (captionEl) {
+      var captionHtml = fullCaption || 'Your caption will appear here...';
+      if (layout.captionStyle === 'inline') {
+        captionEl.innerHTML = '<strong>' + layout.username + '</strong> <span>' + captionHtml + '</span>';
+      } else if (layout.captionStyle === 'overlay') {
+        captionEl.innerHTML = '<span class="yb-social__preview-caption--overlay">' + captionHtml + '</span>';
+      } else {
+        captionEl.innerHTML = '<span>' + captionHtml + '</span>';
+      }
+    }
+
+    // Media
     var mediaEl = $('yb-social-preview-media');
     if (mediaEl) {
       if (composer.media.length > 0) {
@@ -158,6 +193,25 @@
         }
       } else {
         mediaEl.innerHTML = '<p class="yb-admin__muted">' + t('social_no_media') + '</p>';
+      }
+    }
+
+    // Char info
+    var charInfoEl = $('yb-social-preview-char-info');
+    if (charInfoEl) {
+      var len = fullCaption.length;
+      var over = len > layout.charLimit;
+      charInfoEl.textContent = len + ' / ' + layout.charLimit;
+      charInfoEl.style.color = over ? '#dc2626' : '#6F6A66';
+    }
+
+    // Reorder elements based on caption style (above vs below media)
+    var device = $('yb-social-preview-device');
+    if (device && captionEl && mediaEl) {
+      if (layout.captionStyle === 'above') {
+        device.insertBefore(captionEl, mediaEl);
+      } else {
+        device.insertBefore(mediaEl, captionEl);
       }
     }
   }
@@ -622,6 +676,7 @@
 
     // Composer
     if (action === 'social-composer-close') closeComposer();
+    else if (action === 'social-preview-tab') switchPreviewPlatform(btn.getAttribute('data-platform'));
     else if (action === 'social-save-draft') savePost('draft');
     else if (action === 'social-publish-post') {
       var schedMode = document.querySelector('input[name="social-schedule"]:checked');

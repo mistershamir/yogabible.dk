@@ -238,6 +238,21 @@
     <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="failed">{{ t.social_filter_failed or "Failed" }}</button>
   </div>
 
+  {# Bulk actions bar — shown when posts are selected #}
+  <div class="yb-social__bulk-bar" id="yb-social-bulk-bar" hidden>
+    <label class="yb-social__bulk-select-all">
+      <input type="checkbox" id="yb-social-select-all"> {{ t.social_select_all or "Select all" }}
+    </label>
+    <span class="yb-social__bulk-count" id="yb-social-bulk-count">0 {{ t.social_selected or "selected" }}</span>
+    <div class="yb-social__bulk-actions">
+      <button type="button" class="yb-btn yb-btn--sm" data-action="social-bulk-schedule">📅 {{ t.social_bulk_schedule or "Schedule" }}</button>
+      <button type="button" class="yb-btn yb-btn--sm" data-action="social-bulk-approve">✓ {{ t.social_bulk_approve or "Approve" }}</button>
+      <button type="button" class="yb-btn yb-btn--sm" data-action="social-bulk-duplicate">📋 {{ t.social_bulk_duplicate or "Duplicate" }}</button>
+      <button type="button" class="yb-btn yb-btn--sm yb-btn--danger" data-action="social-bulk-delete">🗑 {{ t.social_bulk_delete or "Delete" }}</button>
+    </div>
+    <button type="button" class="yb-social__bulk-clear" data-action="social-bulk-clear">✕</button>
+  </div>
+
   <div class="yb-social__posts-count" id="yb-social-posts-count"></div>
 
   <div class="yb-social__posts-grid" id="yb-social-posts-grid">
@@ -736,11 +751,16 @@
 
       </div>{# /composer-editor #}
 
-      {# Right: Preview #}
+      {# Right: Preview with platform tabs #}
       <div class="yb-social__composer-preview">
-        <h4>{{ t.social_preview or "Preview" }}</h4>
-        <div class="yb-social__preview-device" id="yb-social-preview-device">
-          <div class="yb-social__preview-header">
+        <div class="yb-social__preview-tabs" id="yb-social-preview-tabs">
+          <button type="button" class="yb-social__preview-tab is-active" data-action="social-preview-tab" data-platform="instagram">IG</button>
+          <button type="button" class="yb-social__preview-tab" data-action="social-preview-tab" data-platform="facebook">FB</button>
+          <button type="button" class="yb-social__preview-tab" data-action="social-preview-tab" data-platform="tiktok">TT</button>
+          <button type="button" class="yb-social__preview-tab" data-action="social-preview-tab" data-platform="linkedin">LI</button>
+        </div>
+        <div class="yb-social__preview-device" id="yb-social-preview-device" data-preview-platform="instagram">
+          <div class="yb-social__preview-header" id="yb-social-preview-header">
             <span class="yb-social__preview-avatar">YB</span>
             <span class="yb-social__preview-username">yogabible</span>
           </div>
@@ -750,6 +770,7 @@
           <div class="yb-social__preview-caption" id="yb-social-preview-caption">
             <strong>yogabible</strong> <span>{{ t.social_preview_placeholder or "Your caption will appear here..." }}</span>
           </div>
+          <div class="yb-social__preview-char-info" id="yb-social-preview-char-info"></div>
         </div>
       </div>
 

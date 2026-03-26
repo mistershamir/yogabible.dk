@@ -20,7 +20,8 @@
     templates: [],
     competitors: [],
     abTests: [],
-    abTestFilter: 'all'
+    abTestFilter: 'all',
+    selectedPosts: []
   };
 
   /* ═══ HELPERS ═══ */
@@ -441,7 +442,10 @@
       else if (p.publishedAt) schedTime = fmtDateTime(p.publishedAt);
       else schedTime = fmtDate(p.createdAt);
 
-      return '<div class="yb-social__post-card">' +
+      var isSelected = state.selectedPosts.indexOf(p.id) !== -1;
+
+      return '<div class="yb-social__post-card' + (isSelected ? ' is-selected' : '') + '">' +
+        '<label class="yb-social__post-check"><input type="checkbox" data-action="social-toggle-select" data-id="' + p.id + '"' + (isSelected ? ' checked' : '') + '></label>' +
         thumb +
         '<div class="yb-social__post-body">' +
         '<p class="yb-social__post-caption">' + truncate(p.caption, 80) + '</p>' +
@@ -554,6 +558,91 @@
       toast(t('social_recycled') || 'Recycled — re-posting in ' + days + ' days');
       loadPosts();
     }
+  }
+
+  // ── Bulk Selection ───────────────────────────────────────
+  function togglePostSelect(id) {
+    var idx = state.selectedPosts.indexOf(id);
+    if (idx === -1) state.selectedPosts.push(id);
+    else state.selectedPosts.splice(idx, 1);
+    updateBulkBar();
+    // Toggle card highlight without full re-render
+    var cards = qsa('.yb-social__post-card');
+    cards.forEach(function (card) {
+      var cb = card.querySelector('[data-action="social-toggle-select"]');
+      if (cb && cb.getAttribute('data-id') === id) {
+        card.classList.toggle('is-selected', state.selectedPosts.indexOf(id) !== -1);
+      }
+    });
+  }
+
+  function toggleSelectAll() {
+    var allBox = $('yb-social-select-all');
+    if (!allBox) return;
+    if (allBox.checked) {
+      state.selectedPosts = state.posts.map(function (p) { return p.id; });
+    } else {
+      state.selectedPosts = [];
+    }
+    updateBulkBar();
+    renderPosts();
+  }
+
+  function clearSelection() {
+    state.selectedPosts = [];
+    var allBox = $('yb-social-select-all');
+    if (allBox) allBox.checked = false;
+    updateBulkBar();
+    renderPosts();
+  }
+
+  function updateBulkBar() {
+    var bar = $('yb-social-bulk-bar');
+    var countEl = $('yb-social-bulk-count');
+    if (!bar) return;
+    bar.hidden = state.selectedPosts.length === 0;
+    if (countEl) countEl.textContent = state.selectedPosts.length + ' ' + t('social_selected');
+  }
+
+  async function bulkSchedule() {
+    if (state.selectedPosts.length === 0) return;
+    var dateStr = prompt(t('social_bulk_schedule_prompt') || 'Schedule date/time (YYYY-MM-DD HH:mm):', '');
+    if (!dateStr) return;
+    var d = new Date(dateStr.replace(' ', 'T'));
+    if (isNaN(d.getTime())) { toast('Invalid date', true); return; }
+    var data = await api('social-posts?action=bulk-update', {
+      method: 'POST',
+      body: JSON.stringify({ ids: state.selectedPosts, fields: { status: 'scheduled', scheduledAt: d.toISOString() } })
+    });
+    if (data) { toast(t('social_bulk_scheduled') || 'Scheduled ' + (data.updated || []).length + ' posts'); clearSelection(); loadPosts(); }
+  }
+
+  async function bulkApprove() {
+    if (state.selectedPosts.length === 0) return;
+    var data = await api('social-posts?action=bulk-update', {
+      method: 'POST',
+      body: JSON.stringify({ ids: state.selectedPosts, fields: { status: 'approved', approvedBy: 'admin', approvedAt: new Date().toISOString() } })
+    });
+    if (data) { toast(t('social_approved') + ' (' + (data.updated || []).length + ')'); clearSelection(); loadPosts(); }
+  }
+
+  async function bulkDuplicate() {
+    if (state.selectedPosts.length === 0) return;
+    var data = await api('social-posts?action=bulk-duplicate', {
+      method: 'POST',
+      body: JSON.stringify({ ids: state.selectedPosts })
+    });
+    if (data) { toast(t('social_duplicated') || 'Duplicated ' + (data.created || []).length + ' posts'); clearSelection(); loadPosts(); }
+  }
+
+  async function bulkDelete() {
+    if (state.selectedPosts.length === 0) return;
+    if (!confirm(t('social_bulk_delete_confirm') || 'Delete ' + state.selectedPosts.length + ' posts? This cannot be undone.')) return;
+    var data = await api('social-posts?action=bulk-delete', {
+      method: 'POST',
+      body: JSON.stringify({ ids: state.selectedPosts })
+    });
+    if (data) { toast('Deleted ' + (data.deleted || []).length + ' posts'); clearSelection(); loadPosts(); }
   }
 
   /* ═══ ANALYTICS ═══ */
@@ -2082,6 +2171,14 @@
     else if (action === 'social-approve-post') approvePost(btn.getAttribute('data-id'));
     else if (action === 'social-recycle-post') recyclePost(btn.getAttribute('data-id'));
 
+    // Bulk actions
+    else if (action === 'social-toggle-select') togglePostSelect(btn.getAttribute('data-id'));
+    else if (action === 'social-bulk-schedule') bulkSchedule();
+    else if (action === 'social-bulk-approve') bulkApprove();
+    else if (action === 'social-bulk-duplicate') bulkDuplicate();
+    else if (action === 'social-bulk-delete') bulkDelete();
+    else if (action === 'social-bulk-clear') clearSelection();
+
     // Hashtags
     else if (action === 'social-new-hashtag-set') showHashtagForm(null);
     else if (action === 'social-edit-hashtag-set') showHashtagForm(btn.getAttribute('data-id'));
@@ -2154,11 +2251,19 @@
     }
   });
 
-  // Analytics range change
+  // Analytics range change + bulk select checkboxes
   document.addEventListener('change', function (e) {
     if (e.target.id === 'yb-social-analytics-range') {
       state.analyticsRange = parseInt(e.target.value) || 30;
       loadAnalytics();
+    }
+    if (e.target.id === 'yb-social-select-all') {
+      toggleSelectAll();
+    }
+    // Individual post checkbox
+    if (e.target.getAttribute && e.target.getAttribute('data-action') === 'social-toggle-select') {
+      togglePostSelect(e.target.getAttribute('data-id'));
+      e.stopPropagation();
     }
   });
 

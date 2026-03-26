@@ -16,6 +16,7 @@ const {
 const { sendAdminNotification, sendRawEmail, getSignatureHtml, getEnglishNoteHtml } = require('./shared/email-service');
 const { CONFIG } = require('./shared/config');
 const { mbFetch } = require('./shared/mb-api');
+const { createMilestonePost } = require('./shared/social-sync');
 
 // =========================================================================
 // Mindbody Client — find or create (avoid duplicates)
@@ -598,6 +599,14 @@ exports.handler = async (event) => {
         updated_at: new Date()
       });
     }
+
+    // 6. Social media: create milestone post (non-blocking)
+    createMilestonePost('application_received', {
+      program: appDoc.ytt_program_type || appDoc.course_name || 'YTT',
+      applicationId
+    }).catch(err => {
+      console.error('[apply] Social milestone error (non-blocking):', err.message);
+    });
 
     return jsonResponse(200, {
       ok: true,
