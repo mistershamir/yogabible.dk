@@ -69,7 +69,7 @@
       <span class="ybh-philosophy__label">{{ t.philosophy_label }}</span>
     </div>
     <div class="ybh-philosophy__right">
-      <img src="{{ media.brand.logo | cloudimg('w_200,q_auto') }}" alt="Yoga Bible" class="ybh-philosophy__logo" width="160" height="40" loading="lazy">
+      <img src="/assets/images/brand/logo-orange-on-transparent.png" alt="Yoga Bible" class="ybh-philosophy__logo" width="160" height="40" loading="lazy">
       <p class="ybh-philosophy__text">{{ t.philosophy_text }}</p>
       <blockquote class="ybh-philosophy__quote">{{ t.philosophy_quote }}</blockquote>
     </div>
@@ -261,7 +261,7 @@
 <section class="ybh-testimonial">
   <div class="ybh-testimonial__inner">
     <div class="ybh-testimonial__media">
-      <video muted loop playsinline poster="{{ media.historie.testimonial | cloudvid('w_608,c_fill,so_1,q_60') }}">
+      <video muted loop playsinline poster="{{ media.historie.testimonial | cloudvid('w_608,so_1,q_60') }}">
         <source src="{{ media.historie.testimonial | cloudvid('w_608,q_auto') }}" type="video/mp4">
       </video>
       <button class="ybh-testimonial__play" aria-label="Play" type="button">
