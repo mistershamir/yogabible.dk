@@ -157,6 +157,18 @@
     "parks": "yoga-bible-DK/copenhagen/copenhagen-kings-garden-green-park"
   },
 
+  "historie": {
+    "colorfulHouses": "yoga-bible-DK/yoga-bible-historie/colorful-houses",
+    "studioEntrance": "yoga-bible-DK/yoga-bible-historie/studio-entrance",
+    "nyhavn": "yoga-bible-DK/yoga-bible-historie/nyhavn",
+    "cafeScene": "yoga-bible-DK/yoga-bible-historie/cafe-scene",
+    "hotYogaCph": "yoga-bible-DK/yoga-bible-historie/hot-yoga-cph",
+    "namasteOnline": "yoga-bible-DK/yoga-bible-historie/namaste-online",
+    "vibroYoga": "yoga-bible-DK/yoga-bible-historie/vibro-yoga",
+    "certificate": "yoga-bible-DK/yoga-bible-historie/certificate",
+    "testimonial": "yoga-bible-DK/yoga-bible-historie/testimonial"
+  },
+
   "careers": {
     "heroPoster": "yoga-bible-DK/careers/yoga-teaching-careers-hero-poster",
     "heroVideo": "yoga-bible-DK/careers/yoga-careers-hero-vertical"
