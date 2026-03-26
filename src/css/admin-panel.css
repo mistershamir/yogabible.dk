@@ -6290,6 +6290,20 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   background: #F5F3F0; border-radius: 8px; padding: 8px 14px;
   margin-bottom: 16px; font-size: 13px; font-weight: 600;
 }
+.yb-social__connect-oauth {
+  margin-bottom: 12px; text-align: center;
+}
+.yb-social__oauth-btn {
+  width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.yb-social__connect-divider {
+  display: flex; align-items: center; gap: 12px; margin: 16px 0 12px;
+  color: #9e9a96; font-size: 12px;
+}
+.yb-social__connect-divider::before,
+.yb-social__connect-divider::after {
+  content: ''; flex: 1; height: 1px; background: #E8E4E0;
+}
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {

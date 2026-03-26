@@ -144,12 +144,16 @@
     linkedin: {}
   };
 
+  // OAuth support: platforms that have OAuth configured
+  var OAUTH_PLATFORMS = ['instagram', 'facebook', 'tiktok', 'linkedin'];
+
   function connectAccount(platform) {
     // Build and show branded connect modal
     var defaults = PLATFORM_DEFAULTS[platform] || {};
     var needsPageId = platform === 'facebook' || platform === 'instagram';
     var needsOrgId = platform === 'linkedin';
     var pageIdLabel = platform === 'facebook' ? 'Facebook Page ID' : platform === 'instagram' ? 'Instagram Business Account ID' : '';
+    var hasOAuth = OAUTH_PLATFORMS.indexOf(platform) !== -1;
 
     var extraFields = '';
     if (needsPageId) {
@@ -164,12 +168,22 @@
         '</div>';
     }
 
+    // OAuth button section
+    var oauthSection = '';
+    if (hasOAuth) {
+      oauthSection = '<div class="yb-social__connect-oauth">' +
+        '<button class="yb-btn yb-btn--primary yb-social__oauth-btn" data-action="social-oauth-start" data-platform="' + platform + '">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> ' +
+        t('social_oauth_btn') + '</button></div>' +
+        '<div class="yb-social__connect-divider"><span>' + t('social_oauth_or') + '</span></div>';
+    }
+
     var html = '<div class="yb-social__connect-modal" id="yb-social-connect-modal">' +
       '<div class="yb-social__connect-overlay" data-action="social-connect-cancel"></div>' +
       '<div class="yb-social__connect-box">' +
       '<div class="yb-social__connect-platform-badge">' + platformLabel(platform) + '</div>' +
       '<h3>Connect ' + platform.charAt(0).toUpperCase() + platform.slice(1) + '</h3>' +
-      '<p>Paste your access token to connect this account.</p>' +
+      oauthSection +
       '<div class="yb-admin__field">' +
       '<label for="yb-social-connect-token">Access Token</label>' +
       '<input type="text" id="yb-social-connect-token" placeholder="Paste token here...">' +
@@ -188,6 +202,32 @@
     var input = $('yb-social-connect-token');
     if (input) setTimeout(function () { input.focus(); }, 100);
   }
+
+  // OAuth popup flow
+  var oauthPopup = null;
+
+  function startOAuth(platform) {
+    var url = '/.netlify/functions/oauth-initiate?platform=' + encodeURIComponent(platform);
+    var w = 600, h = 700;
+    var left = (screen.width - w) / 2;
+    var top = (screen.height - h) / 2;
+    oauthPopup = window.open(url, 'social-oauth', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top);
+    toast(t('social_oauth_connecting'));
+  }
+
+  // Listen for OAuth callback postMessage
+  window.addEventListener('message', function (e) {
+    if (!e.data || e.data.type !== 'social-oauth-result') return;
+    if (oauthPopup) { try { oauthPopup.close(); } catch (x) {} oauthPopup = null; }
+
+    if (e.data.status === 'success') {
+      toast(t('social_oauth_success'));
+      closeConnectModal();
+      loadAccounts();
+    } else {
+      toast(t('social_oauth_error') + ': ' + (e.data.detail || 'Unknown error'), true);
+    }
+  });
 
   function platformLabel(p) {
     var icons = {
@@ -1605,6 +1645,7 @@
 
     // Accounts
     else if (action === 'social-connect') connectAccount(btn.getAttribute('data-platform'));
+    else if (action === 'social-oauth-start') startOAuth(btn.getAttribute('data-platform'));
     else if (action === 'social-connect-save') saveConnection(btn.getAttribute('data-platform'));
     else if (action === 'social-connect-cancel') closeConnectModal();
     else if (action === 'social-disconnect') disconnectAccount(btn.getAttribute('data-platform'));
