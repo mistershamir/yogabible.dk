@@ -2597,7 +2597,7 @@ section {
 }
 
 .faq-item summary {
-  padding: 25px 30px;
+  padding: 25px 60px 25px 30px;
   cursor: pointer;
   font-size: 18px;
   font-weight: 700;
