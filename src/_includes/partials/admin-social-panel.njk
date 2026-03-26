@@ -208,11 +208,14 @@
 <div id="yb-social-v-analytics" hidden>
   <div class="yb-admin__view-head">
     <h2>{{ t.social_analytics_title or "Analytics" }}</h2>
-    <select class="yb-admin__select" id="yb-social-analytics-range">
-      <option value="7">{{ t.social_range_7d or "Last 7 days" }}</option>
-      <option value="30" selected>{{ t.social_range_30d or "Last 30 days" }}</option>
-      <option value="90">{{ t.social_range_90d or "Last 90 days" }}</option>
-    </select>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select class="yb-admin__select" id="yb-social-analytics-range">
+        <option value="7">{{ t.social_range_7d or "Last 7 days" }}</option>
+        <option value="30" selected>{{ t.social_range_30d or "Last 30 days" }}</option>
+        <option value="90">{{ t.social_range_90d or "Last 90 days" }}</option>
+      </select>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-sync-metrics">&#8635; {{ t.social_sync or "Sync" }}</button>
+    </div>
   </div>
 
   {# Stat cards #}
@@ -235,24 +238,60 @@
     </div>
   </div>
 
-  <div class="yb-admin__section-divider"></div>
+  {# Engagement Trend Chart #}
+  <div class="yb-social__analytics-section">
+    <h3>{{ t.social_engagement_trend or "Engagement Trend" }}</h3>
+    <div class="yb-social__chart-container" id="yb-social-trend-chart">
+      <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+    </div>
+  </div>
 
-  <h3>{{ t.social_recent_performance or "Recent Post Performance" }}</h3>
-  <div class="yb-admin__table-wrap">
-    <table class="yb-admin__table" id="yb-social-analytics-table">
-      <thead>
-        <tr>
-          <th>{{ t.social_col_post or "Post" }}</th>
-          <th>{{ t.social_col_platform or "Platform" }}</th>
-          <th>{{ t.social_col_likes or "Likes" }}</th>
-          <th>{{ t.social_col_comments or "Comments" }}</th>
-          <th>{{ t.social_col_shares or "Shares" }}</th>
-          <th>{{ t.social_col_reach or "Reach" }}</th>
-          <th>{{ t.social_col_date or "Date" }}</th>
-        </tr>
-      </thead>
-      <tbody id="yb-social-analytics-body"></tbody>
-    </table>
+  {# Platform Breakdown + Best Times — side by side #}
+  <div class="yb-social__analytics-row">
+    {# Platform Breakdown #}
+    <div class="yb-social__analytics-section yb-social__analytics-section--half">
+      <h3>{{ t.social_platform_breakdown or "Platform Breakdown" }}</h3>
+      <div id="yb-social-platform-breakdown">
+        <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+      </div>
+    </div>
+
+    {# Best Times #}
+    <div class="yb-social__analytics-section yb-social__analytics-section--half">
+      <h3>{{ t.social_best_times or "Best Posting Times" }}</h3>
+      <div id="yb-social-best-times">
+        <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+      </div>
+    </div>
+  </div>
+
+  {# Top Posts #}
+  <div class="yb-social__analytics-section">
+    <h3>{{ t.social_top_posts or "Top Performing Posts" }}</h3>
+    <div class="yb-social__top-posts" id="yb-social-top-posts">
+      <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+    </div>
+  </div>
+
+  {# Recent Performance Table #}
+  <div class="yb-social__analytics-section">
+    <h3>{{ t.social_recent_performance or "Recent Post Performance" }}</h3>
+    <div class="yb-admin__table-wrap">
+      <table class="yb-admin__table" id="yb-social-analytics-table">
+        <thead>
+          <tr>
+            <th>{{ t.social_col_post or "Post" }}</th>
+            <th>{{ t.social_col_platform or "Platform" }}</th>
+            <th>{{ t.social_col_likes or "Likes" }}</th>
+            <th>{{ t.social_col_comments or "Comments" }}</th>
+            <th>{{ t.social_col_shares or "Shares" }}</th>
+            <th>{{ t.social_col_reach or "Reach" }}</th>
+            <th>{{ t.social_col_date or "Date" }}</th>
+          </tr>
+        </thead>
+        <tbody id="yb-social-analytics-body"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
