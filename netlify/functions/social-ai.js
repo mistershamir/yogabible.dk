@@ -7,7 +7,7 @@
  * POST /.netlify/functions/social-ai  { action: 'improve-caption', caption, platform? }
  */
 
-const Anthropic = require('@anthropic-ai/sdk');
+const https = require('https');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 
@@ -33,11 +33,81 @@ Hashtag guidelines:
 - Use brand hashtags (#yogabible, #yogabibleDK)
 - Never exceed 30 hashtags per post
 
-Always respond with valid JSON.`;
+Always respond with valid JSON only — no markdown code fences, no explanation text.`;
 
-function getClient() {
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+/**
+ * Call the Claude API via raw HTTPS (matches existing codebase pattern).
+ */
+function claudeRequest(messages, maxTokens) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error('ANTHROPIC_API_KEY env var required');
+
+  return new Promise(function (resolve, reject) {
+    const body = JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens || 2000,
+      system: SYSTEM_PROMPT,
+      messages: messages
+    });
+
+    const opts = {
+      hostname: 'api.anthropic.com',
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    };
+
+    const req = https.request(opts, function (res) {
+      const chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () {
+        const raw = Buffer.concat(chunks).toString();
+        try {
+          const json = JSON.parse(raw);
+          if (json.content && json.content[0]) {
+            resolve(json.content[0].text);
+          } else {
+            reject(new Error('Claude API unexpected response: ' + raw.substring(0, 300)));
+          }
+        } catch (e) {
+          reject(new Error('Claude API parse error: ' + raw.substring(0, 300)));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
 }
+
+/**
+ * Parse JSON from Claude response, handling possible markdown fences.
+ */
+function parseJsonResponse(text) {
+  // Try direct parse first
+  try {
+    return JSON.parse(text.trim());
+  } catch (e) {
+    // Try extracting from markdown code block
+    const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (fenceMatch) {
+      return JSON.parse(fenceMatch[1].trim());
+    }
+    // Try finding first { ... } block
+    const objMatch = text.match(/\{[\s\S]*\}/);
+    if (objMatch) {
+      return JSON.parse(objMatch[0]);
+    }
+    throw new Error('Failed to parse AI response as JSON');
+  }
+}
+
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -87,14 +157,9 @@ async function generateCaption(body) {
   const toneHint = tone ? `Tone: ${tone}.` : '';
   const langHint = language === 'da' ? 'Write in Danish.' : language === 'en' ? 'Write in English.' : 'Write in English (primary audience is international).';
 
-  const client = getClient();
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 2000,
-    system: SYSTEM_PROMPT,
-    messages: [{
-      role: 'user',
-      content: `Generate 3 different caption variants for a social media post about: "${topic}"
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Generate 3 different caption variants for a social media post about: "${topic}"
 
 ${platformHint}
 ${toneHint}
@@ -107,28 +172,20 @@ Respond with this exact JSON structure:
   "variants": [
     {
       "caption": "The caption text with line breaks as \\n",
-      "hashtags": ["hashtag1", "hashtag2", "..."],
+      "hashtags": ["hashtag1", "hashtag2"],
       "style": "brief description of this variant's style"
     }
   ]
 }`
-    }]
-  });
-
-  const text = response.content[0].text;
-  let parsed;
+  }], 2000);
 
   try {
-    // Extract JSON from response (handle markdown code blocks)
-    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/\{[\s\S]*\}/);
-    const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : text;
-    parsed = JSON.parse(jsonStr);
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
   } catch (parseErr) {
-    console.error('[social-ai] Failed to parse caption response:', text);
+    console.error('[social-ai] Failed to parse caption response:', text.substring(0, 500));
     return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
   }
-
-  return jsonResponse(200, { ok: true, ...parsed });
 }
 
 
@@ -143,14 +200,9 @@ async function generateHashtags(body) {
 
   const targetCount = count || 25;
 
-  const client = getClient();
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1000,
-    system: SYSTEM_PROMPT,
-    messages: [{
-      role: 'user',
-      content: `Generate ${targetCount} relevant hashtags for a social media post about: "${topic}"
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Generate ${targetCount} relevant hashtags for a social media post about: "${topic}"
 
 Mix of:
 - 5-7 high-volume hashtags (1M+ posts)
@@ -160,30 +212,23 @@ Mix of:
 
 Respond with this exact JSON structure:
 {
-  "hashtags": ["hashtag1", "hashtag2", "..."],
+  "hashtags": ["hashtag1", "hashtag2"],
   "categories": {
-    "popular": ["hashtag1", "..."],
-    "medium": ["hashtag1", "..."],
-    "niche": ["hashtag1", "..."],
-    "brand": ["hashtag1", "..."]
+    "popular": ["hashtag1"],
+    "medium": ["hashtag1"],
+    "niche": ["hashtag1"],
+    "brand": ["hashtag1"]
   }
 }`
-    }]
-  });
-
-  const text = response.content[0].text;
-  let parsed;
+  }], 1000);
 
   try {
-    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/\{[\s\S]*\}/);
-    const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : text;
-    parsed = JSON.parse(jsonStr);
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
   } catch (parseErr) {
-    console.error('[social-ai] Failed to parse hashtag response:', text);
+    console.error('[social-ai] Failed to parse hashtag response:', text.substring(0, 500));
     return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
   }
-
-  return jsonResponse(200, { ok: true, ...parsed });
 }
 
 
@@ -201,17 +246,12 @@ async function improveCaption(body) {
     : 'Suitable for both Instagram and Facebook.';
 
   const directionHint = direction
-    ? `Focus on making it: ${direction}.`
+    ? `Additional direction: ${direction}.`
     : '';
 
-  const client = getClient();
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 2000,
-    system: SYSTEM_PROMPT,
-    messages: [{
-      role: 'user',
-      content: `Improve this social media caption. Give me 3 variants:
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Improve this social media caption. Give me 3 variants:
 1. A shorter, punchier version
 2. A longer, more storytelling version
 3. A more engaging version (with a question or CTA)
@@ -241,20 +281,13 @@ Respond with this exact JSON structure:
     }
   ]
 }`
-    }]
-  });
-
-  const text = response.content[0].text;
-  let parsed;
+  }], 2000);
 
   try {
-    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/\{[\s\S]*\}/);
-    const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : text;
-    parsed = JSON.parse(jsonStr);
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
   } catch (parseErr) {
-    console.error('[social-ai] Failed to parse improve response:', text);
+    console.error('[social-ai] Failed to parse improve response:', text.substring(0, 500));
     return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
   }
-
-  return jsonResponse(200, { ok: true, ...parsed });
 }
