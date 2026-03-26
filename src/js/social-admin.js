@@ -82,7 +82,7 @@
       var el = $('yb-social-v-' + v);
       if (el) el.hidden = (v !== name);
     });
-    qsa('.yb-social__subnav-btn').forEach(function (b) {
+    qsa('.yb-social__nav-btn').forEach(function (b) {
       b.classList.toggle('is-active', b.getAttribute('data-action') === 'social-nav-' + name);
     });
     if (name === 'accounts') loadAccounts();
@@ -129,20 +129,76 @@
     });
   }
 
-  async function connectAccount(platform) {
-    var token = prompt('Paste the access token for ' + platform + ':');
-    if (!token) return;
-    var pageId = '';
-    if (platform === 'facebook') pageId = prompt('Facebook Page ID:', '878172732056415') || '';
-    if (platform === 'instagram') pageId = prompt('IG Business Account ID:', '17841474697451627') || '';
+  var PLATFORM_DEFAULTS = {
+    facebook: { pageId: '878172732056415' },
+    instagram: { pageId: '17841474697451627' }
+  };
 
-    var body = { platform: platform, accessToken: token };
-    if (pageId) body.pageId = pageId;
+  function connectAccount(platform) {
+    // Build and show branded connect modal
+    var defaults = PLATFORM_DEFAULTS[platform] || {};
+    var needsPageId = platform === 'facebook' || platform === 'instagram';
+    var pageIdLabel = platform === 'facebook' ? 'Facebook Page ID' : platform === 'instagram' ? 'Instagram Business Account ID' : '';
 
+    var html = '<div class="yb-social__connect-modal" id="yb-social-connect-modal">' +
+      '<div class="yb-social__connect-overlay" data-action="social-connect-cancel"></div>' +
+      '<div class="yb-social__connect-box">' +
+      '<div class="yb-social__connect-platform-badge">' + platformLabel(platform) + '</div>' +
+      '<h3>Connect ' + platform.charAt(0).toUpperCase() + platform.slice(1) + '</h3>' +
+      '<p>Paste your access token to connect this account.</p>' +
+      '<div class="yb-admin__field">' +
+      '<label for="yb-social-connect-token">Access Token</label>' +
+      '<input type="text" id="yb-social-connect-token" placeholder="Paste token here...">' +
+      '</div>' +
+      (needsPageId ? '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-pageid">' + pageIdLabel + '</label>' +
+        '<input type="text" id="yb-social-connect-pageid" value="' + (defaults.pageId || '') + '">' +
+        '</div>' : '') +
+      '<div class="yb-social__connect-actions">' +
+      '<button class="yb-btn yb-btn--outline" data-action="social-connect-cancel">Cancel</button>' +
+      '<button class="yb-btn yb-btn--primary" data-action="social-connect-save" data-platform="' + platform + '">Connect</button>' +
+      '</div></div></div>';
+
+    // Remove existing modal if any
+    var existing = $('yb-social-connect-modal');
+    if (existing) existing.remove();
+
+    document.body.insertAdjacentHTML('beforeend', html);
+    var input = $('yb-social-connect-token');
+    if (input) setTimeout(function () { input.focus(); }, 100);
+  }
+
+  function platformLabel(p) {
+    var icons = {
+      instagram: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg> Instagram',
+      facebook: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> Facebook',
+      tiktok: 'TikTok', linkedin: 'LinkedIn', youtube: 'YouTube', pinterest: 'Pinterest'
+    };
+    return icons[p] || p;
+  }
+
+  async function saveConnection(platform) {
+    var token = ($('yb-social-connect-token') || {}).value || '';
+    if (!token.trim()) { toast('Enter a token', true); return; }
+
+    var body = { platform: platform, accessToken: token.trim() };
+    var pageIdEl = $('yb-social-connect-pageid');
+    if (pageIdEl && pageIdEl.value.trim()) body.pageId = pageIdEl.value.trim();
+
+    toast('Connecting...');
     var data = await api('social-accounts?action=save-token', {
       method: 'POST', body: JSON.stringify(body)
     });
+
+    var modal = $('yb-social-connect-modal');
+    if (modal) modal.remove();
+
     if (data) { toast(t('social_connected')); loadAccounts(); }
+  }
+
+  function closeConnectModal() {
+    var modal = $('yb-social-connect-modal');
+    if (modal) modal.remove();
   }
 
   async function disconnectAccount(platform) {
@@ -358,38 +414,251 @@
 
   /* ═══ ANALYTICS ═══ */
   async function loadAnalytics() {
-    var data = await api('social-analytics?action=overview&days=' + state.analyticsRange);
-    if (!data) return;
+    var days = state.analyticsRange;
 
-    var s = data.stats || {};
-    var el;
-    el = $('yb-social-stat-followers'); if (el) el.textContent = (s.totalFollowers || 0).toLocaleString();
-    el = $('yb-social-stat-posts'); if (el) el.textContent = (s.totalPosts || 0).toLocaleString();
-    el = $('yb-social-stat-engagement'); if (el) el.textContent = (s.avgEngagement || 0).toFixed(1) + '%';
-    el = $('yb-social-stat-reach'); if (el) el.textContent = (s.totalReach || 0).toLocaleString();
+    // Fetch all data in parallel
+    var results = await Promise.all([
+      api('social-analytics?action=overview&days=' + days),
+      api('social-analytics?action=recent&days=' + days),
+      api('social-analytics?action=top-posts&days=' + days + '&limit=5'),
+      api('social-analytics?action=best-times&days=90'),
+      api('social-analytics?action=engagement-trend&days=' + days),
+      api('social-analytics?action=platform-breakdown&days=' + days)
+    ]);
 
-    // Load recent post metrics
-    var recent = await api('social-analytics?action=recent&days=' + state.analyticsRange);
+    var overview = results[0];
+    var recent = results[1];
+    var topPosts = results[2];
+    var bestTimes = results[3];
+    var trend = results[4];
+    var breakdown = results[5];
+
+    // 1. Overview stat cards
+    if (overview) {
+      var s = overview.overview || {};
+      var el;
+      el = $('yb-social-stat-followers'); if (el) el.textContent = (s.totalFollowers || 0).toLocaleString();
+      el = $('yb-social-stat-posts'); if (el) el.textContent = (s.totalPosts || 0).toLocaleString();
+      el = $('yb-social-stat-engagement'); if (el) el.textContent = (s.avgEngagement || 0).toFixed(1) + '%';
+      el = $('yb-social-stat-reach'); if (el) el.textContent = (s.totalReach || 0).toLocaleString();
+    }
+
+    // 2. Engagement trend chart
+    if (trend) renderTrendChart(trend.trend || []);
+
+    // 3. Platform breakdown
+    if (breakdown) renderPlatformBreakdown(breakdown.platforms || []);
+
+    // 4. Best posting times
+    if (bestTimes) renderBestTimes(bestTimes.bestTimes || {});
+
+    // 5. Top posts
+    if (topPosts) renderTopPosts(topPosts.topPosts || []);
+
+    // 6. Recent performance table
+    renderRecentTable(recent);
+  }
+
+  function renderTrendChart(trend) {
+    var container = $('yb-social-trend-chart');
+    if (!container || !trend.length) {
+      if (container) container.innerHTML = '<p class="yb-admin__muted">No trend data yet</p>';
+      return;
+    }
+
+    var maxEng = Math.max.apply(null, trend.map(function (d) { return d.engagement; })) || 1;
+    var maxReach = Math.max.apply(null, trend.map(function (d) { return d.reach; })) || 1;
+    var chartH = 160;
+    var barW = Math.max(4, Math.floor((container.offsetWidth - 60) / trend.length) - 2);
+
+    var html = '<div class="yb-social__chart-legend">' +
+      '<span class="yb-social__chart-legend-item"><span class="yb-social__chart-dot yb-social__chart-dot--engagement"></span> Engagement</span>' +
+      '<span class="yb-social__chart-legend-item"><span class="yb-social__chart-dot yb-social__chart-dot--reach"></span> Reach</span>' +
+      '</div>';
+
+    html += '<div class="yb-social__chart-bars" style="height:' + chartH + 'px">';
+    trend.forEach(function (d, i) {
+      var engH = maxEng > 0 ? Math.max(2, (d.engagement / maxEng) * (chartH - 20)) : 2;
+      var reachH = maxReach > 0 ? Math.max(1, (d.reach / maxReach) * (chartH - 20) * 0.4) : 1;
+      var label = d.date.substring(5); // MM-DD
+
+      html += '<div class="yb-social__chart-bar-group" style="width:' + barW + 'px" title="' + d.date + '\nEngagement: ' + d.engagement + '\nReach: ' + d.reach.toLocaleString() + '\nPosts: ' + d.posts + '">';
+      html += '<div class="yb-social__chart-bar yb-social__chart-bar--reach" style="height:' + reachH + 'px"></div>';
+      html += '<div class="yb-social__chart-bar yb-social__chart-bar--engagement" style="height:' + engH + 'px"></div>';
+      if (i % Math.ceil(trend.length / 8) === 0) {
+        html += '<span class="yb-social__chart-bar-label">' + label + '</span>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+  }
+
+  function renderPlatformBreakdown(platforms) {
+    var container = $('yb-social-platform-breakdown');
+    if (!container) return;
+
+    if (!platforms.length) {
+      container.innerHTML = '<p class="yb-admin__muted">No platform data yet</p>';
+      return;
+    }
+
+    var totalEng = platforms.reduce(function (s, p) { return s + p.totalEngagement; }, 0) || 1;
+    var platformColors = { instagram: '#E1306C', facebook: '#1877F2', tiktok: '#000000', linkedin: '#0A66C2', youtube: '#FF0000', pinterest: '#E60023' };
+
+    var html = '<div class="yb-social__platform-bars">';
+    platforms.forEach(function (p) {
+      var pct = Math.round((p.totalEngagement / totalEng) * 100);
+      var color = platformColors[p.platform] || '#6F6A66';
+      var name = p.platform.charAt(0).toUpperCase() + p.platform.slice(1);
+
+      html += '<div class="yb-social__platform-row">' +
+        '<div class="yb-social__platform-row-head">' +
+          '<span class="yb-social__platform-row-name">' + platformIcon(p.platform) + ' ' + name + '</span>' +
+          '<span class="yb-social__platform-row-pct">' + pct + '%</span>' +
+        '</div>' +
+        '<div class="yb-social__platform-bar-track">' +
+          '<div class="yb-social__platform-bar-fill" style="width:' + pct + '%;background:' + color + '"></div>' +
+        '</div>' +
+        '<div class="yb-social__platform-row-stats">' +
+          '<span>' + p.likes.toLocaleString() + ' likes</span>' +
+          '<span>' + p.comments.toLocaleString() + ' comments</span>' +
+          '<span>' + p.reach.toLocaleString() + ' reach</span>' +
+          '<span>' + p.engagementRate + '% rate</span>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+  }
+
+  function renderBestTimes(data) {
+    var container = $('yb-social-best-times');
+    if (!container) return;
+
+    if (!data.byHour || !data.byDay) {
+      container.innerHTML = '<p class="yb-admin__muted">Not enough data yet</p>';
+      return;
+    }
+
+    var html = '';
+
+    // Best time recommendation
+    if (data.bestHour && data.bestDay && (data.bestHour.avgEngagement > 0 || data.bestDay.avgEngagement > 0)) {
+      html += '<div class="yb-social__best-time-rec">' +
+        '<strong>' + t('social_recommended') + ':</strong> ' +
+        data.bestDay.label + ' at ' + data.bestHour.label +
+        '</div>';
+    }
+
+    // Hour heatmap — show every 2 hours to save space
+    html += '<div class="yb-social__heatmap">';
+    html += '<div class="yb-social__heatmap-label">By Hour</div>';
+    html += '<div class="yb-social__heatmap-row">';
+    var maxHourEng = Math.max.apply(null, data.byHour.map(function (h) { return h.avgEngagement; })) || 1;
+    data.byHour.forEach(function (h) {
+      var intensity = maxHourEng > 0 ? Math.round((h.avgEngagement / maxHourEng) * 100) : 0;
+      var opacity = Math.max(0.08, intensity / 100);
+      html += '<div class="yb-social__heatmap-cell" title="' + h.label + '\nAvg engagement: ' + h.avgEngagement + '\nPosts: ' + h.posts + '" style="background:rgba(247,92,3,' + opacity + ')">' +
+        '<span>' + h.hour + '</span></div>';
+    });
+    html += '</div>';
+
+    // Day heatmap
+    html += '<div class="yb-social__heatmap-label" style="margin-top:12px">By Day</div>';
+    html += '<div class="yb-social__heatmap-row yb-social__heatmap-row--days">';
+    var maxDayEng = Math.max.apply(null, data.byDay.map(function (d) { return d.avgEngagement; })) || 1;
+    data.byDay.forEach(function (d) {
+      var intensity = maxDayEng > 0 ? Math.round((d.avgEngagement / maxDayEng) * 100) : 0;
+      var opacity = Math.max(0.08, intensity / 100);
+      html += '<div class="yb-social__heatmap-cell yb-social__heatmap-cell--day" title="' + d.label + '\nAvg engagement: ' + d.avgEngagement + '\nPosts: ' + d.posts + '" style="background:rgba(247,92,3,' + opacity + ')">' +
+        '<span>' + d.label.substring(0, 3) + '</span></div>';
+    });
+    html += '</div></div>';
+
+    container.innerHTML = html;
+  }
+
+  function renderTopPosts(posts) {
+    var container = $('yb-social-top-posts');
+    if (!container) return;
+
+    if (!posts.length) {
+      container.innerHTML = '<p class="yb-admin__muted">No top posts data yet</p>';
+      return;
+    }
+
+    container.innerHTML = posts.map(function (p, i) {
+      var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i + 1);
+      return '<div class="yb-social__top-post-card">' +
+        '<div class="yb-social__top-post-rank">' + medal + '</div>' +
+        (p.media ? '<div class="yb-social__top-post-thumb"><img src="' + p.media + '" alt="" loading="lazy"></div>' : '') +
+        '<div class="yb-social__top-post-info">' +
+          '<p class="yb-social__top-post-caption">' + truncate(p.caption, 80) + '</p>' +
+          '<div class="yb-social__top-post-metrics">' +
+            '<span title="Total Engagement">❤️ ' + p.totalEngagement.toLocaleString() + '</span>' +
+            '<span title="Total Reach">👁 ' + p.totalReach.toLocaleString() + '</span>' +
+            '<span>' + (p.platforms || []).map(platformIcon).join('') + '</span>' +
+            '<span class="yb-admin__muted">' + fmtDate(p.publishedAt) + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderRecentTable(recent) {
     var tbody = $('yb-social-analytics-body');
     if (!tbody || !recent) return;
 
-    var metrics = recent.metrics || [];
-    if (metrics.length === 0) {
+    var posts = recent.posts || [];
+    if (posts.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" class="yb-admin__muted">No data yet</td></tr>';
       return;
     }
 
-    tbody.innerHTML = metrics.map(function (m) {
-      return '<tr>' +
-        '<td>' + truncate(m.caption, 40) + '</td>' +
-        '<td>' + platformIcon(m.platform) + '</td>' +
-        '<td>' + (m.likes || 0) + '</td>' +
-        '<td>' + (m.comments || 0) + '</td>' +
-        '<td>' + (m.shares || 0) + '</td>' +
-        '<td>' + (m.reach || 0).toLocaleString() + '</td>' +
-        '<td>' + fmtDate(m.publishedAt) + '</td>' +
-        '</tr>';
-    }).join('');
+    var rows = [];
+    posts.forEach(function (p) {
+      var analytics = p.analytics || {};
+      var platforms = Object.keys(analytics);
+      if (platforms.length === 0) {
+        // Show post with no metrics
+        rows.push('<tr>' +
+          '<td>' + truncate(p.caption, 40) + '</td>' +
+          '<td>' + (p.platforms || []).map(platformIcon).join('') + '</td>' +
+          '<td colspan="4" class="yb-admin__muted">Awaiting sync</td>' +
+          '<td>' + fmtDate(p.publishedAt) + '</td>' +
+          '</tr>');
+      } else {
+        platforms.forEach(function (plat) {
+          var m = (analytics[plat] || {}).metrics || {};
+          rows.push('<tr>' +
+            '<td>' + truncate(p.caption, 40) + '</td>' +
+            '<td>' + platformIcon(plat) + '</td>' +
+            '<td>' + (m.likes || 0) + '</td>' +
+            '<td>' + (m.comments || 0) + '</td>' +
+            '<td>' + (m.shares || 0) + '</td>' +
+            '<td>' + (m.reach || m.post_reach || 0).toLocaleString() + '</td>' +
+            '<td>' + fmtDate(p.publishedAt) + '</td>' +
+            '</tr>');
+        });
+      }
+    });
+
+    tbody.innerHTML = rows.join('');
+  }
+
+  async function syncMetrics() {
+    toast('Syncing metrics...');
+    var data = await api('social-analytics', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'sync' })
+    });
+    if (data) {
+      toast('Synced ' + (data.synced || 0) + ' metrics');
+      loadAnalytics();
+    }
   }
 
   /* ═══ HASHTAG MANAGER ═══ */
@@ -513,6 +782,8 @@
 
     // Accounts
     else if (action === 'social-connect') connectAccount(btn.getAttribute('data-platform'));
+    else if (action === 'social-connect-save') saveConnection(btn.getAttribute('data-platform'));
+    else if (action === 'social-connect-cancel') closeConnectModal();
     else if (action === 'social-disconnect') disconnectAccount(btn.getAttribute('data-platform'));
     else if (action === 'social-refresh-accounts') refreshAccounts();
 
@@ -556,6 +827,7 @@
       state.editingHashtagId = null;
     }
     else if (action === 'social-delete-hashtag-set') deleteHashtagSet(btn.getAttribute('data-id'));
+    else if (action === 'social-sync-metrics') syncMetrics();
 
     // New post / Edit post — handled by composer
     else if (action === 'social-new-post' && window.openSocialComposer) {

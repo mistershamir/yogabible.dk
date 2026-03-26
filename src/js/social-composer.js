@@ -425,42 +425,140 @@
     var resultsEl = $('yb-social-ai-results');
     if (!resultsEl) return;
 
+    // Validation
     if (action === 'generate-caption' && !topic) { S.toast('Enter a topic', true); return; }
+    if (action === 'generate-bilingual' && !topic) { S.toast('Enter a topic', true); return; }
     if (action === 'improve-caption' && !caption) { S.toast('Write a caption first', true); return; }
+    if (action === 'adapt-tone' && !caption) { S.toast('Write a caption first', true); return; }
+    if (action === 'translate' && !caption) { S.toast('Write a caption first', true); return; }
 
     resultsEl.innerHTML = '<p class="yb-admin__muted">Generating...</p>';
 
+    // Build request body
     var body = { action: action };
     if (topic) body.topic = topic;
     if (caption) body.caption = caption;
     if (composer.platforms.length) body.platform = composer.platforms[0];
 
+    if (action === 'adapt-tone') {
+      body.platforms = composer.platforms.length ? composer.platforms : ['instagram', 'facebook'];
+    }
+    if (action === 'repurpose-blog') {
+      var blogContent = ($('yb-social-ai-blog-content') || {}).value || '';
+      if (!blogContent) { S.toast('Paste or select blog content first', true); resultsEl.innerHTML = ''; return; }
+      body.content = blogContent;
+      body.topic = topic || 'blog repurpose';
+    }
+
     var data = await S.api('social-ai', { method: 'POST', body: JSON.stringify(body) });
     if (!data) { resultsEl.innerHTML = ''; return; }
 
+    // Render based on action type
     if (action === 'generate-hashtags') {
-      var tags = data.hashtags || [];
-      resultsEl.innerHTML = '<div class="yb-social__ai-variant">' +
-        '<div class="yb-social__ai-variant-label">Suggested Hashtags</div>' +
-        '<p>' + tags.join(' ') + '</p>' +
-        '<button class="yb-social__ai-use-btn" data-action="social-ai-use-hashtags" data-tags="' +
-        tags.join(', ') + '">Use These</button></div>';
-      return;
+      renderHashtagResults(resultsEl, data);
+    } else if (action === 'generate-bilingual') {
+      renderBilingualResults(resultsEl, data);
+    } else if (action === 'adapt-tone') {
+      renderAdaptResults(resultsEl, data);
+    } else if (action === 'translate') {
+      renderTranslateResults(resultsEl, data);
+    } else if (action === 'repurpose-blog') {
+      renderRepurposeResults(resultsEl, data);
+    } else {
+      renderVariantResults(resultsEl, data);
     }
+  }
 
+  function renderHashtagResults(el, data) {
+    var tags = data.hashtags || [];
+    el.innerHTML = '<div class="yb-social__ai-variant">' +
+      '<div class="yb-social__ai-variant-label">Suggested Hashtags</div>' +
+      '<p>' + tags.join(' ') + '</p>' +
+      '<button class="yb-social__ai-use-btn" data-action="social-ai-use-hashtags" data-tags="' +
+      tags.join(', ') + '">Use These</button></div>';
+  }
+
+  function renderVariantResults(el, data) {
     var variants = data.variants || [];
-    resultsEl.innerHTML = variants.map(function (v, i) {
+    el.innerHTML = variants.map(function (v, i) {
       var labels = ['Variant A', 'Variant B', 'Variant C'];
       return '<div class="yb-social__ai-variant">' +
-        '<div class="yb-social__ai-variant-label">' + (labels[i] || 'Variant ' + (i + 1)) + '</div>' +
+        '<div class="yb-social__ai-variant-label">' + (labels[i] || 'Variant ' + (i + 1)) +
+        (v.style ? ' <span style="font-weight:400;color:#6F6A66">(' + v.style + ')</span>' : '') + '</div>' +
         '<p>' + (v.caption || v) + '</p>' +
         (v.hashtags ? '<p style="font-size:11px;color:#6F6A66;margin-top:4px">' + v.hashtags.join(' ') + '</p>' : '') +
         '<button class="yb-social__ai-use-btn" data-action="social-ai-use-caption" data-index="' + i + '">Use This</button>' +
         '</div>';
     }).join('');
+    el._variants = variants;
+  }
 
-    // Store variants for selection
-    resultsEl._variants = variants;
+  function renderBilingualResults(el, data) {
+    var da = data.da || {};
+    var en = data.en || {};
+    el._bilingual = { da: da, en: en };
+    el.innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+        '<div class="yb-social__ai-variant">' +
+          '<div class="yb-social__ai-variant-label">🇩🇰 Dansk</div>' +
+          '<p>' + (da.caption || '') + '</p>' +
+          (da.hashtags ? '<p style="font-size:11px;color:#6F6A66;margin-top:4px">' + da.hashtags.join(' ') + '</p>' : '') +
+          '<button class="yb-social__ai-use-btn" data-action="social-ai-use-bilingual" data-lang="da">Use Danish</button>' +
+        '</div>' +
+        '<div class="yb-social__ai-variant">' +
+          '<div class="yb-social__ai-variant-label">🇬🇧 English</div>' +
+          '<p>' + (en.caption || '') + '</p>' +
+          (en.hashtags ? '<p style="font-size:11px;color:#6F6A66;margin-top:4px">' + en.hashtags.join(' ') + '</p>' : '') +
+          '<button class="yb-social__ai-use-btn" data-action="social-ai-use-bilingual" data-lang="en">Use English</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function renderAdaptResults(el, data) {
+    var adaptations = data.adaptations || {};
+    el._adaptations = adaptations;
+    var platformIcons = { instagram: '📸', facebook: '👤', linkedin: '💼', tiktok: '🎵', youtube: '▶️', pinterest: '📌' };
+    var html = '';
+    Object.keys(adaptations).forEach(function (plat) {
+      var a = adaptations[plat];
+      html += '<div class="yb-social__ai-variant">' +
+        '<div class="yb-social__ai-variant-label">' + (platformIcons[plat] || '') + ' ' + plat.charAt(0).toUpperCase() + plat.slice(1) + '</div>' +
+        '<p>' + (a.caption || '') + '</p>' +
+        (a.note ? '<p style="font-size:11px;color:#6F6A66;margin-top:4px;font-style:italic">' + a.note + '</p>' : '') +
+        '<button class="yb-social__ai-use-btn" data-action="social-ai-use-adaptation" data-platform="' + plat + '">Use This</button>' +
+        '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  function renderTranslateResults(el, data) {
+    el._translated = data;
+    el.innerHTML = '<div class="yb-social__ai-variant">' +
+      '<div class="yb-social__ai-variant-label">Translation</div>' +
+      '<p>' + (data.caption || '') + '</p>' +
+      (data.hashtags ? '<p style="font-size:11px;color:#6F6A66;margin-top:4px">' + data.hashtags.join(' ') + '</p>' : '') +
+      '<button class="yb-social__ai-use-btn" data-action="social-ai-use-translated">Use This</button>' +
+      '</div>';
+  }
+
+  function renderRepurposeResults(el, data) {
+    var posts = data.posts || [];
+    el._repurposed = posts;
+    el.innerHTML = posts.map(function (p, i) {
+      return '<div class="yb-social__ai-variant">' +
+        '<div class="yb-social__ai-variant-label">Post ' + (i + 1) +
+        (p.key_topic ? ' <span style="font-weight:400;color:#6F6A66">(' + p.key_topic + ')</span>' : '') + '</div>' +
+        '<p>' + (p.caption || '') + '</p>' +
+        (p.hashtags ? '<p style="font-size:11px;color:#6F6A66;margin-top:4px">' + p.hashtags.join(' ') + '</p>' : '') +
+        (p.visual_suggestion ? '<p style="font-size:11px;color:#f75c03;margin-top:4px">📷 ' + p.visual_suggestion + '</p>' : '') +
+        '<button class="yb-social__ai-use-btn" data-action="social-ai-use-repurposed" data-index="' + i + '">Use This</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function loadBlogEntries() {
+    // Blog entries are loaded from _data at build time, not served publicly.
+    // User pastes content directly into the textarea.
   }
 
   function useAiCaption(index) {
@@ -537,6 +635,52 @@
     else if (action === 'social-ai-use-hashtags') {
       $('yb-social-hashtags').value = btn.getAttribute('data-tags') || '';
       updatePreview(); S.toast('Applied');
+    }
+    else if (action === 'social-ai-bilingual') aiAction('generate-bilingual');
+    else if (action === 'social-ai-adapt-tone') aiAction('adapt-tone');
+    else if (action === 'social-ai-translate') aiAction('translate');
+    else if (action === 'social-ai-repurpose') {
+      var blogField = $('yb-social-ai-blog-field');
+      if (blogField) { blogField.hidden = !blogField.hidden; loadBlogEntries(); }
+    }
+    else if (action === 'social-ai-repurpose-go') aiAction('repurpose-blog');
+    else if (action === 'social-ai-use-bilingual') {
+      var lang = btn.getAttribute('data-lang');
+      var resultsEl = $('yb-social-ai-results');
+      if (resultsEl && resultsEl._bilingual) {
+        var d = resultsEl._bilingual[lang];
+        if (d) {
+          $('yb-social-caption').value = d.caption || '';
+          if (d.hashtags) $('yb-social-hashtags').value = d.hashtags.join(', ');
+          updateCharCount(); updatePreview(); S.toast('Applied ' + lang.toUpperCase());
+        }
+      }
+    }
+    else if (action === 'social-ai-use-adaptation') {
+      var plat = btn.getAttribute('data-platform');
+      var resultsEl = $('yb-social-ai-results');
+      if (resultsEl && resultsEl._adaptations && resultsEl._adaptations[plat]) {
+        $('yb-social-caption').value = resultsEl._adaptations[plat].caption || '';
+        updateCharCount(); updatePreview(); S.toast('Applied ' + plat);
+      }
+    }
+    else if (action === 'social-ai-use-translated') {
+      var resultsEl = $('yb-social-ai-results');
+      if (resultsEl && resultsEl._translated) {
+        $('yb-social-caption').value = resultsEl._translated.caption || '';
+        if (resultsEl._translated.hashtags) $('yb-social-hashtags').value = resultsEl._translated.hashtags.join(', ');
+        updateCharCount(); updatePreview(); S.toast('Applied');
+      }
+    }
+    else if (action === 'social-ai-use-repurposed') {
+      var idx = parseInt(btn.getAttribute('data-index'));
+      var resultsEl = $('yb-social-ai-results');
+      if (resultsEl && resultsEl._repurposed && resultsEl._repurposed[idx]) {
+        var p = resultsEl._repurposed[idx];
+        $('yb-social-caption').value = p.caption || '';
+        if (p.hashtags) $('yb-social-hashtags').value = p.hashtags.join(', ');
+        updateCharCount(); updatePreview(); S.toast('Applied post ' + (idx + 1));
+      }
     }
 
     // Best time placeholder

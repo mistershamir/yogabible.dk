@@ -131,6 +131,10 @@ exports.handler = async (event) => {
       case 'generate-caption': return generateCaption(body);
       case 'generate-hashtags': return generateHashtags(body);
       case 'improve-caption': return improveCaption(body);
+      case 'generate-bilingual': return generateBilingual(body);
+      case 'adapt-tone': return adaptTone(body);
+      case 'repurpose-blog': return repurposeBlog(body);
+      case 'translate': return translateCaption(body);
       default:
         return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
     }
@@ -288,6 +292,185 @@ Respond with this exact JSON structure:
     return jsonResponse(200, { ok: true, ...parsed });
   } catch (parseErr) {
     console.error('[social-ai] Failed to parse improve response:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Generate bilingual (DA + EN) captions ─────────────────────
+
+async function generateBilingual(body) {
+  const { topic, platform } = body;
+  if (!topic) return jsonResponse(400, { ok: false, error: 'Missing topic' });
+
+  const platformHint = platform
+    ? `Optimize for ${platform}.`
+    : 'Suitable for Instagram and Facebook.';
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Generate bilingual social media captions about: "${topic}"
+
+${platformHint}
+
+IMPORTANT: Danish should NOT be a translation of English or vice versa.
+- Danish: Practical, local tone. Speak to the Copenhagen yoga community naturally.
+- English: Aspirational, international tone. Speak to people dreaming of yoga in Copenhagen.
+Both should have the same core message but different angles.
+
+Respond with this exact JSON structure:
+{
+  "da": {
+    "caption": "Danish caption with line breaks as \\n",
+    "hashtags": ["#yoga", "#københavn"]
+  },
+  "en": {
+    "caption": "English caption with line breaks as \\n",
+    "hashtags": ["#yoga", "#copenhagen"]
+  }
+}`
+  }], 2000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse bilingual response:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Adapt tone per platform ────────────────────────────────────
+
+async function adaptTone(body) {
+  const { caption, platforms } = body;
+  if (!caption) return jsonResponse(400, { ok: false, error: 'Missing caption' });
+
+  const targetPlatforms = platforms || ['instagram', 'facebook', 'linkedin', 'tiktok'];
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Adapt this caption for each social media platform. Same core message, but tailored to each platform's style and audience:
+
+Original caption:
+"""
+${caption}
+"""
+
+Platforms to adapt for: ${targetPlatforms.join(', ')}
+
+Guidelines:
+- Instagram: Visual storytelling, emoji-friendly, 1-3 paragraphs with line breaks, end with CTA question
+- Facebook: Conversational, slightly longer OK, can be more informative, include link CTA
+- LinkedIn: Professional yet warm, focus on career/growth angle, thought leadership tone
+- TikTok: Ultra casual, trendy, short, hook in first line, use trending formats
+- YouTube: Description format, include timestamps placeholder, SEO keywords
+- Pinterest: Descriptive, keyword-rich, pin-friendly title + description
+
+Respond with this exact JSON structure:
+{
+  "adaptations": {
+    "instagram": { "caption": "...", "note": "brief note on changes" },
+    "facebook": { "caption": "...", "note": "..." },
+    "linkedin": { "caption": "...", "note": "..." },
+    "tiktok": { "caption": "...", "note": "..." }
+  }
+}`
+  }], 3000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse adapt response:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Repurpose blog/journal post into social posts ──────────────
+
+async function repurposeBlog(body) {
+  const { title, content, count } = body;
+  if (!content) return jsonResponse(400, { ok: false, error: 'Missing content' });
+
+  const postCount = count || 5;
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Turn this blog post into ${postCount} separate social media posts for Instagram/Facebook.
+
+Blog title: ${title || 'Untitled'}
+Blog content:
+"""
+${content.substring(0, 4000)}
+"""
+
+Each post should:
+- Cover a different key point or angle from the blog
+- Stand alone (don't reference the blog post directly)
+- Include a CTA or question at the end
+- Have its own set of relevant hashtags (15-20 per post)
+- Be optimized for Instagram (max 2200 chars)
+- Suggest what kind of image/visual would pair well
+
+Respond with this exact JSON structure:
+{
+  "posts": [
+    {
+      "caption": "Social post caption",
+      "hashtags": ["#tag1", "#tag2"],
+      "visual_suggestion": "Description of ideal image/visual for this post",
+      "key_topic": "Brief label for this post's angle"
+    }
+  ]
+}`
+  }], 4000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse repurpose response:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Translate caption between DA and EN ────────────────────────
+
+async function translateCaption(body) {
+  const { caption, from, to } = body;
+  if (!caption) return jsonResponse(400, { ok: false, error: 'Missing caption' });
+
+  const sourceLang = from || 'en';
+  const targetLang = to || (sourceLang === 'en' ? 'da' : 'en');
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Translate this social media caption from ${sourceLang === 'da' ? 'Danish' : 'English'} to ${targetLang === 'da' ? 'Danish' : 'English'}.
+
+IMPORTANT: Do NOT literally translate. Rewrite naturally for the target audience:
+${targetLang === 'da' ? '- Danish: Practical, local, speaks to Copenhagen community' : '- English: Aspirational, international, speaks to people dreaming of Copenhagen yoga'}
+
+Original (${sourceLang}):
+"""
+${caption}
+"""
+
+Respond with this exact JSON structure:
+{
+  "caption": "The translated/adapted caption",
+  "hashtags": ["relevant hashtags for ${targetLang} audience"]
+}`
+  }], 1500);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse translate response:', text.substring(0, 500));
     return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
   }
 }
