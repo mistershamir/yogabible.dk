@@ -6377,3 +6377,11 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-social__template-caption { font-size: 13px; color: var(--yb-muted, #6F6A66); margin: 0 0 8px; line-height: 1.4; }
 .yb-social__template-meta { display: flex; gap: 12px; font-size: 11px; color: var(--yb-muted, #6F6A66); }
 .yb-social__queue-hint { font-size: 11px; color: var(--yb-muted, #6F6A66); margin-left: 4px; }
+
+/* ── Media Type Selector ── */
+.yb-social__media-type-row { margin-top: 10px; }
+.yb-social__media-type-row label:first-child { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--yb-muted, #6F6A66); }
+.yb-social__media-type-options { display: flex; gap: 12px; }
+.yb-social__media-type-opt { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; padding: 4px 10px; border: 1px solid var(--yb-border, #E8E4E0); border-radius: 8px; transition: border-color 0.15s; }
+.yb-social__media-type-opt:has(input:checked) { border-color: var(--yb-brand, #f75c03); background: #fff8f4; }
+.yb-social__media-type-opt input { accent-color: var(--yb-brand, #f75c03); }
