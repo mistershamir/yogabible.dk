@@ -6027,6 +6027,85 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   display: flex; gap: 12px; font-size: 0.75rem; color: #6F6A66; align-items: center;
 }
 
+/* ── Inbox ── */
+.yb-social__inbox-badge {
+  background: #f75c03; color: #fff; font-size: 10px; font-weight: 700;
+  border-radius: 10px; padding: 1px 6px; margin-left: 4px; vertical-align: middle;
+}
+.yb-social__inbox-count { font-size: 0.75rem; color: #6F6A66; margin-left: 2px; }
+.yb-social__inbox-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.yb-social__inbox-empty { text-align: center; padding: 40px 20px; }
+.yb-social__inbox-item {
+  background: #FFFCF9; border: 1px solid #E8E4E0; border-radius: 10px;
+  padding: 14px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+.yb-social__inbox-item:hover { border-color: #f75c03; }
+.yb-social__inbox-item--unread {
+  background: #fff; border-left: 3px solid #f75c03;
+}
+.yb-social__inbox-item-head {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.yb-social__inbox-item-author { font-size: 0.85rem; font-weight: 600; color: #0F0F0F; }
+.yb-social__inbox-item-time { font-size: 0.7rem; color: #6F6A66; margin-left: auto; }
+.yb-social__inbox-unread-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #f75c03; flex-shrink: 0;
+}
+.yb-social__inbox-item-text { font-size: 0.8rem; color: #0F0F0F; margin: 0 0 4px; line-height: 1.4; }
+.yb-social__inbox-item-context { font-size: 0.7rem; color: #6F6A66; margin: 0; font-style: italic; }
+.yb-social__inbox-item-replies { font-size: 0.7rem; color: #f75c03; font-weight: 600; }
+
+/* Thread Panel */
+.yb-social__inbox-thread {
+  position: fixed; top: 0; right: 0; width: 420px; max-width: 100vw; height: 100vh;
+  background: #fff; box-shadow: -4px 0 20px rgba(0,0,0,0.1); z-index: 9998;
+  display: flex; flex-direction: column;
+}
+.yb-social__inbox-thread-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px; border-bottom: 1px solid #E8E4E0;
+}
+.yb-social__inbox-thread-header button {
+  background: none; border: none; font-size: 0.85rem; color: #f75c03;
+  cursor: pointer; font-family: inherit; padding: 0;
+}
+.yb-social__inbox-thread-header h4 { margin: 0; font-size: 0.9rem; font-weight: 600; }
+.yb-social__inbox-thread-body {
+  flex: 1; overflow-y: auto; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.yb-social__inbox-msg {
+  max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 0.8rem; line-height: 1.4;
+}
+.yb-social__inbox-msg--them {
+  align-self: flex-start; background: #F5F3F0; border-bottom-left-radius: 4px;
+}
+.yb-social__inbox-msg--own {
+  align-self: flex-end; background: #f75c03; color: #fff; border-bottom-right-radius: 4px;
+}
+.yb-social__inbox-msg--own .yb-social__inbox-msg-head strong { color: #fff; }
+.yb-social__inbox-msg--own .yb-social__inbox-msg-head span { color: rgba(255,255,255,0.7); }
+.yb-social__inbox-msg-head {
+  display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px;
+}
+.yb-social__inbox-msg-head strong { font-size: 0.75rem; color: #0F0F0F; }
+.yb-social__inbox-msg-head span { font-size: 0.65rem; color: #6F6A66; }
+.yb-social__inbox-msg p { margin: 0; }
+
+/* Reply Box */
+.yb-social__inbox-reply-box {
+  display: flex; gap: 8px; padding: 12px 20px;
+  border-top: 1px solid #E8E4E0; background: #FFFCF9;
+}
+.yb-social__inbox-reply-box textarea {
+  flex: 1; border: 1px solid #E8E4E0; border-radius: 8px;
+  padding: 8px 12px; font-size: 0.8rem; font-family: inherit; resize: none;
+}
+.yb-social__inbox-reply-box textarea:focus {
+  outline: none; border-color: #f75c03;
+}
+.yb-social__inbox-reply-box .yb-btn { align-self: flex-end; }
+
 /* Preview device */
 .yb-social__preview-device {
   background: #fff; border: 1px solid #E8E4E0; border-radius: 12px;
@@ -6231,4 +6310,5 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   .yb-social__heatmap-cell span { font-size: 7px; }
   .yb-social__top-post-thumb { width: 44px; height: 44px; }
   .yb-social__top-post-metrics { flex-wrap: wrap; gap: 6px; }
+  .yb-social__inbox-thread { width: 100vw; }
 }

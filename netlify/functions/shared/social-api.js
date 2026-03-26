@@ -507,14 +507,555 @@ function buildCaption(post) {
   return caption;
 }
 
+// ── Instagram & Facebook Comments / Conversations ────────────────
+
+/**
+ * Fetch comments on an Instagram media post.
+ */
+async function getInstagramComments(account, mediaId) {
+  try {
+    const url = `${IG_API}/${mediaId}/comments?fields=id,text,username,timestamp,replies{id,text,username,timestamp}&access_token=${account.accessToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] IG comments error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, comments: data.data || [] };
+  } catch (err) {
+    console.error('[social-api] IG comments exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Reply to an Instagram comment.
+ */
+async function replyToInstagramComment(account, commentId, text) {
+  try {
+    const res = await fetch(`${IG_API}/${commentId}/replies`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        message: text,
+        access_token: account.accessToken
+      })
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] IG reply error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, id: data.id };
+  } catch (err) {
+    console.error('[social-api] IG reply exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Fetch comments on a Facebook post.
+ */
+async function getFacebookComments(account, postId) {
+  try {
+    const url = `${FB_API}/${postId}/comments?fields=id,message,from,created_time,comments{id,message,from,created_time}&access_token=${account.accessToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] FB comments error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, comments: data.data || [] };
+  } catch (err) {
+    console.error('[social-api] FB comments exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Reply to a Facebook comment.
+ */
+async function replyToFacebookComment(account, commentId, text) {
+  try {
+    const res = await fetch(`${FB_API}/${commentId}/comments`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        message: text,
+        access_token: account.accessToken
+      })
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] FB reply error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, id: data.id };
+  } catch (err) {
+    console.error('[social-api] FB reply exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Fetch Instagram DM conversations (via Page-connected IG account).
+ */
+async function getInstagramConversations(account) {
+  try {
+    const url = `${IG_API}/${account.igAccountId}/conversations?fields=id,participants,messages{id,message,from,created_time}&platform=instagram&access_token=${account.accessToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] IG conversations error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, conversations: data.data || [] };
+  } catch (err) {
+    console.error('[social-api] IG conversations exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Fetch Facebook Page conversations.
+ */
+async function getFacebookConversations(account) {
+  try {
+    const url = `${FB_API}/${account.pageId}/conversations?fields=id,participants,messages.limit(10){id,message,from,created_time}&access_token=${account.accessToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] FB conversations error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, conversations: data.data || [] };
+  } catch (err) {
+    console.error('[social-api] FB conversations exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Send a message in a Facebook conversation.
+ */
+async function sendFacebookMessage(account, conversationId, text) {
+  try {
+    const res = await fetch(`${FB_API}/${conversationId}/messages`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        message: text,
+        access_token: account.accessToken
+      })
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('[social-api] FB send message error:', data.error);
+      return { success: false, error: data.error.message };
+    }
+
+    return { success: true, id: data.id };
+  } catch (err) {
+    console.error('[social-api] FB send message exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+// ── TikTok Publishing ───────────────────────────────────────────
+
+const TT_API = 'https://open.tiktokapis.com/v2';
+
+/**
+ * Publish a video to TikTok via Content Posting API.
+ * Requires: account.accessToken, post.media[0] (video URL)
+ */
+async function publishToTikTok(account, post) {
+  const { accessToken } = account;
+  const caption = buildCaption(post);
+  const media = post.media || [];
+
+  if (media.length === 0) {
+    return { success: false, error: 'TikTok requires a video' };
+  }
+
+  const videoUrl = media[0];
+  const isVideo = /\.(mp4|mov|avi|wmv)$/i.test(videoUrl);
+  if (!isVideo) {
+    return { success: false, error: 'TikTok only supports video uploads' };
+  }
+
+  try {
+    // Step 1: Initialize upload via URL
+    const initRes = await fetch(`${TT_API}/post/publish/video/init/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json; charset=UTF-8'
+      },
+      body: JSON.stringify({
+        post_info: {
+          title: caption.substring(0, 150),
+          privacy_level: 'PUBLIC_TO_EVERYONE',
+          disable_duet: false,
+          disable_comment: false,
+          disable_stitch: false
+        },
+        source_info: {
+          source: 'PULL_FROM_URL',
+          video_url: videoUrl
+        }
+      })
+    });
+
+    const initData = await initRes.json();
+
+    if (initData.error && initData.error.code !== 'ok') {
+      console.error('[social-api] TikTok init error:', initData.error);
+      return { success: false, error: initData.error.message || 'TikTok init failed' };
+    }
+
+    const publishId = initData.data?.publish_id;
+    if (!publishId) {
+      return { success: false, error: 'No publish_id returned from TikTok' };
+    }
+
+    // Step 2: Check publish status (TikTok processes async)
+    const statusResult = await waitForTikTokPublish(accessToken, publishId, 180000);
+    if (statusResult.success) {
+      console.log('[social-api] TikTok published:', statusResult.id);
+      return { success: true, id: statusResult.id || publishId };
+    }
+
+    return statusResult;
+  } catch (err) {
+    console.error('[social-api] TikTok publish exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Wait for TikTok video to finish processing.
+ */
+async function waitForTikTokPublish(accessToken, publishId, maxWait = 180000) {
+  const start = Date.now();
+  const interval = 5000;
+
+  while (Date.now() - start < maxWait) {
+    try {
+      const res = await fetch(`${TT_API}/post/publish/status/fetch/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json; charset=UTF-8'
+        },
+        body: JSON.stringify({ publish_id: publishId })
+      });
+      const data = await res.json();
+      const status = data.data?.status;
+
+      if (status === 'PUBLISH_COMPLETE') {
+        return { success: true, id: data.data?.publicaly_available_post_id?.[0] || publishId };
+      }
+      if (status === 'FAILED') {
+        return { success: false, error: data.data?.fail_reason || 'TikTok publish failed' };
+      }
+
+      // Still processing
+      await new Promise(resolve => setTimeout(resolve, interval));
+    } catch (err) {
+      console.error('[social-api] TikTok status check error:', err);
+      await new Promise(resolve => setTimeout(resolve, interval));
+    }
+  }
+
+  return { success: false, error: 'TikTok processing timed out' };
+}
+
+/**
+ * Get TikTok user info.
+ */
+async function getTikTokAccountInfo(account) {
+  try {
+    const res = await fetch(`${TT_API}/user/info/?fields=display_name,avatar_url,follower_count,username`, {
+      headers: { 'Authorization': `Bearer ${account.accessToken}` }
+    });
+    const data = await res.json();
+
+    if (data.error && data.error.code !== 'ok') {
+      return { success: false, error: data.error.message };
+    }
+
+    const user = data.data?.user || {};
+    return {
+      success: true,
+      info: {
+        name: user.display_name || '',
+        username: user.username || '',
+        followers: user.follower_count || 0,
+        profilePicture: user.avatar_url || null
+      }
+    };
+  } catch (err) {
+    console.error('[social-api] TikTok account info exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+
+// ── LinkedIn Publishing ─────────────────────────────────────────
+
+const LI_API = 'https://api.linkedin.com/v2';
+const LI_REST_API = 'https://api.linkedin.com/rest';
+
+/**
+ * Publish to a LinkedIn organization page.
+ * Supports text-only, single image, or single video.
+ */
+async function publishToLinkedIn(account, post) {
+  const { accessToken, organizationId } = account;
+  const caption = buildCaption(post);
+  const media = post.media || [];
+
+  if (!organizationId) {
+    return { success: false, error: 'LinkedIn requires organizationId' };
+  }
+
+  const author = `urn:li:organization:${organizationId}`;
+
+  try {
+    // Text-only post
+    if (media.length === 0) {
+      return publishLinkedInText(accessToken, author, caption);
+    }
+
+    const mediaUrl = media[0];
+    const isVideo = /\.(mp4|mov|avi|wmv)$/i.test(mediaUrl);
+
+    if (isVideo) {
+      return publishLinkedInVideo(accessToken, author, caption, mediaUrl);
+    }
+
+    // Image post
+    return publishLinkedInImage(accessToken, author, caption, mediaUrl);
+  } catch (err) {
+    console.error('[social-api] LinkedIn publish exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+async function publishLinkedInText(accessToken, author, caption) {
+  const res = await fetch(`${LI_API}/ugcPosts`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'X-Restli-Protocol-Version': '2.0.0'
+    },
+    body: JSON.stringify({
+      author,
+      lifecycleState: 'PUBLISHED',
+      specificContent: {
+        'com.linkedin.ugc.ShareContent': {
+          shareCommentary: { text: caption },
+          shareMediaCategory: 'NONE'
+        }
+      },
+      visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' }
+    })
+  });
+
+  const data = await res.json();
+  if (data.id) {
+    console.log('[social-api] LinkedIn text published:', data.id);
+    return { success: true, id: data.id };
+  }
+  console.error('[social-api] LinkedIn text error:', data);
+  return { success: false, error: data.message || 'LinkedIn post failed' };
+}
+
+async function publishLinkedInImage(accessToken, author, caption, imageUrl) {
+  // Step 1: Register upload
+  const registerRes = await fetch(`${LI_API}/assets?action=registerUpload`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      registerUploadRequest: {
+        recipes: ['urn:li:digitalmediaRecipe:feedshare-image'],
+        owner: author,
+        serviceRelationships: [{
+          relationshipType: 'OWNER',
+          identifier: 'urn:li:userGeneratedContent'
+        }]
+      }
+    })
+  });
+
+  const registerData = await registerRes.json();
+  const uploadUrl = registerData.value?.uploadMechanism?.['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']?.uploadUrl;
+  const asset = registerData.value?.asset;
+
+  if (!uploadUrl || !asset) {
+    return { success: false, error: 'LinkedIn image upload registration failed' };
+  }
+
+  // Step 2: Download image and upload to LinkedIn
+  const imgRes = await fetch(imageUrl);
+  const imgBuffer = await imgRes.arrayBuffer();
+
+  await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'image/jpeg'
+    },
+    body: Buffer.from(imgBuffer)
+  });
+
+  // Step 3: Create post with image
+  const postRes = await fetch(`${LI_API}/ugcPosts`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'X-Restli-Protocol-Version': '2.0.0'
+    },
+    body: JSON.stringify({
+      author,
+      lifecycleState: 'PUBLISHED',
+      specificContent: {
+        'com.linkedin.ugc.ShareContent': {
+          shareCommentary: { text: caption },
+          shareMediaCategory: 'IMAGE',
+          media: [{
+            status: 'READY',
+            media: asset,
+            title: { text: caption.substring(0, 100) }
+          }]
+        }
+      },
+      visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' }
+    })
+  });
+
+  const postData = await postRes.json();
+  if (postData.id) {
+    console.log('[social-api] LinkedIn image published:', postData.id);
+    return { success: true, id: postData.id };
+  }
+  return { success: false, error: postData.message || 'LinkedIn image post failed' };
+}
+
+async function publishLinkedInVideo(accessToken, author, caption, videoUrl) {
+  // LinkedIn video upload is complex — use a simpler article share with video link
+  const res = await fetch(`${LI_API}/ugcPosts`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'X-Restli-Protocol-Version': '2.0.0'
+    },
+    body: JSON.stringify({
+      author,
+      lifecycleState: 'PUBLISHED',
+      specificContent: {
+        'com.linkedin.ugc.ShareContent': {
+          shareCommentary: { text: caption },
+          shareMediaCategory: 'ARTICLE',
+          media: [{
+            status: 'READY',
+            originalUrl: videoUrl,
+            title: { text: caption.substring(0, 100) }
+          }]
+        }
+      },
+      visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' }
+    })
+  });
+
+  const data = await res.json();
+  if (data.id) {
+    console.log('[social-api] LinkedIn video published:', data.id);
+    return { success: true, id: data.id };
+  }
+  return { success: false, error: data.message || 'LinkedIn video post failed' };
+}
+
+/**
+ * Get LinkedIn organization info.
+ */
+async function getLinkedInOrgInfo(account) {
+  try {
+    const res = await fetch(`${LI_API}/organizations/${account.organizationId}?projection=(id,localizedName,vanityName,logoV2(original~:playableStreams))`, {
+      headers: { 'Authorization': `Bearer ${account.accessToken}` }
+    });
+    const data = await res.json();
+
+    if (data.status && data.status >= 400) {
+      return { success: false, error: data.message || 'LinkedIn API error' };
+    }
+
+    // Get follower count
+    let followers = 0;
+    try {
+      const followRes = await fetch(`${LI_API}/organizationalEntityFollowerStatistics?q=organizationalEntity&organizationalEntity=urn:li:organization:${account.organizationId}`, {
+        headers: { 'Authorization': `Bearer ${account.accessToken}` }
+      });
+      const followData = await followRes.json();
+      const elements = followData.elements || [];
+      if (elements.length > 0) {
+        followers = elements[0].followerCounts?.organicFollowerCount || 0;
+      }
+    } catch (e) {
+      // Follower count is optional
+    }
+
+    return {
+      success: true,
+      info: {
+        name: data.localizedName || '',
+        username: data.vanityName || '',
+        followers,
+        profilePicture: null
+      }
+    };
+  } catch (err) {
+    console.error('[social-api] LinkedIn org info exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
 module.exports = {
   publishToInstagram,
   publishCarouselToInstagram,
   getInstagramMetrics,
   getInstagramAccountInfo,
+  getInstagramComments,
+  replyToInstagramComment,
+  getInstagramConversations,
   publishToFacebook,
   getFacebookMetrics,
   getFacebookPageInfo,
+  getFacebookComments,
+  replyToFacebookComment,
+  getFacebookConversations,
+  sendFacebookMessage,
+  publishToTikTok,
+  getTikTokAccountInfo,
+  publishToLinkedIn,
+  getLinkedInOrgInfo,
   waitForMediaProcessing,
   buildCaption
 };

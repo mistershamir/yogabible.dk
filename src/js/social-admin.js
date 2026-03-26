@@ -78,7 +78,7 @@
   /* ═══ VIEW MANAGEMENT ═══ */
   function showView(name) {
     state.view = name;
-    ['accounts', 'calendar', 'posts', 'analytics', 'hashtags'].forEach(function (v) {
+    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags'].forEach(function (v) {
       var el = $('yb-social-v-' + v);
       if (el) el.hidden = (v !== name);
     });
@@ -89,6 +89,7 @@
     if (name === 'calendar') renderCalendar();
     if (name === 'posts') loadPosts();
     if (name === 'analytics') loadAnalytics();
+    if (name === 'inbox') loadInbox();
     if (name === 'hashtags') loadHashtags();
   }
 
@@ -131,14 +132,30 @@
 
   var PLATFORM_DEFAULTS = {
     facebook: { pageId: '878172732056415' },
-    instagram: { pageId: '17841474697451627' }
+    instagram: { pageId: '17841474697451627' },
+    tiktok: {},
+    linkedin: {}
   };
 
   function connectAccount(platform) {
     // Build and show branded connect modal
     var defaults = PLATFORM_DEFAULTS[platform] || {};
     var needsPageId = platform === 'facebook' || platform === 'instagram';
+    var needsOrgId = platform === 'linkedin';
     var pageIdLabel = platform === 'facebook' ? 'Facebook Page ID' : platform === 'instagram' ? 'Instagram Business Account ID' : '';
+
+    var extraFields = '';
+    if (needsPageId) {
+      extraFields = '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-pageid">' + pageIdLabel + '</label>' +
+        '<input type="text" id="yb-social-connect-pageid" value="' + (defaults.pageId || '') + '">' +
+        '</div>';
+    } else if (needsOrgId) {
+      extraFields = '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-orgid">LinkedIn Organization ID</label>' +
+        '<input type="text" id="yb-social-connect-orgid" placeholder="e.g. 12345678">' +
+        '</div>';
+    }
 
     var html = '<div class="yb-social__connect-modal" id="yb-social-connect-modal">' +
       '<div class="yb-social__connect-overlay" data-action="social-connect-cancel"></div>' +
@@ -150,10 +167,7 @@
       '<label for="yb-social-connect-token">Access Token</label>' +
       '<input type="text" id="yb-social-connect-token" placeholder="Paste token here...">' +
       '</div>' +
-      (needsPageId ? '<div class="yb-admin__field">' +
-        '<label for="yb-social-connect-pageid">' + pageIdLabel + '</label>' +
-        '<input type="text" id="yb-social-connect-pageid" value="' + (defaults.pageId || '') + '">' +
-        '</div>' : '') +
+      extraFields +
       '<div class="yb-social__connect-actions">' +
       '<button class="yb-btn yb-btn--outline" data-action="social-connect-cancel">Cancel</button>' +
       '<button class="yb-btn yb-btn--primary" data-action="social-connect-save" data-platform="' + platform + '">Connect</button>' +
@@ -172,7 +186,9 @@
     var icons = {
       instagram: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg> Instagram',
       facebook: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> Facebook',
-      tiktok: 'TikTok', linkedin: 'LinkedIn', youtube: 'YouTube', pinterest: 'Pinterest'
+      tiktok: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78c.27 0 .54.04.8.1v-3.5a6.37 6.37 0 0 0-.8-.05A6.34 6.34 0 0 0 3.15 15.3 6.34 6.34 0 0 0 9.49 21.6a6.34 6.34 0 0 0 6.34-6.34V8.7a8.16 8.16 0 0 0 4.77 1.52V6.77a4.83 4.83 0 0 1-1.01-.08z"/></svg> TikTok',
+      linkedin: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg> LinkedIn',
+      youtube: 'YouTube', pinterest: 'Pinterest'
     };
     return icons[p] || p;
   }
@@ -183,7 +199,12 @@
 
     var body = { platform: platform, accessToken: token.trim() };
     var pageIdEl = $('yb-social-connect-pageid');
-    if (pageIdEl && pageIdEl.value.trim()) body.pageId = pageIdEl.value.trim();
+    if (pageIdEl && pageIdEl.value.trim()) {
+      if (platform === 'instagram') body.igAccountId = pageIdEl.value.trim();
+      else body.pageId = pageIdEl.value.trim();
+    }
+    var orgIdEl = $('yb-social-connect-orgid');
+    if (orgIdEl && orgIdEl.value.trim()) body.organizationId = orgIdEl.value.trim();
 
     toast('Connecting...');
     var data = await api('social-accounts?action=save-token', {
@@ -661,6 +682,310 @@
     }
   }
 
+  /* ═══ INBOX ═══ */
+  var inboxState = {
+    tab: 'comments',
+    comments: [],
+    conversations: [],
+    activeThread: null,
+    pollTimer: null
+  };
+
+  async function loadInbox() {
+    var results = await Promise.all([
+      api('social-inbox?action=comments&days=7'),
+      api('social-inbox?action=conversations')
+    ]);
+
+    var commentsData = results[0];
+    var messagesData = results[1];
+
+    if (commentsData) {
+      inboxState.comments = commentsData.comments || [];
+      var countEl = $('yb-social-inbox-comments-count');
+      if (countEl) countEl.textContent = commentsData.unread ? '(' + commentsData.unread + ')' : '';
+    }
+
+    if (messagesData) {
+      inboxState.conversations = messagesData.conversations || [];
+      var countEl = $('yb-social-inbox-messages-count');
+      if (countEl) countEl.textContent = messagesData.unread ? '(' + messagesData.unread + ')' : '';
+    }
+
+    // Update badge
+    var totalUnread = (commentsData ? commentsData.unread || 0 : 0) + (messagesData ? messagesData.unread || 0 : 0);
+    var badge = $('yb-social-inbox-badge');
+    if (badge) {
+      badge.textContent = totalUnread;
+      badge.hidden = totalUnread === 0;
+    }
+
+    renderInbox();
+    startInboxPolling();
+  }
+
+  function renderInbox() {
+    if (inboxState.tab === 'comments') {
+      renderComments();
+    } else {
+      renderConversations();
+    }
+  }
+
+  function renderComments() {
+    var container = $('yb-social-inbox-comments');
+    if (!container) return;
+
+    if (inboxState.comments.length === 0) {
+      container.innerHTML = '<div class="yb-social__inbox-empty"><p>' + t('social_no_comments') + '</p></div>';
+      return;
+    }
+
+    container.innerHTML = inboxState.comments.map(function (c) {
+      return '<div class="yb-social__inbox-item' + (c.read ? '' : ' yb-social__inbox-item--unread') + '" data-action="social-inbox-open-comment" data-id="' + c.commentId + '" data-platform="' + c.platform + '" data-inbox-id="' + c.id + '">' +
+        '<div class="yb-social__inbox-item-head">' +
+          platformIcon(c.platform) +
+          '<span class="yb-social__inbox-item-author">' + (c.author || 'Unknown') + '</span>' +
+          '<span class="yb-social__inbox-item-time">' + formatTimeAgo(c.timestamp) + '</span>' +
+          (!c.read ? '<span class="yb-social__inbox-unread-dot"></span>' : '') +
+        '</div>' +
+        '<p class="yb-social__inbox-item-text">' + escapeHtml(c.text || '') + '</p>' +
+        '<p class="yb-social__inbox-item-context">On: ' + escapeHtml(c.postCaption || '') + '</p>' +
+        (c.replies && c.replies.length > 0 ? '<span class="yb-social__inbox-item-replies">' + c.replies.length + ' ' + (c.replies.length === 1 ? 'reply' : 'replies') + '</span>' : '') +
+      '</div>';
+    }).join('');
+  }
+
+  function renderConversations() {
+    var container = $('yb-social-inbox-messages');
+    if (!container) return;
+
+    if (inboxState.conversations.length === 0) {
+      container.innerHTML = '<div class="yb-social__inbox-empty"><p>' + t('social_no_messages') + '</p></div>';
+      return;
+    }
+
+    container.innerHTML = inboxState.conversations.map(function (c) {
+      return '<div class="yb-social__inbox-item' + (c.read ? '' : ' yb-social__inbox-item--unread') + '" data-action="social-inbox-open-conversation" data-id="' + c.conversationId + '" data-platform="' + c.platform + '" data-inbox-id="' + c.id + '">' +
+        '<div class="yb-social__inbox-item-head">' +
+          platformIcon(c.platform) +
+          '<span class="yb-social__inbox-item-author">' + (c.participants.join(', ') || 'Unknown') + '</span>' +
+          '<span class="yb-social__inbox-item-time">' + formatTimeAgo(c.lastMessageAt) + '</span>' +
+          (!c.read ? '<span class="yb-social__inbox-unread-dot"></span>' : '') +
+        '</div>' +
+        '<p class="yb-social__inbox-item-text">' +
+          (c.lastMessageFrom ? '<strong>' + escapeHtml(c.lastMessageFrom) + ':</strong> ' : '') +
+          escapeHtml(truncate(c.lastMessage, 100)) +
+        '</p>' +
+        '<span class="yb-social__inbox-item-replies">' + c.messageCount + ' messages</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  async function openCommentThread(commentId, platform, inboxId) {
+    var thread = $('yb-social-inbox-thread');
+    var body = $('yb-social-inbox-thread-body');
+    var title = $('yb-social-inbox-thread-title');
+    if (!thread || !body) return;
+
+    // Find the comment in state
+    var comment = inboxState.comments.find(function (c) { return c.commentId === commentId; });
+
+    thread.hidden = false;
+    inboxState.activeThread = { type: 'comment', id: commentId, platform: platform, inboxId: inboxId };
+
+    if (title) title.textContent = (comment ? comment.author : 'Comment') + ' — ' + platform;
+
+    // Show the original comment + replies
+    var html = '';
+    if (comment) {
+      html += '<div class="yb-social__inbox-msg yb-social__inbox-msg--them">' +
+        '<div class="yb-social__inbox-msg-head"><strong>' + escapeHtml(comment.author) + '</strong> <span>' + formatTimeAgo(comment.timestamp) + '</span></div>' +
+        '<p>' + escapeHtml(comment.text) + '</p>' +
+      '</div>';
+
+      // Show existing replies
+      (comment.replies || []).forEach(function (r) {
+        var isOwn = r.username === 'yogabible' || (r.from && r.from.name === 'Yoga Bible');
+        html += '<div class="yb-social__inbox-msg' + (isOwn ? ' yb-social__inbox-msg--own' : ' yb-social__inbox-msg--them') + '">' +
+          '<div class="yb-social__inbox-msg-head"><strong>' + escapeHtml(r.username || (r.from ? r.from.name : '')) + '</strong> <span>' + formatTimeAgo(r.timestamp || r.created_time) + '</span></div>' +
+          '<p>' + escapeHtml(r.text || r.message || '') + '</p>' +
+        '</div>';
+      });
+    }
+
+    body.innerHTML = html || '<p class="yb-admin__muted">Loading thread...</p>';
+
+    // Mark as read
+    markInboxRead([inboxId]);
+
+    // Fetch full thread from API
+    var data = await api('social-inbox?action=thread&id=' + commentId + '&platform=' + platform + '&type=comment');
+    if (data && data.thread && data.thread.length > 0) {
+      var extraHtml = '';
+      data.thread.forEach(function (r) {
+        var isOwn = r.username === 'yogabible' || (r.from && r.from.name === 'Yoga Bible');
+        extraHtml += '<div class="yb-social__inbox-msg' + (isOwn ? ' yb-social__inbox-msg--own' : ' yb-social__inbox-msg--them') + '">' +
+          '<div class="yb-social__inbox-msg-head"><strong>' + escapeHtml(r.username || (r.from ? r.from.name : '')) + '</strong> <span>' + formatTimeAgo(r.timestamp || r.created_time) + '</span></div>' +
+          '<p>' + escapeHtml(r.text || r.message || '') + '</p>' +
+        '</div>';
+      });
+      // Replace replies section (keep original comment)
+      if (comment) {
+        body.innerHTML = '<div class="yb-social__inbox-msg yb-social__inbox-msg--them">' +
+          '<div class="yb-social__inbox-msg-head"><strong>' + escapeHtml(comment.author) + '</strong> <span>' + formatTimeAgo(comment.timestamp) + '</span></div>' +
+          '<p>' + escapeHtml(comment.text) + '</p>' +
+        '</div>' + extraHtml;
+      }
+    }
+  }
+
+  async function openConversationThread(conversationId, platform, inboxId) {
+    var thread = $('yb-social-inbox-thread');
+    var body = $('yb-social-inbox-thread-body');
+    var title = $('yb-social-inbox-thread-title');
+    if (!thread || !body) return;
+
+    var conv = inboxState.conversations.find(function (c) { return c.conversationId === conversationId; });
+
+    thread.hidden = false;
+    inboxState.activeThread = { type: 'conversation', id: conversationId, platform: platform, inboxId: inboxId };
+
+    if (title) title.textContent = (conv ? conv.participants.join(', ') : 'Conversation') + ' — ' + platform;
+    body.innerHTML = '<p class="yb-admin__muted">Loading messages...</p>';
+
+    markInboxRead([inboxId]);
+
+    var data = await api('social-inbox?action=thread&id=' + conversationId + '&platform=' + platform + '&type=conversation');
+    if (data && data.thread) {
+      var msgs = data.thread.reverse(); // oldest first
+      body.innerHTML = msgs.map(function (m) {
+        var isOwn = (m.from && (m.from.name === 'Yoga Bible' || m.from.id === '878172732056415'));
+        return '<div class="yb-social__inbox-msg' + (isOwn ? ' yb-social__inbox-msg--own' : ' yb-social__inbox-msg--them') + '">' +
+          '<div class="yb-social__inbox-msg-head"><strong>' + escapeHtml(m.from ? m.from.name : '') + '</strong> <span>' + formatTimeAgo(m.created_time) + '</span></div>' +
+          '<p>' + escapeHtml(m.message || '') + '</p>' +
+        '</div>';
+      }).join('') || '<p class="yb-admin__muted">No messages</p>';
+
+      // Scroll to bottom
+      body.scrollTop = body.scrollHeight;
+    }
+  }
+
+  function closeThread() {
+    var thread = $('yb-social-inbox-thread');
+    if (thread) thread.hidden = true;
+    inboxState.activeThread = null;
+  }
+
+  async function sendReply() {
+    var replyEl = $('yb-social-inbox-reply');
+    if (!replyEl || !replyEl.value.trim() || !inboxState.activeThread) return;
+
+    var text = replyEl.value.trim();
+    var thread = inboxState.activeThread;
+    var body = {};
+
+    if (thread.type === 'comment') {
+      body = { action: 'reply-comment', commentId: thread.id, text: text, platform: thread.platform };
+    } else {
+      body = { action: 'reply-message', conversationId: thread.id, text: text, platform: thread.platform };
+    }
+
+    toast('Sending...');
+    var data = await api('social-inbox', { method: 'POST', body: JSON.stringify(body) });
+
+    if (data) {
+      replyEl.value = '';
+      toast('Reply sent');
+
+      // Add reply to thread UI
+      var threadBody = $('yb-social-inbox-thread-body');
+      if (threadBody) {
+        var msgHtml = '<div class="yb-social__inbox-msg yb-social__inbox-msg--own">' +
+          '<div class="yb-social__inbox-msg-head"><strong>Yoga Bible</strong> <span>Just now</span></div>' +
+          '<p>' + escapeHtml(text) + '</p></div>';
+        threadBody.insertAdjacentHTML('beforeend', msgHtml);
+        threadBody.scrollTop = threadBody.scrollHeight;
+      }
+    }
+  }
+
+  async function markInboxRead(ids) {
+    if (!ids || !ids.length) return;
+    await api('social-inbox', { method: 'POST', body: JSON.stringify({ action: 'mark-read', ids: ids }) });
+    // Update local state
+    ids.forEach(function (id) {
+      var c = inboxState.comments.find(function (x) { return x.id === id; });
+      if (c) c.read = true;
+      var m = inboxState.conversations.find(function (x) { return x.id === id; });
+      if (m) m.read = true;
+    });
+  }
+
+  async function markAllRead() {
+    var ids = [];
+    if (inboxState.tab === 'comments') {
+      inboxState.comments.forEach(function (c) { if (!c.read) ids.push(c.id); });
+    } else {
+      inboxState.conversations.forEach(function (c) { if (!c.read) ids.push(c.id); });
+    }
+    if (ids.length === 0) { toast('All caught up'); return; }
+    await markInboxRead(ids);
+    toast('Marked ' + ids.length + ' as read');
+    renderInbox();
+    updateInboxBadge();
+  }
+
+  function updateInboxBadge() {
+    var unreadComments = inboxState.comments.filter(function (c) { return !c.read; }).length;
+    var unreadMessages = inboxState.conversations.filter(function (c) { return !c.read; }).length;
+    var total = unreadComments + unreadMessages;
+    var badge = $('yb-social-inbox-badge');
+    if (badge) { badge.textContent = total; badge.hidden = total === 0; }
+    var cc = $('yb-social-inbox-comments-count');
+    if (cc) cc.textContent = unreadComments ? '(' + unreadComments + ')' : '';
+    var mc = $('yb-social-inbox-messages-count');
+    if (mc) mc.textContent = unreadMessages ? '(' + unreadMessages + ')' : '';
+  }
+
+  function startInboxPolling() {
+    if (inboxState.pollTimer) clearInterval(inboxState.pollTimer);
+    inboxState.pollTimer = setInterval(function () {
+      if (state.view === 'inbox') loadInbox();
+    }, 60000); // Poll every 60s when inbox is active
+  }
+
+  function switchInboxTab(tab) {
+    inboxState.tab = tab;
+    var commentsEl = $('yb-social-inbox-comments');
+    var messagesEl = $('yb-social-inbox-messages');
+    if (commentsEl) commentsEl.hidden = tab !== 'comments';
+    if (messagesEl) messagesEl.hidden = tab !== 'messages';
+    qsa('#yb-social-inbox-tabs .yb-social__filter-btn').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-tab') === tab);
+    });
+    closeThread();
+    renderInbox();
+  }
+
+  function formatTimeAgo(ts) {
+    if (!ts) return '';
+    var d = new Date(ts);
+    var now = new Date();
+    var diff = Math.floor((now - d) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+    return d.toLocaleDateString('da-DK', { day: 'numeric', month: 'short' });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   /* ═══ HASHTAG MANAGER ═══ */
   async function loadHashtags() {
     var db = firebase.firestore();
@@ -778,6 +1103,7 @@
     else if (action === 'social-nav-calendar') showView('calendar');
     else if (action === 'social-nav-posts') showView('posts');
     else if (action === 'social-nav-analytics') showView('analytics');
+    else if (action === 'social-nav-inbox') showView('inbox');
     else if (action === 'social-nav-hashtags') showView('hashtags');
 
     // Accounts
@@ -828,6 +1154,15 @@
     }
     else if (action === 'social-delete-hashtag-set') deleteHashtagSet(btn.getAttribute('data-id'));
     else if (action === 'social-sync-metrics') syncMetrics();
+
+    // Inbox
+    else if (action === 'social-inbox-tab') switchInboxTab(btn.getAttribute('data-tab'));
+    else if (action === 'social-inbox-refresh') loadInbox();
+    else if (action === 'social-inbox-mark-all-read') markAllRead();
+    else if (action === 'social-inbox-open-comment') openCommentThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
+    else if (action === 'social-inbox-open-conversation') openConversationThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
+    else if (action === 'social-inbox-close-thread') closeThread();
+    else if (action === 'social-inbox-send-reply') sendReply();
 
     // New post / Edit post — handled by composer
     else if (action === 'social-new-post' && window.openSocialComposer) {

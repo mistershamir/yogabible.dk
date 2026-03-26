@@ -6,6 +6,7 @@
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-calendar">{{ t.social_nav_calendar or "Calendar" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-posts">{{ t.social_nav_posts or "Posts" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-analytics">{{ t.social_nav_analytics or "Analytics" }}</button>
+  <button class="yb-social__nav-btn" type="button" data-action="social-nav-inbox">{{ t.social_nav_inbox or "Inbox" }} <span class="yb-social__inbox-badge" id="yb-social-inbox-badge" hidden>0</span></button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-hashtags">{{ t.social_nav_hashtags or "Hashtags" }}</button>
 </div>
 
@@ -291,6 +292,48 @@
         </thead>
         <tbody id="yb-social-analytics-body"></tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+{# ════════════════════════════════════════════════════════════════════════════ #}
+{# VIEW: Inbox                                                                 #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+<div id="yb-social-v-inbox" hidden>
+  <div class="yb-admin__view-head">
+    <h2>{{ t.social_inbox_title or "Unified Inbox" }}</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-inbox-mark-all-read">{{ t.social_mark_all_read or "Mark All Read" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-inbox-refresh">&#8635; {{ t.social_refresh or "Refresh" }}</button>
+    </div>
+  </div>
+
+  {# Inbox tabs: Comments / Messages #}
+  <div class="yb-social__filter-bar" id="yb-social-inbox-tabs">
+    <button class="yb-social__filter-btn is-active" type="button" data-action="social-inbox-tab" data-tab="comments">{{ t.social_inbox_comments or "Comments" }} <span id="yb-social-inbox-comments-count" class="yb-social__inbox-count"></span></button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-inbox-tab" data-tab="messages">{{ t.social_inbox_messages or "Messages" }} <span id="yb-social-inbox-messages-count" class="yb-social__inbox-count"></span></button>
+  </div>
+
+  {# Comments List #}
+  <div id="yb-social-inbox-comments" class="yb-social__inbox-list">
+    <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+  </div>
+
+  {# Messages List #}
+  <div id="yb-social-inbox-messages" class="yb-social__inbox-list" hidden>
+    <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+  </div>
+
+  {# Thread / Reply Panel (slides in from right) #}
+  <div class="yb-social__inbox-thread" id="yb-social-inbox-thread" hidden>
+    <div class="yb-social__inbox-thread-header">
+      <button type="button" data-action="social-inbox-close-thread">&larr; {{ t.social_back or "Back" }}</button>
+      <h4 id="yb-social-inbox-thread-title"></h4>
+    </div>
+    <div class="yb-social__inbox-thread-body" id="yb-social-inbox-thread-body"></div>
+    <div class="yb-social__inbox-reply-box">
+      <textarea id="yb-social-inbox-reply" rows="2" placeholder="{{ t.social_reply_placeholder or 'Type your reply...' }}"></textarea>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-inbox-send-reply">{{ t.social_send or "Send" }}</button>
     </div>
   </div>
 </div>

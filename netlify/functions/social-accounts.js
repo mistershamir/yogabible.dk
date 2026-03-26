@@ -14,11 +14,13 @@ const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 const {
   getInstagramAccountInfo,
-  getFacebookPageInfo
+  getFacebookPageInfo,
+  getTikTokAccountInfo,
+  getLinkedInOrgInfo
 } = require('./shared/social-api');
 
 const COLLECTION = 'social_accounts';
-const VALID_PLATFORMS = ['instagram', 'facebook'];
+const VALID_PLATFORMS = ['instagram', 'facebook', 'tiktok', 'linkedin'];
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -117,6 +119,27 @@ function connectGuide(platform) {
         '5. Get your Page ID via: GET /me/accounts',
         '6. Use the "save-token" action to store: accessToken, pageId, pageName'
       ]
+    },
+    tiktok: {
+      platform: 'tiktok',
+      steps: [
+        '1. Go to developers.tiktok.com → Manage Apps → Create or select your app',
+        '2. Add the "Content Posting API" and "TikTok Account" products',
+        '3. Submit your app for review (required for content posting)',
+        '4. Once approved, go to Authorization → generate an access token with scopes: video.publish, video.upload, user.info.basic',
+        '5. Use the "save-token" action to store: accessToken'
+      ]
+    },
+    linkedin: {
+      platform: 'linkedin',
+      steps: [
+        '1. Go to linkedin.com/developers → Create or select your app',
+        '2. Under Products, request access to "Share on LinkedIn" and "Sign In with LinkedIn"',
+        '3. Under Auth, note your Client ID and Client Secret',
+        '4. Generate an access token with scopes: w_member_social, w_organization_social, r_organization_social',
+        '5. Get your Organization ID from your LinkedIn Company Page URL (e.g., linkedin.com/company/12345)',
+        '6. Use the "save-token" action to store: accessToken, organizationId'
+      ]
     }
   };
 
@@ -127,7 +150,7 @@ function connectGuide(platform) {
 // ── Save access token for a platform ────────────────────────────
 
 async function saveToken(db, body, user) {
-  const { platform, accessToken, refreshToken, pageId, pageName, igAccountId } = body;
+  const { platform, accessToken, refreshToken, pageId, pageName, igAccountId, organizationId } = body;
 
   if (!platform || !VALID_PLATFORMS.includes(platform)) {
     return jsonResponse(400, { ok: false, error: `Invalid platform. Supported: ${VALID_PLATFORMS.join(', ')}` });
@@ -145,6 +168,10 @@ async function saveToken(db, body, user) {
     return jsonResponse(400, { ok: false, error: 'Facebook requires pageId' });
   }
 
+  if (platform === 'linkedin' && !organizationId) {
+    return jsonResponse(400, { ok: false, error: 'LinkedIn requires organizationId' });
+  }
+
   // Build account document
   const accountData = {
     platform,
@@ -153,6 +180,7 @@ async function saveToken(db, body, user) {
     pageId: pageId || null,
     pageName: pageName || null,
     igAccountId: igAccountId || null,
+    organizationId: organizationId || null,
     connectedAt: serverTimestamp(),
     connectedBy: user.email,
     lastSynced: null,
@@ -183,6 +211,25 @@ async function saveToken(db, body, user) {
         accountData.username = info.info.username || '';
         accountData.followerCount = info.info.followers || 0;
         accountData.profilePicture = info.info.picture || null;
+        accountData.lastSynced = serverTimestamp();
+      }
+    } else if (platform === 'tiktok') {
+      const info = await getTikTokAccountInfo({ accessToken });
+      if (info.success) {
+        accountData.name = info.info.displayName || '';
+        accountData.handle = info.info.username || '';
+        accountData.username = info.info.username || '';
+        accountData.followerCount = info.info.followers || 0;
+        accountData.profilePicture = info.info.avatarUrl || null;
+        accountData.lastSynced = serverTimestamp();
+      }
+    } else if (platform === 'linkedin') {
+      const info = await getLinkedInOrgInfo({ accessToken, organizationId });
+      if (info.success) {
+        accountData.name = info.info.name || '';
+        accountData.handle = info.info.vanityName || '';
+        accountData.username = info.info.vanityName || '';
+        accountData.followerCount = info.info.followers || 0;
         accountData.lastSynced = serverTimestamp();
       }
     }
@@ -275,6 +322,36 @@ async function refreshAccounts(db) {
           update.handle = info.info.username || data.handle;
           update.username = info.info.username || data.username;
           update.profilePicture = info.info.picture || data.profilePicture;
+        } else {
+          errors.push({ platform, error: info.error });
+          continue;
+        }
+      } else if (platform === 'tiktok' && data.accessToken) {
+        const info = await getTikTokAccountInfo({
+          accessToken: data.accessToken
+        });
+
+        if (info.success) {
+          update.followerCount = info.info.followers || 0;
+          update.name = info.info.displayName || data.name;
+          update.handle = info.info.username || data.handle;
+          update.username = info.info.username || data.username;
+          update.profilePicture = info.info.avatarUrl || data.profilePicture;
+        } else {
+          errors.push({ platform, error: info.error });
+          continue;
+        }
+      } else if (platform === 'linkedin' && data.accessToken && data.organizationId) {
+        const info = await getLinkedInOrgInfo({
+          accessToken: data.accessToken,
+          organizationId: data.organizationId
+        });
+
+        if (info.success) {
+          update.followerCount = info.info.followers || 0;
+          update.name = info.info.name || data.name;
+          update.handle = info.info.vanityName || data.handle;
+          update.username = info.info.vanityName || data.username;
         } else {
           errors.push({ platform, error: info.error });
           continue;
