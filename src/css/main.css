@@ -18039,7 +18039,7 @@ button.yb-btn--outline-white:hover {
    Pattern: DS Section 11 (Split) + DS Section 4 (Card)
    ───────────────────────────────────────── */
 .yphoto-session {
-  background: #FFFCF9;
+  background: #0F0F0F;
   padding: clamp(60px, 8vw, 100px) 20px;
   overflow: hidden;
 }
@@ -18063,7 +18063,7 @@ button.yb-btn--outline-white:hover {
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  background: #F5F3F0;
+  background: #1a1a1a;
   min-height: clamp(400px, 55vw, 650px);
 }
 .yphoto-session__img {
@@ -18119,8 +18119,8 @@ button.yb-btn--outline-white:hover {
 
 /* Content side — DS Card pattern */
 .yphoto-session__content {
-  background: #fff;
-  border: 1px solid #E8E4E0;
+  background: #161616;
+  border: 1px solid rgba(255,255,255,.08);
   border-radius: 12px;
   padding: clamp(24px, 3vw, 36px);
   display: flex;
@@ -18128,7 +18128,7 @@ button.yb-btn--outline-white:hover {
   transition: box-shadow .3s ease;
 }
 .yphoto-session__content:hover {
-  box-shadow: 0 20px 50px rgba(0,0,0,.08);
+  box-shadow: 0 20px 50px rgba(0,0,0,.3);
 }
 
 /* Eyebrow — DS Section 12 (with dot) */
@@ -18156,13 +18156,13 @@ button.yb-btn--outline-white:hover {
   font-size: clamp(1.3rem, 2.4vw, 1.8rem);
   font-weight: 700;
   line-height: 1.15;
-  color: #1C1C1C;
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: -0.02em;
 }
 .yphoto-session__lead {
   margin: 0 0 20px;
-  color: #6F6A66;
+  color: rgba(255,255,255,.6);
   font-size: 0.95rem;
   line-height: 1.65;
 }
@@ -18177,13 +18177,14 @@ button.yb-btn--outline-white:hover {
   .yphoto-session__highlights { grid-template-columns: repeat(3, 1fr); }
 }
 .yphoto-session__hl {
-  border: 1px solid #E8E4E0;
+  border: 1px solid rgba(255,255,255,.06);
+  border-top: 2px solid rgba(247,92,3,.5);
   border-radius: 12px;
   padding: 14px;
-  background: #FFFCF9;
+  background: #1a1a1a;
   transition: border-color .2s;
 }
-.yphoto-session__hl:hover { border-color: rgba(247,92,3,.3); }
+.yphoto-session__hl:hover { border-color: rgba(247,92,3,.4); }
 .yphoto-session__hl-row {
   display: flex;
   align-items: baseline;
@@ -18196,17 +18197,17 @@ button.yb-btn--outline-white:hover {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .1em;
-  color: #6F6A66;
+  color: rgba(255,255,255,.5);
 }
 .yphoto-session__hl-val {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #1C1C1C;
+  color: #fff;
   white-space: nowrap;
 }
 .yphoto-session__hl-desc {
   margin: 0;
-  color: #6F6A66;
+  color: rgba(255,255,255,.5);
   font-size: 0.8rem;
   line-height: 1.5;
 }
@@ -18215,7 +18216,7 @@ button.yb-btn--outline-white:hover {
 .yphoto-session__features {
   padding-top: 16px;
   margin-top: auto;
-  border-top: 1px solid #E8E4E0;
+  border-top: 1px solid rgba(255,255,255,.08);
 }
 .yphoto-session__features-title {
   margin: 0 0 10px;
@@ -18223,7 +18224,7 @@ button.yb-btn--outline-white:hover {
   font-weight: 700;
   letter-spacing: .15em;
   text-transform: uppercase;
-  color: #1C1C1C;
+  color: #fff;
 }
 .yphoto-session__list {
   list-style: none;
@@ -18234,7 +18235,7 @@ button.yb-btn--outline-white:hover {
   padding-left: 26px;
   position: relative;
   margin-bottom: 10px;
-  color: #6F6A66;
+  color: rgba(255,255,255,.6);
   font-size: 0.9rem;
   line-height: 1.6;
 }
@@ -18255,7 +18256,7 @@ button.yb-btn--outline-white:hover {
 }
 .yphoto-session__note {
   margin: 12px 0 0;
-  color: #6F6A66;
+  color: rgba(255,255,255,.5);
   font-size: 0.8rem;
   line-height: 1.5;
 }
@@ -18269,7 +18270,7 @@ button.yb-btn--outline-white:hover {
    Pattern: DS Section 4 (Card) + DS Section 15 (Accordion)
    ───────────────────────────────────────── */
 .yphoto-prepfaq {
-  background: #F5F3F0;
+  background: #0F0F0F;
   padding: clamp(60px, 8vw, 100px) 20px;
 }
 .yphoto-prepfaq__wrap {
@@ -18289,8 +18290,8 @@ button.yb-btn--outline-white:hover {
 
 /* Shared card — DS Card pattern */
 .yphoto-prepfaq__card {
-  background: #fff;
-  border: 1px solid #E8E4E0;
+  background: #161616;
+  border: 1px solid rgba(255,255,255,.08);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -18298,7 +18299,7 @@ button.yb-btn--outline-white:hover {
   transition: all .3s ease;
 }
 .yphoto-prepfaq__card:hover {
-  box-shadow: 0 20px 50px rgba(0,0,0,.08);
+  box-shadow: 0 20px 50px rgba(0,0,0,.3);
 }
 .yphoto-prepfaq__card-head {
   padding: clamp(24px, 3vw, 32px) clamp(24px, 3vw, 32px) 0;
@@ -18329,13 +18330,13 @@ button.yb-btn--outline-white:hover {
   font-size: clamp(1.15rem, 2vw, 1.5rem);
   font-weight: 700;
   line-height: 1.15;
-  color: #1C1C1C;
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: -0.01em;
 }
 .yphoto-prepfaq__card-desc {
   margin: 0 0 16px;
-  color: #6F6A66;
+  color: rgba(255,255,255,.6);
   font-size: 0.9rem;
   line-height: 1.65;
 }
@@ -18353,7 +18354,7 @@ button.yb-btn--outline-white:hover {
 }
 .yphoto-prepfaq__note {
   margin: 10px 0 0;
-  color: #6F6A66;
+  color: rgba(255,255,255,.5);
   font-size: 0.78rem;
   line-height: 1.5;
 }
@@ -18372,11 +18373,11 @@ button.yb-btn--outline-white:hover {
   gap: 14px;
   padding: 14px;
   border-radius: 12px;
-  background: #F5F3F0;
+  background: #1a1a1a;
   transition: background .2s, transform .2s;
 }
 .yphoto-prep__item:hover {
-  background: #F0EDEA;
+  background: #222;
   transform: translateY(-2px);
 }
 .yphoto-prep__icon {
@@ -18394,13 +18395,13 @@ button.yb-btn--outline-white:hover {
 .yphoto-prep__label {
   display: block;
   font-weight: 700;
-  color: #1C1C1C;
+  color: #fff;
   font-size: 0.9rem;
   margin-bottom: 2px;
 }
 .yphoto-prep__desc {
   margin: 0;
-  color: #6F6A66;
+  color: rgba(255,255,255,.5);
   font-size: 0.85rem;
   line-height: 1.55;
 }
@@ -18414,7 +18415,7 @@ button.yb-btn--outline-white:hover {
   flex: 1;
 }
 .yphoto-faq__item {
-  background: #F5F3F0;
+  background: #1a1a1a;
   border-radius: 12px;
   overflow: hidden;
 }
@@ -18431,13 +18432,13 @@ button.yb-btn--outline-white:hover {
   gap: 14px;
   font-size: 0.9rem;
   font-weight: 700;
-  color: #1C1C1C;
+  color: #fff;
   line-height: 1.4;
   font-family: inherit;
   transition: background .2s;
 }
 .yphoto-faq__toggle:hover {
-  background: #F0EDEA;
+  background: #222;
 }
 .yphoto-faq__toggle > span:first-child { flex: 1 1 auto; }
 
@@ -18488,7 +18489,7 @@ button.yb-btn--outline-white:hover {
   padding: 0 20px 18px;
   margin: 0;
   font-size: 0.9rem;
-  color: #6F6A66;
+  color: rgba(255,255,255,.6);
   line-height: 1.7;
 }
 
