@@ -577,6 +577,10 @@
             <label class="yb-social__schedule-radio">
               <input type="radio" name="social-schedule" value="schedule"> {{ t.social_schedule or "Schedule" }}
             </label>
+            <label class="yb-social__schedule-radio">
+              <input type="radio" name="social-schedule" value="queue"> {{ t.social_queue or "Queue" }}
+              <span class="yb-social__queue-hint">{{ t.social_queue_hint or "(next best slot)" }}</span>
+            </label>
           </div>
           <div class="yb-social__schedule-picker" id="yb-social-schedule-picker" hidden>
             <input type="date" id="yb-social-schedule-date">
