@@ -135,6 +135,12 @@ exports.handler = async (event) => {
       case 'adapt-tone': return adaptTone(body);
       case 'repurpose-blog': return repurposeBlog(body);
       case 'translate': return translateCaption(body);
+      case 'reply-comment': return replyComment(body);
+      case 'content-plan': return contentPlan(body);
+      case 'ab-variants': return abVariants(body);
+      case 'alt-text': return generateAltText(body);
+      case 'analytics-insight': return analyticsInsight(body);
+      case 'smart-blog-caption': return smartBlogCaption(body);
       default:
         return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
     }
@@ -471,6 +477,321 @@ Respond with this exact JSON structure:
     return jsonResponse(200, { ok: true, ...parsed });
   } catch (parseErr) {
     console.error('[social-ai] Failed to parse translate response:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Draft reply to a comment/DM ────────────────────────────────
+
+async function replyComment(body) {
+  const { comment, context, tone, platform } = body;
+  if (!comment) return jsonResponse(400, { ok: false, error: 'Missing comment' });
+
+  const contextHint = context ? `\nPost context: "${context}"` : '';
+  const toneHint = tone || 'warm and personal, from Shamir';
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Draft 3 reply options to this ${platform || 'social media'} comment/message.
+${contextHint}
+
+Comment to reply to:
+"""
+${comment}
+"""
+
+Tone: ${toneHint}
+
+Rules:
+- Reply as Shamir (Course Director at Yoga Bible)
+- Keep replies concise and personal
+- If asking about pricing, direct to yogabible.dk or suggest booking an info session
+- If asking about course language, DO NOT mention it — redirect to program details
+- If negative/complaint, be empathetic and offer to continue the conversation privately
+- Include emoji sparingly and naturally
+
+Respond with this exact JSON structure:
+{
+  "replies": [
+    {
+      "text": "The reply text",
+      "style": "brief label (e.g., friendly, professional, detailed)",
+      "note": "Why this reply works"
+    }
+  ],
+  "sentiment": "positive|neutral|negative|question",
+  "suggestPrivate": false
+}`
+  }], 1500);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse reply response:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Generate content calendar plan ────────────────────────────
+
+async function contentPlan(body) {
+  const { days, themes, goals, existingPosts } = body;
+  const planDays = days || 14;
+
+  const existingHint = existingPosts && existingPosts.length
+    ? `\nAlready scheduled posts:\n${existingPosts.map(p => `- ${p.date}: ${p.caption?.substring(0, 60)}`).join('\n')}`
+    : '';
+
+  const themesHint = themes && themes.length
+    ? `Focus themes: ${themes.join(', ')}`
+    : '';
+
+  const goalsHint = goals ? `Campaign goals: ${goals}` : '';
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Create a ${planDays}-day social media content plan for Yoga Bible.
+
+${themesHint}
+${goalsHint}
+${existingHint}
+
+Today's date: ${new Date().toISOString().split('T')[0]}
+
+Content mix guidelines:
+- 40% educational (yoga tips, anatomy, philosophy)
+- 25% social proof (testimonials, student journeys, community)
+- 20% lifestyle (Copenhagen life, studio vibes, behind-the-scenes)
+- 15% promotional (programs, Preparation Phase, enrollment CTAs)
+
+For each post suggest:
+- Date and optimal posting time (Copenhagen timezone)
+- Platform(s) to post on
+- Caption idea (2-3 sentences)
+- Visual type (photo, video, carousel, reel, story)
+- Hashtag theme
+
+Respond with this exact JSON structure:
+{
+  "plan": [
+    {
+      "date": "YYYY-MM-DD",
+      "time": "HH:MM",
+      "platforms": ["instagram", "facebook"],
+      "category": "educational|social_proof|lifestyle|promotional",
+      "caption_idea": "Brief caption concept",
+      "visual_type": "photo|video|carousel|reel|story",
+      "visual_suggestion": "Description of ideal visual",
+      "hashtag_theme": "yoga tips|community|copenhagen|training",
+      "notes": "Any strategic notes"
+    }
+  ],
+  "strategy_notes": "Overall strategy summary for this period"
+}`
+  }], 4000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse plan response:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Generate A/B test caption variants ─────────────────────────
+
+async function abVariants(body) {
+  const { topic, count, platform, angle } = body;
+  if (!topic) return jsonResponse(400, { ok: false, error: 'Missing topic' });
+
+  const variantCount = Math.min(count || 3, 5);
+  const angleHint = angle ? `Test angle: ${angle}` : 'Test different hooks, tones, and CTAs.';
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Generate ${variantCount} distinctly different caption variants for A/B testing.
+
+Topic: "${topic}"
+Platform: ${platform || 'Instagram'}
+${angleHint}
+
+Each variant should test a different approach:
+- Variant A: Hook-driven (attention-grabbing first line)
+- Variant B: Story-driven (personal narrative)
+- Variant C: Question-driven (engagement prompt)
+${variantCount > 3 ? '- Variant D: Social proof (testimonial/stat-based)' : ''}
+${variantCount > 4 ? '- Variant E: FOMO/urgency (scarcity angle)' : ''}
+
+Respond with this exact JSON structure:
+{
+  "variants": [
+    {
+      "name": "Variant A — Hook",
+      "caption": "The full caption text",
+      "hypothesis": "Why this might win — what it tests",
+      "hashtags": ["#tag1", "#tag2"]
+    }
+  ],
+  "test_recommendation": "How long to run the test and what metric to measure"
+}`
+  }], 3000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse A/B response:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Generate alt text for images ──────────────────────────────
+
+async function generateAltText(body) {
+  const { imageUrl, context } = body;
+  if (!imageUrl) return jsonResponse(400, { ok: false, error: 'Missing imageUrl' });
+
+  const contextHint = context ? `\nPost context: "${context}"` : '';
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Generate accessible alt text for a social media image.
+
+Image URL: ${imageUrl}
+${contextHint}
+
+Since I cannot see the image, use the URL path and context to infer what the image likely shows (e.g., yoga-bible-DK/studio/ → studio interior, yoga-bible-DK/programs/ → yoga training session).
+
+Generate 3 options:
+1. Concise (under 125 chars) — for screen readers
+2. Descriptive (under 250 chars) — rich description
+3. SEO-optimized — includes relevant keywords naturally
+
+Respond with this exact JSON structure:
+{
+  "altTexts": [
+    { "text": "...", "style": "concise", "charCount": 0 },
+    { "text": "...", "style": "descriptive", "charCount": 0 },
+    { "text": "...", "style": "seo", "charCount": 0 }
+  ]
+}`
+  }], 1000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse alt text response:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Natural language analytics insights ────────────────────────
+
+async function analyticsInsight(body) {
+  const { metrics, period, question } = body;
+  if (!metrics) return jsonResponse(400, { ok: false, error: 'Missing metrics' });
+
+  const questionHint = question
+    ? `Specific question: "${question}"`
+    : 'Provide general performance insights and actionable recommendations.';
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Analyze these social media metrics and provide insights.
+
+Period: ${period || 'recent'}
+
+Metrics data:
+${JSON.stringify(metrics, null, 2)}
+
+${questionHint}
+
+Provide:
+1. Key performance highlights (what's working)
+2. Areas of concern (what's not working)
+3. Specific, actionable recommendations
+4. Content strategy adjustments
+
+Keep insights practical and specific to Yoga Bible's business (yoga teacher training enrollment).
+
+Respond with this exact JSON structure:
+{
+  "summary": "One-paragraph executive summary",
+  "highlights": ["highlight 1", "highlight 2"],
+  "concerns": ["concern 1", "concern 2"],
+  "recommendations": [
+    {
+      "action": "What to do",
+      "reason": "Why",
+      "priority": "high|medium|low"
+    }
+  ],
+  "bestPerforming": {
+    "postType": "reels|carousel|image|story",
+    "topic": "What content resonated most",
+    "bestDay": "day of week",
+    "bestTime": "time range"
+  }
+}`
+  }], 2000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse insight response:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Smart blog-to-social caption (for auto-post) ──────────────
+
+async function smartBlogCaption(body) {
+  const { title, excerpt, slug, platform, tags } = body;
+  if (!title) return jsonResponse(400, { ok: false, error: 'Missing title' });
+
+  const tagsHint = tags && tags.length ? `Blog tags: ${tags.join(', ')}` : '';
+  const url = `https://yogabible.dk/yoga-journal/${slug}/`;
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Write a native social media caption for ${platform || 'Instagram'} to promote this blog post.
+
+Blog title: "${title}"
+Blog excerpt: "${excerpt || ''}"
+Blog URL: ${url}
+${tagsHint}
+
+Do NOT just copy the excerpt. Write a platform-native caption that:
+- Opens with a compelling hook (question, bold statement, or surprising fact)
+- Teases the blog content without giving everything away
+- Ends with a CTA to read the full post (include the URL naturally)
+- Feels like a genuine social media post, not a blog announcement
+
+Also provide 15-20 hashtags.
+
+Respond with this exact JSON structure:
+{
+  "caption": "The caption with \\n line breaks",
+  "hashtags": ["#tag1", "#tag2"],
+  "hook_type": "question|bold_statement|surprising_fact|story"
+}`
+  }], 1500);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse smart caption:', text.substring(0, 500));
     return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
   }
 }

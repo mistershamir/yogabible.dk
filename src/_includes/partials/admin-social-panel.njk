@@ -157,6 +157,40 @@
     <h2 id="yb-social-cal-month">{{ t.social_calendar_loading or "March 2026" }}</h2>
     <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-cal-next">&rarr;</button>
     <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-new-post">+ {{ t.social_new_post or "New Post" }}</button>
+    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__ai-plan-btn" data-action="social-ai-plan">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      {{ t.social_ai_plan or "AI Plan" }}
+    </button>
+  </div>
+
+  {# AI Content Plan Modal #}
+  <div class="yb-social__ai-plan-modal" id="yb-social-ai-plan-modal" hidden>
+    <div class="yb-social__ai-plan-overlay" data-action="social-ai-plan-close"></div>
+    <div class="yb-social__ai-plan-box">
+      <h3>{{ t.social_ai_plan_title or "AI Content Planner" }}</h3>
+      <p class="yb-admin__muted">{{ t.social_ai_plan_desc or "Claude will generate a content plan based on your goals and themes." }}</p>
+      <div class="yb-admin__field">
+        <label for="yb-social-ai-plan-days">{{ t.social_ai_plan_days or "Days to plan" }}</label>
+        <select id="yb-social-ai-plan-days">
+          <option value="7">7 {{ t.social_days or "days" }}</option>
+          <option value="14" selected>14 {{ t.social_days or "days" }}</option>
+          <option value="30">30 {{ t.social_days or "days" }}</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-social-ai-plan-themes">{{ t.social_ai_plan_themes or "Focus themes (optional)" }}</label>
+        <input type="text" id="yb-social-ai-plan-themes" placeholder="{{ t.social_ai_plan_themes_placeholder or 'e.g., July cohort, summer yoga, Copenhagen' }}">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-social-ai-plan-goals">{{ t.social_ai_plan_goals or "Campaign goals (optional)" }}</label>
+        <input type="text" id="yb-social-ai-plan-goals" placeholder="{{ t.social_ai_plan_goals_placeholder or 'e.g., Drive July enrollment, increase engagement' }}">
+      </div>
+      <div class="yb-social__ai-plan-results" id="yb-social-ai-plan-results" hidden></div>
+      <div class="yb-social__ai-plan-actions">
+        <button type="button" class="yb-btn yb-btn--outline" data-action="social-ai-plan-close">{{ t.social_cancel or "Cancel" }}</button>
+        <button type="button" class="yb-btn yb-btn--primary" data-action="social-ai-plan-generate" id="yb-social-ai-plan-generate-btn">{{ t.social_ai_plan_generate or "Generate Plan" }}</button>
+      </div>
+    </div>
   </div>
 
   <div class="yb-social__calendar-weekdays">
@@ -219,9 +253,20 @@
         <option value="90">{{ t.social_range_90d or "Last 90 days" }}</option>
       </select>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-sync-metrics">&#8635; {{ t.social_sync or "Sync" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__ai-plan-btn" data-action="social-ai-insights">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        {{ t.social_ai_insights or "AI Insights" }}
+      </button>
     </div>
   </div>
   <div class="yb-social__last-sync" id="yb-social-last-sync" hidden></div>
+  <div class="yb-social__ai-insights-panel" id="yb-social-ai-insights-panel" hidden>
+    <div class="yb-social__ai-insights-header">
+      <h3>{{ t.social_ai_insights_title or "AI Performance Insights" }}</h3>
+      <button type="button" data-action="social-ai-insights-close" class="yb-btn yb-btn--outline yb-btn--sm">✕</button>
+    </div>
+    <div id="yb-social-ai-insights-body"><p class="yb-admin__muted">{{ t.social_ai_analyzing or "Analyzing your metrics..." }}</p></div>
+  </div>
 
   {# Stat cards #}
   <div class="yb-admin__stats-grid">
@@ -333,11 +378,21 @@
     <div class="yb-social__inbox-thread-header">
       <button type="button" data-action="social-inbox-close-thread">&larr; {{ t.social_back or "Back" }}</button>
       <h4 id="yb-social-inbox-thread-title"></h4>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__create-lead-btn" data-action="social-inbox-create-lead" title="{{ t.social_create_lead or 'Create Lead' }}">
+        👤 {{ t.social_create_lead or "Create Lead" }}
+      </button>
     </div>
     <div class="yb-social__inbox-thread-body" id="yb-social-inbox-thread-body"></div>
     <div class="yb-social__inbox-reply-box">
+      <div class="yb-social__inbox-ai-suggestions" id="yb-social-ai-reply-suggestions" hidden></div>
       <textarea id="yb-social-inbox-reply" rows="2" placeholder="{{ t.social_reply_placeholder or 'Type your reply...' }}"></textarea>
-      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-inbox-send-reply">{{ t.social_send or "Send" }}</button>
+      <div class="yb-social__inbox-reply-actions">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__ai-reply-btn" data-action="social-ai-draft-reply" title="{{ t.social_ai_draft_reply or 'AI Draft Reply' }}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          {{ t.social_ai_draft_reply or "AI Reply" }}
+        </button>
+        <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-inbox-send-reply">{{ t.social_send or "Send" }}</button>
+      </div>
     </div>
   </div>
 </div>
@@ -574,6 +629,41 @@
           <label for="yb-social-location">{{ t.social_location or "Location" }}</label>
           <input type="text" id="yb-social-location" placeholder="{{ t.social_location_placeholder or 'Yoga Bible, Copenhagen' }}">
         </div>
+
+        {# UTM Builder #}
+        <details class="yb-social__utm-builder">
+          <summary>{{ t.social_utm_builder or "🔗 UTM Link Builder" }}</summary>
+          <div class="yb-social__utm-fields">
+            <div class="yb-admin__field">
+              <label for="yb-social-utm-url">URL</label>
+              <input type="text" id="yb-social-utm-url" placeholder="https://yogabible.dk/..." value="https://yogabible.dk">
+            </div>
+            <div class="yb-social__utm-grid">
+              <div class="yb-admin__field">
+                <label for="yb-social-utm-source">Source</label>
+                <select id="yb-social-utm-source" class="yb-admin__select">
+                  <option value="instagram">instagram</option>
+                  <option value="facebook">facebook</option>
+                  <option value="tiktok">tiktok</option>
+                  <option value="linkedin">linkedin</option>
+                </select>
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-social-utm-medium">Medium</label>
+                <input type="text" id="yb-social-utm-medium" value="social" placeholder="social">
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-social-utm-campaign">Campaign</label>
+                <input type="text" id="yb-social-utm-campaign" placeholder="e.g. july-cohort-2026">
+              </div>
+            </div>
+            <div class="yb-social__utm-result">
+              <input type="text" id="yb-social-utm-result" readonly placeholder="{{ t.social_utm_result or 'Generated URL will appear here' }}">
+              <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-utm-copy">{{ t.social_copy or "Copy" }}</button>
+              <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-utm-insert">{{ t.social_utm_insert or "Insert in Caption" }}</button>
+            </div>
+          </div>
+        </details>
 
         {# Schedule #}
         <div class="yb-social__schedule-section">

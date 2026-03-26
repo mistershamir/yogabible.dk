@@ -6309,6 +6309,140 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   content: ''; flex: 1; height: 1px; background: #E8E4E0;
 }
 
+/* ── AI Reply Suggestions ── */
+.yb-social__inbox-ai-suggestions {
+  background: #FFFCF9; border: 1px solid #E8E4E0; border-radius: 10px;
+  padding: 12px; margin-bottom: 10px;
+}
+.yb-social__ai-reply-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  color: #f75c03; margin-bottom: 8px; letter-spacing: 0.5px;
+}
+.yb-social__ai-reply-opt {
+  background: #fff; border: 1px solid #E8E4E0; border-radius: 8px;
+  padding: 10px; margin-bottom: 8px;
+}
+.yb-social__ai-reply-opt p { font-size: 13px; margin: 0 0 6px; }
+.yb-social__ai-reply-opt-meta {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.yb-social__ai-reply-style {
+  font-size: 11px; color: #6F6A66; background: #F5F3F0;
+  padding: 2px 8px; border-radius: 4px;
+}
+.yb-social__ai-reply-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.yb-social__inbox-reply-actions {
+  display: flex; gap: 8px; align-items: center;
+}
+.yb-social__create-lead-btn { margin-left: auto; }
+
+/* ── AI Content Planner Modal ── */
+.yb-social__ai-plan-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 1200; display: flex; align-items: center; justify-content: center;
+}
+.yb-social__ai-plan-overlay {
+  position: absolute; inset: 0; background: rgba(15,15,15,0.5);
+}
+.yb-social__ai-plan-box {
+  position: relative; background: #fff; border-radius: 14px;
+  padding: 28px; max-width: 640px; width: 90%; max-height: 85vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.yb-social__ai-plan-box h3 { margin: 0 0 4px; }
+.yb-social__ai-plan-actions {
+  display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;
+}
+.yb-social__ai-plan-strategy {
+  background: #FFF3E0; border-radius: 8px; padding: 10px 14px;
+  font-size: 13px; color: #e65100; margin-bottom: 12px;
+}
+.yb-social__ai-plan-list { display: flex; flex-direction: column; gap: 10px; }
+.yb-social__ai-plan-item {
+  background: #F5F3F0; border-radius: 10px; padding: 12px 14px;
+}
+.yb-social__ai-plan-item-date {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  font-size: 13px;
+}
+.yb-social__ai-plan-item-date strong { font-size: 14px; }
+.yb-social__ai-plan-cat {
+  font-size: 10px; padding: 2px 8px; border-radius: 4px;
+  text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;
+}
+.yb-social__ai-plan-cat--educational { background: #e3f2fd; color: #1565c0; }
+.yb-social__ai-plan-cat--social_proof { background: #e8f5e9; color: #2e7d32; }
+.yb-social__ai-plan-cat--lifestyle { background: #fce4ec; color: #c62828; }
+.yb-social__ai-plan-cat--promotional { background: #FFF3E0; color: #e65100; }
+.yb-social__ai-plan-item p { font-size: 13px; margin: 0 0 8px; }
+.yb-social__ai-plan-item-meta {
+  display: flex; gap: 8px; align-items: center; font-size: 11px; color: #6F6A66;
+}
+.yb-social__ai-plan-item-meta button { margin-left: auto; }
+.yb-social__ai-plan-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+}
+
+/* ── AI Analytics Insights Panel ── */
+.yb-social__ai-insights-panel {
+  background: #FFFCF9; border: 1px solid #E8E4E0; border-radius: 12px;
+  padding: 20px; margin-bottom: 20px;
+}
+.yb-social__ai-insights-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.yb-social__ai-insights-header h3 { margin: 0; font-size: 16px; }
+.yb-social__ai-insight-summary {
+  background: #fff; border: 1px solid #E8E4E0; border-radius: 8px;
+  padding: 14px; margin-bottom: 14px;
+}
+.yb-social__ai-insight-summary p { margin: 0; font-size: 14px; }
+.yb-social__ai-insight-section { margin-bottom: 14px; }
+.yb-social__ai-insight-section h4 { margin: 0 0 8px; font-size: 14px; }
+.yb-social__ai-insight-section ul { margin: 0; padding-left: 20px; font-size: 13px; }
+.yb-social__ai-insight-section li { margin-bottom: 4px; }
+.yb-social__ai-insight-section--warn {
+  background: #FFF8E1; border-radius: 8px; padding: 12px;
+}
+.yb-social__ai-recommendation {
+  background: #fff; border: 1px solid #E8E4E0; border-radius: 8px;
+  padding: 10px 14px; margin-bottom: 8px;
+}
+.yb-social__ai-recommendation strong { display: block; font-size: 13px; }
+.yb-social__ai-recommendation p { font-size: 12px; margin: 4px 0 0; }
+.yb-social__ai-priority {
+  display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px;
+  text-transform: uppercase; font-weight: 700; margin-bottom: 4px;
+  background: #E8E4E0; color: #6F6A66;
+}
+.yb-social__ai-priority--high { background: #FFEBEE; color: #c62828; }
+.yb-social__ai-priority--low { background: #e8f5e9; color: #2e7d32; }
+
+/* ── UTM Builder ── */
+.yb-social__utm-builder {
+  border: 1px solid #E8E4E0; border-radius: 10px; margin-bottom: 14px;
+}
+.yb-social__utm-builder summary {
+  padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600;
+  list-style: none;
+}
+.yb-social__utm-builder summary::-webkit-details-marker { display: none; }
+.yb-social__utm-builder[open] summary { border-bottom: 1px solid #E8E4E0; }
+.yb-social__utm-fields { padding: 14px; }
+.yb-social__utm-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+}
+.yb-social__utm-result {
+  display: flex; gap: 6px; margin-top: 10px; align-items: center;
+}
+.yb-social__utm-result input {
+  flex: 1; font-size: 12px; padding: 6px 10px;
+  border: 1px solid #E8E4E0; border-radius: 6px; background: #F5F3F0;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .yb-social__accounts-grid { grid-template-columns: repeat(2, 1fr); }
@@ -6332,6 +6466,9 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   .yb-social__competitors-grid { grid-template-columns: 1fr; }
   .yb-social__ab-variants { grid-template-columns: 1fr; }
   .yb-social__ab-modal .yb-social__ab-box { width: 100vw; max-width: 100vw; border-radius: 0; }
+  .yb-social__utm-grid { grid-template-columns: 1fr; }
+  .yb-social__ai-plan-box { width: 100vw; max-width: 100vw; border-radius: 0; }
+  .yb-social__inbox-reply-actions { flex-wrap: wrap; }
 }
 
 /* ── Competitor Tracking ── */

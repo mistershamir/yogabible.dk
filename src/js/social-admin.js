@@ -1017,6 +1017,233 @@
     }, 60000); // Poll every 60s when inbox is active
   }
 
+  // ── AI Draft Reply ──────────────────────────────────────────
+  async function aiDraftReply() {
+    if (!inboxState.activeThread) { toast('Open a thread first', true); return; }
+    var thread = inboxState.activeThread;
+
+    // Find the original comment/message text
+    var commentText = '';
+    var contextText = '';
+    if (thread.type === 'comment') {
+      var c = inboxState.comments.find(function (x) { return x.commentId === thread.id; });
+      if (c) { commentText = c.text; contextText = c.postCaption || ''; }
+    } else {
+      var conv = inboxState.conversations.find(function (x) { return x.conversationId === thread.id; });
+      if (conv) { commentText = conv.lastMessage; }
+    }
+
+    if (!commentText) { toast('No message to reply to', true); return; }
+
+    var sugEl = $('yb-social-ai-reply-suggestions');
+    if (sugEl) { sugEl.hidden = false; sugEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_generating') + '</p>'; }
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'reply-comment',
+        comment: commentText,
+        context: contextText,
+        platform: thread.platform
+      })
+    });
+
+    if (!data || !data.replies) {
+      if (sugEl) sugEl.innerHTML = '<p class="yb-admin__muted">AI could not generate replies.</p>';
+      return;
+    }
+
+    // Store globally for use
+    state.aiReplyOptions = data.replies;
+
+    if (sugEl) {
+      sugEl.innerHTML = '<div class="yb-social__ai-reply-label">' + t('social_ai_suggestions') + '</div>' +
+        data.replies.map(function (r, i) {
+          return '<div class="yb-social__ai-reply-opt">' +
+            '<p>' + escapeHtml(r.text) + '</p>' +
+            '<div class="yb-social__ai-reply-opt-meta">' +
+            '<span class="yb-social__ai-reply-style">' + r.style + '</span>' +
+            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-use-reply" data-index="' + i + '">' + t('social_ai_use') + '</button>' +
+            '</div></div>';
+        }).join('') +
+        (data.sentiment ? '<p class="yb-admin__muted" style="margin-top:8px">Sentiment: ' + data.sentiment + (data.suggestPrivate ? ' — suggest moving to DM' : '') + '</p>' : '');
+    }
+  }
+
+  function useAiReply(index) {
+    if (!state.aiReplyOptions || !state.aiReplyOptions[index]) return;
+    var replyEl = $('yb-social-inbox-reply');
+    if (replyEl) replyEl.value = state.aiReplyOptions[index].text;
+    var sugEl = $('yb-social-ai-reply-suggestions');
+    if (sugEl) sugEl.hidden = true;
+  }
+
+  // ── Create Lead from DM/Comment ───────────────────────────────
+  async function createLeadFromInbox() {
+    if (!inboxState.activeThread) { toast('Open a thread first', true); return; }
+    var thread = inboxState.activeThread;
+    var name = '';
+    var source = thread.platform + '_' + thread.type;
+
+    if (thread.type === 'comment') {
+      var c = inboxState.comments.find(function (x) { return x.commentId === thread.id; });
+      if (c) name = c.author || '';
+    } else {
+      var conv = inboxState.conversations.find(function (x) { return x.conversationId === thread.id; });
+      if (conv && conv.participants) name = conv.participants[0] || '';
+    }
+
+    var nameInput = prompt(t('social_create_lead_name') || 'Lead name:', name);
+    if (!nameInput) return;
+
+    var emailInput = prompt(t('social_create_lead_email') || 'Email (optional):', '');
+
+    var leadData = {
+      first_name: nameInput.split(' ')[0] || nameInput,
+      last_name: nameInput.split(' ').slice(1).join(' ') || '',
+      email: emailInput || '',
+      source: source,
+      status: 'new',
+      notes: 'Created from social media ' + thread.type + ' on ' + thread.platform
+    };
+
+    toast('Creating lead...');
+    var data = await api('lead', {
+      method: 'POST',
+      body: JSON.stringify(leadData)
+    });
+
+    if (data) {
+      toast(t('social_lead_created') || 'Lead created');
+    }
+  }
+
+  // ── AI Content Planner ────────────────────────────────────────
+  var aiPlanData = null;
+
+  async function aiGeneratePlan() {
+    var daysEl = $('yb-social-ai-plan-days');
+    var themesEl = $('yb-social-ai-plan-themes');
+    var goalsEl = $('yb-social-ai-plan-goals');
+    var resultsEl = $('yb-social-ai-plan-results');
+    var genBtn = $('yb-social-ai-plan-generate-btn');
+
+    var days = daysEl ? parseInt(daysEl.value) : 14;
+    var themes = themesEl && themesEl.value ? themesEl.value.split(',').map(function (s) { return s.trim(); }) : [];
+    var goals = goalsEl ? goalsEl.value : '';
+
+    // Collect existing scheduled posts for context
+    var existingPosts = state.posts.filter(function (p) { return p.status === 'scheduled'; }).map(function (p) {
+      return { date: p.scheduledAt, caption: p.caption };
+    });
+
+    if (genBtn) genBtn.disabled = true;
+    if (resultsEl) { resultsEl.hidden = false; resultsEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_generating') + '</p>'; }
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'content-plan', days: days, themes: themes, goals: goals, existingPosts: existingPosts })
+    });
+
+    if (genBtn) genBtn.disabled = false;
+
+    if (!data || !data.plan) {
+      if (resultsEl) resultsEl.innerHTML = '<p class="yb-admin__muted">Could not generate plan.</p>';
+      return;
+    }
+
+    aiPlanData = data.plan;
+
+    if (resultsEl) {
+      var planHtml = data.strategy_notes ? '<p class="yb-social__ai-plan-strategy">' + escapeHtml(data.strategy_notes) + '</p>' : '';
+      planHtml += '<div class="yb-social__ai-plan-list">';
+      data.plan.forEach(function (item, i) {
+        planHtml += '<div class="yb-social__ai-plan-item">' +
+          '<div class="yb-social__ai-plan-item-date">' +
+            '<strong>' + item.date + '</strong> ' + (item.time || '') +
+            '<span class="yb-social__ai-plan-cat yb-social__ai-plan-cat--' + (item.category || 'educational') + '">' + (item.category || '') + '</span>' +
+          '</div>' +
+          '<p>' + escapeHtml(item.caption_idea || '') + '</p>' +
+          '<div class="yb-social__ai-plan-item-meta">' +
+            '<span>' + (item.visual_type || '') + '</span>' +
+            '<span>' + (item.platforms || []).join(', ') + '</span>' +
+            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-plan-create-post" data-index="' + i + '">' + t('social_ai_create_post') + '</button>' +
+          '</div></div>';
+      });
+      planHtml += '</div>';
+      resultsEl.innerHTML = planHtml;
+    }
+  }
+
+  function aiPlanCreatePost(index) {
+    if (!aiPlanData || !aiPlanData[index]) return;
+    var item = aiPlanData[index];
+    // Open composer pre-filled with the plan item
+    if (window._ybSocial && window._ybSocial.openSocialComposer) {
+      window._ybSocial.openSocialComposer({
+        caption: item.caption_idea || '',
+        platforms: item.platforms || [],
+        scheduledAt: item.date && item.time ? item.date + 'T' + item.time : null
+      });
+    }
+    // Close plan modal
+    var m = $('yb-social-ai-plan-modal');
+    if (m) m.hidden = true;
+  }
+
+  // ── AI Analytics Insights ─────────────────────────────────────
+  async function aiGetInsights() {
+    var panel = $('yb-social-ai-insights-panel');
+    var bodyEl = $('yb-social-ai-insights-body');
+    if (!panel) return;
+
+    panel.hidden = false;
+    if (bodyEl) bodyEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_analyzing') + '</p>';
+
+    // Gather current metrics from the DOM
+    var metrics = {
+      followers: ($('yb-social-stat-followers') || {}).textContent || '0',
+      engagement: ($('yb-social-stat-engagement') || {}).textContent || '0',
+      reach: ($('yb-social-stat-reach') || {}).textContent || '0',
+      posts: ($('yb-social-stat-posts') || {}).textContent || '0',
+      period: ($('yb-social-analytics-range') || {}).value || '30'
+    };
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'analytics-insight', metrics: metrics, period: metrics.period + ' days' })
+    });
+
+    if (!data || !data.summary) {
+      if (bodyEl) bodyEl.innerHTML = '<p class="yb-admin__muted">Could not generate insights.</p>';
+      return;
+    }
+
+    var html = '<div class="yb-social__ai-insight-summary"><p>' + escapeHtml(data.summary) + '</p></div>';
+
+    if (data.highlights && data.highlights.length) {
+      html += '<div class="yb-social__ai-insight-section"><h4>✅ ' + t('social_ai_highlights') + '</h4><ul>' +
+        data.highlights.map(function (h) { return '<li>' + escapeHtml(h) + '</li>'; }).join('') + '</ul></div>';
+    }
+
+    if (data.concerns && data.concerns.length) {
+      html += '<div class="yb-social__ai-insight-section yb-social__ai-insight-section--warn"><h4>⚠️ ' + t('social_ai_concerns') + '</h4><ul>' +
+        data.concerns.map(function (h) { return '<li>' + escapeHtml(h) + '</li>'; }).join('') + '</ul></div>';
+    }
+
+    if (data.recommendations && data.recommendations.length) {
+      html += '<div class="yb-social__ai-insight-section"><h4>💡 ' + t('social_ai_recommendations') + '</h4>';
+      data.recommendations.forEach(function (r) {
+        var prioClass = r.priority === 'high' ? 'yb-social__ai-priority--high' : r.priority === 'low' ? 'yb-social__ai-priority--low' : '';
+        html += '<div class="yb-social__ai-recommendation"><span class="yb-social__ai-priority ' + prioClass + '">' + (r.priority || 'medium') + '</span>' +
+          '<strong>' + escapeHtml(r.action) + '</strong><p class="yb-admin__muted">' + escapeHtml(r.reason) + '</p></div>';
+      });
+      html += '</div>';
+    }
+
+    if (bodyEl) bodyEl.innerHTML = html;
+  }
+
   function switchInboxTab(tab) {
     inboxState.tab = tab;
     var commentsEl = $('yb-social-inbox-comments');
@@ -1702,6 +1929,19 @@
     else if (action === 'social-inbox-open-conversation') openConversationThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
     else if (action === 'social-inbox-close-thread') closeThread();
     else if (action === 'social-inbox-send-reply') sendReply();
+    else if (action === 'social-ai-draft-reply') aiDraftReply();
+    else if (action === 'social-ai-use-reply') useAiReply(btn.getAttribute('data-index'));
+    else if (action === 'social-inbox-create-lead') createLeadFromInbox();
+
+    // AI Content Planner
+    else if (action === 'social-ai-plan') { var m = $('yb-social-ai-plan-modal'); if (m) m.hidden = false; }
+    else if (action === 'social-ai-plan-close') { var m = $('yb-social-ai-plan-modal'); if (m) m.hidden = true; }
+    else if (action === 'social-ai-plan-generate') aiGeneratePlan();
+    else if (action === 'social-ai-plan-create-post') aiPlanCreatePost(btn.getAttribute('data-index'));
+
+    // AI Analytics Insights
+    else if (action === 'social-ai-insights') aiGetInsights();
+    else if (action === 'social-ai-insights-close') { var p = $('yb-social-ai-insights-panel'); if (p) p.hidden = true; }
 
     // Templates
     else if (action === 'social-template-create') createTemplate();

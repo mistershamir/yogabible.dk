@@ -709,13 +709,59 @@
     else if (action === 'social-best-time') {
       fetchBestTime();
     }
+
+    // UTM builder
+    else if (action === 'social-utm-copy') {
+      var utmResult = $('yb-social-utm-result');
+      if (utmResult && utmResult.value) {
+        navigator.clipboard.writeText(utmResult.value).then(function () { S.toast('Copied'); });
+      }
+    }
+    else if (action === 'social-utm-insert') {
+      var utmResult = $('yb-social-utm-result');
+      var captionEl = $('yb-social-caption');
+      if (utmResult && utmResult.value && captionEl) {
+        captionEl.value = captionEl.value.replace(/https?:\/\/yogabible\.dk\S*/g, utmResult.value) || captionEl.value + '\n\n' + utmResult.value;
+        updateCharCount(); updatePreview();
+        S.toast('URL inserted');
+      }
+    }
   });
 
   // Input events
   document.addEventListener('input', function (e) {
     if (e.target.id === 'yb-social-caption') { updateCharCount(); updatePreview(); }
     if (e.target.id === 'yb-social-hashtags') updatePreview();
+
+    // UTM builder auto-generate
+    if (e.target.id === 'yb-social-utm-url' || e.target.id === 'yb-social-utm-source' ||
+        e.target.id === 'yb-social-utm-medium' || e.target.id === 'yb-social-utm-campaign') {
+      buildUtmUrl();
+    }
   });
+
+  document.addEventListener('change', function (e) {
+    if (e.target.id === 'yb-social-utm-source') buildUtmUrl();
+  });
+
+  function buildUtmUrl() {
+    var base = ($('yb-social-utm-url') || {}).value || '';
+    var source = ($('yb-social-utm-source') || {}).value || '';
+    var medium = ($('yb-social-utm-medium') || {}).value || '';
+    var campaign = ($('yb-social-utm-campaign') || {}).value || '';
+    var resultEl = $('yb-social-utm-result');
+    if (!resultEl || !base) return;
+
+    try {
+      var url = new URL(base);
+      if (source) url.searchParams.set('utm_source', source);
+      if (medium) url.searchParams.set('utm_medium', medium);
+      if (campaign) url.searchParams.set('utm_campaign', campaign);
+      resultEl.value = url.toString();
+    } catch (e) {
+      resultEl.value = base;
+    }
+  }
 
   // Platform toggle changes
   document.addEventListener('change', function (e) {
