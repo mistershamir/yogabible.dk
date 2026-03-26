@@ -154,7 +154,7 @@ async function getPost(db, id) {
 async function createPost(db, body, user) {
   const {
     caption, platforms, media, hashtags, hashtagSet,
-    status, scheduledAt, firstComment, location, altTexts
+    status, scheduledAt, firstComment, location, altTexts, mediaType
   } = body;
 
   if (!caption && (!media || media.length === 0)) {
@@ -176,6 +176,7 @@ async function createPost(db, body, user) {
     firstComment: firstComment || '',
     location: location || '',
     altTexts: altTexts || {},
+    mediaType: mediaType || 'auto',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     createdBy: user.email
@@ -201,7 +202,7 @@ async function updatePost(db, body) {
   // Only allow updating known fields
   const allowed = [
     'caption', 'platforms', 'media', 'hashtags', 'hashtagSet',
-    'status', 'scheduledAt', 'firstComment', 'location', 'altTexts'
+    'status', 'scheduledAt', 'firstComment', 'location', 'altTexts', 'mediaType'
   ];
 
   const update = { updatedAt: serverTimestamp() };

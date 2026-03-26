@@ -15,29 +15,58 @@ async function publishToInstagram(account, post) {
   const { accessToken, igAccountId } = account;
   const caption = buildCaption(post);
   const media = post.media || [];
+  const requestedType = (post.mediaType || 'auto').toUpperCase();
 
   if (media.length === 0) {
     return { success: false, error: 'Instagram requires at least one media item' };
   }
 
-  if (media.length > 1) {
+  // Stories and Reels only support single media
+  if (requestedType === 'STORIES' && media.length > 1) {
+    return { success: false, error: 'Stories only support a single image or video' };
+  }
+
+  if (media.length > 1 && requestedType !== 'STORIES') {
     return publishCarouselToInstagram(account, post);
   }
 
   const mediaUrl = media[0];
-  const isVideo = /\.(mp4|mov|avi|wmv)$/i.test(mediaUrl);
+  const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(mediaUrl);
+
+  // Determine media type
+  let mediaType;
+  if (requestedType === 'STORIES') {
+    mediaType = 'STORIES';
+  } else if (requestedType === 'REELS') {
+    mediaType = 'REELS';
+  } else {
+    // AUTO: videos default to REELS, images to feed post (no media_type needed)
+    mediaType = isVideo ? 'REELS' : null;
+  }
 
   try {
     // Step 1: Create media container
     const containerParams = new URLSearchParams({
-      caption,
       access_token: accessToken
     });
 
-    if (isVideo) {
-      containerParams.set('media_type', 'REELS');
+    // Stories don't support captions in the container — caption goes via first comment instead
+    if (mediaType !== 'STORIES') {
+      containerParams.set('caption', caption);
+    }
+
+    if (mediaType) {
+      containerParams.set('media_type', mediaType);
+    }
+
+    if (isVideo || mediaType === 'REELS' || mediaType === 'STORIES') {
       containerParams.set('video_url', mediaUrl);
     } else {
+      containerParams.set('image_url', mediaUrl);
+    }
+    // Stories can also use image_url for static images
+    if (mediaType === 'STORIES' && !isVideo) {
+      containerParams.delete('video_url');
       containerParams.set('image_url', mediaUrl);
     }
 
@@ -58,8 +87,8 @@ async function publishToInstagram(account, post) {
 
     const containerId = containerData.id;
 
-    // Step 2: Wait for processing (videos need this)
-    if (isVideo) {
+    // Step 2: Wait for processing (videos and stories need this)
+    if (isVideo || mediaType === 'REELS' || mediaType === 'STORIES') {
       const ready = await waitForMediaProcessing(account, containerId, 120000);
       if (!ready) {
         return { success: false, error: 'Media processing timed out after 120s' };
@@ -86,8 +115,8 @@ async function publishToInstagram(account, post) {
       await postInstagramComment(account, publishData.id, post.firstComment);
     }
 
-    console.log('[social-api] IG published:', publishData.id);
-    return { success: true, id: publishData.id };
+    console.log('[social-api] IG published:', publishData.id, 'type:', mediaType || 'IMAGE');
+    return { success: true, id: publishData.id, mediaType: mediaType || 'IMAGE' };
   } catch (err) {
     console.error('[social-api] IG publish exception:', err);
     return { success: false, error: err.message };

@@ -50,6 +50,10 @@
       cb.disabled = !(S.state.accounts[p]);
     });
 
+    // Reset media type
+    var autoRadio = document.querySelector('input[name="social-media-type"][value="auto"]');
+    if (autoRadio) autoRadio.checked = true;
+
     // Reset schedule
     var nowRadio = document.querySelector('input[name="social-schedule"][value="now"]');
     if (nowRadio) nowRadio.checked = true;
@@ -163,6 +167,14 @@
     field.hidden = composer.platforms.indexOf('instagram') < 0;
   }
 
+  function toggleMediaTypeRow() {
+    var row = $('yb-social-media-type-row');
+    if (!row) return;
+    var hasIG = composer.platforms.indexOf('instagram') >= 0;
+    var hasMedia = composer.media.length > 0;
+    row.hidden = !(hasIG && hasMedia);
+  }
+
   function updatePublishBtn() {
     var btn = $('yb-social-publish-btn');
     if (!btn) return;
@@ -196,6 +208,7 @@
         '<button class="yb-social__media-thumb-remove" data-action="social-remove-media" data-index="' + i + '">&times;</button>' +
         '</div>';
     }).join('');
+    toggleMediaTypeRow();
   }
 
   /* ═══ SAVE / PUBLISH ═══ */
@@ -215,6 +228,9 @@
       return;
     }
 
+    var mediaTypeRadio = document.querySelector('input[name="social-media-type"]:checked');
+    var mediaType = mediaTypeRadio ? mediaTypeRadio.value : 'auto';
+
     var body = {
       caption: caption,
       platforms: composer.platforms,
@@ -222,6 +238,7 @@
       hashtags: hashtags,
       firstComment: ($('yb-social-first-comment') || {}).value || '',
       location: ($('yb-social-location') || {}).value || '',
+      mediaType: mediaType,
       status: status
     };
 
@@ -709,6 +726,7 @@
       });
       updateCharCount();
       toggleFirstComment();
+      toggleMediaTypeRow();
     }
     if (e.target.name === 'social-schedule') {
       var picker = $('yb-social-schedule-picker');

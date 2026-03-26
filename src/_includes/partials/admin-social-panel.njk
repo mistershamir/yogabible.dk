@@ -542,6 +542,14 @@
             </div>
           </div>
           <div class="yb-social__media-preview" id="yb-social-media-preview"></div>
+          <div class="yb-social__media-type-row" id="yb-social-media-type-row" hidden>
+            <label>{{ t.social_media_type or "Post Type" }}</label>
+            <div class="yb-social__media-type-options">
+              <label class="yb-social__media-type-opt"><input type="radio" name="social-media-type" value="auto" checked> {{ t.social_type_auto or "Auto" }}</label>
+              <label class="yb-social__media-type-opt"><input type="radio" name="social-media-type" value="reels"> {{ t.social_type_reels or "Reel" }}</label>
+              <label class="yb-social__media-type-opt"><input type="radio" name="social-media-type" value="stories"> {{ t.social_type_stories or "Story" }}</label>
+            </div>
+          </div>
         </div>
 
         {# Hashtags #}
