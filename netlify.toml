@@ -26,6 +26,10 @@
 [functions."social-metric-sync"]
   schedule = "0 */6 * * *"
 
+# Scheduled function: auto-create draft social posts from new journal entries
+[functions."social-auto-post"]
+  schedule = "*/30 * * * *"
+
 # Redirect www to non-www (301)
 [[redirects]]
   from = "https://www.yogabible.dk/*"

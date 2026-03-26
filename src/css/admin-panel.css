@@ -5725,6 +5725,10 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-social__post-platforms {
   display: flex; gap: 4px;
 }
+.yb-social__auto-badge {
+  background: #FFF3E0; color: #e65100; border-radius: 6px;
+  padding: 1px 6px; font-size: 10px; font-weight: 600; white-space: nowrap;
+}
 .yb-social__post-platform-icon {
   width: 18px; height: 18px; border-radius: 4px;
   display: flex; align-items: center; justify-content: center;
