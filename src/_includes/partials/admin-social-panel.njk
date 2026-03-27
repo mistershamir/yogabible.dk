@@ -449,6 +449,15 @@
     <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-new-hashtag-set">+ {{ t.social_new_set or "New Set" }}</button>
   </div>
 
+  {# Hashtag Performance Leaderboard #}
+  <div class="yb-social__hashtag-perf">
+    <h3>{{ t.social_hashtag_leaderboard or "Top Performing Hashtags" }}</h3>
+    <p class="yb-admin__muted" style="margin-bottom:10px">{{ t.social_hashtag_leaderboard_desc or "Ranked by average engagement per post. Minimum 2 uses." }}</p>
+    <div id="yb-social-hashtag-leaderboard" class="yb-social__hashtag-leaderboard">
+      <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+    </div>
+  </div>
+
   <div id="yb-social-hashtag-list" class="yb-social__hashtag-grid">
     {# Hashtag set cards rendered by JS #}
   </div>
@@ -479,6 +488,15 @@
   <div class="yb-admin__view-head">
     <h2>{{ t.social_templates_title or "Content Templates" }}</h2>
     <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-template-create">+ {{ t.social_new_template or "New Template" }}</button>
+  </div>
+
+  {# Brand Presets for Stories & Reels #}
+  <div class="yb-social__brand-presets">
+    <h3>{{ t.social_brand_presets or "Story & Reel Presets" }}</h3>
+    <p class="yb-admin__muted" style="margin-bottom:12px">{{ t.social_brand_presets_desc or "Quick-start templates with Yoga Bible branding. Click to open composer pre-filled." }}</p>
+    <div class="yb-social__presets-grid" id="yb-social-presets-grid">
+      {# Preset cards rendered by JS #}
+    </div>
   </div>
 
   {# Template cards #}
@@ -662,6 +680,7 @@
               <option value="">{{ t.social_load_set or "Load set..." }}</option>
             </select>
           </div>
+          <div class="yb-social__hashtag-suggest" id="yb-social-hashtag-suggest" hidden></div>
         </div>
 
         {# First Comment (IG only) #}

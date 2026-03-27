@@ -1635,6 +1635,7 @@
     state.hashtagSets = [];
     snap.forEach(function (doc) { state.hashtagSets.push(Object.assign({ id: doc.id }, doc.data())); });
     renderHashtags();
+    analyzeHashtagPerformance();
   }
 
   function renderHashtags() {
@@ -1647,20 +1648,112 @@
     }
 
     grid.innerHTML = state.hashtagSets.map(function (s) {
+      var avgEng = s._avgEngagement ? ' · Avg engagement: ' + s._avgEngagement.toFixed(1) : '';
       return '<div class="yb-social__hashtag-card">' +
         '<h4>' + (s.name || 'Untitled') + '</h4>' +
         '<div class="yb-social__hashtag-tags">' +
         (s.hashtags || []).slice(0, 15).map(function (h) {
-          return '<span class="yb-social__hashtag-tag">' + h + '</span>';
+          var score = (state.hashtagScores || {})[h.toLowerCase()];
+          var cls = score && score.avgEngagement > 10 ? ' yb-social__hashtag-tag--hot' : '';
+          return '<span class="yb-social__hashtag-tag' + cls + '">' + h + '</span>';
         }).join('') +
         (s.hashtags && s.hashtags.length > 15 ? '<span class="yb-social__hashtag-tag">+' + (s.hashtags.length - 15) + '</span>' : '') +
         '</div>' +
-        '<div class="yb-social__hashtag-card-meta">Used ' + (s.timesUsed || 0) + ' times</div>' +
+        '<div class="yb-social__hashtag-card-meta">' + t('social_used') + ' ' + (s.timesUsed || 0) + ' ' + t('social_times') + avgEng + '</div>' +
         '<div class="yb-social__hashtag-card-actions">' +
         '<button data-action="social-edit-hashtag-set" data-id="' + s.id + '">' + t('social_edit') + '</button>' +
         '<button data-action="social-delete-hashtag-set" data-id="' + s.id + '">' + t('social_delete') + '</button>' +
         '</div></div>';
     }).join('');
+  }
+
+  // ── Hashtag Performance Analysis ────────────────────────
+  function analyzeHashtagPerformance() {
+    var scores = {}; // { '#hashtag': { uses: N, totalEngagement: N, totalReach: N, posts: [] } }
+
+    // Scan all published posts for hashtag ↔ engagement correlation
+    state.posts.forEach(function (p) {
+      if (p.status !== 'published') return;
+      var tags = (p.hashtags || []).map(function (h) { return h.toLowerCase(); });
+      if (tags.length === 0) return;
+
+      // Calculate total engagement for this post
+      var eng = 0;
+      var reach = 0;
+      var results = p.publishResults || {};
+      Object.keys(results).forEach(function (plat) {
+        var m = (results[plat] || {}).metrics || {};
+        eng += (m.likes || 0) + (m.comments || 0) * 2 + (m.shares || 0) * 3;
+        reach += m.reach || m.post_reach || 0;
+      });
+
+      // Attribute engagement to each hashtag (shared equally)
+      var share = tags.length > 0 ? eng / tags.length : 0;
+      var reachShare = tags.length > 0 ? reach / tags.length : 0;
+
+      tags.forEach(function (tag) {
+        if (!scores[tag]) scores[tag] = { uses: 0, totalEngagement: 0, totalReach: 0 };
+        scores[tag].uses++;
+        scores[tag].totalEngagement += share;
+        scores[tag].totalReach += reachShare;
+      });
+    });
+
+    // Calculate averages
+    Object.keys(scores).forEach(function (tag) {
+      var s = scores[tag];
+      s.avgEngagement = s.uses > 0 ? s.totalEngagement / s.uses : 0;
+      s.avgReach = s.uses > 0 ? s.totalReach / s.uses : 0;
+    });
+
+    state.hashtagScores = scores;
+
+    // Also calculate average engagement per hashtag set
+    state.hashtagSets.forEach(function (set) {
+      var setTags = (set.hashtags || []).map(function (h) { return h.toLowerCase(); });
+      var totalAvg = 0;
+      var counted = 0;
+      setTags.forEach(function (tag) {
+        if (scores[tag]) { totalAvg += scores[tag].avgEngagement; counted++; }
+      });
+      set._avgEngagement = counted > 0 ? totalAvg / counted : 0;
+    });
+
+    renderHashtagLeaderboard();
+  }
+
+  function renderHashtagLeaderboard() {
+    var board = $('yb-social-hashtag-leaderboard');
+    if (!board) return;
+
+    var scores = state.hashtagScores || {};
+    var sorted = Object.keys(scores)
+      .filter(function (tag) { return scores[tag].uses >= 2; }) // at least 2 uses
+      .sort(function (a, b) { return scores[b].avgEngagement - scores[a].avgEngagement; })
+      .slice(0, 15);
+
+    if (sorted.length === 0) {
+      board.innerHTML = '<p class="yb-admin__muted">' + t('social_hashtag_no_data') + '</p>';
+      return;
+    }
+
+    var maxEng = scores[sorted[0]].avgEngagement || 1;
+
+    board.innerHTML = sorted.map(function (tag, i) {
+      var s = scores[tag];
+      var pct = Math.round((s.avgEngagement / maxEng) * 100);
+      var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+      return '<div class="yb-social__hashtag-rank">' +
+        '<span class="yb-social__hashtag-rank-pos">' + (medal || (i + 1)) + '</span>' +
+        '<span class="yb-social__hashtag-rank-tag">' + tag + '</span>' +
+        '<div class="yb-social__hashtag-rank-bar"><div style="width:' + pct + '%"></div></div>' +
+        '<span class="yb-social__hashtag-rank-stats">' +
+        s.avgEngagement.toFixed(1) + ' avg · ' + s.uses + ' ' + t('social_posts_title').toLowerCase() +
+        '</span></div>';
+    }).join('');
+
+    // Expose top hashtags for composer auto-suggest
+    window._ybTopHashtags = sorted.slice(0, 10);
   }
 
   function showHashtagForm(id) {
@@ -1719,9 +1812,130 @@
     loadHashtags();
   }
 
+  /* ═══ BRAND PRESETS (Story/Reel quick-starts) ═══ */
+  var BRAND_PRESETS = [
+    {
+      id: 'story-quote',
+      name: 'Inspirational Quote',
+      icon: '✨',
+      type: 'stories',
+      platforms: ['instagram', 'facebook'],
+      caption: '✨ "The body is your temple. Keep it pure and clean for the soul to reside in." — B.K.S. Iyengar\n\n#yogaquote #yogainspiration #yogabible',
+      hashtags: ['#yogaquote', '#yogainspiration', '#yogabible', '#mindfulness'],
+      desc_da: 'Inspirerende citat med Yoga Bible-branding',
+      desc_en: 'Inspirational yoga quote with brand overlay'
+    },
+    {
+      id: 'reel-tip',
+      name: 'Quick Yoga Tip',
+      icon: '💡',
+      type: 'reels',
+      platforms: ['instagram', 'tiktok'],
+      caption: '💡 Quick tip: {tip}\n\nSave this for your next practice! 🧘\n\n#yogatip #yogateacher #yogapractice',
+      hashtags: ['#yogatip', '#yogateacher', '#yogapractice', '#yogabible'],
+      desc_da: 'Hurtigt yogatip som reel — gem og del',
+      desc_en: 'Quick yoga tip reel — save and share'
+    },
+    {
+      id: 'story-poll',
+      name: 'Community Poll',
+      icon: '📊',
+      type: 'stories',
+      platforms: ['instagram'],
+      caption: '📊 Quick poll!\n\n{question}\n\nA) {option_a}\nB) {option_b}\n\nComment below! 👇',
+      hashtags: ['#yogacommunity', '#yogabible', '#yogapoll'],
+      desc_da: 'Afstemning til Stories — øger engagement',
+      desc_en: 'Story poll — boosts engagement'
+    },
+    {
+      id: 'reel-transformation',
+      name: 'Before/After',
+      icon: '🔄',
+      type: 'reels',
+      platforms: ['instagram', 'tiktok', 'facebook'],
+      caption: '🔄 Day 1 vs Now\n\nProgress is not about perfection — it\'s about consistency.\n\nWhat pose has changed the most in your practice? Tell us below 👇\n\n#yogaprogress #yogajourney',
+      hashtags: ['#yogaprogress', '#yogajourney', '#yogabible', '#yogainspiration'],
+      desc_da: 'Før/efter transformation reel',
+      desc_en: 'Before/after transformation reel'
+    },
+    {
+      id: 'story-countdown',
+      name: 'Event Countdown',
+      icon: '⏰',
+      type: 'stories',
+      platforms: ['instagram', 'facebook'],
+      caption: '⏰ {days} days until {event}!\n\nSpots are limited — link in bio to secure yours 🔗\n\n#yogateachertraining #yogabible',
+      hashtags: ['#yogateachertraining', '#yogabible', '#ytt', '#yoga200hr'],
+      desc_da: 'Nedtælling til event/kursusstart',
+      desc_en: 'Countdown to event/course start'
+    },
+    {
+      id: 'reel-routine',
+      name: 'Morning Routine',
+      icon: '🌅',
+      type: 'reels',
+      platforms: ['instagram', 'tiktok'],
+      caption: '🌅 5-minute morning yoga routine\n\n1. Cat-Cow (30s)\n2. Downward Dog (30s)\n3. Low Lunge each side (1min)\n4. Forward Fold (30s)\n5. Mountain Pose + breathe (30s)\n\nTry it tomorrow morning! ☀️\n\n#morningyoga #yogaroutine',
+      hashtags: ['#morningyoga', '#yogaroutine', '#yogabible', '#yogaeveryday'],
+      desc_da: 'Morgenrutine reel — 5 minutter',
+      desc_en: '5-minute morning routine reel'
+    }
+  ];
+
+  function renderBrandPresets() {
+    var grid = $('yb-social-presets-grid');
+    if (!grid) return;
+
+    var isDa = window.location.pathname.indexOf('/en/') < 0;
+
+    grid.innerHTML = BRAND_PRESETS.map(function (preset) {
+      var desc = isDa ? (preset.desc_da || preset.desc_en) : preset.desc_en;
+      var typeBadge = preset.type === 'reels'
+        ? '<span class="yb-social__preset-type yb-social__preset-type--reel">Reel</span>'
+        : '<span class="yb-social__preset-type yb-social__preset-type--story">Story</span>';
+
+      return '<div class="yb-social__preset-card" data-action="social-use-preset" data-preset="' + preset.id + '">' +
+        '<div class="yb-social__preset-icon">' + preset.icon + '</div>' +
+        '<div class="yb-social__preset-info">' +
+        '<h4>' + preset.name + ' ' + typeBadge + '</h4>' +
+        '<p>' + desc + '</p>' +
+        '<div class="yb-social__preset-platforms">' + preset.platforms.map(platformIcon).join('') + '</div>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  function usePreset(presetId) {
+    var preset = BRAND_PRESETS.find(function (p) { return p.id === presetId; });
+    if (!preset || !window.openSocialComposer) return;
+
+    // Open composer, then pre-fill
+    window.openSocialComposer(null);
+
+    // Wait for DOM to be ready
+    setTimeout(function () {
+      var captionEl = $('yb-social-caption');
+      if (captionEl) captionEl.value = preset.caption;
+
+      var hashtagsEl = $('yb-social-hashtags');
+      if (hashtagsEl) hashtagsEl.value = preset.hashtags.join(', ');
+
+      // Select matching platforms
+      document.querySelectorAll('.yb-social__composer-platforms input').forEach(function (cb) {
+        cb.checked = preset.platforms.indexOf(cb.value) >= 0;
+      });
+
+      // Set media type
+      var typeRadio = document.querySelector('input[name="social-media-type"][value="' + preset.type + '"]');
+      if (typeRadio) typeRadio.checked = true;
+    }, 100);
+
+    toast(t('social_preset_applied') || 'Preset applied — customize and publish!');
+  }
+
   /* ═══ CONTENT TEMPLATES ═══ */
 
   async function loadTemplates() {
+    renderBrandPresets();
     var el = $('yb-social-templates-list');
     if (!el) return;
     el.innerHTML = '<p class="yb-admin__muted">' + t('social_loading') + '</p>';
@@ -2314,6 +2528,7 @@
     else if (action === 'social-ai-insights-close') { var p = $('yb-social-ai-insights-panel'); if (p) p.hidden = true; }
 
     // Templates
+    else if (action === 'social-use-preset') usePreset(btn.getAttribute('data-preset'));
     else if (action === 'social-template-create') createTemplate();
     else if (action === 'social-template-use') useTemplate(btn.getAttribute('data-id'));
     else if (action === 'social-template-delete') deleteTemplate(btn.getAttribute('data-id'));

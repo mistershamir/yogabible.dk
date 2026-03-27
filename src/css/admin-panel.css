@@ -5978,6 +5978,17 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 }
 .yb-social__hashtag-input-row textarea { flex: 1; }
 .yb-social__hashtag-input-row select { width: 140px; margin-top: 2px; }
+.yb-social__hashtag-suggest {
+  display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+  margin-top: 6px;
+}
+.yb-social__suggest-label { font-size: 11px; color: #6F6A66; }
+.yb-social__suggest-tag {
+  background: #FFF3E0; border: 1px solid #ffcc80; border-radius: 4px;
+  padding: 1px 8px; font-size: 11px; color: #e65100;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.yb-social__suggest-tag:hover { background: #f75c03; color: #fff; border-color: #f75c03; }
 
 /* Schedule section */
 .yb-social__schedule-section { margin-bottom: 16px; }
@@ -6390,6 +6401,45 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-social__hashtag-card-actions button:hover {
   border-color: #f75c03; color: #f75c03;
 }
+.yb-social__hashtag-tag--hot {
+  background: #FFF3E0; color: #e65100; font-weight: 700;
+  border: 1px solid #ffcc80;
+}
+
+/* Hashtag performance leaderboard */
+.yb-social__hashtag-perf {
+  margin-bottom: 24px; padding: 20px; background: #FFFCF9;
+  border: 1px solid #E8E4E0; border-radius: 12px;
+}
+.yb-social__hashtag-perf h3 { margin: 0 0 4px; font-size: 16px; }
+.yb-social__hashtag-leaderboard { display: flex; flex-direction: column; gap: 6px; }
+.yb-social__hashtag-rank {
+  display: flex; align-items: center; gap: 10px; padding: 6px 0;
+  border-bottom: 1px solid #f0ede9;
+}
+.yb-social__hashtag-rank:last-child { border-bottom: none; }
+.yb-social__hashtag-rank-pos {
+  min-width: 28px; font-size: 14px; font-weight: 700; text-align: center;
+}
+.yb-social__hashtag-rank-tag {
+  min-width: 120px; font-size: 13px; font-weight: 600; color: #f75c03;
+}
+.yb-social__hashtag-rank-bar {
+  flex: 1; height: 8px; background: #F5F3F0; border-radius: 4px;
+  overflow: hidden;
+}
+.yb-social__hashtag-rank-bar div {
+  height: 100%; background: linear-gradient(90deg, #f75c03, #ff9966);
+  border-radius: 4px; transition: width 0.3s;
+}
+.yb-social__hashtag-rank-stats {
+  font-size: 11px; color: #6F6A66; white-space: nowrap; min-width: 100px;
+  text-align: right;
+}
+@media (max-width: 600px) {
+  .yb-social__hashtag-rank { flex-wrap: wrap; }
+  .yb-social__hashtag-rank-bar { width: 100%; order: 3; }
+}
 
 /* ── Connect account modal ── */
 .yb-social__connect-modal {
@@ -6725,6 +6775,41 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-social__last-sync { font-size: 11px; color: var(--yb-muted, #6F6A66); margin-bottom: 12px; }
 
 /* ── Content Templates ── */
+/* Brand presets */
+.yb-social__brand-presets {
+  margin-bottom: 28px; padding: 20px; background: #FFFCF9;
+  border: 1px solid #E8E4E0; border-radius: 12px;
+}
+.yb-social__brand-presets h3 { margin: 0 0 4px; font-size: 16px; }
+.yb-social__presets-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px;
+}
+.yb-social__preset-card {
+  display: flex; gap: 12px; padding: 14px; background: #fff;
+  border: 1px solid #E8E4E0; border-radius: 10px;
+  cursor: pointer; transition: all 0.15s;
+}
+.yb-social__preset-card:hover {
+  border-color: #f75c03; box-shadow: 0 2px 8px rgba(247,92,3,0.1);
+  transform: translateY(-1px);
+}
+.yb-social__preset-icon {
+  font-size: 28px; flex-shrink: 0; width: 40px; text-align: center;
+}
+.yb-social__preset-info h4 {
+  font-size: 13px; margin: 0 0 4px; display: flex; align-items: center; gap: 6px;
+}
+.yb-social__preset-info p {
+  font-size: 11px; color: #6F6A66; margin: 0 0 6px; line-height: 1.4;
+}
+.yb-social__preset-platforms { display: flex; gap: 4px; }
+.yb-social__preset-type {
+  font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 4px;
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+.yb-social__preset-type--reel { background: #E1306C; color: #fff; }
+.yb-social__preset-type--story { background: #7B1FA2; color: #fff; }
+
 .yb-social__templates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
 .yb-social__template-card { background: #fff; border: 1px solid var(--yb-border, #E8E4E0); border-radius: 12px; padding: 16px; transition: border-color 0.15s; }
 .yb-social__template-card:hover { border-color: var(--yb-brand, #f75c03); }
