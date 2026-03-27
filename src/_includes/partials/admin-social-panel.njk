@@ -548,6 +548,8 @@
     <div style="display:flex;gap:8px;align-items:center">
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-competitors-refresh">&#8635; {{ t.social_refresh or "Refresh" }}</button>
       <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-competitors-add">+ {{ t.social_add_competitor or "Add Competitor" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-ai-suggest-competitors" title="{{ t.social_competitor_suggest or 'AI Suggest Competitors' }}">🔍 {{ t.social_competitor_suggest or "AI Suggest" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-ai-content-strategy" title="{{ t.social_competitor_content or 'AI Content Strategy' }}">📊 {{ t.social_competitor_content or "AI Strategy" }}</button>
     </div>
   </div>
 

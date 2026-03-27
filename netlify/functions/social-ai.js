@@ -141,6 +141,8 @@ exports.handler = async (event) => {
       case 'alt-text': return generateAltText(body);
       case 'analytics-insight': return analyticsInsight(body);
       case 'smart-blog-caption': return smartBlogCaption(body);
+      case 'suggest-competitors': return suggestCompetitors(body);
+      case 'competitor-content-strategy': return competitorContentStrategy(body);
       default:
         return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
     }
@@ -792,6 +794,126 @@ Respond with this exact JSON structure:
     return jsonResponse(200, { ok: true, ...parsed });
   } catch (parseErr) {
     console.error('[social-ai] Failed to parse smart caption:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Suggest Competitors to Track ──────────────────────────────
+
+async function suggestCompetitors(body) {
+  const { platform, currentCompetitors } = body;
+
+  const existingList = (currentCompetitors || [])
+    .map(c => `@${c.handle} (${c.platform})`)
+    .join(', ') || 'none yet';
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `You are a social media strategist for Yoga Bible — a yoga teacher training school in Copenhagen, Denmark. We offer 200-hour YTT programs (4-week intensive, 8-week semi-intensive, 18-week flexible), 300-hour advanced training, and specialty courses.
+
+We want to find competitors and similar accounts to track on ${platform || 'Instagram'}.
+
+Currently tracking: ${existingList}
+
+Suggest 10 accounts we should track. Include:
+- Direct competitors (other YTT schools in Scandinavia/Europe)
+- Aspirational accounts (successful yoga brands globally)
+- Content inspiration (yoga influencers with great content strategy)
+- Local competitors (yoga studios in Copenhagen/Denmark)
+
+For each, explain WHY we should track them and what we can learn.
+
+Respond with this exact JSON structure:
+{
+  "suggestions": [
+    {
+      "handle": "account_handle",
+      "platform": "${platform || 'instagram'}",
+      "name": "Display Name",
+      "category": "direct_competitor|aspirational|content_inspiration|local",
+      "reason": "Why we should track this account",
+      "learn": "What we can learn from their content strategy"
+    }
+  ]
+}`
+  }], 3000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse competitor suggestions:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Competitor-Informed Content Strategy ─────────────────────
+
+async function competitorContentStrategy(body) {
+  const { competitors, ourMetrics } = body;
+
+  if (!competitors || !Array.isArray(competitors) || competitors.length === 0) {
+    return jsonResponse(400, { ok: false, error: 'No competitor data provided' });
+  }
+
+  const competitorSummary = competitors.map(c =>
+    `@${c.handle} (${c.platform}): ${c.followerCount || 0} followers, ` +
+    `${(c.engagementRate || 0).toFixed(2)}% engagement, ` +
+    `avg ${c.avgLikes || 0} likes / ${c.avgComments || 0} comments`
+  ).join('\n');
+
+  const ourSummary = ourMetrics
+    ? `Our account: ${ourMetrics.followers || 0} followers, ${(ourMetrics.engagementRate || 0).toFixed(2)}% engagement`
+    : 'Our metrics: not provided';
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `You are a social media strategist for Yoga Bible — a yoga teacher training school in Copenhagen. Analyze our competitors and suggest content strategy.
+
+${ourSummary}
+
+Competitor data:
+${competitorSummary}
+
+Based on this competitive landscape, provide:
+1. Content gaps — topics/angles competitors are covering that we aren't
+2. Trend opportunities — themes getting high engagement we should adopt
+3. Differentiation angles — where we can stand out
+4. Posting strategy — frequency, timing, and format recommendations
+5. 5 specific post ideas inspired by competitor trends (but adapted to our brand)
+
+Respond with this exact JSON structure:
+{
+  "analysis": {
+    "competitive_position": "Brief assessment of where we stand",
+    "content_gaps": ["gap1", "gap2", "gap3"],
+    "trend_opportunities": ["trend1", "trend2", "trend3"],
+    "differentiation_angles": ["angle1", "angle2"],
+    "posting_recommendations": {
+      "frequency": "X posts per week",
+      "best_formats": ["format1", "format2"],
+      "timing_notes": "When to post based on competitor patterns"
+    }
+  },
+  "post_ideas": [
+    {
+      "concept": "Post concept",
+      "format": "reel|carousel|image|story",
+      "caption_hook": "Opening line",
+      "inspired_by": "Which competitor trend this is based on",
+      "hashtags": ["#tag1", "#tag2"]
+    }
+  ]
+}`
+  }], 3000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, ...parsed });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse competitor strategy:', text.substring(0, 500));
     return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
   }
 }

@@ -1635,30 +1635,102 @@
     var thread = inboxState.activeThread;
     var name = '';
     var source = thread.platform + '_' + thread.type;
+    var messageText = '';
 
     if (thread.type === 'comment') {
       var c = inboxState.comments.find(function (x) { return x.commentId === thread.id; });
-      if (c) name = c.author || '';
+      if (c) { name = c.author || ''; messageText = c.text || ''; }
     } else {
       var conv = inboxState.conversations.find(function (x) { return x.conversationId === thread.id; });
       if (conv && conv.participants) name = conv.participants[0] || '';
+      if (conv) messageText = conv.lastMessage || '';
     }
 
-    var nameInput = prompt(t('social_create_lead_name') || 'Lead name:', name);
-    if (!nameInput) return;
+    // Auto-detect YTT interest from message content
+    var detectedInterest = detectYTTInterest(messageText);
 
-    var emailInput = prompt(t('social_create_lead_email') || 'Email (optional):', '');
+    // Build and show lead creation modal
+    var existing = document.getElementById('yb-social-lead-modal');
+    if (existing) existing.remove();
+
+    var html = '<div class="yb-social__connect-modal" id="yb-social-lead-modal">' +
+      '<div class="yb-social__connect-overlay" data-action="social-lead-modal-close"></div>' +
+      '<div class="yb-social__connect-box">' +
+      '<h3>👤 ' + (t('social_create_lead') || 'Create Lead') + '</h3>' +
+      '<p style="color:var(--yb-muted);font-size:.85rem;margin-bottom:1rem;">' +
+        'From ' + thread.platform + ' ' + thread.type +
+        (detectedInterest ? ' · Detected interest: <strong style="color:var(--yb-brand)">' + detectedInterest + '</strong>' : '') +
+      '</p>' +
+      '<div class="yb-admin__field">' +
+        '<label for="yb-social-lead-name">' + (t('social_create_lead_name') || 'Name') + '</label>' +
+        '<input type="text" id="yb-social-lead-name" value="' + (name || '').replace(/"/g, '&quot;') + '">' +
+      '</div>' +
+      '<div class="yb-admin__field">' +
+        '<label for="yb-social-lead-email">' + (t('social_create_lead_email') || 'Email') + '</label>' +
+        '<input type="email" id="yb-social-lead-email" placeholder="email@example.com">' +
+      '</div>' +
+      '<div class="yb-admin__field">' +
+        '<label for="yb-social-lead-phone">' + (t('social_lead_phone') || 'Phone') + '</label>' +
+        '<input type="tel" id="yb-social-lead-phone" placeholder="+45...">' +
+      '</div>' +
+      '<div class="yb-admin__field">' +
+        '<label for="yb-social-lead-program">' + (t('social_lead_program') || 'Program interest') + '</label>' +
+        '<select id="yb-social-lead-program">' +
+          '<option value="">' + (t('social_lead_undecided') || 'Undecided') + '</option>' +
+          '<option value="4-week"' + (detectedInterest === '4-week' ? ' selected' : '') + '>4-Week Intensive</option>' +
+          '<option value="8-week"' + (detectedInterest === '8-week' ? ' selected' : '') + '>8-Week Semi-Intensive</option>' +
+          '<option value="18-week"' + (detectedInterest === '18-week' ? ' selected' : '') + '>18-Week Flexible</option>' +
+          '<option value="4-week-jul"' + (detectedInterest === '4-week-jul' ? ' selected' : '') + '>4-Week Vinyasa Plus (July)</option>' +
+          '<option value="300h"' + (detectedInterest === '300h' ? ' selected' : '') + '>300h Advanced</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="yb-admin__field">' +
+        '<label for="yb-social-lead-notes">' + (t('social_lead_notes') || 'Notes') + '</label>' +
+        '<textarea id="yb-social-lead-notes" rows="2">' +
+          'From ' + thread.platform + ' ' + thread.type + (messageText ? ': "' + messageText.substring(0, 200) + '"' : '') +
+        '</textarea>' +
+      '</div>' +
+      '<div class="yb-social__connect-actions">' +
+        '<button class="yb-btn yb-btn--outline" data-action="social-lead-modal-close">Cancel</button>' +
+        '<button class="yb-btn yb-btn--primary" data-action="social-lead-modal-save">Create Lead</button>' +
+      '</div></div></div>';
+
+    document.body.insertAdjacentHTML('beforeend', html);
+    var nameEl = document.getElementById('yb-social-lead-name');
+    if (nameEl) setTimeout(function () { nameEl.focus(); }, 100);
+  }
+
+  function detectYTTInterest(text) {
+    if (!text) return '';
+    var lower = text.toLowerCase();
+    if (/4.?week.*jul|july|vinyasa plus|sommer/i.test(lower)) return '4-week-jul';
+    if (/4.?week|4.?uge|intensiv/i.test(lower)) return '4-week';
+    if (/8.?week|8.?uge|semi/i.test(lower)) return '8-week';
+    if (/18.?week|18.?uge|flex/i.test(lower)) return '18-week';
+    if (/300|advanced|videre/i.test(lower)) return '300h';
+    if (/ytt|yoga.*teacher|uddannelse|training/i.test(lower)) return '';
+    return '';
+  }
+
+  async function saveLeadFromModal() {
+    var nameVal = (document.getElementById('yb-social-lead-name') || {}).value || '';
+    if (!nameVal.trim()) { toast('Enter a name', true); return; }
 
     var leadData = {
-      first_name: nameInput.split(' ')[0] || nameInput,
-      last_name: nameInput.split(' ').slice(1).join(' ') || '',
-      email: emailInput || '',
-      source: source,
+      first_name: nameVal.split(' ')[0] || nameVal,
+      last_name: nameVal.split(' ').slice(1).join(' ') || '',
+      email: (document.getElementById('yb-social-lead-email') || {}).value || '',
+      phone: (document.getElementById('yb-social-lead-phone') || {}).value || '',
+      source: inboxState.activeThread ? inboxState.activeThread.platform + '_' + inboxState.activeThread.type : 'social',
       status: 'new',
-      notes: 'Created from social media ' + thread.type + ' on ' + thread.platform
+      ytt_program_type: (document.getElementById('yb-social-lead-program') || {}).value || '',
+      notes: (document.getElementById('yb-social-lead-notes') || {}).value || ''
     };
 
     toast('Creating lead...');
+    var modal = document.getElementById('yb-social-lead-modal');
+    if (modal) modal.remove();
+
     var data = await api('lead', {
       method: 'POST',
       body: JSON.stringify(leadData)
@@ -2441,6 +2513,14 @@
     return String(n);
   }
 
+  async function addCompetitorDirect(handle, platform, name) {
+    var data = await api('social-competitors', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'add', platform: platform || 'instagram', handle: handle, name: name || handle })
+    });
+    if (data) loadCompetitors();
+  }
+
   async function addCompetitor() {
     var platform = ($('yb-social-comp-platform') || {}).value;
     var handle = ($('yb-social-comp-handle') || {}).value || '';
@@ -2476,6 +2556,118 @@
     toast('Refreshing...');
     await api('social-competitors', { method: 'POST', body: JSON.stringify({ action: 'refresh' }) });
     loadCompetitors();
+  }
+
+  async function aiSuggestCompetitors() {
+    toast(t('social_competitor_suggesting') || 'Finding competitors...');
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'suggest-competitors',
+        platform: 'instagram',
+        currentCompetitors: state.competitors
+      })
+    });
+    if (!data || !data.suggestions) return;
+
+    // Show suggestions in a modal
+    var existing = document.getElementById('yb-social-ai-competitor-modal');
+    if (existing) existing.remove();
+
+    var html = '<div class="yb-social__connect-modal" id="yb-social-ai-competitor-modal">' +
+      '<div class="yb-social__connect-overlay" data-action="social-ai-competitor-close"></div>' +
+      '<div class="yb-social__connect-box" style="max-width:600px;max-height:80vh;overflow-y:auto">' +
+      '<h3>🔍 AI Competitor Suggestions</h3>';
+
+    var cats = { direct_competitor: '🎯 Direct Competitors', aspirational: '⭐ Aspirational', content_inspiration: '💡 Content Inspiration', local: '📍 Local' };
+    var grouped = {};
+    data.suggestions.forEach(function (s) {
+      var cat = s.category || 'other';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(s);
+    });
+
+    Object.keys(cats).forEach(function (cat) {
+      if (!grouped[cat]) return;
+      html += '<h4 style="margin:1rem 0 .5rem;color:var(--yb-brand)">' + cats[cat] + '</h4>';
+      grouped[cat].forEach(function (s) {
+        html += '<div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-bottom:1px solid var(--yb-border)">' +
+          '<div style="flex:1"><strong>@' + escapeHtml(s.handle) + '</strong>' +
+          (s.name ? ' · ' + escapeHtml(s.name) : '') +
+          '<br><span style="font-size:.8rem;color:var(--yb-muted)">' + escapeHtml(s.reason) + '</span></div>' +
+          '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-competitor-add" data-handle="' + escapeHtml(s.handle) + '" data-platform="' + (s.platform || 'instagram') + '" data-name="' + escapeHtml(s.name || '') + '">+ Add</button>' +
+          '</div>';
+      });
+    });
+
+    html += '<div style="margin-top:1rem;text-align:right"><button class="yb-btn yb-btn--outline" data-action="social-ai-competitor-close">Close</button></div></div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  async function aiCompetitorContentStrategy() {
+    if (state.competitors.length === 0) { toast('Add competitors first', true); return; }
+    toast(t('social_competitor_content_loading') || 'Analyzing...');
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'competitor-content-strategy',
+        competitors: state.competitors
+      })
+    });
+    if (!data) return;
+
+    var existing = document.getElementById('yb-social-ai-strategy-modal');
+    if (existing) existing.remove();
+
+    var a = data.analysis || {};
+    var ideas = data.post_ideas || [];
+
+    var html = '<div class="yb-social__connect-modal" id="yb-social-ai-strategy-modal">' +
+      '<div class="yb-social__connect-overlay" data-action="social-ai-strategy-close"></div>' +
+      '<div class="yb-social__connect-box" style="max-width:640px;max-height:80vh;overflow-y:auto">' +
+      '<h3>📊 AI Content Strategy</h3>';
+
+    if (a.competitive_position) {
+      html += '<p style="background:var(--yb-light);padding:.75rem;border-radius:8px;margin-bottom:1rem">' + escapeHtml(a.competitive_position) + '</p>';
+    }
+
+    if (a.content_gaps && a.content_gaps.length) {
+      html += '<h4 style="color:var(--yb-brand)">Content Gaps</h4><ul>';
+      a.content_gaps.forEach(function (g) { html += '<li>' + escapeHtml(g) + '</li>'; });
+      html += '</ul>';
+    }
+    if (a.trend_opportunities && a.trend_opportunities.length) {
+      html += '<h4 style="color:var(--yb-brand)">Trend Opportunities</h4><ul>';
+      a.trend_opportunities.forEach(function (t) { html += '<li>' + escapeHtml(t) + '</li>'; });
+      html += '</ul>';
+    }
+    if (a.differentiation_angles && a.differentiation_angles.length) {
+      html += '<h4 style="color:var(--yb-brand)">Differentiation</h4><ul>';
+      a.differentiation_angles.forEach(function (d) { html += '<li>' + escapeHtml(d) + '</li>'; });
+      html += '</ul>';
+    }
+    if (a.posting_recommendations) {
+      var pr = a.posting_recommendations;
+      html += '<h4 style="color:var(--yb-brand)">Posting Strategy</h4>' +
+        '<p>' + escapeHtml(pr.frequency || '') + '. Best formats: ' + (pr.best_formats || []).join(', ') + '</p>' +
+        (pr.timing_notes ? '<p style="color:var(--yb-muted);font-size:.85rem">' + escapeHtml(pr.timing_notes) + '</p>' : '');
+    }
+
+    if (ideas.length) {
+      html += '<h4 style="color:var(--yb-brand);margin-top:1rem">Post Ideas</h4>';
+      ideas.forEach(function (idea, i) {
+        html += '<div style="background:var(--yb-light);padding:.75rem;border-radius:8px;margin-bottom:.5rem">' +
+          '<strong>' + (i + 1) + '. ' + escapeHtml(idea.concept) + '</strong>' +
+          '<span style="background:var(--yb-brand);color:#fff;font-size:.7rem;padding:2px 6px;border-radius:4px;margin-left:.5rem">' + (idea.format || '') + '</span>' +
+          '<p style="font-size:.85rem;margin:.25rem 0">"' + escapeHtml(idea.caption_hook || '') + '"</p>' +
+          '<span style="font-size:.75rem;color:var(--yb-muted)">Inspired by: ' + escapeHtml(idea.inspired_by || '') + '</span>' +
+          '</div>';
+      });
+    }
+
+    html += '<div style="margin-top:1rem;text-align:right"><button class="yb-btn yb-btn--outline" data-action="social-ai-strategy-close">Close</button></div></div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
   }
 
   /* ═══ A/B TESTING ═══ */
@@ -2826,6 +3018,8 @@
     else if (action === 'social-ai-draft-reply') aiDraftReply();
     else if (action === 'social-ai-use-reply') useAiReply(btn.getAttribute('data-index'));
     else if (action === 'social-inbox-create-lead') createLeadFromInbox();
+    else if (action === 'social-lead-modal-save') saveLeadFromModal();
+    else if (action === 'social-lead-modal-close') { var lm = document.getElementById('yb-social-lead-modal'); if (lm) lm.remove(); }
 
     // Mentions
     else if (action === 'social-mention-open') openMention(btn.getAttribute('data-id'));
@@ -2861,6 +3055,14 @@
     else if (action === 'social-competitors-save') addCompetitor();
     else if (action === 'social-competitors-remove') removeCompetitor(btn.getAttribute('data-id'));
     else if (action === 'social-competitors-refresh') refreshCompetitors();
+    else if (action === 'social-ai-suggest-competitors') aiSuggestCompetitors();
+    else if (action === 'social-ai-competitor-close') { var m = document.getElementById('yb-social-ai-competitor-modal'); if (m) m.remove(); }
+    else if (action === 'social-ai-competitor-add') {
+      addCompetitorDirect(btn.getAttribute('data-handle'), btn.getAttribute('data-platform'), btn.getAttribute('data-name'));
+      btn.disabled = true; btn.textContent = '✓';
+    }
+    else if (action === 'social-ai-content-strategy') aiCompetitorContentStrategy();
+    else if (action === 'social-ai-strategy-close') { var m = document.getElementById('yb-social-ai-strategy-modal'); if (m) m.remove(); }
 
     // A/B Testing
     else if (action === 'social-ab-create') showAbCreateModal();
