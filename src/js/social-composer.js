@@ -42,6 +42,7 @@
     $('yb-social-hashtags').value = '';
     $('yb-social-first-comment').value = '';
     $('yb-social-location').value = '';
+    if ($('yb-social-pillar')) $('yb-social-pillar').value = '';
     $('yb-social-composer-title').textContent = postId ? t('social_composer_edit_title') : t('social_composer_title');
 
     // Reset platform toggles
@@ -97,6 +98,7 @@
     $('yb-social-hashtags').value = (p.hashtags || []).join(', ');
     $('yb-social-first-comment').value = p.firstComment || '';
     $('yb-social-location').value = p.location || '';
+    if ($('yb-social-pillar')) $('yb-social-pillar').value = p.contentPillar || '';
     composer.media = p.media || [];
     composer.platforms = p.platforms || [];
 
@@ -442,6 +444,7 @@
       location: ($('yb-social-location') || {}).value || '',
       mediaType: mediaType,
       videoThumbnails: composer.videoThumbnails || {},
+      contentPillar: ($('yb-social-pillar') || {}).value || '',
       status: status
     };
 

@@ -343,6 +343,15 @@
     </div>
   </div>
 
+  {# Content Pillar Distribution #}
+  <div class="yb-social__analytics-section">
+    <h3>{{ t.social_pillar_distribution or "Content Pillar Distribution" }}</h3>
+    <p class="yb-admin__muted" style="margin-bottom:12px">{{ t.social_pillar_distribution_desc or "How your content mix compares to the ideal 40/25/20/15 split." }}</p>
+    <div id="yb-social-pillar-chart" class="yb-social__pillar-chart">
+      <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+    </div>
+  </div>
+
   {# Promote to Ad — Top organic posts suitable for paid boost #}
   <div class="yb-social__analytics-section">
     <div class="yb-social__promote-header">
@@ -400,10 +409,11 @@
     </div>
   </div>
 
-  {# Inbox tabs: Comments / Messages #}
+  {# Inbox tabs: Comments / Messages / Mentions #}
   <div class="yb-social__filter-bar" id="yb-social-inbox-tabs">
     <button class="yb-social__filter-btn is-active" type="button" data-action="social-inbox-tab" data-tab="comments">{{ t.social_inbox_comments or "Comments" }} <span id="yb-social-inbox-comments-count" class="yb-social__inbox-count"></span></button>
     <button class="yb-social__filter-btn" type="button" data-action="social-inbox-tab" data-tab="messages">{{ t.social_inbox_messages or "Messages" }} <span id="yb-social-inbox-messages-count" class="yb-social__inbox-count"></span></button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-inbox-tab" data-tab="mentions">{{ t.social_inbox_mentions or "Mentions" }} <span id="yb-social-inbox-mentions-count" class="yb-social__inbox-count"></span></button>
   </div>
 
   {# Comments List #}
@@ -414,6 +424,30 @@
   {# Messages List #}
   <div id="yb-social-inbox-messages" class="yb-social__inbox-list" hidden>
     <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+  </div>
+
+  {# Mentions List #}
+  <div id="yb-social-inbox-mentions" class="yb-social__inbox-list" hidden>
+    <div class="yb-social__mentions-header">
+      <p class="yb-admin__muted">{{ t.social_mentions_desc or "Track @mentions, tags, and brand keywords across platforms." }}</p>
+      <div class="yb-social__mentions-actions">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-mentions-refresh">&#8635; {{ t.social_refresh or "Refresh" }}</button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-mentions-keywords">{{ t.social_mentions_keywords or "Keywords" }}</button>
+      </div>
+    </div>
+    <div class="yb-social__mentions-stats" id="yb-social-mentions-stats"></div>
+    <div id="yb-social-mentions-list">
+      <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+    </div>
+    {# Keywords editor (hidden by default) #}
+    <div id="yb-social-mentions-keywords-form" class="yb-social__mentions-keywords-form" hidden>
+      <label>{{ t.social_mentions_keywords_label or "Brand keywords to monitor (one per line)" }}</label>
+      <textarea id="yb-social-mentions-keywords-input" rows="5" placeholder="yogabible&#10;yoga bible&#10;torvegade 66"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-mentions-save-keywords">{{ t.social_save or "Save" }}</button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-mentions-cancel-keywords">{{ t.social_cancel or "Cancel" }}</button>
+      </div>
+    </div>
   </div>
 
   {# Thread / Reply Panel (slides in from right) #}
@@ -693,6 +727,20 @@
         <div class="yb-admin__field">
           <label for="yb-social-location">{{ t.social_location or "Location" }}</label>
           <input type="text" id="yb-social-location" placeholder="{{ t.social_location_placeholder or 'Yoga Bible, Copenhagen' }}">
+        </div>
+
+        {# Content Pillar #}
+        <div class="yb-admin__field">
+          <label for="yb-social-pillar">{{ t.social_content_pillar or "Content Pillar" }}</label>
+          <select id="yb-social-pillar">
+            <option value="">{{ t.social_pillar_none or "— Select —" }}</option>
+            <option value="educational">📚 {{ t.social_pillar_educational or "Educational" }}</option>
+            <option value="social_proof">🌟 {{ t.social_pillar_social_proof or "Social Proof" }}</option>
+            <option value="lifestyle">🌿 {{ t.social_pillar_lifestyle or "Lifestyle" }}</option>
+            <option value="promotional">🎯 {{ t.social_pillar_promotional or "Promotional" }}</option>
+            <option value="behind_scenes">🎬 {{ t.social_pillar_behind_scenes or "Behind the Scenes" }}</option>
+            <option value="community">🤝 {{ t.social_pillar_community or "Community" }}</option>
+          </select>
         </div>
 
         {# UTM Builder #}

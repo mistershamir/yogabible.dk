@@ -353,7 +353,7 @@
         });
         html += '</div>';
         dayPosts.slice(0, 2).forEach(function (p) {
-          html += '<div class="yb-social__cal-post-card" data-action="social-edit-post" data-id="' + p.id + '">' +
+          html += '<div class="yb-social__cal-post-card" draggable="true" data-action="social-edit-post" data-id="' + p.id + '" data-drag-post="' + p.id + '">' +
             truncate(p.caption, 25) + '</div>';
         });
         if (dayPosts.length > 2) {
@@ -363,6 +363,100 @@
       html += '</div>';
     }
     grid.innerHTML = html;
+    initCalendarDragDrop(grid);
+  }
+
+  // ── Calendar Drag-and-Drop Rescheduling ─────────────────────────
+
+  var calDragState = { postId: null };
+
+  function initCalendarDragDrop(grid) {
+    // Drag start on post cards
+    grid.addEventListener('dragstart', function (e) {
+      var card = e.target.closest('[data-drag-post]');
+      if (!card) return;
+      calDragState.postId = card.getAttribute('data-drag-post');
+      e.dataTransfer.setData('text/plain', calDragState.postId);
+      e.dataTransfer.effectAllowed = 'move';
+      card.classList.add('is-dragging');
+    });
+
+    grid.addEventListener('dragend', function (e) {
+      var card = e.target.closest('[data-drag-post]');
+      if (card) card.classList.remove('is-dragging');
+      calDragState.postId = null;
+      // Remove all drag-over states
+      qsa('.yb-social__cal-day--drag-over').forEach(function (d) {
+        d.classList.remove('yb-social__cal-day--drag-over');
+      });
+    });
+
+    // Drop target on day cells
+    grid.addEventListener('dragover', function (e) {
+      if (!calDragState.postId) return;
+      var dayCell = e.target.closest('.yb-social__cal-day');
+      if (!dayCell) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      // Highlight drop target
+      qsa('.yb-social__cal-day--drag-over').forEach(function (d) {
+        d.classList.remove('yb-social__cal-day--drag-over');
+      });
+      dayCell.classList.add('yb-social__cal-day--drag-over');
+    });
+
+    grid.addEventListener('dragleave', function (e) {
+      var dayCell = e.target.closest('.yb-social__cal-day');
+      if (dayCell && !dayCell.contains(e.relatedTarget)) {
+        dayCell.classList.remove('yb-social__cal-day--drag-over');
+      }
+    });
+
+    grid.addEventListener('drop', function (e) {
+      e.preventDefault();
+      var dayCell = e.target.closest('.yb-social__cal-day');
+      if (!dayCell || !calDragState.postId) return;
+
+      dayCell.classList.remove('yb-social__cal-day--drag-over');
+      var newDate = dayCell.getAttribute('data-date');
+      if (!newDate) return;
+
+      reschedulePost(calDragState.postId, newDate);
+    });
+  }
+
+  async function reschedulePost(postId, newDateStr) {
+    // Build a new scheduledAt datetime (keep existing time or default to 10:00)
+    var post = state.posts.find(function (p) { return p.id === postId; });
+    var existingDate = post ? (post.scheduledAt || post.publishedAt || post.createdAt) : null;
+    var hours = '10';
+    var minutes = '00';
+    if (existingDate) {
+      var dt = existingDate._seconds ? new Date(existingDate._seconds * 1000) : new Date(existingDate);
+      hours = String(dt.getHours()).padStart(2, '0');
+      minutes = String(dt.getMinutes()).padStart(2, '0');
+    }
+    var newScheduledAt = new Date(newDateStr + 'T' + hours + ':' + minutes + ':00');
+
+    var data = await api('social-posts', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'update',
+        id: postId,
+        scheduledAt: newScheduledAt.toISOString(),
+        status: 'scheduled'
+      })
+    });
+
+    if (data) {
+      toast(t('social_post_rescheduled') || 'Post rescheduled');
+      // Update local state
+      if (post) {
+        post.scheduledAt = { _seconds: Math.floor(newScheduledAt.getTime() / 1000) };
+        post.status = 'scheduled';
+      }
+      renderCalendar();
+    }
   }
 
   function getPostsForDate(dateStr) {
@@ -695,6 +789,9 @@
 
     // 7. Cross-post comparison
     renderCrossPostComparison();
+
+    // 8. Content pillar distribution
+    renderPillarDistribution();
   }
 
   function renderTrendChart(trend) {
@@ -981,6 +1078,80 @@
     }).then(function () {
       toast(t('social_promote_suggested') || 'Marked as ad candidate — use Meta Ads CLI to create the campaign');
     });
+  }
+
+  // ── Content Pillar Distribution ───────────────────────────────
+
+  var PILLAR_CONFIG = {
+    educational:   { label: 'Educational',       icon: '📚', target: 40, color: '#4CAF50' },
+    social_proof:  { label: 'Social Proof',      icon: '🌟', target: 25, color: '#FF9800' },
+    lifestyle:     { label: 'Lifestyle',         icon: '🌿', target: 20, color: '#2196F3' },
+    promotional:   { label: 'Promotional',       icon: '🎯', target: 15, color: '#E91E63' },
+    behind_scenes: { label: 'Behind the Scenes', icon: '🎬', target: 0,  color: '#9C27B0' },
+    community:     { label: 'Community',         icon: '🤝', target: 0,  color: '#00BCD4' }
+  };
+
+  function renderPillarDistribution() {
+    var container = $('yb-social-pillar-chart');
+    if (!container) return;
+
+    // Count posts by pillar from last 30 days
+    var thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    var recentPosts = state.posts.filter(function (p) {
+      if (p.status !== 'published' && p.status !== 'scheduled') return false;
+      var d = p.publishedAt || p.scheduledAt || p.createdAt;
+      if (!d) return false;
+      var dt = d._seconds ? new Date(d._seconds * 1000) : new Date(d);
+      return dt >= thirtyDaysAgo;
+    });
+
+    if (recentPosts.length < 3) {
+      container.innerHTML = '<p class="yb-admin__muted">Need at least 3 recent posts with content pillars assigned.</p>';
+      return;
+    }
+
+    var counts = {};
+    var unlabeled = 0;
+    recentPosts.forEach(function (p) {
+      var pillar = p.contentPillar;
+      if (pillar && PILLAR_CONFIG[pillar]) {
+        counts[pillar] = (counts[pillar] || 0) + 1;
+      } else {
+        unlabeled++;
+      }
+    });
+
+    var total = recentPosts.length;
+    var html = '<div class="yb-social__pillar-bars">';
+
+    Object.keys(PILLAR_CONFIG).forEach(function (key) {
+      var cfg = PILLAR_CONFIG[key];
+      var count = counts[key] || 0;
+      var pct = total > 0 ? Math.round((count / total) * 100) : 0;
+      var diff = cfg.target > 0 ? pct - cfg.target : 0;
+      var diffLabel = diff > 0 ? '+' + diff + '%' : diff < 0 ? diff + '%' : '—';
+      var diffClass = diff > 5 ? 'yb-social__pillar-diff--over' : diff < -5 ? 'yb-social__pillar-diff--under' : '';
+
+      html += '<div class="yb-social__pillar-row">' +
+        '<div class="yb-social__pillar-row-head">' +
+          '<span class="yb-social__pillar-row-name">' + cfg.icon + ' ' + cfg.label + '</span>' +
+          '<span class="yb-social__pillar-row-pct">' + pct + '% (' + count + ')' +
+          (cfg.target > 0 ? ' <span class="yb-social__pillar-diff ' + diffClass + '">' + diffLabel + ' vs ' + cfg.target + '% target</span>' : '') +
+          '</span>' +
+        '</div>' +
+        '<div class="yb-social__pillar-bar-track">' +
+          '<div class="yb-social__pillar-bar-fill" style="width:' + Math.min(pct, 100) + '%;background:' + cfg.color + '"></div>' +
+          (cfg.target > 0 ? '<div class="yb-social__pillar-bar-target" style="left:' + cfg.target + '%"></div>' : '') +
+        '</div>' +
+      '</div>';
+    });
+
+    if (unlabeled > 0) {
+      html += '<p class="yb-admin__muted" style="margin-top:8px">' + unlabeled + ' post' + (unlabeled > 1 ? 's' : '') + ' without a content pillar assigned.</p>';
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
   }
 
   function renderCrossPostComparison() {
@@ -1602,13 +1773,130 @@
     inboxState.tab = tab;
     var commentsEl = $('yb-social-inbox-comments');
     var messagesEl = $('yb-social-inbox-messages');
+    var mentionsEl = $('yb-social-inbox-mentions');
     if (commentsEl) commentsEl.hidden = tab !== 'comments';
     if (messagesEl) messagesEl.hidden = tab !== 'messages';
+    if (mentionsEl) mentionsEl.hidden = tab !== 'mentions';
     qsa('#yb-social-inbox-tabs .yb-social__filter-btn').forEach(function (b) {
       b.classList.toggle('is-active', b.getAttribute('data-tab') === tab);
     });
     closeThread();
-    renderInbox();
+    if (tab === 'mentions') {
+      loadMentions();
+    } else {
+      renderInbox();
+    }
+  }
+
+  // ── Social Mentions Monitoring ──────────────────────────────────
+
+  var mentionsState = {
+    mentions: [],
+    keywords: [],
+    stats: null,
+    loaded: false
+  };
+
+  async function loadMentions() {
+    var data = await api('social-mentions?action=list&days=30');
+    if (!data) return;
+    mentionsState.mentions = data.mentions || [];
+    mentionsState.keywords = data.keywords || [];
+    mentionsState.loaded = true;
+    renderMentions();
+    updateMentionsBadge();
+  }
+
+  function renderMentions() {
+    var container = $('yb-social-mentions-list');
+    if (!container) return;
+
+    if (mentionsState.mentions.length === 0) {
+      container.innerHTML = '<div class="yb-social__inbox-empty"><p>' + t('social_no_mentions') + '</p></div>';
+      return;
+    }
+
+    container.innerHTML = mentionsState.mentions.map(function (m) {
+      var typeIcon = m.type === 'tag' ? '🏷️' : m.type === 'mention' ? '@' : '🔍';
+      var typeLabel = m.type === 'tag' ? 'Tagged' : m.type === 'mention' ? 'Mentioned' : 'Keyword';
+      return '<div class="yb-social__inbox-item yb-social__mention-item' + (m.read ? '' : ' yb-social__inbox-item--unread') + '"' +
+        ' data-action="social-mention-open" data-id="' + m.id + '">' +
+        '<div class="yb-social__inbox-item-head">' +
+          platformIcon(m.platform) +
+          '<span class="yb-social__mention-type">' + typeIcon + ' ' + typeLabel + '</span>' +
+          '<span class="yb-social__inbox-item-author">' + escapeHtml(m.author || 'Unknown') + '</span>' +
+          '<span class="yb-social__inbox-item-time">' + formatTimeAgo(m.mentionedAt) + '</span>' +
+          (!m.read ? '<span class="yb-social__inbox-unread-dot"></span>' : '') +
+        '</div>' +
+        (m.mediaUrl ? '<div class="yb-social__mention-media"><img src="' + m.mediaUrl + '" alt="" loading="lazy"></div>' : '') +
+        '<p class="yb-social__inbox-item-text">' + escapeHtml(truncate(m.text || '', 150)) + '</p>' +
+        (m.permalink ? '<a href="' + m.permalink + '" target="_blank" rel="noopener" class="yb-social__mention-link">View on ' + m.platform + ' &rarr;</a>' : '') +
+      '</div>';
+    }).join('');
+  }
+
+  function updateMentionsBadge() {
+    var unread = mentionsState.mentions.filter(function (m) { return !m.read; }).length;
+    var badge = $('yb-social-inbox-mentions-count');
+    if (badge) badge.textContent = unread ? '(' + unread + ')' : '';
+    // Also update main inbox badge to include mentions
+    var mainBadge = $('yb-social-inbox-badge');
+    if (mainBadge) {
+      var totalUnread = (inboxState.comments ? inboxState.comments.filter(function (c) { return !c.read; }).length : 0) +
+        (inboxState.conversations ? inboxState.conversations.filter(function (c) { return !c.read; }).length : 0) +
+        unread;
+      mainBadge.textContent = totalUnread;
+      mainBadge.hidden = totalUnread === 0;
+    }
+  }
+
+  async function openMention(id) {
+    var mention = mentionsState.mentions.find(function (m) { return m.id === id; });
+    if (!mention) return;
+
+    // Mark as read
+    if (!mention.read) {
+      mention.read = true;
+      renderMentions();
+      updateMentionsBadge();
+      api('social-mentions', { method: 'POST', body: JSON.stringify({ action: 'mark-read', ids: [id] }) });
+    }
+
+    // If it has a permalink, open in new tab
+    if (mention.permalink) {
+      window.open(mention.permalink, '_blank');
+    }
+  }
+
+  async function refreshMentions() {
+    toast(t('social_mentions_refreshing') || 'Scanning for mentions...');
+    var data = await api('social-mentions', { method: 'POST', body: JSON.stringify({ action: 'refresh' }) });
+    if (data) {
+      toast((data.newMentions || 0) + ' new mentions found');
+      loadMentions();
+    }
+  }
+
+  function showMentionsKeywords() {
+    var form = $('yb-social-mentions-keywords-form');
+    var input = $('yb-social-mentions-keywords-input');
+    if (form) form.hidden = !form.hidden;
+    if (input && mentionsState.keywords.length) {
+      input.value = mentionsState.keywords.join('\n');
+    }
+  }
+
+  async function saveMentionsKeywords() {
+    var input = $('yb-social-mentions-keywords-input');
+    if (!input) return;
+    var keywords = input.value.split('\n').map(function (k) { return k.trim(); }).filter(Boolean);
+    var data = await api('social-mentions', { method: 'POST', body: JSON.stringify({ action: 'update-keywords', keywords: keywords }) });
+    if (data) {
+      mentionsState.keywords = keywords;
+      toast(t('social_saved') || 'Keywords saved');
+      var form = $('yb-social-mentions-keywords-form');
+      if (form) form.hidden = true;
+    }
   }
 
   function formatTimeAgo(ts) {
@@ -2512,6 +2800,13 @@
     else if (action === 'social-ai-draft-reply') aiDraftReply();
     else if (action === 'social-ai-use-reply') useAiReply(btn.getAttribute('data-index'));
     else if (action === 'social-inbox-create-lead') createLeadFromInbox();
+
+    // Mentions
+    else if (action === 'social-mention-open') openMention(btn.getAttribute('data-id'));
+    else if (action === 'social-mentions-refresh') refreshMentions();
+    else if (action === 'social-mentions-keywords') showMentionsKeywords();
+    else if (action === 'social-mentions-save-keywords') saveMentionsKeywords();
+    else if (action === 'social-mentions-cancel-keywords') { var mf = $('yb-social-mentions-keywords-form'); if (mf) mf.hidden = true; }
 
     // AI Content Planner
     else if (action === 'social-ai-plan') { var m = $('yb-social-ai-plan-modal'); if (m) m.hidden = false; }
