@@ -38,6 +38,14 @@
 [functions."social-weekly-digest"]
   schedule = "0 8 * * 1"
 
+# Scheduled function: social mentions monitor (every 2 hours)
+[functions."social-mentions"]
+  schedule = "0 */2 * * *"
+
+# Scheduled function: publish scheduled posts (every 5 minutes)
+[functions."social-publish-scheduled"]
+  schedule = "*/5 * * * *"
+
 # Redirect www to non-www (301)
 [[redirects]]
   from = "https://www.yogabible.dk/*"

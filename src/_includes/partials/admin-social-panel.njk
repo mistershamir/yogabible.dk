@@ -400,10 +400,11 @@
     </div>
   </div>
 
-  {# Inbox tabs: Comments / Messages #}
+  {# Inbox tabs: Comments / Messages / Mentions #}
   <div class="yb-social__filter-bar" id="yb-social-inbox-tabs">
     <button class="yb-social__filter-btn is-active" type="button" data-action="social-inbox-tab" data-tab="comments">{{ t.social_inbox_comments or "Comments" }} <span id="yb-social-inbox-comments-count" class="yb-social__inbox-count"></span></button>
     <button class="yb-social__filter-btn" type="button" data-action="social-inbox-tab" data-tab="messages">{{ t.social_inbox_messages or "Messages" }} <span id="yb-social-inbox-messages-count" class="yb-social__inbox-count"></span></button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-inbox-tab" data-tab="mentions">{{ t.social_inbox_mentions or "Mentions" }} <span id="yb-social-inbox-mentions-count" class="yb-social__inbox-count"></span></button>
   </div>
 
   {# Comments List #}
@@ -414,6 +415,30 @@
   {# Messages List #}
   <div id="yb-social-inbox-messages" class="yb-social__inbox-list" hidden>
     <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+  </div>
+
+  {# Mentions List #}
+  <div id="yb-social-inbox-mentions" class="yb-social__inbox-list" hidden>
+    <div class="yb-social__mentions-header">
+      <p class="yb-admin__muted">{{ t.social_mentions_desc or "Track @mentions, tags, and brand keywords across platforms." }}</p>
+      <div class="yb-social__mentions-actions">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-mentions-refresh">&#8635; {{ t.social_refresh or "Refresh" }}</button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-mentions-keywords">{{ t.social_mentions_keywords or "Keywords" }}</button>
+      </div>
+    </div>
+    <div class="yb-social__mentions-stats" id="yb-social-mentions-stats"></div>
+    <div id="yb-social-mentions-list">
+      <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+    </div>
+    {# Keywords editor (hidden by default) #}
+    <div id="yb-social-mentions-keywords-form" class="yb-social__mentions-keywords-form" hidden>
+      <label>{{ t.social_mentions_keywords_label or "Brand keywords to monitor (one per line)" }}</label>
+      <textarea id="yb-social-mentions-keywords-input" rows="5" placeholder="yogabible&#10;yoga bible&#10;torvegade 66"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-mentions-save-keywords">{{ t.social_save or "Save" }}</button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-mentions-cancel-keywords">{{ t.social_cancel or "Cancel" }}</button>
+      </div>
+    </div>
   </div>
 
   {# Thread / Reply Panel (slides in from right) #}

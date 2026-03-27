@@ -6825,3 +6825,26 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-social__media-type-opt { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; padding: 4px 10px; border: 1px solid var(--yb-border, #E8E4E0); border-radius: 8px; transition: border-color 0.15s; }
 .yb-social__media-type-opt:has(input:checked) { border-color: var(--yb-brand, #f75c03); background: #fff8f4; }
 .yb-social__media-type-opt input { accent-color: var(--yb-brand, #f75c03); }
+
+/* ── Social Mentions ── */
+.yb-social__mentions-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; }
+.yb-social__mentions-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.yb-social__mention-item { cursor: pointer; }
+.yb-social__mention-type { font-size: 11px; font-weight: 600; color: var(--yb-brand, #f75c03); margin-right: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+.yb-social__mention-media { margin: 8px 0; }
+.yb-social__mention-media img { max-width: 180px; max-height: 120px; border-radius: 8px; object-fit: cover; }
+.yb-social__mention-link { font-size: 12px; color: var(--yb-brand, #f75c03); text-decoration: none; display: inline-block; margin-top: 4px; }
+.yb-social__mention-link:hover { text-decoration: underline; }
+.yb-social__mentions-stats { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+.yb-social__mentions-stat { background: #fff; border: 1px solid var(--yb-border, #E8E4E0); border-radius: 10px; padding: 10px 16px; min-width: 100px; text-align: center; }
+.yb-social__mentions-stat-num { font-size: 22px; font-weight: 700; color: var(--yb-brand, #f75c03); }
+.yb-social__mentions-stat-label { font-size: 11px; color: var(--yb-muted, #6F6A66); }
+.yb-social__mentions-keywords-form { background: var(--yb-light-bg, #F5F3F0); border-radius: 10px; padding: 14px; margin-top: 14px; }
+.yb-social__mentions-keywords-form label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.yb-social__mentions-keywords-form textarea { width: 100%; border: 1px solid var(--yb-border, #E8E4E0); border-radius: 8px; padding: 8px 10px; font-size: 13px; resize: vertical; font-family: inherit; }
+
+/* ── Calendar Drag & Drop ── */
+.yb-social__cal-day--drag-over { background: #fff8f4 !important; border: 2px dashed var(--yb-brand, #f75c03) !important; border-radius: 8px; }
+.yb-social__cal-post-card[draggable="true"] { cursor: grab; }
+.yb-social__cal-post-card[draggable="true"]:active { cursor: grabbing; }
+.yb-social__cal-post-card.is-dragging { opacity: 0.4; }
