@@ -6,7 +6,6 @@
  * GET /.netlify/functions/oauth-callback?code=...&state=platform:token
  */
 
-const fetch = require('node-fetch');
 const { getDb, serverTimestamp } = require('./shared/firestore');
 const {
   getInstagramAccountInfo,
