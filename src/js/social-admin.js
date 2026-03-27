@@ -117,8 +117,9 @@
       var a = state.accounts[p];
       var card = qs('.yb-social__account-card[data-platform="' + p + '"]');
       if (!card) return;
-      var handleEl = $('yb-social-' + p.substring(0, 2) + '-handle');
-      var followEl = $('yb-social-' + p.substring(0, 2) + '-followers');
+      var abbr = { instagram: 'ig', facebook: 'fb', tiktok: 'tt', linkedin: 'li', youtube: 'yt', pinterest: 'pin' }[p] || p.substring(0, 2);
+      var handleEl = $('yb-social-' + abbr + '-handle');
+      var followEl = $('yb-social-' + abbr + '-followers');
       var connectBtn = card.querySelector('[data-action="social-connect"]');
       var disconnBtn = card.querySelector('[data-action="social-disconnect"]');
 
