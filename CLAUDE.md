@@ -1580,3 +1580,16 @@ When you create a new page, follow this order:
 - **Permissions:** `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`, `instagram_manage_messages`, `instagram_manage_insights`, `pages_manage_posts`, `pages_read_engagement`, `pages_show_list`, `pages_manage_metadata`, `ads_management`, `ads_read`, `business_management`, `leads_retrieval`, `whatsapp_business_messaging`, `whatsapp_business_management`
 - **Admin UI:** `/admin/` → Social → Accounts → Instagram/Facebook → paste access token + IDs
 - **Token refresh:** Page tokens never expire. If permissions change, regenerate via Graph API Explorer → exchange short→long-lived → get page token via `/me/accounts`
+
+### LinkedIn Developer App
+
+- **App Name:** Yoga Bible
+- **Client ID:** `78eu35dic8g09s`
+- **Client Secret:** `WPL_AP1.kAu04Qag3m5MCtfV.18Uzsw==`
+- **Organization ID:** `109163211`
+- **Company Page:** `https://www.linkedin.com/company/109163211/`
+- **Products:** Share on LinkedIn, Sign In with LinkedIn using OpenID Connect
+- **Scopes:** `w_member_social`, `openid`, `profile` (org scopes pending page verification)
+- **Token expires:** ~60 days
+- **Redirect URI:** `https://yogabible.dk/admin/`
+- **Admin UI:** `/admin/` → Social → Accounts → LinkedIn → paste access token + Organization ID
