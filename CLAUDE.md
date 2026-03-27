@@ -1593,3 +1593,15 @@ When you create a new page, follow this order:
 - **Token expires:** ~60 days
 - **Redirect URI:** `https://yogabible.dk/admin/`
 - **Admin UI:** `/admin/` → Social → Accounts → LinkedIn → paste access token + Organization ID
+
+### YouTube (Google Cloud OAuth)
+
+- **Google Cloud Project:** YogaBibleNetlifyProject (Project ID: `yogabiblenetlifyproject`)
+- **Organization:** yogabible.dk
+- **OAuth Client ID:** `969617587598-u23upn58qi3l3i1dgqm4en1th9kel602.apps.googleusercontent.com`
+- **OAuth Client Secret:** `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`
+- **Redirect URI:** `https://yogabible.dk/admin/`
+- **Required Scopes:** `https://www.googleapis.com/auth/youtube.upload`, `https://www.googleapis.com/auth/youtube.readonly`
+- **API Enabled:** YouTube Data API v3
+- **Consent screen:** Internal (yogabible.dk org only, no verification needed)
+- **Admin UI:** `/admin/` → Social → Accounts → YouTube → paste access token + refresh token + Channel ID
