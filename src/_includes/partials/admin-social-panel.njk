@@ -248,6 +248,7 @@
       <button type="button" class="yb-btn yb-btn--sm" data-action="social-bulk-schedule">📅 {{ t.social_bulk_schedule or "Schedule" }}</button>
       <button type="button" class="yb-btn yb-btn--sm" data-action="social-bulk-approve">✓ {{ t.social_bulk_approve or "Approve" }}</button>
       <button type="button" class="yb-btn yb-btn--sm" data-action="social-bulk-duplicate">📋 {{ t.social_bulk_duplicate or "Duplicate" }}</button>
+      <button type="button" class="yb-btn yb-btn--sm" data-action="social-bulk-smart-schedule">⚡ {{ t.social_smart_schedule or "Smart Schedule" }}</button>
       <button type="button" class="yb-btn yb-btn--sm yb-btn--danger" data-action="social-bulk-delete">🗑 {{ t.social_bulk_delete or "Delete" }}</button>
     </div>
     <button type="button" class="yb-social__bulk-clear" data-action="social-bulk-clear">✕</button>
@@ -799,6 +800,7 @@
             <input type="date" id="yb-social-schedule-date">
             <input type="time" id="yb-social-schedule-time" value="10:00">
             <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-best-time" title="{{ t.social_best_time_title or 'Suggest best time' }}">&#9200; {{ t.social_best_time or "Best Time" }}</button>
+            <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-smart-schedule" title="{{ t.social_smart_schedule_title or 'Auto-pick optimal slot' }}">&#9889; {{ t.social_smart_schedule or "Smart Schedule" }}</button>
           </div>
         </div>
 
@@ -832,6 +834,19 @@
               </div>
             </div>
             <div class="yb-social__ai-results" id="yb-social-ai-results"></div>
+          </div>
+        </div>
+
+        {# Per-Platform Captions #}
+        <div class="yb-social__platform-captions-section">
+          <button type="button" class="yb-btn yb-btn--outline" data-action="social-platform-captions-toggle">&#128221; {{ t.social_platform_captions or "Per-Platform Captions" }}</button>
+          <div class="yb-social__platform-captions-panel" id="yb-social-platform-captions" hidden>
+            <div class="yb-social__platform-captions-head">
+              <span class="yb-admin__muted">{{ t.social_platform_captions_desc or "Override the main caption for specific platforms" }}</span>
+              <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-platform-cap-ai-all">&#129302; {{ t.social_ai_adapt_all or "AI Adapt All" }}</button>
+            </div>
+            <div class="yb-social__platform-caption-tabs" id="yb-social-platform-caption-tabs"></div>
+            <div class="yb-social__platform-caption-body" id="yb-social-platform-caption-body"></div>
           </div>
         </div>
 

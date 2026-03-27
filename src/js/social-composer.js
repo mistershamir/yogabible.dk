@@ -17,7 +17,8 @@
     mediaSelected: [], // temp selection in media browser
     currentPath: 'yoga-bible-DK/social',
     uploadPlatform: 'general',  // tracks active platform for upload folder
-    videoThumbnails: {}  // { videoUrl: thumbnailUrl }
+    videoThumbnails: {},  // { videoUrl: thumbnailUrl }
+    platformCaptions: {}  // { instagram: "...", facebook: "...", ... }
   };
 
   var CHAR_LIMITS = {
@@ -37,6 +38,7 @@
     composer.postId = postId;
     composer.media = [];
     composer.platforms = [];
+    composer.platformCaptions = {};
     $('yb-social-post-id').value = postId || '';
     $('yb-social-caption').value = '';
     $('yb-social-hashtags').value = '';
@@ -62,6 +64,10 @@
     if (nowRadio) nowRadio.checked = true;
     var picker = $('yb-social-schedule-picker');
     if (picker) picker.hidden = true;
+
+    // Reset platform captions panel
+    var pcPanel = $('yb-social-platform-captions');
+    if (pcPanel) pcPanel.hidden = true;
 
     // Reset AI panel
     var aiPanel = $('yb-social-ai-panel');
@@ -101,6 +107,10 @@
     if ($('yb-social-pillar')) $('yb-social-pillar').value = p.contentPillar || '';
     composer.media = p.media || [];
     composer.platforms = p.platforms || [];
+    composer.platformCaptions = p.platformCaptions || {};
+
+    // Render platform captions if any exist
+    renderPlatformCaptionTabs();
 
     // Set platform checkboxes
     document.querySelectorAll('.yb-social__composer-platforms input').forEach(function (cb) {
@@ -445,6 +455,7 @@
       mediaType: mediaType,
       videoThumbnails: composer.videoThumbnails || {},
       contentPillar: ($('yb-social-pillar') || {}).value || '',
+      platformCaptions: composer.platformCaptions || {},
       status: status
     };
 
@@ -947,6 +958,27 @@
       }
     }
 
+    // Platform captions
+    else if (action === 'social-platform-captions-toggle') togglePlatformCaptions();
+    else if (action === 'social-platform-cap-tab') switchPlatformCaptionTab(btn.getAttribute('data-platform'));
+    else if (action === 'social-platform-cap-copy-main') {
+      var textarea = $('yb-social-platform-caption-text');
+      if (textarea) {
+        textarea.value = ($('yb-social-caption') || {}).value || '';
+        textarea.dispatchEvent(new Event('input'));
+      }
+    }
+    else if (action === 'social-platform-cap-ai') aiAdaptPlatformCaption();
+    else if (action === 'social-platform-cap-ai-all') aiAdaptAllPlatforms();
+    else if (action === 'social-platform-cap-clear') {
+      delete composer.platformCaptions[activePlatformTab];
+      renderPlatformCaptionTabs();
+      S.toast('Cleared');
+    }
+
+    // Smart Queue
+    else if (action === 'social-smart-schedule') smartSchedulePost();
+
     // Best time — fetch from analytics
     else if (action === 'social-best-time') {
       fetchBestTime();
@@ -1015,6 +1047,9 @@
       updateCharCount();
       toggleFirstComment();
       toggleMediaTypeRow();
+      // Refresh platform caption tabs if panel is open
+      var pcPanel = $('yb-social-platform-captions');
+      if (pcPanel && !pcPanel.hidden) renderPlatformCaptionTabs();
     }
     if (e.target.name === 'social-schedule') {
       var picker = $('yb-social-schedule-picker');
@@ -1115,6 +1150,173 @@
 
     var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     S.toast('Queued for ' + dayNames[candidate.getDay()] + ' ' + dateStr + ' at ' + timeStr);
+  }
+
+  /* ═══ PLATFORM-SPECIFIC CAPTIONS ═══ */
+  var activePlatformTab = null;
+
+  function togglePlatformCaptions() {
+    var panel = $('yb-social-platform-captions');
+    if (!panel) return;
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) renderPlatformCaptionTabs();
+  }
+
+  function renderPlatformCaptionTabs() {
+    var container = $('yb-social-platform-caption-tabs');
+    var body = $('yb-social-platform-caption-body');
+    if (!container || !body) return;
+
+    if (composer.platforms.length === 0) {
+      container.innerHTML = '<p class="yb-admin__muted">Select platforms first</p>';
+      body.innerHTML = '';
+      return;
+    }
+
+    var icons = { instagram: '📸 IG', facebook: '👤 FB', tiktok: '🎵 TT', linkedin: '💼 LI', youtube: '▶️ YT', pinterest: '📌 PIN' };
+
+    container.innerHTML = composer.platforms.map(function (p) {
+      var has = composer.platformCaptions[p] ? ' has-caption' : '';
+      var active = activePlatformTab === p ? ' is-active' : '';
+      return '<button type="button" class="yb-social__platform-cap-tab' + has + active + '" data-action="social-platform-cap-tab" data-platform="' + p + '">' +
+        (icons[p] || p) +
+        (composer.platformCaptions[p] ? ' ✓' : '') +
+        '</button>';
+    }).join('');
+
+    if (!activePlatformTab || composer.platforms.indexOf(activePlatformTab) < 0) {
+      activePlatformTab = composer.platforms[0];
+    }
+
+    // Highlight active tab
+    container.querySelectorAll('.yb-social__platform-cap-tab').forEach(function (tab) {
+      tab.classList.toggle('is-active', tab.getAttribute('data-platform') === activePlatformTab);
+    });
+
+    // Show textarea for active platform
+    var currentCaption = composer.platformCaptions[activePlatformTab] || '';
+    var mainCaption = ($('yb-social-caption') || {}).value || '';
+    var limit = CHAR_LIMITS[activePlatformTab] || 2200;
+
+    body.innerHTML =
+      '<div class="yb-social__platform-cap-editor">' +
+        '<div class="yb-social__platform-cap-info">' +
+          '<span class="yb-admin__muted">Override caption for ' + activePlatformTab + ' (leave blank to use main caption)</span>' +
+          '<span id="yb-social-platform-char-count" style="font-size:11px;color:#6F6A66">' + (currentCaption || mainCaption).length + ' / ' + limit + '</span>' +
+        '</div>' +
+        '<textarea id="yb-social-platform-caption-text" rows="4" placeholder="Platform-specific caption...">' + escapeHtml(currentCaption) + '</textarea>' +
+        '<div class="yb-social__platform-cap-actions">' +
+          '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-platform-cap-copy-main">Copy Main Caption</button>' +
+          '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-platform-cap-ai">AI Adapt</button>' +
+          '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-platform-cap-clear">Clear</button>' +
+        '</div>' +
+      '</div>';
+
+    // Listen for changes
+    var textarea = $('yb-social-platform-caption-text');
+    if (textarea) {
+      textarea.addEventListener('input', function () {
+        composer.platformCaptions[activePlatformTab] = textarea.value.trim() || undefined;
+        if (!textarea.value.trim()) delete composer.platformCaptions[activePlatformTab];
+        var countEl = $('yb-social-platform-char-count');
+        if (countEl) countEl.textContent = (textarea.value || mainCaption).length + ' / ' + limit;
+        // Update tab indicator
+        renderPlatformCaptionTabs();
+      });
+    }
+  }
+
+  function switchPlatformCaptionTab(platform) {
+    activePlatformTab = platform;
+    renderPlatformCaptionTabs();
+  }
+
+  async function aiAdaptPlatformCaption() {
+    var caption = ($('yb-social-caption') || {}).value || '';
+    if (!caption) { S.toast('Write a main caption first', true); return; }
+
+    S.toast('Adapting for ' + activePlatformTab + '...');
+
+    var data = await S.api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'platform-captions',
+        caption: caption,
+        platforms: [activePlatformTab]
+      })
+    });
+
+    if (data && data.captions && data.captions[activePlatformTab]) {
+      var adapted = data.captions[activePlatformTab];
+      composer.platformCaptions[activePlatformTab] = adapted.caption || '';
+      renderPlatformCaptionTabs();
+      S.toast('Adapted for ' + activePlatformTab);
+    }
+  }
+
+  async function aiAdaptAllPlatforms() {
+    var caption = ($('yb-social-caption') || {}).value || '';
+    if (!caption) { S.toast('Write a main caption first', true); return; }
+    if (composer.platforms.length === 0) { S.toast('Select platforms first', true); return; }
+
+    S.toast('Adapting for all platforms...');
+
+    var data = await S.api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'platform-captions',
+        caption: caption,
+        platforms: composer.platforms
+      })
+    });
+
+    if (data && data.captions) {
+      Object.keys(data.captions).forEach(function (plat) {
+        var adapted = data.captions[plat];
+        if (adapted && adapted.caption) {
+          composer.platformCaptions[plat] = adapted.caption;
+        }
+      });
+      renderPlatformCaptionTabs();
+      S.toast('All platforms adapted');
+    }
+  }
+
+  function escapeHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  /* ═══ SMART QUEUE ═══ */
+  async function smartSchedulePost() {
+    S.toast('Finding optimal time slot...');
+    try {
+      var data = await S.api('social-smart-queue?action=suggest-slots&count=1');
+      if (data && data.slots && data.slots.length > 0) {
+        var slot = data.slots[0];
+        var dt = new Date(slot.datetime);
+        $('yb-social-schedule-date').value = dt.toISOString().split('T')[0];
+        $('yb-social-schedule-time').value = slot.time;
+
+        var picker = $('yb-social-schedule-picker');
+        if (picker) picker.hidden = false;
+
+        var schedRadio = document.querySelector('input[name="social-schedule"][value="schedule"]');
+        if (schedRadio) schedRadio.checked = true;
+
+        S.toast('Smart scheduled: ' + slot.dayLabel + ' at ' + slot.time + ' — ' + slot.reason);
+        updatePublishBtn();
+      } else {
+        S.toast('No optimal slots found — defaulting to tomorrow 10:00');
+        var tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        $('yb-social-schedule-date').value = tomorrow.toISOString().split('T')[0];
+        $('yb-social-schedule-time').value = '10:00';
+      }
+    } catch (err) {
+      S.toast('Error finding slot', true);
+    }
   }
 
   /* ═══ INIT ═══ */

@@ -157,7 +157,7 @@ async function createPost(db, body, user) {
   const {
     caption, platforms, media, hashtags, hashtagSet,
     status, scheduledAt, firstComment, location, altTexts, mediaType,
-    contentPillar
+    contentPillar, platformCaptions
   } = body;
 
   if (!caption && (!media || media.length === 0)) {
@@ -181,6 +181,7 @@ async function createPost(db, body, user) {
     altTexts: altTexts || {},
     mediaType: mediaType || 'auto',
     contentPillar: contentPillar || '',
+    platformCaptions: platformCaptions || {},
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     createdBy: user.email
@@ -208,7 +209,7 @@ async function updatePost(db, body) {
     'caption', 'platforms', 'media', 'hashtags', 'hashtagSet',
     'status', 'scheduledAt', 'firstComment', 'location', 'altTexts', 'mediaType',
     'approvedBy', 'approvedAt', 'recycleConfig', 'videoThumbnails', 'adSuggestion',
-    'contentPillar', 'evergreenCandidate'
+    'contentPillar', 'evergreenCandidate', 'platformCaptions'
   ];
 
   const update = { updatedAt: serverTimestamp() };
