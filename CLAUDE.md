@@ -1545,3 +1545,25 @@ When you create a new page, follow this order:
 10. **Photography page uses dark cinematic layouts** from section 31 — dark backgrounds, editorial grids
 11. **Model showcase cards** must include: name, bio, social links, 1 portrait + featured yoga photos — use section 32 variations
 12. **Scroll-draw vines** are a brand element — use across landing pages for visual storytelling. Variation B should be custom-pathed to touch keywords on each specific page
+
+---
+
+## Social Media Platform Credentials
+
+### TikTok Developer App
+
+- **App Name:** Yoga Bible DK
+- **Organization:** Yoga Bible
+- **Organization ID:** `7621584075303699477`
+- **Client Key:** `aw0ak2eupqflz21x`
+- **Client Secret:** `dxz3xIbgqPEw980FWUaGDeuRh15LxTfb`
+- **Platform:** Web
+- **Required Scopes:** `video.publish`, `video.upload`, `user.info.basic`
+- **Required Products:** Content Posting API, TikTok Account
+- **Verified Domains:** `yogabible.dk`, `yogabible.com` (DNS TXT record method)
+- **DNS TXT Record:** `tiktok-developers-site-verification=Ak7sI4jD9mUC9h2a44GZ6iY0s9dzpDiR` (root domain, no hostname prefix)
+- **Terms URL:** `https://yogabible.dk/terms-conditions/`
+- **Privacy URL:** `https://yogabible.dk/privacy-policy/`
+- **Status:** Pending review (submitted March 2026)
+- **Admin UI:** `/admin/` → Social → Accounts → TikTok → paste access token
+- **Note:** Domain verification covers all subdomains (www included). No need to verify www separately.
