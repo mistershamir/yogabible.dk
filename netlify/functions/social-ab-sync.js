@@ -1,12 +1,7 @@
-/**
- * Social A/B Test Metric Sync — Yoga Bible
- * Scheduled function that pulls real metrics from platforms
- * for active A/B tests with linked post IDs.
- *
- * Runs every 6 hours via netlify.toml:
- *   [functions."social-ab-sync"]
- *     schedule = "0 */6 * * *"
- */
+// Social A/B Test Metric Sync — Yoga Bible
+// Scheduled function that pulls real metrics from platforms
+// for active A/B tests with linked post IDs.
+// Runs every 6 hours via netlify.toml: schedule = "0 */6 * * *"
 
 const { getDb, serverTimestamp } = require('./shared/firestore');
 const { jsonResponse } = require('./shared/utils');

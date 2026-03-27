@@ -1,19 +1,12 @@
-/**
- * Social Auto-Post — Yoga Bible
- * Scheduled function that checks for new journal entries and creates
- * draft social media posts for all connected accounts.
- *
- * Runs every 30 minutes. Checks journals.json for entries published
- * since the last run. Creates one draft post per connected platform.
- *
- * Can also be triggered manually:
- *   POST /.netlify/functions/social-auto-post
- *   Body: { "slug": "specific-slug" } — force-create for a specific entry
- *
- * Configured in netlify.toml:
- *   [functions."social-auto-post"]
- *     schedule = "*/30 * * * *"
- */
+// Social Auto-Post — Yoga Bible
+// Scheduled function that checks for new journal entries and creates
+// draft social media posts for all connected accounts.
+// Runs every 30 minutes. Checks journals.json for entries published
+// since the last run. Creates one draft post per connected platform.
+// Can also be triggered manually:
+//   POST /.netlify/functions/social-auto-post
+//   Body: { "slug": "specific-slug" } — force-create for a specific entry
+// Configured in netlify.toml: schedule = "*/30 * * * *"
 
 const fs = require('fs');
 const path = require('path');
