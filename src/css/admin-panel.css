@@ -6861,3 +6861,60 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-social__pillar-diff { font-size: 11px; margin-left: 4px; }
 .yb-social__pillar-diff--over { color: #E91E63; }
 .yb-social__pillar-diff--under { color: #4CAF50; }
+
+/* ── Sentiment Analysis Badges ── */
+.yb-social__sentiment-badge {
+  display: inline-flex; align-items: center; font-size: 12px; margin-left: 2px;
+}
+.yb-social__sentiment-badge--urgent {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.yb-social__inbox-item--urgent {
+  border-left: 3px solid #dc2626; background: #fef2f2;
+}
+.yb-social__inbox-item-ai-summary {
+  font-size: 0.72rem; color: #6F6A66; margin: 2px 0 4px; font-style: italic;
+  padding: 3px 6px; background: #f5f3f0; border-radius: 4px;
+}
+.yb-social__inbox-sentiment-bar {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 12px;
+  padding: 8px 0; border-bottom: 1px solid #E8E4E0;
+}
+
+/* ── Per-Platform Captions ── */
+.yb-social__platform-captions-section { margin-top: 12px; }
+.yb-social__platform-captions-panel {
+  margin-top: 10px; padding: 12px; background: #F5F3F0; border-radius: 10px;
+}
+.yb-social__platform-captions-head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.yb-social__platform-caption-tabs {
+  display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;
+}
+.yb-social__platform-cap-tab {
+  padding: 5px 12px; font-size: 12px; border: 1px solid #E8E4E0; border-radius: 6px;
+  background: #fff; cursor: pointer; transition: all 0.15s;
+}
+.yb-social__platform-cap-tab:hover { border-color: #f75c03; }
+.yb-social__platform-cap-tab.is-active {
+  background: #f75c03; color: #fff; border-color: #f75c03;
+}
+.yb-social__platform-cap-tab.has-caption::after {
+  content: ''; display: inline-block; width: 6px; height: 6px;
+  background: #4CAF50; border-radius: 50%; margin-left: 4px; vertical-align: middle;
+}
+.yb-social__platform-cap-tab.is-active.has-caption::after { background: #fff; }
+.yb-social__platform-cap-editor textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid #E8E4E0; border-radius: 8px;
+  font-size: 13px; resize: vertical; font-family: inherit; margin-top: 6px;
+}
+.yb-social__platform-cap-editor textarea:focus {
+  outline: none; border-color: #f75c03;
+}
+.yb-social__platform-cap-info {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.yb-social__platform-cap-actions {
+  display: flex; gap: 6px; margin-top: 8px;
+}

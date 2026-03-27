@@ -143,6 +143,8 @@ exports.handler = async (event) => {
       case 'smart-blog-caption': return smartBlogCaption(body);
       case 'suggest-competitors': return suggestCompetitors(body);
       case 'competitor-content-strategy': return competitorContentStrategy(body);
+      case 'analyze-sentiment': return analyzeSentiment(body);
+      case 'platform-captions': return platformCaptions(body);
       default:
         return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
     }
@@ -914,6 +916,110 @@ Respond with this exact JSON structure:
     return jsonResponse(200, { ok: true, ...parsed });
   } catch (parseErr) {
     console.error('[social-ai] Failed to parse competitor strategy:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Sentiment Analysis ─────────────────────────────────────────
+
+async function analyzeSentiment(body) {
+  const { items } = body;
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return jsonResponse(400, { ok: false, error: 'Missing items array' });
+  }
+
+  // Batch up to 20 items per request
+  const batch = items.slice(0, 20);
+  const itemsText = batch.map((item, i) =>
+    `[${i}] "${(item.text || '').substring(0, 300)}" (from: ${item.author || 'unknown'}, platform: ${item.platform || 'unknown'})`
+  ).join('\n');
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Analyze the sentiment and intent of these social media comments/messages for Yoga Bible (yoga teacher training school in Copenhagen).
+
+For each item, determine:
+1. sentiment: "positive", "negative", "neutral", or "question"
+2. intent: "praise", "complaint", "question", "purchase_intent", "spam", "general", "support_request"
+3. urgency: "high" (negative/complaint/purchase intent), "medium" (question/support), "low" (positive/general/spam)
+4. summary: 1 sentence summary of what they want/mean
+5. suggested_action: "reply_now", "flag_lead", "thank", "ignore", or "escalate"
+
+Items:
+${itemsText}
+
+Return JSON:
+{
+  "results": [
+    {
+      "index": 0,
+      "sentiment": "positive",
+      "intent": "praise",
+      "urgency": "low",
+      "summary": "Brief summary",
+      "suggested_action": "thank"
+    }
+  ]
+}`
+  }], 2000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, results: parsed.results || [] });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse sentiment:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Platform-Specific Captions ─────────────────────────────────
+
+async function platformCaptions(body) {
+  const { caption, platforms } = body;
+  if (!caption) return jsonResponse(400, { ok: false, error: 'Missing caption' });
+
+  const targetPlatforms = platforms && platforms.length > 0
+    ? platforms
+    : ['instagram', 'facebook', 'linkedin', 'tiktok'];
+
+  const platformGuidelines = {
+    instagram: 'Instagram: Hook in first line, line breaks for readability, hashtags in first comment or at end (max 30), use emojis, 2200 char limit. Conversational and visual.',
+    facebook: 'Facebook: Storytelling, longer form OK, question at end to drive comments, 1-3 hashtags max, link-friendly. Warm and community-focused.',
+    linkedin: 'LinkedIn: Professional tone, thought leadership angle, industry insights, 3-5 hashtags, no emojis overload. Educational and authoritative.',
+    tiktok: 'TikTok: Ultra short, hook-first, trending language, 3-5 hashtags, casual and fun. Max 2200 chars but shorter is better.',
+    youtube: 'YouTube: Description-style, include keywords for SEO, timestamps if relevant, CTA to subscribe. Informative and searchable.',
+    pinterest: 'Pinterest: SEO keyword-rich, descriptive, actionable language, 2-5 hashtags. Max 500 chars. Discovery-focused.'
+  };
+
+  const guidelines = targetPlatforms
+    .map(p => platformGuidelines[p] || `${p}: Adapt naturally.`)
+    .join('\n');
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Take this social media caption and adapt it for each platform. Keep the core message but optimize for each platform's style, tone, and best practices.
+
+Original caption:
+"${caption}"
+
+Platform guidelines:
+${guidelines}
+
+Return JSON with platform-specific captions:
+{
+  "captions": {
+    ${targetPlatforms.map(p => `"${p}": { "caption": "Platform-optimized caption", "note": "What was changed and why" }`).join(',\n    ')}
+  }
+}`
+  }], 3000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, captions: parsed.captions || {} });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse platform captions:', text.substring(0, 500));
     return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
   }
 }

@@ -1300,7 +1300,9 @@
     comments: [],
     conversations: [],
     activeThread: null,
-    pollTimer: null
+    pollTimer: null,
+    sentimentFilter: '',
+    sentimentAnalyzed: false
   };
 
   async function loadInbox() {
@@ -1353,19 +1355,58 @@
       return;
     }
 
-    container.innerHTML = inboxState.comments.map(function (c) {
-      return '<div class="yb-social__inbox-item' + (c.read ? '' : ' yb-social__inbox-item--unread') + '" data-action="social-inbox-open-comment" data-id="' + c.commentId + '" data-platform="' + c.platform + '" data-inbox-id="' + c.id + '">' +
+    // Render sentiment filter bar
+    var filterHtml = '<div class="yb-social__inbox-sentiment-bar">' +
+      '<button class="yb-social__filter-btn yb-btn--sm' + (!inboxState.sentimentFilter ? ' is-active' : '') + '" data-action="social-inbox-sentiment-filter" data-filter="">All</button>' +
+      '<button class="yb-social__filter-btn yb-btn--sm' + (inboxState.sentimentFilter === 'negative' ? ' is-active' : '') + '" data-action="social-inbox-sentiment-filter" data-filter="negative">😡 Negative</button>' +
+      '<button class="yb-social__filter-btn yb-btn--sm' + (inboxState.sentimentFilter === 'question' ? ' is-active' : '') + '" data-action="social-inbox-sentiment-filter" data-filter="question">❓ Questions</button>' +
+      '<button class="yb-social__filter-btn yb-btn--sm' + (inboxState.sentimentFilter === 'purchase_intent' ? ' is-active' : '') + '" data-action="social-inbox-sentiment-filter" data-filter="purchase_intent">💰 Purchase Intent</button>' +
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-inbox-analyze-sentiment" style="margin-left:auto">🤖 Analyze All</button>' +
+      '</div>';
+
+    var filtered = inboxState.comments;
+    if (inboxState.sentimentFilter) {
+      filtered = filtered.filter(function (c) {
+        if (!c._sentiment) return false;
+        if (inboxState.sentimentFilter === 'purchase_intent') return c._sentiment.intent === 'purchase_intent';
+        return c._sentiment.sentiment === inboxState.sentimentFilter;
+      });
+    }
+
+    var itemsHtml = filtered.map(function (c) {
+      var sentimentBadge = '';
+      if (c._sentiment) {
+        var s = c._sentiment;
+        var icons = { positive: '😊', negative: '😡', neutral: '😐', question: '❓' };
+        var intentIcons = { purchase_intent: '💰', complaint: '🚨', spam: '🚫', support_request: '🛟' };
+        sentimentBadge = '<span class="yb-social__sentiment-badge yb-social__sentiment-badge--' + s.sentiment + '">' +
+          (icons[s.sentiment] || '') + '</span>';
+        if (intentIcons[s.intent]) {
+          sentimentBadge += '<span class="yb-social__sentiment-badge yb-social__sentiment-badge--intent">' + intentIcons[s.intent] + '</span>';
+        }
+        if (s.urgency === 'high') {
+          sentimentBadge += '<span class="yb-social__sentiment-badge yb-social__sentiment-badge--urgent">⚡</span>';
+        }
+      }
+
+      return '<div class="yb-social__inbox-item' + (c.read ? '' : ' yb-social__inbox-item--unread') +
+        (c._sentiment && c._sentiment.urgency === 'high' ? ' yb-social__inbox-item--urgent' : '') +
+        '" data-action="social-inbox-open-comment" data-id="' + c.commentId + '" data-platform="' + c.platform + '" data-inbox-id="' + c.id + '">' +
         '<div class="yb-social__inbox-item-head">' +
           platformIcon(c.platform) +
           '<span class="yb-social__inbox-item-author">' + (c.author || 'Unknown') + '</span>' +
+          sentimentBadge +
           '<span class="yb-social__inbox-item-time">' + formatTimeAgo(c.timestamp) + '</span>' +
           (!c.read ? '<span class="yb-social__inbox-unread-dot"></span>' : '') +
         '</div>' +
         '<p class="yb-social__inbox-item-text">' + escapeHtml(c.text || '') + '</p>' +
+        (c._sentiment && c._sentiment.summary ? '<p class="yb-social__inbox-item-ai-summary">' + escapeHtml(c._sentiment.summary) + '</p>' : '') +
         '<p class="yb-social__inbox-item-context">On: ' + escapeHtml(c.postCaption || '') + '</p>' +
         (c.replies && c.replies.length > 0 ? '<span class="yb-social__inbox-item-replies">' + c.replies.length + ' ' + (c.replies.length === 1 ? 'reply' : 'replies') + '</span>' : '') +
       '</div>';
     }).join('');
+
+    container.innerHTML = filterHtml + itemsHtml;
   }
 
   function renderConversations() {
@@ -1883,6 +1924,63 @@
       loadMentions();
     } else {
       renderInbox();
+    }
+  }
+
+  // ── Sentiment Analysis ──────────────────────────────────────────
+
+  function filterInboxBySentiment(filter) {
+    inboxState.sentimentFilter = filter || '';
+    renderComments();
+  }
+
+  async function analyzeInboxSentiment() {
+    if (inboxState.comments.length === 0) { toast('No comments to analyze', true); return; }
+
+    toast('Analyzing sentiment...');
+    var items = inboxState.comments.slice(0, 20).map(function (c) {
+      return {
+        id: c.id,
+        text: c.text || '',
+        author: c.author || 'Unknown',
+        platform: c.platform
+      };
+    });
+
+    var data = await api('social-inbox', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'analyze-sentiment', items: items })
+    });
+
+    if (data && data.results) {
+      data.results.forEach(function (r) {
+        if (r.index !== undefined && inboxState.comments[r.index]) {
+          inboxState.comments[r.index]._sentiment = r;
+        }
+      });
+      inboxState.sentimentAnalyzed = true;
+      renderComments();
+      toast('Analyzed ' + data.results.length + ' comments' + (data.alertCount ? ' — ' + data.alertCount + ' alerts sent to Telegram' : ''));
+    }
+  }
+
+  // ── Smart Queue (bulk) ──────────────────────────────────────────
+
+  async function smartScheduleSelected() {
+    if (state.selectedPosts.length === 0) { toast('Select posts first', true); return; }
+
+    toast('Smart scheduling ' + state.selectedPosts.length + ' posts...');
+    var data = await api('social-smart-queue', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'auto-schedule', postIds: state.selectedPosts })
+    });
+
+    if (data) {
+      var msg = 'Scheduled ' + (data.scheduled || []).length + ' posts';
+      if (data.errors && data.errors.length > 0) msg += ' (' + data.errors.length + ' errors)';
+      toast(msg);
+      state.selectedPosts = [];
+      loadPosts();
     }
   }
 
@@ -2994,6 +3092,7 @@
     else if (action === 'social-bulk-approve') bulkApprove();
     else if (action === 'social-bulk-duplicate') bulkDuplicate();
     else if (action === 'social-bulk-delete') bulkDelete();
+    else if (action === 'social-bulk-smart-schedule') smartScheduleSelected();
     else if (action === 'social-bulk-clear') clearSelection();
 
     // Hashtags
@@ -3017,6 +3116,8 @@
     else if (action === 'social-inbox-send-reply') sendReply();
     else if (action === 'social-ai-draft-reply') aiDraftReply();
     else if (action === 'social-ai-use-reply') useAiReply(btn.getAttribute('data-index'));
+    else if (action === 'social-inbox-sentiment-filter') filterInboxBySentiment(btn.getAttribute('data-filter'));
+    else if (action === 'social-inbox-analyze-sentiment') analyzeInboxSentiment();
     else if (action === 'social-inbox-create-lead') createLeadFromInbox();
     else if (action === 'social-lead-modal-save') saveLeadFromModal();
     else if (action === 'social-lead-modal-close') { var lm = document.getElementById('yb-social-lead-modal'); if (lm) lm.remove(); }

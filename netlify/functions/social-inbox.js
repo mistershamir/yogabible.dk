@@ -8,6 +8,7 @@
  * POST /.netlify/functions/social-inbox  { action: 'reply-comment', commentId, text, platform }
  * POST /.netlify/functions/social-inbox  { action: 'reply-message', conversationId, text, platform }
  * POST /.netlify/functions/social-inbox  { action: 'mark-read', ids: [...] }
+ * POST /.netlify/functions/social-inbox  { action: 'analyze-sentiment', items: [...] }
  */
 
 const { getDb, serverTimestamp } = require('./shared/firestore');
@@ -57,6 +58,7 @@ exports.handler = async (event) => {
         case 'reply-comment': return replyToComment(db, body);
         case 'reply-message': return replyToMessage(db, body);
         case 'mark-read': return markRead(db, body);
+        case 'analyze-sentiment': return analyzeSentimentBatch(db, body);
         default:
           return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
       }
@@ -380,6 +382,132 @@ async function markRead(db, body) {
 
   await batch.commit();
   return jsonResponse(200, { ok: true, marked: ids.length });
+}
+
+
+// ── Analyze Sentiment (batch) ──────────────────────────────────
+
+async function analyzeSentimentBatch(db, body) {
+  const { items } = body;
+  if (!Array.isArray(items) || items.length === 0) {
+    return jsonResponse(400, { ok: false, error: 'Missing items array' });
+  }
+
+  // Call the social-ai endpoint for sentiment analysis
+  const https = require('https');
+
+  const aiBody = JSON.stringify({
+    action: 'analyze-sentiment',
+    items: items.slice(0, 20)
+  });
+
+  // Internal call to social-ai
+  const { claudeRequest, parseJsonResponse } = require('./shared/social-ai-helpers');
+
+  const prompt = `Analyze the sentiment of these social media comments/messages. For each item, return:
+- sentiment: "positive", "negative", "neutral", or "question"
+- intent: "praise", "complaint", "purchase_intent", "support_request", "spam", "question", "feedback", or "other"
+- urgency: "high", "medium", or "low" (high = needs immediate response)
+- summary: 1-sentence summary
+- suggested_action: brief recommended action
+
+Items to analyze:
+${items.slice(0, 20).map((item, i) => `${i + 1}. [${item.platform || 'unknown'}] ${item.author || 'Unknown'}: "${(item.text || '').substring(0, 300)}"`).join('\n')}
+
+Return JSON: { "results": [ { "index": 0, "sentiment": "...", "intent": "...", "urgency": "...", "summary": "...", "suggested_action": "..." } ] }`;
+
+  try {
+    const aiResult = await callClaude(prompt);
+    const parsed = parseAiJson(aiResult);
+
+    // Store sentiment data in Firestore for items with high urgency or negative sentiment
+    const alerts = [];
+    if (parsed && parsed.results) {
+      for (const r of parsed.results) {
+        if (r.urgency === 'high' || r.sentiment === 'negative' || r.intent === 'purchase_intent') {
+          const item = items[r.index];
+          if (item) {
+            alerts.push({
+              ...r,
+              text: (item.text || '').substring(0, 200),
+              author: item.author || 'Unknown',
+              platform: item.platform || 'unknown',
+              inboxId: item.id || null
+            });
+          }
+        }
+      }
+
+      // Store alerts for Telegram notification pickup
+      if (alerts.length > 0) {
+        await db.collection('social_sentiment_alerts').add({
+          alerts,
+          createdAt: serverTimestamp(),
+          notified: false
+        });
+      }
+    }
+
+    return jsonResponse(200, {
+      ok: true,
+      results: parsed ? parsed.results : [],
+      alertCount: alerts.length
+    });
+  } catch (err) {
+    console.error('[social-inbox] Sentiment analysis error:', err);
+    return jsonResponse(200, { ok: true, results: [], error: err.message });
+  }
+}
+
+// Lightweight Claude call for sentiment (avoids circular dependency with social-ai)
+function callClaude(prompt) {
+  const https = require('https');
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const opts = {
+      hostname: 'api.anthropic.com',
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY || '',
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    };
+
+    const req = https.request(opts, (res) => {
+      let data = '';
+      res.on('data', (c) => { data += c; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          const text = parsed.content?.[0]?.text || '';
+          resolve(text);
+        } catch (e) {
+          reject(new Error('Failed to parse AI response'));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+function parseAiJson(text) {
+  try {
+    // Strip markdown fences if present
+    const cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch (e) {
+    return null;
+  }
 }
 
 
