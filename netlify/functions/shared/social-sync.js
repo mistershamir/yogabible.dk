@@ -117,8 +117,65 @@ async function createSequenceSyncPost(sequenceId, stepIndex, theme) {
   });
 }
 
+/**
+ * Create a social post targeting leads who visited a specific schedule page.
+ * Called by schedule-visit.js when visit threshold is reached.
+ * @param {string} scheduleSlug - e.g., '4w', '8w', '18w', '4w-jul'
+ * @param {number} visitCount - Number of unique visits in the period
+ */
+async function createScheduleRetargetPost(scheduleSlug, visitCount) {
+  const db = getDb();
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  // Dedup: one retarget post per slug per day
+  const existing = await db.collection(POSTS_COLLECTION)
+    .where('sourceEvent', '==', 'schedule-retarget:' + scheduleSlug)
+    .where('createdAt', '>=', dayAgo)
+    .limit(1)
+    .get();
+
+  if (!existing.empty) return null;
+
+  const slugCaptions = {
+    '4w': {
+      caption: `🧘 Our 4-Week Intensive schedule is getting a LOT of attention right now.\n\nIf you've been looking at the timetable — you're not alone. ${visitCount}+ people checked it this week.\n\nReady to commit? Link in bio 📲`,
+      hashtags: ['#yogabible', '#ytt200', '#4weekintensive', '#copenhagen', '#yogateachertraining']
+    },
+    '8w': {
+      caption: `📅 The 8-Week Semi-Intensive is one of our most popular formats — and the schedule page proves it.\n\nTrain while keeping your daily life running. It's the best of both worlds.\n\n📍 Copenhagen · Link in bio`,
+      hashtags: ['#yogabible', '#ytt200', '#8weekytt', '#copenhagen', '#yogalife']
+    },
+    '18w': {
+      caption: `🕐 Looking for flexibility? The 18-Week format lets you train at your own pace.\n\nWeekday or weekend track — you choose what works for your life.\n\n📖 Check the full schedule: link in bio`,
+      hashtags: ['#yogabible', '#ytt200', '#18weekytt', '#copenhagen', '#flexibleytt']
+    },
+    '4w-jul': {
+      caption: `☀️ A summer in Copenhagen doing yoga teacher training?\n\nOur July Vinyasa Plus schedule is one of the most-viewed pages right now. ${visitCount}+ people are dreaming the same dream.\n\nWill you be one of them? 🌊`,
+      hashtags: ['#yogabible', '#vinyasaplus', '#summerytt', '#copenhagen', '#yogateachertraining']
+    }
+  };
+
+  const content = slugCaptions[scheduleSlug] || {
+    caption: `📅 Our ${scheduleSlug} training schedule is generating buzz! ${visitCount}+ views this week.\n\nCheck it out — link in bio 📲`,
+    hashtags: ['#yogabible', '#yogateachertraining', '#copenhagen']
+  };
+
+  // Schedule 1 hour from now
+  const scheduleTime = new Date(Date.now() + 60 * 60 * 1000);
+
+  return createSocialPost({
+    source: 'schedule-retarget:' + scheduleSlug,
+    caption: content.caption,
+    hashtags: content.hashtags,
+    platforms: ['instagram', 'facebook'],
+    scheduledAt: scheduleTime.toISOString(),
+    metadata: { scheduleSlug, visitCount }
+  });
+}
+
 module.exports = {
   createSocialPost,
   createMilestonePost,
-  createSequenceSyncPost
+  createSequenceSyncPost,
+  createScheduleRetargetPost
 };

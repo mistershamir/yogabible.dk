@@ -34,6 +34,10 @@
 [functions."social-notifications"]
   schedule = "0 */2 * * *"
 
+# Scheduled function: weekly social performance digest (Monday 8am UTC)
+[functions."social-weekly-digest"]
+  schedule = "0 8 * * 1"
+
 # Redirect www to non-www (301)
 [[redirects]]
   from = "https://www.yogabible.dk/*"

@@ -20,6 +20,7 @@
 const crypto = require('crypto');
 const { getDb } = require('./shared/firestore');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
+const { createScheduleRetargetPost } = require('./shared/social-sync');
 const admin = require('firebase-admin');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
@@ -116,6 +117,31 @@ exports.handler = async (event) => {
         ['schedule_engagement.pages.' + slug + '.last_visit']: now,
         updated_at: now
       });
+
+      // Check if this slug has enough unique visits to trigger a social retarget post
+      // Map schedule page slugs to social-sync format keys
+      const SLUG_TO_FORMAT = {
+        '4-weeks': '4w', '4-week': '4w', '4w': '4w',
+        '8-weeks': '8w', '8-week': '8w', '8w': '8w',
+        '18-weeks': '18w', '18-week': '18w', '18w': '18w',
+        '4-weeks-july': '4w-jul', '4-week-jul': '4w-jul', '4w-jul': '4w-jul'
+      };
+      const formatKey = SLUG_TO_FORMAT[slug];
+      if (formatKey) {
+        // Count unique visits for this slug in the last 7 days
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const slugVisits = await db.collection('schedule_visits')
+          .where('slug', '==', slug)
+          .where('last_visit', '>=', admin.firestore.Timestamp.fromDate(weekAgo))
+          .get();
+        const uniqueVisitors = slugVisits.size;
+        // Trigger at 10+ unique visitors per week
+        if (uniqueVisitors >= 10 && uniqueVisitors % 5 === 0) {
+          createScheduleRetargetPost(formatKey, uniqueVisitors).catch(err =>
+            console.error('[schedule-visit] Social retarget error:', err.message)
+          );
+        }
+      }
 
     } else if (evt === 'heartbeat' || evt === 'leave') {
       // Update metrics

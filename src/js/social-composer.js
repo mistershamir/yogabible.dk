@@ -73,6 +73,7 @@
     updatePreview();
     updateCharCount();
     loadHashtagDropdown();
+    renderHashtagSuggestions();
 
     // If editing, load post data
     if (postId) loadPostForEdit(postId);
@@ -643,6 +644,28 @@
 
   window._ybSocialRefreshHashtagDropdown = loadHashtagDropdown;
 
+  // Auto-suggest top-performing hashtags below the hashtag field
+  function renderHashtagSuggestions() {
+    var container = $('yb-social-hashtag-suggest');
+    if (!container) return;
+    var topTags = window._ybTopHashtags;
+    if (!topTags || topTags.length === 0) { container.hidden = true; return; }
+    container.hidden = false;
+    container.innerHTML = '<span class="yb-social__suggest-label">🔥 ' + t('social_top_hashtags') + ':</span> ' +
+      topTags.slice(0, 8).map(function (tag) {
+        return '<button type="button" class="yb-social__suggest-tag" data-action="social-insert-hashtag" data-tag="' + tag + '">' + tag + '</button>';
+      }).join('');
+  }
+
+  function insertHashtag(tag) {
+    var field = $('yb-social-hashtags');
+    if (!field) return;
+    var current = field.value.trim();
+    if (current && current.indexOf(tag) >= 0) return; // Already there
+    field.value = current ? current + ', ' + tag : tag;
+    updatePreview();
+  }
+
   /* ═══ AI PANEL ═══ */
   async function aiAction(action) {
     var topic = ($('yb-social-ai-topic') || {}).value || '';
@@ -859,6 +882,9 @@
     else if (action === 'social-media-confirm') confirmMediaSelection();
 
     // AI
+    // Hashtag auto-suggest
+    else if (action === 'social-insert-hashtag') insertHashtag(btn.getAttribute('data-tag'));
+
     else if (action === 'social-ai-toggle') {
       var panel = $('yb-social-ai-panel');
       if (panel) panel.hidden = !panel.hidden;
