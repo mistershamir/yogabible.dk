@@ -150,7 +150,7 @@ function connectGuide(platform) {
 // ── Save access token for a platform ────────────────────────────
 
 async function saveToken(db, body, user) {
-  const { platform, accessToken, refreshToken, pageId, pageName, igAccountId, organizationId } = body;
+  const { platform, accessToken, refreshToken, pageId, pageName, igAccountId, organizationId, channelId } = body;
 
   if (!platform || !VALID_PLATFORMS.includes(platform)) {
     return jsonResponse(400, { ok: false, error: `Invalid platform. Supported: ${VALID_PLATFORMS.join(', ')}` });
@@ -181,6 +181,7 @@ async function saveToken(db, body, user) {
     pageName: pageName || null,
     igAccountId: igAccountId || null,
     organizationId: organizationId || null,
+    channelId: channelId || null,
     connectedAt: serverTimestamp(),
     connectedBy: user.email,
     lastSynced: null,

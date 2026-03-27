@@ -150,6 +150,7 @@
     var defaults = PLATFORM_DEFAULTS[platform] || {};
     var needsPageId = platform === 'facebook' || platform === 'instagram';
     var needsOrgId = platform === 'linkedin';
+    var needsRefreshToken = platform === 'youtube';
     var pageIdLabel = platform === 'facebook' ? 'Facebook Page ID' : platform === 'instagram' ? 'Instagram Business Account ID' : '';
 
     var extraFields = '';
@@ -162,6 +163,15 @@
       extraFields = '<div class="yb-admin__field">' +
         '<label for="yb-social-connect-orgid">LinkedIn Organization ID</label>' +
         '<input type="text" id="yb-social-connect-orgid" placeholder="e.g. 12345678">' +
+        '</div>';
+    } else if (needsRefreshToken) {
+      extraFields = '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-refresh">Refresh Token</label>' +
+        '<input type="text" id="yb-social-connect-refresh" placeholder="Paste refresh token...">' +
+        '</div>' +
+        '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-channelid">Channel ID (optional)</label>' +
+        '<input type="text" id="yb-social-connect-channelid" placeholder="e.g. UCxxxxxxxx">' +
         '</div>';
     }
 
@@ -213,6 +223,10 @@
     }
     var orgIdEl = $('yb-social-connect-orgid');
     if (orgIdEl && orgIdEl.value.trim()) body.organizationId = orgIdEl.value.trim();
+    var refreshEl = $('yb-social-connect-refresh');
+    if (refreshEl && refreshEl.value.trim()) body.refreshToken = refreshEl.value.trim();
+    var channelEl = $('yb-social-connect-channelid');
+    if (channelEl && channelEl.value.trim()) body.channelId = channelEl.value.trim();
 
     toast('Connecting...');
     var data = await api('social-accounts?action=save-token', {
