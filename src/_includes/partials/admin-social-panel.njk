@@ -343,6 +343,15 @@
     </div>
   </div>
 
+  {# Content Pillar Distribution #}
+  <div class="yb-social__analytics-section">
+    <h3>{{ t.social_pillar_distribution or "Content Pillar Distribution" }}</h3>
+    <p class="yb-admin__muted" style="margin-bottom:12px">{{ t.social_pillar_distribution_desc or "How your content mix compares to the ideal 40/25/20/15 split." }}</p>
+    <div id="yb-social-pillar-chart" class="yb-social__pillar-chart">
+      <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+    </div>
+  </div>
+
   {# Promote to Ad — Top organic posts suitable for paid boost #}
   <div class="yb-social__analytics-section">
     <div class="yb-social__promote-header">
@@ -718,6 +727,20 @@
         <div class="yb-admin__field">
           <label for="yb-social-location">{{ t.social_location or "Location" }}</label>
           <input type="text" id="yb-social-location" placeholder="{{ t.social_location_placeholder or 'Yoga Bible, Copenhagen' }}">
+        </div>
+
+        {# Content Pillar #}
+        <div class="yb-admin__field">
+          <label for="yb-social-pillar">{{ t.social_content_pillar or "Content Pillar" }}</label>
+          <select id="yb-social-pillar">
+            <option value="">{{ t.social_pillar_none or "— Select —" }}</option>
+            <option value="educational">📚 {{ t.social_pillar_educational or "Educational" }}</option>
+            <option value="social_proof">🌟 {{ t.social_pillar_social_proof or "Social Proof" }}</option>
+            <option value="lifestyle">🌿 {{ t.social_pillar_lifestyle or "Lifestyle" }}</option>
+            <option value="promotional">🎯 {{ t.social_pillar_promotional or "Promotional" }}</option>
+            <option value="behind_scenes">🎬 {{ t.social_pillar_behind_scenes or "Behind the Scenes" }}</option>
+            <option value="community">🤝 {{ t.social_pillar_community or "Community" }}</option>
+          </select>
         </div>
 
         {# UTM Builder #}

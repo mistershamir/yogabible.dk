@@ -789,6 +789,9 @@
 
     // 7. Cross-post comparison
     renderCrossPostComparison();
+
+    // 8. Content pillar distribution
+    renderPillarDistribution();
   }
 
   function renderTrendChart(trend) {
@@ -1075,6 +1078,80 @@
     }).then(function () {
       toast(t('social_promote_suggested') || 'Marked as ad candidate — use Meta Ads CLI to create the campaign');
     });
+  }
+
+  // ── Content Pillar Distribution ───────────────────────────────
+
+  var PILLAR_CONFIG = {
+    educational:   { label: 'Educational',       icon: '📚', target: 40, color: '#4CAF50' },
+    social_proof:  { label: 'Social Proof',      icon: '🌟', target: 25, color: '#FF9800' },
+    lifestyle:     { label: 'Lifestyle',         icon: '🌿', target: 20, color: '#2196F3' },
+    promotional:   { label: 'Promotional',       icon: '🎯', target: 15, color: '#E91E63' },
+    behind_scenes: { label: 'Behind the Scenes', icon: '🎬', target: 0,  color: '#9C27B0' },
+    community:     { label: 'Community',         icon: '🤝', target: 0,  color: '#00BCD4' }
+  };
+
+  function renderPillarDistribution() {
+    var container = $('yb-social-pillar-chart');
+    if (!container) return;
+
+    // Count posts by pillar from last 30 days
+    var thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    var recentPosts = state.posts.filter(function (p) {
+      if (p.status !== 'published' && p.status !== 'scheduled') return false;
+      var d = p.publishedAt || p.scheduledAt || p.createdAt;
+      if (!d) return false;
+      var dt = d._seconds ? new Date(d._seconds * 1000) : new Date(d);
+      return dt >= thirtyDaysAgo;
+    });
+
+    if (recentPosts.length < 3) {
+      container.innerHTML = '<p class="yb-admin__muted">Need at least 3 recent posts with content pillars assigned.</p>';
+      return;
+    }
+
+    var counts = {};
+    var unlabeled = 0;
+    recentPosts.forEach(function (p) {
+      var pillar = p.contentPillar;
+      if (pillar && PILLAR_CONFIG[pillar]) {
+        counts[pillar] = (counts[pillar] || 0) + 1;
+      } else {
+        unlabeled++;
+      }
+    });
+
+    var total = recentPosts.length;
+    var html = '<div class="yb-social__pillar-bars">';
+
+    Object.keys(PILLAR_CONFIG).forEach(function (key) {
+      var cfg = PILLAR_CONFIG[key];
+      var count = counts[key] || 0;
+      var pct = total > 0 ? Math.round((count / total) * 100) : 0;
+      var diff = cfg.target > 0 ? pct - cfg.target : 0;
+      var diffLabel = diff > 0 ? '+' + diff + '%' : diff < 0 ? diff + '%' : '—';
+      var diffClass = diff > 5 ? 'yb-social__pillar-diff--over' : diff < -5 ? 'yb-social__pillar-diff--under' : '';
+
+      html += '<div class="yb-social__pillar-row">' +
+        '<div class="yb-social__pillar-row-head">' +
+          '<span class="yb-social__pillar-row-name">' + cfg.icon + ' ' + cfg.label + '</span>' +
+          '<span class="yb-social__pillar-row-pct">' + pct + '% (' + count + ')' +
+          (cfg.target > 0 ? ' <span class="yb-social__pillar-diff ' + diffClass + '">' + diffLabel + ' vs ' + cfg.target + '% target</span>' : '') +
+          '</span>' +
+        '</div>' +
+        '<div class="yb-social__pillar-bar-track">' +
+          '<div class="yb-social__pillar-bar-fill" style="width:' + Math.min(pct, 100) + '%;background:' + cfg.color + '"></div>' +
+          (cfg.target > 0 ? '<div class="yb-social__pillar-bar-target" style="left:' + cfg.target + '%"></div>' : '') +
+        '</div>' +
+      '</div>';
+    });
+
+    if (unlabeled > 0) {
+      html += '<p class="yb-admin__muted" style="margin-top:8px">' + unlabeled + ' post' + (unlabeled > 1 ? 's' : '') + ' without a content pillar assigned.</p>';
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
   }
 
   function renderCrossPostComparison() {
