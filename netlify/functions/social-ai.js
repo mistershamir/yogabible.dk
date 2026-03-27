@@ -145,6 +145,8 @@ exports.handler = async (event) => {
       case 'competitor-content-strategy': return competitorContentStrategy(body);
       case 'analyze-sentiment': return analyzeSentiment(body);
       case 'platform-captions': return platformCaptions(body);
+      case 'calendar-plan': return calendarPlan(body);
+      case 'auto-reply-suggest': return autoReplySuggest(body);
       default:
         return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
     }
@@ -1020,6 +1022,97 @@ Return JSON with platform-specific captions:
     return jsonResponse(200, { ok: true, captions: parsed.captions || {} });
   } catch (parseErr) {
     console.error('[social-ai] Failed to parse platform captions:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Calendar Plan: auto-generate a week of post ideas ─────────────
+
+async function calendarPlan(body) {
+  const { days, pillars, platforms, existingPosts, notes } = body;
+  const numDays = days || 7;
+  const pillarList = (pillars || []).length > 0
+    ? pillars.join(', ')
+    : 'teacher training, yoga lifestyle, student stories, wellness tips, Copenhagen life, behind the scenes';
+
+  const existingContext = (existingPosts || []).length > 0
+    ? `\n\nRecent posts (avoid repeating similar topics):\n${existingPosts.slice(0, 10).map(p => `- ${(p.caption || '').substring(0, 80)}`).join('\n')}`
+    : '';
+
+  const platformList = (platforms || []).length > 0
+    ? platforms.join(', ')
+    : 'Instagram, Facebook, LinkedIn';
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Create a ${numDays}-day social media content calendar for Yoga Bible.
+
+Content pillars: ${pillarList}
+Target platforms: ${platformList}
+${notes ? `Additional notes: ${notes}` : ''}${existingContext}
+
+For each day, provide:
+- day: day number (1-${numDays})
+- date_label: suggested day of week
+- pillar: which content pillar
+- topic: specific topic idea
+- caption_da: Danish caption draft (2-3 sentences)
+- caption_en: English caption draft (2-3 sentences)
+- platforms: array of best platforms for this content
+- media_type: "photo", "video", "carousel", "reel", or "story"
+- visual_idea: brief description of the visual
+- hashtags: 5-8 relevant hashtags
+- best_time: suggested posting time (HH:MM)
+
+Return JSON: { "plan": [ { day, date_label, pillar, topic, caption_da, caption_en, platforms, media_type, visual_idea, hashtags, best_time } ] }`
+  }], 4000);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, plan: parsed.plan || [] });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse calendar plan:', text.substring(0, 500));
+    return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
+  }
+}
+
+
+// ── Auto-Reply Suggest: quick reply suggestions based on comment ───
+
+async function autoReplySuggest(body) {
+  const { comment, platform, sentiment, savedReplies } = body;
+  if (!comment) return jsonResponse(400, { ok: false, error: 'Missing comment' });
+
+  const savedContext = (savedReplies || []).length > 0
+    ? `\n\nExisting saved replies that might be relevant (use as inspiration, don't copy exactly):\n${savedReplies.slice(0, 5).map(r => `- "${r.name}": "${r.text.substring(0, 100)}"`).join('\n')}`
+    : '';
+
+  const text = await claudeRequest([{
+    role: 'user',
+    content: `Generate 3 quick reply options for this social media comment.
+
+Platform: ${platform || 'instagram'}
+Comment: "${comment}"
+${sentiment ? `Sentiment: ${sentiment}` : ''}${savedContext}
+
+Rules:
+- Keep replies short (1-2 sentences max)
+- Be warm and personal, match Yoga Bible's brand voice
+- For questions: provide helpful, concise answers
+- For praise: express genuine gratitude
+- For complaints: be empathetic and offer to help via DM
+- For purchase intent: be helpful without being pushy, invite them to DM or visit the link in bio
+- Never mention course language or refund policies
+
+Return JSON: { "replies": [ { "text": "...", "style": "friendly|professional|enthusiastic", "note": "Why this works" } ] }`
+  }], 1500);
+
+  try {
+    const parsed = parseJsonResponse(text);
+    return jsonResponse(200, { ok: true, replies: parsed.replies || [] });
+  } catch (parseErr) {
+    console.error('[social-ai] Failed to parse auto-reply:', text.substring(0, 500));
     return jsonResponse(500, { ok: false, error: 'Failed to parse AI response' });
   }
 }
