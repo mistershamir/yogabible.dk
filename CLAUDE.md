@@ -1567,3 +1567,16 @@ When you create a new page, follow this order:
 - **Status:** Pending review (submitted March 2026)
 - **Admin UI:** `/admin/` → Social → Accounts → TikTok → paste access token
 - **Note:** Domain verification covers all subdomains (www included). No need to verify www separately.
+
+### Meta (Instagram + Facebook) App
+
+- **App Name:** Yoga Bible (same app for both IG and FB)
+- **App ID:** `911693838016427`
+- **App Secret:** `957ea128eb84074709c6ceba8a0103cd`
+- **Facebook Page ID:** `878172732056415`
+- **Facebook Page Name:** Yoga Bible
+- **IG Business Account ID:** `17841474697451627`
+- **Page Access Token (never expires):** stored in Firestore `social_accounts` collection
+- **Permissions:** `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`, `instagram_manage_messages`, `instagram_manage_insights`, `pages_manage_posts`, `pages_read_engagement`, `pages_show_list`, `pages_manage_metadata`, `ads_management`, `ads_read`, `business_management`, `leads_retrieval`, `whatsapp_business_messaging`, `whatsapp_business_management`
+- **Admin UI:** `/admin/` → Social → Accounts → Instagram/Facebook → paste access token + IDs
+- **Token refresh:** Page tokens never expire. If permissions change, regenerate via Graph API Explorer → exchange short→long-lived → get page token via `/me/accounts`
