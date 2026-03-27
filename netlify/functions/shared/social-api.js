@@ -1066,6 +1066,327 @@ async function getLinkedInOrgInfo(account) {
   }
 }
 
+// ── YouTube Publishing ──────────────────────────────────────────
+
+const YT_API = 'https://www.googleapis.com/youtube/v3';
+const YT_UPLOAD_API = 'https://www.googleapis.com/upload/youtube/v3/videos';
+const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+const GOOGLE_CLIENT_ID = '969617587598-u23upn58qi3l3i1dgqm4en1th9kel602.apps.googleusercontent.com';
+const GOOGLE_CLIENT_SECRET = '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';
+
+/**
+ * Refresh a Google/YouTube access token using the refresh token.
+ */
+async function refreshGoogleToken(refreshToken) {
+  const res = await fetch(GOOGLE_TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      refresh_token: refreshToken,
+      grant_type: 'refresh_token'
+    })
+  });
+  const data = await res.json();
+  if (data.error) {
+    throw new Error(`Google token refresh failed: ${data.error_description || data.error}`);
+  }
+  return data.access_token;
+}
+
+/**
+ * Publish a video to YouTube via resumable upload.
+ * YouTube only supports video — image posts are not supported.
+ * Caption is split into title (first line, max 100 chars) and description (rest).
+ */
+async function publishToYouTube(account, post) {
+  let { accessToken, refreshToken } = account;
+  const caption = buildCaption(post);
+  const media = post.media || [];
+
+  if (media.length === 0) {
+    return { success: false, error: 'YouTube requires a video' };
+  }
+
+  const videoUrl = media[0];
+  const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(videoUrl);
+  if (!isVideo) {
+    return { success: false, error: 'YouTube only supports video uploads' };
+  }
+
+  // Split caption into title + description
+  const lines = caption.split('\n').filter(l => l.trim());
+  const title = (lines[0] || 'Yoga Bible').substring(0, 100);
+  const description = lines.length > 1 ? lines.slice(1).join('\n') : caption;
+
+  try {
+    // Refresh token if we have a refresh token
+    if (refreshToken) {
+      try {
+        accessToken = await refreshGoogleToken(refreshToken);
+      } catch (e) {
+        console.warn('[social-api] YouTube token refresh failed, using existing token:', e.message);
+      }
+    }
+
+    // Step 1: Download the video
+    const videoRes = await fetch(videoUrl);
+    if (!videoRes.ok) {
+      return { success: false, error: `Failed to download video: ${videoRes.status}` };
+    }
+    const videoBuffer = await videoRes.arrayBuffer();
+
+    // Step 2: Initiate resumable upload
+    const initRes = await fetch(`${YT_UPLOAD_API}?uploadType=resumable&part=snippet,status`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json; charset=UTF-8',
+        'X-Upload-Content-Length': videoBuffer.byteLength.toString(),
+        'X-Upload-Content-Type': 'video/mp4'
+      },
+      body: JSON.stringify({
+        snippet: {
+          title,
+          description,
+          tags: (post.hashtags || []).map(h => h.replace('#', '')).slice(0, 30),
+          categoryId: '17' // Sports category
+        },
+        status: {
+          privacyStatus: 'public',
+          selfDeclaredMadeForKids: false
+        }
+      })
+    });
+
+    if (!initRes.ok) {
+      const errBody = await initRes.text();
+      console.error('[social-api] YouTube upload init error:', errBody);
+      return { success: false, error: `YouTube upload init failed: ${initRes.status}` };
+    }
+
+    const uploadUrl = initRes.headers.get('location');
+    if (!uploadUrl) {
+      return { success: false, error: 'No resumable upload URL returned' };
+    }
+
+    // Step 3: Upload video data
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'video/mp4',
+        'Content-Length': videoBuffer.byteLength.toString()
+      },
+      body: Buffer.from(videoBuffer)
+    });
+
+    const uploadData = await uploadRes.json();
+
+    if (uploadData.error) {
+      console.error('[social-api] YouTube upload error:', uploadData.error);
+      return { success: false, error: uploadData.error.message || 'YouTube upload failed' };
+    }
+
+    console.log('[social-api] YouTube published:', uploadData.id);
+    return { success: true, id: uploadData.id, refreshedToken: refreshToken ? accessToken : null };
+  } catch (err) {
+    console.error('[social-api] YouTube publish exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Get YouTube channel info (name, subscribers, picture).
+ */
+async function getYouTubeChannelInfo(account) {
+  let { accessToken, refreshToken } = account;
+
+  try {
+    if (refreshToken) {
+      try { accessToken = await refreshGoogleToken(refreshToken); } catch (e) { /* use existing */ }
+    }
+
+    const res = await fetch(`${YT_API}/channels?part=snippet,statistics&mine=true`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      return { success: false, error: data.error.message || 'YouTube API error' };
+    }
+
+    const channel = (data.items || [])[0];
+    if (!channel) {
+      return { success: false, error: 'No YouTube channel found for this account' };
+    }
+
+    return {
+      success: true,
+      info: {
+        name: channel.snippet?.title || '',
+        username: channel.snippet?.customUrl || '',
+        channelId: channel.id,
+        followers: parseInt(channel.statistics?.subscriberCount || '0', 10),
+        profilePicture: channel.snippet?.thumbnails?.default?.url || null
+      },
+      refreshedToken: refreshToken ? accessToken : null
+    };
+  } catch (err) {
+    console.error('[social-api] YouTube channel info exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+
+// ── Pinterest Publishing ────────────────────────────────────────
+
+const PIN_API = 'https://api.pinterest.com/v5';
+
+/**
+ * Create a pin on Pinterest.
+ * Supports images and video. Caption → title + description.
+ */
+async function publishToPinterest(account, post) {
+  const { accessToken, boardId } = account;
+  const caption = buildCaption(post);
+  const media = post.media || [];
+
+  if (media.length === 0) {
+    return { success: false, error: 'Pinterest requires at least one image or video' };
+  }
+
+  // Split caption into title + description
+  const lines = caption.split('\n').filter(l => l.trim());
+  const title = (lines[0] || '').substring(0, 100);
+  const description = lines.length > 1 ? lines.slice(1).join('\n').substring(0, 500) : caption.substring(0, 500);
+
+  const mediaUrl = media[0];
+  const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(mediaUrl);
+
+  try {
+    if (isVideo) {
+      // Video pin — register media first
+      const registerRes = await fetch(`${PIN_API}/media`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ media_type: 'video' })
+      });
+      const registerData = await registerRes.json();
+
+      if (!registerData.media_id) {
+        return { success: false, error: 'Pinterest video registration failed' };
+      }
+
+      // Upload video via the upload URL
+      const uploadUrl = registerData.upload_url;
+      if (uploadUrl) {
+        const videoRes = await fetch(mediaUrl);
+        const videoBuffer = await videoRes.arrayBuffer();
+        await fetch(uploadUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'video/mp4' },
+          body: Buffer.from(videoBuffer)
+        });
+      }
+
+      // Wait for processing then create pin
+      const mediaId = registerData.media_id;
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      const pinRes = await fetch(`${PIN_API}/pins`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          board_id: boardId || undefined,
+          media_source: {
+            source_type: 'video_id',
+            media_id: mediaId,
+            cover_image_url: media[1] || mediaUrl // Use second media as cover if available
+          },
+          alt_text: (post.altTexts && post.altTexts['0']) || title
+        })
+      });
+
+      const pinData = await pinRes.json();
+      if (pinData.id) {
+        console.log('[social-api] Pinterest video pin published:', pinData.id);
+        return { success: true, id: pinData.id };
+      }
+      console.error('[social-api] Pinterest video pin error:', pinData);
+      return { success: false, error: pinData.message || 'Pinterest video pin failed' };
+    }
+
+    // Image pin
+    const pinRes = await fetch(`${PIN_API}/pins`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        board_id: boardId || undefined,
+        media_source: {
+          source_type: 'image_url',
+          url: mediaUrl
+        },
+        alt_text: (post.altTexts && post.altTexts['0']) || title
+      })
+    });
+
+    const pinData = await pinRes.json();
+    if (pinData.id) {
+      console.log('[social-api] Pinterest pin published:', pinData.id);
+      return { success: true, id: pinData.id };
+    }
+    console.error('[social-api] Pinterest pin error:', pinData);
+    return { success: false, error: pinData.message || 'Pinterest pin creation failed' };
+  } catch (err) {
+    console.error('[social-api] Pinterest publish exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Get Pinterest account info (username, followers, profile picture).
+ */
+async function getPinterestAccountInfo(account) {
+  try {
+    const res = await fetch(`${PIN_API}/user_account`, {
+      headers: { 'Authorization': `Bearer ${account.accessToken}` }
+    });
+    const data = await res.json();
+
+    if (data.code) {
+      return { success: false, error: data.message || 'Pinterest API error' };
+    }
+
+    return {
+      success: true,
+      info: {
+        name: data.business_name || data.username || '',
+        username: data.username || '',
+        followers: data.follower_count || 0,
+        profilePicture: data.profile_image || null
+      }
+    };
+  } catch (err) {
+    console.error('[social-api] Pinterest account info exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+
 module.exports = {
   publishToInstagram,
   publishCarouselToInstagram,
@@ -1085,6 +1406,11 @@ module.exports = {
   getTikTokAccountInfo,
   publishToLinkedIn,
   getLinkedInOrgInfo,
+  publishToYouTube,
+  getYouTubeChannelInfo,
+  refreshGoogleToken,
+  publishToPinterest,
+  getPinterestAccountInfo,
   waitForMediaProcessing,
   buildCaption
 };

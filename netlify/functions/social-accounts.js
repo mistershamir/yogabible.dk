@@ -16,11 +16,13 @@ const {
   getInstagramAccountInfo,
   getFacebookPageInfo,
   getTikTokAccountInfo,
-  getLinkedInOrgInfo
+  getLinkedInOrgInfo,
+  getYouTubeChannelInfo,
+  getPinterestAccountInfo
 } = require('./shared/social-api');
 
 const COLLECTION = 'social_accounts';
-const VALID_PLATFORMS = ['instagram', 'facebook', 'tiktok', 'linkedin'];
+const VALID_PLATFORMS = ['instagram', 'facebook', 'tiktok', 'linkedin', 'youtube', 'pinterest'];
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -78,6 +80,8 @@ async function listAccounts(db) {
       lastSynced: data.lastSynced?.toDate?.() || data.lastSynced || null,
       pageId: data.pageId || null,
       igAccountId: data.igAccountId || null,
+      channelId: data.channelId || null,
+      boardId: data.boardId || null,
       profilePicture: data.profilePicture || null
     });
   });
@@ -140,6 +144,28 @@ function connectGuide(platform) {
         '5. Get your Organization ID from your LinkedIn Company Page URL (e.g., linkedin.com/company/12345)',
         '6. Use the "save-token" action to store: accessToken, organizationId'
       ]
+    },
+    youtube: {
+      platform: 'youtube',
+      steps: [
+        '1. Go to console.cloud.google.com → APIs & Services → Credentials',
+        '2. The OAuth 2.0 client "YogaBibleNetlifyProject" is already configured',
+        '3. Go to OAuth consent screen → ensure youtube.upload and youtube.readonly scopes are added',
+        '4. Use the OAuth playground or your app to get an authorization code',
+        '5. Exchange the code for access_token + refresh_token',
+        '6. Use the "save-token" action to store: accessToken, refreshToken, channelId (optional)'
+      ]
+    },
+    pinterest: {
+      platform: 'pinterest',
+      steps: [
+        '1. Go to developers.pinterest.com → Create or select your app',
+        '2. Request access to scopes: pins:read, pins:write, boards:read, user_accounts:read',
+        '3. Set redirect URI to: https://yogabible.dk/admin/',
+        '4. Generate an access token via the OAuth 2.0 flow',
+        '5. Optionally note a Board ID to pin to a specific board',
+        '6. Use the "save-token" action to store: accessToken, boardId (optional)'
+      ]
     }
   };
 
@@ -150,7 +176,7 @@ function connectGuide(platform) {
 // ── Save access token for a platform ────────────────────────────
 
 async function saveToken(db, body, user) {
-  const { platform, accessToken, refreshToken, pageId, pageName, igAccountId, organizationId, channelId } = body;
+  const { platform, accessToken, refreshToken, pageId, pageName, igAccountId, organizationId, channelId, boardId } = body;
 
   if (!platform || !VALID_PLATFORMS.includes(platform)) {
     return jsonResponse(400, { ok: false, error: `Invalid platform. Supported: ${VALID_PLATFORMS.join(', ')}` });
@@ -182,6 +208,7 @@ async function saveToken(db, body, user) {
     igAccountId: igAccountId || null,
     organizationId: organizationId || null,
     channelId: channelId || null,
+    boardId: boardId || null,
     connectedAt: serverTimestamp(),
     connectedBy: user.email,
     lastSynced: null,
@@ -231,6 +258,31 @@ async function saveToken(db, body, user) {
         accountData.handle = info.info.vanityName || '';
         accountData.username = info.info.vanityName || '';
         accountData.followerCount = info.info.followers || 0;
+        accountData.lastSynced = serverTimestamp();
+      }
+    } else if (platform === 'youtube') {
+      const info = await getYouTubeChannelInfo({ accessToken, refreshToken });
+      if (info.success) {
+        accountData.name = info.info.name || '';
+        accountData.handle = info.info.username || '';
+        accountData.username = info.info.username || '';
+        accountData.channelId = info.info.channelId || channelId || null;
+        accountData.followerCount = info.info.followers || 0;
+        accountData.profilePicture = info.info.profilePicture || null;
+        accountData.lastSynced = serverTimestamp();
+        // Store refreshed access token if applicable
+        if (info.refreshedToken) {
+          accountData.accessToken = info.refreshedToken;
+        }
+      }
+    } else if (platform === 'pinterest') {
+      const info = await getPinterestAccountInfo({ accessToken });
+      if (info.success) {
+        accountData.name = info.info.name || '';
+        accountData.handle = info.info.username || '';
+        accountData.username = info.info.username || '';
+        accountData.followerCount = info.info.followers || 0;
+        accountData.profilePicture = info.info.profilePicture || null;
         accountData.lastSynced = serverTimestamp();
       }
     }
@@ -353,6 +405,40 @@ async function refreshAccounts(db) {
           update.name = info.info.name || data.name;
           update.handle = info.info.vanityName || data.handle;
           update.username = info.info.vanityName || data.username;
+        } else {
+          errors.push({ platform, error: info.error });
+          continue;
+        }
+      } else if (platform === 'youtube' && data.accessToken) {
+        const info = await getYouTubeChannelInfo({
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken
+        });
+
+        if (info.success) {
+          update.followerCount = info.info.followers || 0;
+          update.name = info.info.name || data.name;
+          update.handle = info.info.username || data.handle;
+          update.username = info.info.username || data.username;
+          update.profilePicture = info.info.profilePicture || data.profilePicture;
+          if (info.refreshedToken) {
+            update.accessToken = info.refreshedToken;
+          }
+        } else {
+          errors.push({ platform, error: info.error });
+          continue;
+        }
+      } else if (platform === 'pinterest' && data.accessToken) {
+        const info = await getPinterestAccountInfo({
+          accessToken: data.accessToken
+        });
+
+        if (info.success) {
+          update.followerCount = info.info.followers || 0;
+          update.name = info.info.name || data.name;
+          update.handle = info.info.username || data.handle;
+          update.username = info.info.username || data.username;
+          update.profilePicture = info.info.profilePicture || data.profilePicture;
         } else {
           errors.push({ platform, error: info.error });
           continue;

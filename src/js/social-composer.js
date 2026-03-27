@@ -15,7 +15,9 @@
     platforms: [],
     media: [],       // array of CDN URLs
     mediaSelected: [], // temp selection in media browser
-    currentPath: 'yoga-bible-DK/social'
+    currentPath: 'yoga-bible-DK/social',
+    uploadPlatform: 'general',  // tracks active platform for upload folder
+    videoThumbnails: {}  // { videoUrl: thumbnailUrl }
   };
 
   var CHAR_LIMITS = {
@@ -40,6 +42,7 @@
     $('yb-social-hashtags').value = '';
     $('yb-social-first-comment').value = '';
     $('yb-social-location').value = '';
+    if ($('yb-social-pillar')) $('yb-social-pillar').value = '';
     $('yb-social-composer-title').textContent = postId ? t('social_composer_edit_title') : t('social_composer_title');
 
     // Reset platform toggles
@@ -71,6 +74,7 @@
     updatePreview();
     updateCharCount();
     loadHashtagDropdown();
+    renderHashtagSuggestions();
 
     // If editing, load post data
     if (postId) loadPostForEdit(postId);
@@ -94,6 +98,7 @@
     $('yb-social-hashtags').value = (p.hashtags || []).join(', ');
     $('yb-social-first-comment').value = p.firstComment || '';
     $('yb-social-location').value = p.location || '';
+    if ($('yb-social-pillar')) $('yb-social-pillar').value = p.contentPillar || '';
     composer.media = p.media || [];
     composer.platforms = p.platforms || [];
 
@@ -135,17 +140,52 @@
     el.classList.toggle('is-over', caption.length > limit);
   }
 
+  var previewPlatform = 'instagram';
+
+  function switchPreviewPlatform(platform) {
+    previewPlatform = platform;
+    document.querySelectorAll('.yb-social__preview-tab').forEach(function (tab) {
+      tab.classList.toggle('is-active', tab.getAttribute('data-platform') === platform);
+    });
+    var device = $('yb-social-preview-device');
+    if (device) device.setAttribute('data-preview-platform', platform);
+    updatePreview();
+  }
+
+  var PLATFORM_LAYOUTS = {
+    instagram: { username: 'yogabible', avatar: 'YB', showMedia: true, captionStyle: 'inline', charLimit: 2200 },
+    facebook: { username: 'Yoga Bible', avatar: 'YB', showMedia: true, captionStyle: 'above', charLimit: 63206 },
+    tiktok: { username: '@yogabible', avatar: 'YB', showMedia: true, captionStyle: 'overlay', charLimit: 2200 },
+    linkedin: { username: 'Yoga Bible', avatar: 'YB', showMedia: true, captionStyle: 'above', charLimit: 3000 }
+  };
+
   function updatePreview() {
     var caption = ($('yb-social-caption') || {}).value || '';
     var hashtags = ($('yb-social-hashtags') || {}).value || '';
     var fullCaption = caption + (hashtags ? '\n\n' + hashtags : '');
+    var layout = PLATFORM_LAYOUTS[previewPlatform] || PLATFORM_LAYOUTS.instagram;
 
-    var captionEl = $('yb-social-preview-caption');
-    if (captionEl) {
-      captionEl.innerHTML = '<strong>yogabible</strong> <span>' +
-        (fullCaption || 'Your caption will appear here...') + '</span>';
+    // Header
+    var headerEl = $('yb-social-preview-header');
+    if (headerEl) {
+      headerEl.innerHTML = '<span class="yb-social__preview-avatar">' + layout.avatar + '</span>' +
+        '<span class="yb-social__preview-username">' + layout.username + '</span>';
     }
 
+    // Caption
+    var captionEl = $('yb-social-preview-caption');
+    if (captionEl) {
+      var captionHtml = fullCaption || 'Your caption will appear here...';
+      if (layout.captionStyle === 'inline') {
+        captionEl.innerHTML = '<strong>' + layout.username + '</strong> <span>' + captionHtml + '</span>';
+      } else if (layout.captionStyle === 'overlay') {
+        captionEl.innerHTML = '<span class="yb-social__preview-caption--overlay">' + captionHtml + '</span>';
+      } else {
+        captionEl.innerHTML = '<span>' + captionHtml + '</span>';
+      }
+    }
+
+    // Media
     var mediaEl = $('yb-social-preview-media');
     if (mediaEl) {
       if (composer.media.length > 0) {
@@ -157,6 +197,25 @@
         }
       } else {
         mediaEl.innerHTML = '<p class="yb-admin__muted">' + t('social_no_media') + '</p>';
+      }
+    }
+
+    // Char info
+    var charInfoEl = $('yb-social-preview-char-info');
+    if (charInfoEl) {
+      var len = fullCaption.length;
+      var over = len > layout.charLimit;
+      charInfoEl.textContent = len + ' / ' + layout.charLimit;
+      charInfoEl.style.color = over ? '#dc2626' : '#6F6A66';
+    }
+
+    // Reorder elements based on caption style (above vs below media)
+    var device = $('yb-social-preview-device');
+    if (device && captionEl && mediaEl) {
+      if (layout.captionStyle === 'above') {
+        device.insertBefore(captionEl, mediaEl);
+      } else {
+        device.insertBefore(mediaEl, captionEl);
       }
     }
   }
@@ -189,26 +248,171 @@
     }
   }
 
-  /* ═══ MEDIA PREVIEW (in composer) ═══ */
+  /* ═══ MEDIA PREVIEW (in composer) — with carousel reorder + video thumbnails ═══ */
   function renderMediaPreview() {
     var container = $('yb-social-media-preview');
     if (!container) return;
 
     if (composer.media.length === 0) {
       container.innerHTML = '';
+      toggleCarouselHint();
       return;
     }
 
     container.innerHTML = composer.media.map(function (url, i) {
       var isVideo = url.match(/\.(mp4|mov|webm)$/i);
-      return '<div class="yb-social__media-thumb">' +
+      var thumbUrl = (composer.videoThumbnails && composer.videoThumbnails[url]) || '';
+      return '<div class="yb-social__media-thumb' + (isVideo ? ' is-video' : '') + '" draggable="true" data-media-index="' + i + '">' +
         (isVideo
-          ? '<video src="' + url + '"></video>'
+          ? '<video src="' + url + '"></video>' +
+            (thumbUrl ? '<img class="yb-social__video-thumb-overlay" src="' + thumbUrl + '" alt="Thumbnail">' : '') +
+            '<button class="yb-social__video-thumb-btn" data-action="social-video-thumbnail" data-index="' + i + '" title="' + t('social_select_thumbnail') + '">🖼</button>'
           : '<img src="' + url + '" alt="">') +
+        '<span class="yb-social__media-thumb-index">' + (i + 1) + '</span>' +
         '<button class="yb-social__media-thumb-remove" data-action="social-remove-media" data-index="' + i + '">&times;</button>' +
         '</div>';
     }).join('');
     toggleMediaTypeRow();
+    toggleCarouselHint();
+    initDragReorder(container);
+  }
+
+  function toggleCarouselHint() {
+    var hint = $('yb-social-carousel-hint');
+    if (hint) hint.hidden = composer.media.length < 2;
+  }
+
+  // Drag-and-drop reorder for carousel slides
+  function initDragReorder(container) {
+    var thumbs = container.querySelectorAll('.yb-social__media-thumb');
+    thumbs.forEach(function (el) {
+      el.addEventListener('dragstart', function (e) {
+        e.dataTransfer.setData('text/plain', el.getAttribute('data-media-index'));
+        el.classList.add('is-dragging');
+      });
+      el.addEventListener('dragend', function () { el.classList.remove('is-dragging'); });
+      el.addEventListener('dragover', function (e) { e.preventDefault(); el.classList.add('is-drag-over'); });
+      el.addEventListener('dragleave', function () { el.classList.remove('is-drag-over'); });
+      el.addEventListener('drop', function (e) {
+        e.preventDefault();
+        el.classList.remove('is-drag-over');
+        var fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+        var toIdx = parseInt(el.getAttribute('data-media-index'));
+        if (fromIdx !== toIdx && !isNaN(fromIdx) && !isNaN(toIdx)) {
+          var item = composer.media.splice(fromIdx, 1)[0];
+          composer.media.splice(toIdx, 0, item);
+          renderMediaPreview();
+          updatePreview();
+        }
+      });
+    });
+  }
+
+  // Video thumbnail — capture frame from video or upload custom
+  function openVideoThumbnailPicker(index) {
+    var url = composer.media[index];
+    if (!url) return;
+
+    // Create a temp video to extract frames
+    var vid = document.createElement('video');
+    vid.crossOrigin = 'anonymous';
+    vid.muted = true;
+    vid.src = url;
+
+    vid.addEventListener('loadeddata', function () {
+      var duration = vid.duration || 10;
+      var frames = [];
+      var times = [0, duration * 0.25, duration * 0.5, duration * 0.75];
+      var captured = 0;
+
+      times.forEach(function (time, fi) {
+        vid.currentTime = time;
+        vid.addEventListener('seeked', function onSeek() {
+          var canvas = document.createElement('canvas');
+          canvas.width = 320; canvas.height = 180;
+          canvas.getContext('2d').drawImage(vid, 0, 0, 320, 180);
+          frames.push({ time: Math.round(time), dataUrl: canvas.toDataURL('image/jpeg', 0.8) });
+          captured++;
+          if (captured === times.length) showThumbnailPicker(index, url, frames);
+        }, { once: true });
+      });
+    });
+
+    vid.addEventListener('error', function () {
+      // Fallback: just offer upload
+      showThumbnailPicker(index, url, []);
+    });
+
+    vid.load();
+  }
+
+  function showThumbnailPicker(mediaIndex, videoUrl, frames) {
+    // Build modal
+    var existing = $('yb-social-thumb-picker');
+    if (existing) existing.remove();
+
+    var html = '<div class="yb-social__thumb-picker" id="yb-social-thumb-picker">' +
+      '<div class="yb-social__thumb-picker-overlay" data-action="social-thumb-picker-close"></div>' +
+      '<div class="yb-social__thumb-picker-box">' +
+      '<h4>' + t('social_select_thumbnail') + '</h4>';
+
+    if (frames.length > 0) {
+      html += '<p class="yb-admin__muted">' + t('social_thumb_pick_frame') + '</p>' +
+        '<div class="yb-social__thumb-picker-frames">';
+      frames.forEach(function (f, i) {
+        html += '<img src="' + f.dataUrl + '" class="yb-social__thumb-picker-frame" data-action="social-thumb-pick-frame" data-index="' + mediaIndex + '" data-frame="' + i + '" alt="' + f.time + 's">';
+      });
+      html += '</div>';
+    }
+
+    html += '<div class="yb-social__thumb-picker-upload">' +
+      '<p class="yb-admin__muted">' + t('social_thumb_or_upload') + '</p>' +
+      '<input type="file" id="yb-social-thumb-file" accept="image/*" data-media-index="' + mediaIndex + '">' +
+      '</div>' +
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-thumb-picker-close">' + t('social_cancel') + '</button>' +
+      '</div></div>';
+
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    // Listen for file upload
+    var fileInput = $('yb-social-thumb-file');
+    if (fileInput) {
+      fileInput.addEventListener('change', function () {
+        if (fileInput.files && fileInput.files[0]) {
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            setVideoThumbnail(mediaIndex, videoUrl, e.target.result);
+            closeThumbnailPicker();
+          };
+          reader.readAsDataURL(fileInput.files[0]);
+        }
+      });
+    }
+
+    // Store frames data for pick action
+    window._ybThumbFrames = frames;
+  }
+
+  function closeThumbnailPicker() {
+    var el = $('yb-social-thumb-picker');
+    if (el) el.remove();
+    window._ybThumbFrames = null;
+  }
+
+  function pickThumbnailFrame(mediaIndex, frameIndex) {
+    var frames = window._ybThumbFrames;
+    if (!frames || !frames[frameIndex]) return;
+    var videoUrl = composer.media[mediaIndex];
+    setVideoThumbnail(mediaIndex, videoUrl, frames[frameIndex].dataUrl);
+    closeThumbnailPicker();
+  }
+
+  function setVideoThumbnail(mediaIndex, videoUrl, dataUrl) {
+    if (!composer.videoThumbnails) composer.videoThumbnails = {};
+    composer.videoThumbnails[videoUrl] = dataUrl;
+    renderMediaPreview();
+    updatePreview();
+    S.toast(t('social_thumb_set') || 'Thumbnail set');
   }
 
   /* ═══ SAVE / PUBLISH ═══ */
@@ -239,6 +443,8 @@
       firstComment: ($('yb-social-first-comment') || {}).value || '',
       location: ($('yb-social-location') || {}).value || '',
       mediaType: mediaType,
+      videoThumbnails: composer.videoThumbnails || {},
+      contentPillar: ($('yb-social-pillar') || {}).value || '',
       status: status
     };
 
@@ -287,7 +493,8 @@
     if (!modal) return;
     modal.hidden = false;
     composer.mediaSelected = [];
-    composer.currentPath = 'yoga-bible-DK';
+    // Start in the social folder by default, or the full CDN if browsing all
+    composer.currentPath = 'yoga-bible-DK/social';
     loadMediaFolder(composer.currentPath);
   }
 
@@ -388,9 +595,11 @@
     var token = await S.getToken();
     if (!token) return;
 
-    // Get upload URL
+    // Determine upload folder based on selected platform(s)
     var now = new Date();
-    var folder = 'yoga-bible-DK/social/' + now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var platformFolder = composer.platforms.length === 1 ? composer.platforms[0] : 'general';
+    var folder = 'yoga-bible-DK/social/' + platformFolder + '/' + yearMonth;
     var signRes = await fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(folder), {
       headers: { Authorization: 'Bearer ' + token }
     });
@@ -437,6 +646,28 @@
   }
 
   window._ybSocialRefreshHashtagDropdown = loadHashtagDropdown;
+
+  // Auto-suggest top-performing hashtags below the hashtag field
+  function renderHashtagSuggestions() {
+    var container = $('yb-social-hashtag-suggest');
+    if (!container) return;
+    var topTags = window._ybTopHashtags;
+    if (!topTags || topTags.length === 0) { container.hidden = true; return; }
+    container.hidden = false;
+    container.innerHTML = '<span class="yb-social__suggest-label">🔥 ' + t('social_top_hashtags') + ':</span> ' +
+      topTags.slice(0, 8).map(function (tag) {
+        return '<button type="button" class="yb-social__suggest-tag" data-action="social-insert-hashtag" data-tag="' + tag + '">' + tag + '</button>';
+      }).join('');
+  }
+
+  function insertHashtag(tag) {
+    var field = $('yb-social-hashtags');
+    if (!field) return;
+    var current = field.value.trim();
+    if (current && current.indexOf(tag) >= 0) return; // Already there
+    field.value = current ? current + ', ' + tag : tag;
+    updatePreview();
+  }
 
   /* ═══ AI PANEL ═══ */
   async function aiAction(action) {
@@ -618,6 +849,7 @@
 
     // Composer
     if (action === 'social-composer-close') closeComposer();
+    else if (action === 'social-preview-tab') switchPreviewPlatform(btn.getAttribute('data-platform'));
     else if (action === 'social-save-draft') savePost('draft');
     else if (action === 'social-publish-post') {
       var schedMode = document.querySelector('input[name="social-schedule"]:checked');
@@ -638,6 +870,13 @@
       renderMediaPreview(); updatePreview();
     }
 
+    // Video thumbnail picker
+    else if (action === 'social-video-thumbnail') openVideoThumbnailPicker(parseInt(btn.getAttribute('data-index')));
+    else if (action === 'social-thumb-picker-close') closeThumbnailPicker();
+    else if (action === 'social-thumb-pick-frame') {
+      pickThumbnailFrame(parseInt(btn.getAttribute('data-index')), parseInt(btn.getAttribute('data-frame')));
+    }
+
     // Media browser
     else if (action === 'social-media-browser-close') closeMediaBrowser();
     else if (action === 'social-media-open-folder') loadMediaFolder(btn.getAttribute('data-path'));
@@ -646,6 +885,9 @@
     else if (action === 'social-media-confirm') confirmMediaSelection();
 
     // AI
+    // Hashtag auto-suggest
+    else if (action === 'social-insert-hashtag') insertHashtag(btn.getAttribute('data-tag'));
+
     else if (action === 'social-ai-toggle') {
       var panel = $('yb-social-ai-panel');
       if (panel) panel.hidden = !panel.hidden;
@@ -709,13 +951,59 @@
     else if (action === 'social-best-time') {
       fetchBestTime();
     }
+
+    // UTM builder
+    else if (action === 'social-utm-copy') {
+      var utmResult = $('yb-social-utm-result');
+      if (utmResult && utmResult.value) {
+        navigator.clipboard.writeText(utmResult.value).then(function () { S.toast('Copied'); });
+      }
+    }
+    else if (action === 'social-utm-insert') {
+      var utmResult = $('yb-social-utm-result');
+      var captionEl = $('yb-social-caption');
+      if (utmResult && utmResult.value && captionEl) {
+        captionEl.value = captionEl.value.replace(/https?:\/\/yogabible\.dk\S*/g, utmResult.value) || captionEl.value + '\n\n' + utmResult.value;
+        updateCharCount(); updatePreview();
+        S.toast('URL inserted');
+      }
+    }
   });
 
   // Input events
   document.addEventListener('input', function (e) {
     if (e.target.id === 'yb-social-caption') { updateCharCount(); updatePreview(); }
     if (e.target.id === 'yb-social-hashtags') updatePreview();
+
+    // UTM builder auto-generate
+    if (e.target.id === 'yb-social-utm-url' || e.target.id === 'yb-social-utm-source' ||
+        e.target.id === 'yb-social-utm-medium' || e.target.id === 'yb-social-utm-campaign') {
+      buildUtmUrl();
+    }
   });
+
+  document.addEventListener('change', function (e) {
+    if (e.target.id === 'yb-social-utm-source') buildUtmUrl();
+  });
+
+  function buildUtmUrl() {
+    var base = ($('yb-social-utm-url') || {}).value || '';
+    var source = ($('yb-social-utm-source') || {}).value || '';
+    var medium = ($('yb-social-utm-medium') || {}).value || '';
+    var campaign = ($('yb-social-utm-campaign') || {}).value || '';
+    var resultEl = $('yb-social-utm-result');
+    if (!resultEl || !base) return;
+
+    try {
+      var url = new URL(base);
+      if (source) url.searchParams.set('utm_source', source);
+      if (medium) url.searchParams.set('utm_medium', medium);
+      if (campaign) url.searchParams.set('utm_campaign', campaign);
+      resultEl.value = url.toString();
+    } catch (e) {
+      resultEl.value = base;
+    }
+  }
 
   // Platform toggle changes
   document.addEventListener('change', function (e) {

@@ -18,6 +18,7 @@ const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 const { detectLeadCountry } = require('./shared/country-detect');
+const { createMilestonePost } = require('./shared/social-sync');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
@@ -109,6 +110,11 @@ exports.handler = async (event) => {
       console.error('[lead] Auto-add to email list error (non-blocking):', err.message);
     });
 
+    // Social media: create milestone post every 10 new leads (non-blocking)
+    checkLeadBatchMilestone(db, leadData).catch(err => {
+      console.error('[lead] Social milestone error (non-blocking):', err.message);
+    });
+
     const response = jsonResponse(200, { ok: true, message: 'Request received successfully' });
     return wrapCallback(callback, response);
   } catch (error) {
@@ -160,6 +166,29 @@ function wrapCallback(callback, response) {
     headers: { 'Content-Type': 'application/javascript' },
     body: `${callback}(${response.body});`
   };
+}
+
+/**
+ * Check if we've hit a lead batch milestone and create a social post.
+ * Creates a post every 10 new leads (checking 7-day window).
+ */
+async function checkLeadBatchMilestone(db, leadData) {
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const recentSnap = await db.collection('leads')
+    .where('created', '>=', weekAgo)
+    .select()
+    .get();
+
+  const count = recentSnap.size;
+  // Only trigger at multiples of 10
+  if (count > 0 && count % 10 === 0) {
+    await createMilestonePost('new_lead_batch', {
+      count,
+      program: leadData.ytt_program_type || 'general',
+      period: '7 days'
+    });
+    console.log(`[lead] Social milestone: ${count} leads this week`);
+  }
 }
 
 /**
