@@ -54,6 +54,14 @@
 [functions."social-notify"]
   schedule = "*/15 * * * *"
 
+# Scheduled function: competitor metrics refresh (daily 7am UTC)
+[functions."social-competitors"]
+  schedule = "0 7 * * *"
+
+# Scheduled function: A/B test metric sync (every 6 hours)
+[functions."social-ab-sync"]
+  schedule = "0 */6 * * *"
+
 # Redirect www to non-www (301)
 [[redirects]]
   from = "https://www.yogabible.dk/*"
