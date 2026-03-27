@@ -12,6 +12,7 @@
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-competitors">{{ t.social_nav_competitors or "Competitors" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-abtesting">{{ t.social_nav_abtesting or "A/B Tests" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-library">{{ t.social_nav_library or "Library" }}</button>
+  <button class="yb-social__nav-btn" type="button" data-action="social-nav-stories">{{ t.social_nav_stories or "Stories" }}</button>
 </div>
 
 {# ════════════════════════════════════════════════════════════════════════════ #}
@@ -697,6 +698,40 @@
   {# Asset Grid #}
   <div class="yb-social__library-grid" id="yb-social-library-grid">
     <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+  </div>
+</div>
+
+{# ════════════════════════════════════════════════════════════════════════════ #}
+{# VIEW: Stories                                                              #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+<div id="yb-social-v-stories" hidden>
+  <div class="yb-admin__view-head">
+    <h2>{{ t.social_stories_title or "Stories" }}</h2>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-new-story">+ {{ t.social_new_story or "New Story" }}</button>
+    </div>
+  </div>
+
+  {# Filter bar #}
+  <div class="yb-social__filter-bar" id="yb-social-stories-filters"></div>
+
+  {# Stories list #}
+  <div class="yb-social__stories-list" id="yb-social-stories-list">
+    <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+  </div>
+
+  {# Templates section #}
+  <div class="yb-social__stories-section">
+    <h3>{{ t.social_story_templates or "Story Templates" }}</h3>
+    <p class="yb-admin__muted">{{ t.social_story_templates_desc or "Save reusable story layouts for quick publishing." }}</p>
+    <div id="yb-social-story-templates-list"></div>
+  </div>
+
+  {# Highlights section #}
+  <div class="yb-social__stories-section">
+    <h3>{{ t.social_story_highlights or "Story Highlights" }}</h3>
+    <p class="yb-admin__muted">{{ t.social_story_highlights_desc or "Organize published stories into permanent highlight groups." }}</p>
+    <div id="yb-social-story-highlights-list"></div>
   </div>
 </div>
 

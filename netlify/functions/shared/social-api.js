@@ -1387,9 +1387,181 @@ async function getPinterestAccountInfo(account) {
 }
 
 
+// ── Story Publishing ──────────────────────────────────────────────
+
+/**
+ * Publish a story to Instagram.
+ * Wraps publishToInstagram with STORIES media type + link sticker support.
+ */
+async function publishStoryToInstagram(account, story) {
+  const { accessToken, igAccountId } = account;
+  const mediaUrl = story.media;
+  if (!mediaUrl) return { success: false, error: 'Story requires a media URL' };
+
+  const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(mediaUrl);
+
+  try {
+    const containerParams = new URLSearchParams({
+      media_type: 'STORIES',
+      access_token: accessToken
+    });
+
+    if (isVideo) {
+      containerParams.set('video_url', mediaUrl);
+    } else {
+      containerParams.set('image_url', mediaUrl);
+    }
+
+    // Link sticker (Instagram API supports link stickers on stories)
+    if (story.linkUrl) {
+      containerParams.set('link', story.linkUrl);
+    }
+
+    // Create media container
+    const containerRes = await fetch(`${IG_API}/${igAccountId}/media`, {
+      method: 'POST',
+      body: containerParams
+    });
+    const containerData = await containerRes.json();
+
+    if (containerData.error) {
+      console.error('[social-api] IG story container error:', containerData.error);
+      return { success: false, error: containerData.error.message };
+    }
+
+    // Wait for processing
+    const ready = await waitForMediaProcessing(account, containerData.id, 120000);
+    if (!ready) {
+      return { success: false, error: 'Story media processing timed out after 120s' };
+    }
+
+    // Publish
+    const publishRes = await fetch(`${IG_API}/${igAccountId}/media_publish`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        creation_id: containerData.id,
+        access_token: accessToken
+      })
+    });
+    const publishData = await publishRes.json();
+
+    if (publishData.error) {
+      console.error('[social-api] IG story publish error:', publishData.error);
+      return { success: false, error: publishData.error.message };
+    }
+
+    console.log('[social-api] IG story published:', publishData.id);
+    return { success: true, id: publishData.id };
+  } catch (err) {
+    console.error('[social-api] IG story exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Publish a story to Facebook Page.
+ * Uses the /PAGE_ID/photo_stories or /PAGE_ID/video_stories endpoint.
+ */
+async function publishStoryToFacebook(account, story) {
+  const { accessToken, pageId } = account;
+  const mediaUrl = story.media;
+  if (!mediaUrl) return { success: false, error: 'Story requires a media URL' };
+
+  const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(mediaUrl);
+
+  try {
+    if (isVideo) {
+      // Video story — upload to video_stories endpoint
+      const res = await fetch(`${FB_API}/${pageId}/video_stories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          upload_phase: 'start',
+          access_token: accessToken
+        })
+      });
+      const startData = await res.json();
+
+      if (startData.error) {
+        console.error('[social-api] FB video story start error:', startData.error);
+        return { success: false, error: startData.error.message };
+      }
+
+      // Upload the video
+      const uploadRes = await fetch(`${FB_API}/${startData.video_id}`, {
+        method: 'POST',
+        body: new URLSearchParams({
+          file_url: mediaUrl,
+          upload_phase: 'finish',
+          access_token: accessToken
+        })
+      });
+      const uploadData = await uploadRes.json();
+
+      if (uploadData.error) {
+        console.error('[social-api] FB video story upload error:', uploadData.error);
+        return { success: false, error: uploadData.error.message };
+      }
+
+      console.log('[social-api] FB video story published:', startData.video_id);
+      return { success: true, id: startData.video_id };
+    }
+
+    // Photo story
+    const res = await fetch(`${FB_API}/${pageId}/photo_stories`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        photo_id: '', // Will use url instead
+        url: mediaUrl,
+        access_token: accessToken
+      })
+    });
+
+    // Facebook photo_stories requires uploading a photo first, then using its ID
+    // Alternative: upload unpublished photo first, then create story
+    const uploadRes = await fetch(`${FB_API}/${pageId}/photos`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        url: mediaUrl,
+        published: 'false',
+        access_token: accessToken
+      })
+    });
+    const uploadData = await uploadRes.json();
+
+    if (uploadData.error) {
+      console.error('[social-api] FB story photo upload error:', uploadData.error);
+      return { success: false, error: uploadData.error.message };
+    }
+
+    const storyRes = await fetch(`${FB_API}/${pageId}/photo_stories`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        photo_id: uploadData.id,
+        access_token: accessToken
+      })
+    });
+    const storyData = await storyRes.json();
+
+    if (storyData.error) {
+      console.error('[social-api] FB photo story error:', storyData.error);
+      return { success: false, error: storyData.error.message };
+    }
+
+    console.log('[social-api] FB photo story published:', storyData.post_id || storyData.id);
+    return { success: true, id: storyData.post_id || storyData.id };
+  } catch (err) {
+    console.error('[social-api] FB story exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+
 module.exports = {
   publishToInstagram,
   publishCarouselToInstagram,
+  publishStoryToInstagram,
+  publishStoryToFacebook,
   getInstagramMetrics,
   getInstagramAccountInfo,
   getInstagramComments,

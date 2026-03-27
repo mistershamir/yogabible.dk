@@ -83,7 +83,7 @@
   /* ═══ VIEW MANAGEMENT ═══ */
   function showView(name) {
     state.view = name;
-    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting', 'library'].forEach(function (v) {
+    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting', 'library', 'stories'].forEach(function (v) {
       var el = $('yb-social-v-' + v);
       if (el) el.hidden = (v !== name);
     });
@@ -100,6 +100,7 @@
     if (name === 'competitors') loadCompetitors();
     if (name === 'abtesting') loadAbTests();
     if (name === 'library') loadContentLibrary();
+    if (name === 'stories') loadStories();
   }
 
   /* ═══ ACCOUNTS ═══ */
@@ -3223,6 +3224,389 @@
     if (data) { toast('Collection created'); loadContentLibrary(); }
   }
 
+  /* ═══ STORIES ═══ */
+  var storiesState = {
+    stories: [],
+    templates: [],
+    highlights: [],
+    filter: 'all',
+    editingStory: null
+  };
+
+  async function loadStories() {
+    var data = await api('social-stories?action=list');
+    if (data) storiesState.stories = data.stories || [];
+
+    var tplData = await api('social-stories?action=templates');
+    if (tplData) storiesState.templates = tplData.templates || [];
+
+    var hlData = await api('social-stories?action=highlights');
+    if (hlData) storiesState.highlights = hlData.highlights || [];
+
+    renderStories();
+  }
+
+  function renderStories() {
+    var container = $('yb-social-stories-list');
+    if (!container) return;
+
+    var stories = storiesState.stories;
+    if (storiesState.filter !== 'all') {
+      stories = stories.filter(function (s) { return s.status === storiesState.filter; });
+    }
+
+    // Stories filter bar
+    var filterBar = $('yb-social-stories-filters');
+    if (filterBar) {
+      var counts = { all: storiesState.stories.length, draft: 0, scheduled: 0, published: 0, expired: 0 };
+      storiesState.stories.forEach(function (s) { if (counts[s.status] !== undefined) counts[s.status]++; });
+      filterBar.innerHTML = ['all', 'draft', 'scheduled', 'published', 'expired'].map(function (f) {
+        return '<button class="yb-social__filter-btn' + (storiesState.filter === f ? ' is-active' : '') + '" data-action="social-stories-filter" data-filter="' + f + '">' +
+          f.charAt(0).toUpperCase() + f.slice(1) + ' (' + counts[f] + ')</button>';
+      }).join('');
+    }
+
+    if (!stories.length) {
+      container.innerHTML = '<p class="yb-admin__muted">No stories yet. Create your first story!</p>';
+      return;
+    }
+
+    container.innerHTML = stories.map(function (s) {
+      var isVideo = s.mediaType === 'VIDEO';
+      var statusClass = s.status === 'published' ? 'success' : s.status === 'scheduled' ? 'info' : s.status === 'expired' ? 'muted' : '';
+      var thumb = isVideo
+        ? '<div class="yb-social__story-thumb yb-social__story-thumb--video"><span>▶</span></div>'
+        : '<img class="yb-social__story-thumb" src="' + (s.media || '') + '" alt="">';
+
+      var stickers = (s.stickers || []).map(function (st) {
+        var icons = { link: '🔗', poll: '📊', countdown: '⏳', mention: '@', hashtag: '#', location: '📍', question: '❓' };
+        return '<span class="yb-social__story-sticker">' + (icons[st.type] || '📌') + '</span>';
+      }).join('');
+
+      var platforms = (s.platforms || []).map(function (p) {
+        return '<span class="yb-social__platform-dot yb-social__platform-dot--' + p + '"></span>';
+      }).join('');
+
+      return '<div class="yb-social__story-card">' +
+        '<div class="yb-social__story-preview">' + thumb +
+          (s.linkUrl ? '<span class="yb-social__story-link-badge">🔗 Link</span>' : '') +
+        '</div>' +
+        '<div class="yb-social__story-info">' +
+          '<div class="yb-social__story-meta">' +
+            '<span class="yb-social__badge yb-social__badge--' + statusClass + '">' + s.status + '</span>' +
+            platforms + stickers +
+          '</div>' +
+          '<p class="yb-social__story-caption">' + (s.caption || '<em>No caption</em>') + '</p>' +
+          (s.scheduledAt ? '<small class="yb-admin__muted">Scheduled: ' + fmtDate(s.scheduledAt) + '</small>' : '') +
+          (s.publishedAt ? '<small class="yb-admin__muted">Published: ' + fmtDate(s.publishedAt) + '</small>' : '') +
+        '</div>' +
+        '<div class="yb-social__story-actions">' +
+          (s.status === 'draft' || s.status === 'scheduled' ? '<button class="yb-social__btn-sm" data-action="social-story-edit" data-id="' + s.id + '">Edit</button>' : '') +
+          (s.status === 'draft' || s.status === 'scheduled' ? '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-story-publish" data-id="' + s.id + '">Publish</button>' : '') +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--danger" data-action="social-story-delete" data-id="' + s.id + '">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    // Render templates section
+    renderStoryTemplates();
+    // Render highlights section
+    renderStoryHighlights();
+  }
+
+  function renderStoryTemplates() {
+    var container = $('yb-social-story-templates-list');
+    if (!container) return;
+
+    if (!storiesState.templates.length) {
+      container.innerHTML = '<p class="yb-admin__muted">No story templates yet. Save a template to quickly create stories.</p>';
+      return;
+    }
+
+    container.innerHTML = storiesState.templates.map(function (tpl) {
+      var categoryBadge = '<span class="yb-social__badge">' + (tpl.category || 'general') + '</span>';
+      return '<div class="yb-social__story-template">' +
+        '<div class="yb-social__story-template-info">' +
+          '<strong>' + (tpl.name || 'Untitled') + '</strong> ' + categoryBadge +
+          '<span class="yb-admin__muted"> — used ' + (tpl.usageCount || 0) + ' times</span>' +
+          (tpl.caption ? '<p class="yb-social__story-caption">' + tpl.caption + '</p>' : '') +
+          (tpl.linkUrl ? '<small class="yb-admin__muted">🔗 ' + tpl.linkUrl + '</small>' : '') +
+        '</div>' +
+        '<div class="yb-social__story-actions">' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-story-use-template" data-id="' + tpl.id + '">Use</button>' +
+          '<button class="yb-social__btn-sm" data-action="social-story-edit-template" data-id="' + tpl.id + '">Edit</button>' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--danger" data-action="social-story-delete-template" data-id="' + tpl.id + '">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderStoryHighlights() {
+    var container = $('yb-social-story-highlights-list');
+    if (!container) return;
+
+    if (!storiesState.highlights.length) {
+      container.innerHTML = '<p class="yb-admin__muted">No highlights yet. Organize published stories into highlight groups.</p>';
+      return;
+    }
+
+    container.innerHTML = storiesState.highlights.map(function (hl) {
+      return '<div class="yb-social__story-highlight">' +
+        (hl.coverImage ? '<img class="yb-social__story-highlight-cover" src="' + hl.coverImage + '" alt="">' : '<div class="yb-social__story-highlight-cover yb-social__story-highlight-cover--empty">📌</div>') +
+        '<div class="yb-social__story-highlight-info">' +
+          '<strong>' + hl.name + '</strong>' +
+          '<small class="yb-admin__muted">' + (hl.storyIds || []).length + ' stories</small>' +
+        '</div>' +
+        '<div class="yb-social__story-actions">' +
+          '<button class="yb-social__btn-sm" data-action="social-story-edit-highlight" data-id="' + hl.id + '">Edit</button>' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--danger" data-action="social-story-delete-highlight" data-id="' + hl.id + '">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Open story composer modal
+  function openStoryComposer(storyId) {
+    var story = storyId ? storiesState.stories.find(function (s) { return s.id === storyId; }) : null;
+
+    var html = '<div class="yb-social__modal-overlay" id="yb-social-story-modal">' +
+      '<div class="yb-social__modal-box yb-social__modal-box--story">' +
+        '<div class="yb-social__modal-header">' +
+          '<h3>' + (story ? 'Edit Story' : 'Create Story') + '</h3>' +
+          '<button class="yb-social__btn-sm" data-action="social-story-close">&times;</button>' +
+        '</div>' +
+        '<div class="yb-social__modal-body">' +
+          // Media
+          '<div class="yb-social__story-composer-section">' +
+            '<label>Media (single image or video)</label>' +
+            '<div class="yb-social__story-media-drop" id="yb-story-media-area">' +
+              (story && story.media
+                ? (/\.(mp4|mov|webm)$/i.test(story.media) ? '<video src="' + story.media + '" class="yb-social__story-media-preview" muted></video>' : '<img src="' + story.media + '" class="yb-social__story-media-preview" alt="">')
+                : '<p>Click to browse media or drag & drop</p>') +
+              '<input type="hidden" id="yb-story-media-url" value="' + (story ? story.media || '' : '') + '">' +
+              '<button class="yb-social__btn-sm" data-action="social-story-browse-media">Browse CDN</button>' +
+            '</div>' +
+          '</div>' +
+          // Caption
+          '<div class="yb-social__story-composer-section">' +
+            '<label>Caption / Text Overlay</label>' +
+            '<textarea id="yb-story-caption" rows="2" class="yb-social__input">' + (story ? story.caption || '' : '') + '</textarea>' +
+          '</div>' +
+          // Link sticker
+          '<div class="yb-social__story-composer-section">' +
+            '<label>🔗 Link Sticker</label>' +
+            '<input type="url" id="yb-story-link-url" class="yb-social__input" placeholder="https://yogabible.dk/..." value="' + (story ? story.linkUrl || '' : '') + '">' +
+            '<input type="text" id="yb-story-link-text" class="yb-social__input" placeholder="Link label (e.g. Book Now)" value="' + (story ? story.linkText || '' : '') + '" style="margin-top:6px;">' +
+          '</div>' +
+          // Stickers
+          '<div class="yb-social__story-composer-section">' +
+            '<label>Stickers</label>' +
+            '<div class="yb-social__story-stickers" id="yb-story-stickers">' +
+              buildStickerButtons(story ? story.stickers : []) +
+            '</div>' +
+          '</div>' +
+          // Platforms
+          '<div class="yb-social__story-composer-section">' +
+            '<label>Platforms</label>' +
+            '<div class="yb-social__story-platforms">' +
+              ['instagram', 'facebook'].map(function (p) {
+                var checked = story ? (story.platforms || []).includes(p) : true;
+                return '<label class="yb-social__checkbox-label"><input type="checkbox" class="yb-story-platform" value="' + p + '"' + (checked ? ' checked' : '') + '> ' + p.charAt(0).toUpperCase() + p.slice(1) + '</label>';
+              }).join(' ') +
+            '</div>' +
+          '</div>' +
+          // Schedule
+          '<div class="yb-social__story-composer-section">' +
+            '<label>Schedule (optional)</label>' +
+            '<input type="datetime-local" id="yb-story-schedule" class="yb-social__input" value="' + (story && story.scheduledAt ? formatDatetimeLocal(story.scheduledAt) : '') + '">' +
+          '</div>' +
+        '</div>' +
+        '<div class="yb-social__modal-footer">' +
+          '<button class="yb-social__btn-sm" data-action="social-story-save-draft"' + (story ? ' data-id="' + story.id + '"' : '') + '>Save Draft</button>' +
+          '<button class="yb-social__btn-sm" data-action="social-story-save-template-from"' + (story ? ' data-id="' + story.id + '"' : '') + '>Save as Template</button>' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-story-save-publish"' + (story ? ' data-id="' + story.id + '"' : '') + '>Publish Now</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  function buildStickerButtons(activeStickers) {
+    var stickers = [
+      { type: 'poll', icon: '📊', label: 'Poll' },
+      { type: 'countdown', icon: '⏳', label: 'Countdown' },
+      { type: 'mention', icon: '@', label: 'Mention' },
+      { type: 'hashtag', icon: '#', label: 'Hashtag' },
+      { type: 'location', icon: '📍', label: 'Location' },
+      { type: 'question', icon: '❓', label: 'Q&A' }
+    ];
+    var active = (activeStickers || []).map(function (s) { return s.type; });
+    return stickers.map(function (s) {
+      var isActive = active.includes(s.type);
+      return '<button class="yb-social__sticker-btn' + (isActive ? ' is-active' : '') + '" data-action="social-story-toggle-sticker" data-type="' + s.type + '">' +
+        s.icon + ' ' + s.label + '</button>';
+    }).join('');
+  }
+
+  function formatDatetimeLocal(d) {
+    if (!d) return '';
+    var date = d._seconds ? new Date(d._seconds * 1000) : new Date(d);
+    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+  }
+
+  function getStoryFormData(existingId) {
+    var platforms = [];
+    document.querySelectorAll('.yb-story-platform:checked').forEach(function (cb) {
+      platforms.push(cb.value);
+    });
+
+    var stickers = [];
+    document.querySelectorAll('.yb-social__sticker-btn.is-active').forEach(function (btn) {
+      stickers.push({ type: btn.getAttribute('data-type') });
+    });
+
+    return {
+      id: existingId || undefined,
+      media: ($('yb-story-media-url') || {}).value || '',
+      caption: ($('yb-story-caption') || {}).value || '',
+      linkUrl: ($('yb-story-link-url') || {}).value || '',
+      linkText: ($('yb-story-link-text') || {}).value || '',
+      platforms: platforms,
+      stickers: stickers,
+      scheduledAt: ($('yb-story-schedule') || {}).value || null
+    };
+  }
+
+  async function saveStory(publish) {
+    var idEl = document.querySelector('[data-action="social-story-save-draft"]');
+    var existingId = idEl ? idEl.getAttribute('data-id') : null;
+    var formData = getStoryFormData(existingId);
+
+    if (!formData.media) { toast('Please select a media file', true); return; }
+    if (!formData.platforms.length) { toast('Select at least one platform', true); return; }
+
+    if (existingId) {
+      formData.action = 'update';
+      if (formData.scheduledAt) formData.status = 'scheduled';
+      await api('social-stories', { method: 'POST', body: JSON.stringify(formData) });
+    } else {
+      formData.action = 'create';
+      var data = await api('social-stories', { method: 'POST', body: JSON.stringify(formData) });
+      if (data) existingId = data.id;
+    }
+
+    if (publish && existingId) {
+      await api('social-stories', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'publish', id: existingId })
+      });
+      toast('Story published!');
+    } else {
+      toast('Story saved');
+    }
+
+    closeStoryModal();
+    loadStories();
+  }
+
+  async function saveStoryAsTemplate(storyId) {
+    var formData = getStoryFormData(storyId);
+    var name = prompt('Template name:');
+    if (!name) return;
+    var category = prompt('Category (e.g. enrollment, blog, class, general):', 'general') || 'general';
+
+    await api('social-stories', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'create-template',
+        name: name,
+        category: category,
+        media: formData.media,
+        caption: formData.caption,
+        stickers: formData.stickers,
+        linkUrl: formData.linkUrl,
+        linkText: formData.linkText,
+        platforms: formData.platforms
+      })
+    });
+
+    toast('Template saved!');
+    loadStories();
+  }
+
+  async function useStoryTemplate(templateId) {
+    var data = await api('social-stories', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create-from-template', templateId: templateId })
+    });
+    if (data && data.id) {
+      toast('Story created from template');
+      await loadStories();
+      openStoryComposer(data.id);
+    }
+  }
+
+  async function deleteStory(id) {
+    if (!confirm('Delete this story?')) return;
+    await api('social-stories', { method: 'POST', body: JSON.stringify({ action: 'delete', id: id }) });
+    toast('Story deleted');
+    loadStories();
+  }
+
+  async function publishStoryNow(id) {
+    await api('social-stories', { method: 'POST', body: JSON.stringify({ action: 'publish', id: id }) });
+    toast('Story published!');
+    loadStories();
+  }
+
+  async function deleteStoryTemplate(id) {
+    if (!confirm('Delete this template?')) return;
+    await api('social-stories', { method: 'POST', body: JSON.stringify({ action: 'delete-template', id: id }) });
+    toast('Template deleted');
+    loadStories();
+  }
+
+  async function deleteStoryHighlight(id) {
+    if (!confirm('Delete this highlight?')) return;
+    await api('social-stories', { method: 'POST', body: JSON.stringify({ action: 'delete-highlight', id: id }) });
+    toast('Highlight deleted');
+    loadStories();
+  }
+
+  function closeStoryModal() {
+    var modal = document.getElementById('yb-social-story-modal');
+    if (modal) modal.remove();
+  }
+
+  function storyBrowseMedia() {
+    // Use existing Bunny browser from composer if available
+    if (window._ybSocial && window._ybSocial.openMediaBrowser) {
+      window._ybSocialStoryMediaCallback = function (url) {
+        var input = $('yb-story-media-url');
+        if (input) input.value = url;
+        var area = $('yb-story-media-area');
+        if (area) {
+          var isVideo = /\.(mp4|mov|webm)$/i.test(url);
+          var preview = isVideo
+            ? '<video src="' + url + '" class="yb-social__story-media-preview" muted autoplay loop></video>'
+            : '<img src="' + url + '" class="yb-social__story-media-preview" alt="">';
+          area.innerHTML = preview +
+            '<input type="hidden" id="yb-story-media-url" value="' + url + '">' +
+            '<button class="yb-social__btn-sm" data-action="social-story-browse-media">Change</button>';
+        }
+      };
+      window._ybSocial.openMediaBrowser();
+    } else {
+      var url = prompt('Enter media URL (Bunny CDN):');
+      if (url) {
+        var input = $('yb-story-media-url');
+        if (input) input.value = url;
+      }
+    }
+  }
+
   /* ═══ CONTENT CALENDAR AI ═══ */
   async function aiGenerateCalendar() {
     var daysEl = $('yb-social-cal-ai-days');
@@ -3567,6 +3951,35 @@
       var searchEl = $('yb-social-library-search'); if (searchEl) searchEl.value = '';
       loadContentLibrary();
     }
+
+    // Stories
+    else if (action === 'social-nav-stories') showView('stories');
+    else if (action === 'social-stories-filter') {
+      storiesState.filter = btn.getAttribute('data-filter') || 'all';
+      renderStories();
+    }
+    else if (action === 'social-new-story') openStoryComposer(null);
+    else if (action === 'social-story-edit') openStoryComposer(btn.getAttribute('data-id'));
+    else if (action === 'social-story-publish') publishStoryNow(btn.getAttribute('data-id'));
+    else if (action === 'social-story-delete') deleteStory(btn.getAttribute('data-id'));
+    else if (action === 'social-story-close') closeStoryModal();
+    else if (action === 'social-story-save-draft') saveStory(false);
+    else if (action === 'social-story-save-publish') saveStory(true);
+    else if (action === 'social-story-save-template-from') saveStoryAsTemplate(btn.getAttribute('data-id'));
+    else if (action === 'social-story-browse-media') storyBrowseMedia();
+    else if (action === 'social-story-toggle-sticker') btn.classList.toggle('is-active');
+    else if (action === 'social-story-use-template') useStoryTemplate(btn.getAttribute('data-id'));
+    else if (action === 'social-story-edit-template') {
+      var tpl = storiesState.templates.find(function (t) { return t.id === btn.getAttribute('data-id'); });
+      if (tpl) {
+        var name = prompt('Template name:', tpl.name);
+        if (name) {
+          api('social-stories', { method: 'POST', body: JSON.stringify({ action: 'update-template', id: tpl.id, name: name }) }).then(function () { loadStories(); });
+        }
+      }
+    }
+    else if (action === 'social-story-delete-template') deleteStoryTemplate(btn.getAttribute('data-id'));
+    else if (action === 'social-story-delete-highlight') deleteStoryHighlight(btn.getAttribute('data-id'));
 
     // Content Calendar AI
     else if (action === 'social-cal-ai-generate') aiGenerateCalendar();
