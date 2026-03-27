@@ -12,6 +12,7 @@
     accounts: {},
     posts: [],
     postsFilter: 'all',
+    postsPlatform: 'all',
     calMonth: new Date().getMonth(),
     calYear: new Date().getFullYear(),
     hashtagSets: [],
@@ -535,11 +536,13 @@
   async function loadPosts() {
     var url = 'social-posts?action=list';
     if (state.postsFilter !== 'all') url += '&status=' + state.postsFilter;
+    if (state.postsPlatform !== 'all') url += '&platform=' + state.postsPlatform;
+    var grid = $('yb-social-posts-grid');
+    if (grid) grid.innerHTML = '<p class="yb-admin__muted">Loading...</p>';
     var data = await api(url);
     if (!data) return;
     state.posts = data.posts || [];
     renderPosts();
-    // Also refresh calendar if loaded
     if ($('yb-social-cal-grid')) renderCalendar();
   }
 
@@ -547,6 +550,17 @@
     var grid = $('yb-social-posts-grid');
     var countEl = $('yb-social-posts-count');
     if (!grid) return;
+
+    // Render platform filter bar
+    var pfBar = $('yb-social-platform-filter');
+    if (pfBar) {
+      var pfs = ['all', 'instagram', 'facebook', 'tiktok', 'linkedin', 'youtube', 'pinterest'];
+      var pfLabels = { all: 'All', instagram: 'IG', facebook: 'FB', tiktok: 'TT', linkedin: 'LI', youtube: 'YT', pinterest: 'PIN' };
+      pfBar.innerHTML = '<span class="yb-social__platform-filter-label">Platform:</span>' +
+        pfs.map(function (p) {
+          return '<button class="yb-social__platform-filter-btn' + (state.postsPlatform === p ? ' is-active' : '') + '" data-action="social-filter-platform" data-platform="' + p + '">' + pfLabels[p] + '</button>';
+        }).join('');
+    }
 
     if (countEl) countEl.textContent = state.posts.length + ' ' + t('social_posts_title').toLowerCase();
 
@@ -2032,7 +2046,7 @@
       return { date: p.scheduledAt, caption: p.caption };
     });
 
-    if (genBtn) genBtn.disabled = true;
+    setLoading(genBtn, true, 'Generating...');
     if (resultsEl) { resultsEl.hidden = false; resultsEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_generating') + '</p>'; }
 
     var data = await api('social-ai', {
@@ -2040,7 +2054,7 @@
       body: JSON.stringify({ action: 'content-plan', days: days, themes: themes, goals: goals, existingPosts: existingPosts })
     });
 
-    if (genBtn) genBtn.disabled = false;
+    setLoading(genBtn, false);
 
     if (!data || !data.plan) {
       if (resultsEl) resultsEl.innerHTML = '<p class="yb-admin__muted">Could not generate plan.</p>';
@@ -2090,8 +2104,10 @@
   async function aiGetInsights() {
     var panel = $('yb-social-ai-insights-panel');
     var bodyEl = $('yb-social-ai-insights-body');
+    var insBtn = document.querySelector('[data-action="social-ai-insights"]');
     if (!panel) return;
 
+    setLoading(insBtn, true, 'Analyzing...');
     panel.hidden = false;
     if (bodyEl) bodyEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_analyzing') + '</p>';
 
@@ -2108,6 +2124,8 @@
       method: 'POST',
       body: JSON.stringify({ action: 'analytics-insight', metrics: metrics, period: metrics.period + ' days' })
     });
+
+    setLoading(insBtn, false);
 
     if (!data || !data.summary) {
       if (bodyEl) bodyEl.innerHTML = '<p class="yb-admin__muted">Could not generate insights.</p>';
@@ -2888,27 +2906,71 @@
   }
 
   async function aiSuggestCompetitors() {
-    toast(t('social_competitor_suggesting') || 'Finding competitors...');
-    var data = await api('social-ai', {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'suggest-competitors',
-        platform: 'instagram',
-        currentCompetitors: state.competitors
-      })
-    });
-    if (!data || !data.suggestions) return;
-
-    // Show suggestions in a modal
+    // Show options modal first
     var existing = document.getElementById('yb-social-ai-competitor-modal');
     if (existing) existing.remove();
 
     var html = '<div class="yb-social__connect-modal" id="yb-social-ai-competitor-modal">' +
       '<div class="yb-social__connect-overlay" data-action="social-ai-competitor-close"></div>' +
-      '<div class="yb-social__connect-box" style="max-width:600px;max-height:80vh;overflow-y:auto">' +
-      '<h3>🔍 AI Competitor Suggestions</h3>';
+      '<div class="yb-social__connect-box" style="max-width:560px;max-height:85vh;overflow-y:auto">' +
+      '<h3 style="margin:0 0 14px;font-size:16px">AI Competitor Finder</h3>' +
+      '<div class="yb-social__ai-comp-options">' +
+      '<div><label>Business Category</label>' +
+      '<div class="yb-social__ai-comp-chips" id="yb-ai-comp-cats">' +
+      ['Yoga Teacher Training', 'Yoga Studios', 'Yoga Classes', 'Yoga Courses', 'Wellness & Retreats', 'Fitness Studios', 'Online Yoga'].map(function (c) {
+        return '<button class="yb-social__ai-comp-chip" data-action="social-ai-comp-cat">' + c + '</button>';
+      }).join('') + '</div></div>' +
+      '<div><label>Platform</label>' +
+      '<select id="yb-ai-comp-platform"><option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="tiktok">TikTok</option><option value="linkedin">LinkedIn</option><option value="youtube">YouTube</option></select></div>' +
+      '<div><label>Location</label>' +
+      '<input type="text" id="yb-ai-comp-location" placeholder="e.g. Copenhagen, Denmark" value="Copenhagen, Denmark"></div>' +
+      '<div><label>Scope</label>' +
+      '<div class="yb-social__ai-comp-chips" id="yb-ai-comp-scope">' +
+      ['Local', 'National', 'International'].map(function (s) {
+        return '<button class="yb-social__ai-comp-chip' + (s === 'Local' ? ' is-active' : '') + '" data-action="social-ai-comp-scope">' + s + '</button>';
+      }).join('') + '</div></div></div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">' +
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-ai-competitor-close">Cancel</button>' +
+      '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-competitor-search" id="yb-ai-comp-search-btn">Find Competitors</button>' +
+      '</div><div id="yb-ai-comp-results"></div></div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
 
-    var cats = { direct_competitor: '🎯 Direct Competitors', aspirational: '⭐ Aspirational', content_inspiration: '💡 Content Inspiration', local: '📍 Local' };
+  async function aiCompetitorSearch() {
+    var catEls = qsa('#yb-ai-comp-cats .is-active');
+    var categories = [];
+    catEls.forEach(function (el) { categories.push(el.textContent); });
+    var scopeEl = document.querySelector('#yb-ai-comp-scope .is-active');
+    var scope = scopeEl ? scopeEl.textContent.toLowerCase() : 'local';
+    var platform = ($('yb-ai-comp-platform') || {}).value || 'instagram';
+    var location = ($('yb-ai-comp-location') || {}).value || 'Copenhagen, Denmark';
+
+    var btn = $('yb-ai-comp-search-btn');
+    setLoading(btn, true, 'Searching...');
+
+    var resultsEl = $('yb-ai-comp-results');
+    if (resultsEl) resultsEl.innerHTML = '<p class="yb-admin__muted" style="text-align:center;padding:16px">Analyzing competitors with AI...</p>';
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'suggest-competitors',
+        platform: platform,
+        categories: categories.length ? categories : ['Yoga Teacher Training', 'Yoga Studios'],
+        location: location,
+        scope: scope,
+        currentCompetitors: state.competitors
+      })
+    });
+
+    setLoading(btn, false);
+
+    if (!data || !data.suggestions) {
+      if (resultsEl) resultsEl.innerHTML = '<p class="yb-admin__muted" style="text-align:center;padding:12px">No results found. Try different options.</p>';
+      return;
+    }
+
+    var cats = { direct_competitor: 'Direct Competitors', aspirational: 'Aspirational', content_inspiration: 'Content Inspiration', local: 'Local' };
     var grouped = {};
     data.suggestions.forEach(function (s) {
       var cat = s.category || 'other';
@@ -2916,26 +2978,26 @@
       grouped[cat].push(s);
     });
 
+    var rhtml = '';
     Object.keys(cats).forEach(function (cat) {
       if (!grouped[cat]) return;
-      html += '<h4 style="margin:1rem 0 .5rem;color:var(--yb-brand)">' + cats[cat] + '</h4>';
+      rhtml += '<h4 style="margin:14px 0 6px;font-size:13px;font-weight:700;color:#f75c03">' + cats[cat] + '</h4>';
       grouped[cat].forEach(function (s) {
-        html += '<div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-bottom:1px solid var(--yb-border)">' +
-          '<div style="flex:1"><strong>@' + escapeHtml(s.handle) + '</strong>' +
-          (s.name ? ' · ' + escapeHtml(s.name) : '') +
-          '<br><span style="font-size:.8rem;color:var(--yb-muted)">' + escapeHtml(s.reason) + '</span></div>' +
-          '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-competitor-add" data-handle="' + escapeHtml(s.handle) + '" data-platform="' + (s.platform || 'instagram') + '" data-name="' + escapeHtml(s.name || '') + '">+ Add</button>' +
+        rhtml += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #E8E4E0">' +
+          '<div style="flex:1;min-width:0"><strong style="font-size:12px">@' + escapeHtml(s.handle) + '</strong>' +
+          (s.name ? ' <span style="font-size:11px;color:#6F6A66">' + escapeHtml(s.name) + '</span>' : '') +
+          '<br><span style="font-size:11px;color:#6F6A66">' + escapeHtml(s.reason) + '</span></div>' +
+          '<button class="yb-btn yb-btn--primary yb-btn--xs" data-action="social-ai-competitor-add" data-handle="' + escapeHtml(s.handle) + '" data-platform="' + (s.platform || platform) + '" data-name="' + escapeHtml(s.name || '') + '">+ Add</button>' +
           '</div>';
       });
     });
-
-    html += '<div style="margin-top:1rem;text-align:right"><button class="yb-btn yb-btn--outline" data-action="social-ai-competitor-close">Close</button></div></div></div>';
-    document.body.insertAdjacentHTML('beforeend', html);
+    if (resultsEl) resultsEl.innerHTML = rhtml;
   }
 
   async function aiCompetitorContentStrategy() {
     if (state.competitors.length === 0) { toast('Add competitors first', true); return; }
-    toast(t('social_competitor_content_loading') || 'Analyzing...');
+    var stratBtn = document.querySelector('[data-action="social-ai-content-strategy"]');
+    setLoading(stratBtn, true, 'Analyzing...');
 
     var data = await api('social-ai', {
       method: 'POST',
@@ -2944,6 +3006,7 @@
         competitors: state.competitors
       })
     });
+    setLoading(stratBtn, false);
     if (!data) return;
 
     var existing = document.getElementById('yb-social-ai-strategy-modal');
@@ -4060,11 +4123,13 @@
     var daysEl = $('yb-social-cal-ai-days');
     var notesEl = $('yb-social-cal-ai-notes');
     var resultsEl = $('yb-social-cal-ai-results');
+    var calAiBtn = document.querySelector('[data-action="social-cal-ai-generate"]');
     if (!resultsEl) return;
 
     var days = daysEl ? parseInt(daysEl.value) || 7 : 7;
     var notes = notesEl ? notesEl.value : '';
 
+    setLoading(calAiBtn, true, 'Generating...');
     resultsEl.innerHTML = '<p class="yb-admin__muted">Generating ' + days + '-day plan...</p>';
 
     // Get recent posts to avoid repetition
@@ -4082,6 +4147,8 @@
         platforms: Object.keys(state.accounts).filter(function (k) { return state.accounts[k]; })
       })
     });
+
+    setLoading(calAiBtn, false);
 
     if (!data || !data.plan) {
       resultsEl.innerHTML = '<p class="yb-admin__muted">Could not generate plan.</p>';
@@ -4197,6 +4264,42 @@
     suggestEl.hidden = true;
   }
 
+  /* ═══ LOADING STATE HELPER ═══ */
+  function setLoading(btn, loading, originalText) {
+    if (!btn) return;
+    if (loading) {
+      btn._origText = btn._origText || btn.textContent;
+      btn.classList.add('yb-social__btn-loading');
+      btn.disabled = true;
+      if (originalText !== false) btn.textContent = originalText || 'Loading...';
+    } else {
+      btn.classList.remove('yb-social__btn-loading');
+      btn.disabled = false;
+      if (btn._origText) { btn.textContent = btn._origText; btn._origText = null; }
+    }
+  }
+
+  /* ═══ IMPORT EXISTING POSTS FROM PLATFORMS ═══ */
+  async function importExistingPosts(platform) {
+    var btn = document.querySelector('[data-action="social-import-posts"][data-platform="' + platform + '"]');
+    setLoading(btn, true, 'Importing...');
+    toast('Fetching ' + platform + ' posts...');
+
+    var data = await api('social-posts?action=import-from-platform', {
+      method: 'POST',
+      body: JSON.stringify({ platform: platform })
+    });
+
+    setLoading(btn, false);
+
+    if (data && data.imported) {
+      toast('Imported ' + data.imported + ' posts from ' + platform);
+      loadPosts();
+    } else if (data && data.imported === 0) {
+      toast('No new posts to import');
+    }
+  }
+
   /* ═══ EXPORT FOR COMPOSER ═══ */
   window._ybSocial = {
     state: state,
@@ -4229,6 +4332,7 @@
     else if (action === 'social-nav-competitors') showView('competitors');
     else if (action === 'social-nav-abtesting') showView('abtesting');
     else if (action === 'social-nav-library') showView('library');
+    else if (action === 'social-nav-stories') showView('stories');
 
     // Accounts
     else if (action === 'social-connect') connectAccount(btn.getAttribute('data-platform'));
@@ -4261,10 +4365,17 @@
     // Posts
     else if (action === 'social-filter-status') {
       state.postsFilter = btn.getAttribute('data-status');
-      qsa('.yb-social__filter-btn').forEach(function (b) {
+      qsa('#yb-social-v-posts .yb-social__filter-btn').forEach(function (b) {
         b.classList.toggle('is-active', b.getAttribute('data-status') === state.postsFilter);
       });
       loadPosts();
+    }
+    else if (action === 'social-filter-platform') {
+      state.postsPlatform = btn.getAttribute('data-platform') || 'all';
+      loadPosts();
+    }
+    else if (action === 'social-import-posts') {
+      importExistingPosts(btn.getAttribute('data-platform'));
     }
     else if (action === 'social-delete-post') deletePost(btn.getAttribute('data-id'));
     else if (action === 'social-duplicate-post') duplicatePost(btn.getAttribute('data-id'));
@@ -4355,6 +4466,12 @@
     else if (action === 'social-competitors-refresh') refreshCompetitors();
     else if (action === 'social-ai-suggest-competitors') aiSuggestCompetitors();
     else if (action === 'social-ai-competitor-close') { var m = document.getElementById('yb-social-ai-competitor-modal'); if (m) m.remove(); }
+    else if (action === 'social-ai-competitor-search') aiCompetitorSearch();
+    else if (action === 'social-ai-comp-cat') btn.classList.toggle('is-active');
+    else if (action === 'social-ai-comp-scope') {
+      qsa('#yb-ai-comp-scope .yb-social__ai-comp-chip').forEach(function (c) { c.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+    }
     else if (action === 'social-ai-competitor-add') {
       addCompetitorDirect(btn.getAttribute('data-handle'), btn.getAttribute('data-platform'), btn.getAttribute('data-name'));
       btn.disabled = true; btn.textContent = '✓';
@@ -4430,7 +4547,6 @@
     }
 
     // Stories
-    else if (action === 'social-nav-stories') showView('stories');
     else if (action === 'social-stories-filter') {
       storiesState.filter = btn.getAttribute('data-filter') || 'all';
       renderStories();

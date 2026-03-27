@@ -46,6 +46,7 @@ exports.handler = async (event) => {
         case 'bulk-delete': return bulkDeletePosts(db, body.ids);
         case 'bulk-update': return bulkUpdatePosts(db, body.ids, body.fields);
         case 'bulk-duplicate': return bulkDuplicatePosts(db, body.ids, user);
+        case 'import-from-platform': return importFromPlatform(db, body, user);
         default:
           return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
       }
@@ -382,4 +383,128 @@ async function bulkDuplicatePosts(db, ids, user) {
 
   console.log('[social-posts] Bulk duplicated:', created.length, 'errors:', errors.length);
   return jsonResponse(200, { ok: true, created, errors });
+}
+
+
+// ── Import existing posts from Instagram/Facebook ─────────────────
+
+async function importFromPlatform(db, body, user) {
+  const { platform } = body;
+  if (!platform || !['instagram', 'facebook'].includes(platform)) {
+    return jsonResponse(400, { ok: false, error: 'Platform must be instagram or facebook' });
+  }
+
+  // Get account credentials
+  const accountSnap = await db.collection('social_accounts').where('platform', '==', platform).limit(1).get();
+  if (accountSnap.empty) {
+    return jsonResponse(400, { ok: false, error: `No ${platform} account connected` });
+  }
+
+  const account = accountSnap.docs[0].data();
+  const accessToken = account.accessToken;
+  if (!accessToken) {
+    return jsonResponse(400, { ok: false, error: `No access token for ${platform}` });
+  }
+
+  // Get existing imported post IDs to avoid duplicates
+  const existingSnap = await db.collection(COLLECTION)
+    .where('importedPlatformId', '!=', null)
+    .get();
+  const existingIds = new Set();
+  existingSnap.forEach(doc => {
+    const d = doc.data();
+    if (d.importedPlatformId) existingIds.add(d.importedPlatformId);
+  });
+
+  let posts = [];
+
+  try {
+    if (platform === 'instagram') {
+      // Fetch recent Instagram media
+      const igAccountId = account.accountId || account.igBusinessAccountId;
+      if (!igAccountId) return jsonResponse(400, { ok: false, error: 'Missing Instagram account ID' });
+
+      const url = `https://graph.facebook.com/v21.0/${igAccountId}/media?fields=id,caption,media_type,media_url,thumbnail_url,timestamp,permalink,like_count,comments_count&limit=25&access_token=${accessToken}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.error) {
+        return jsonResponse(400, { ok: false, error: data.error.message });
+      }
+
+      posts = (data.data || []).map(m => ({
+        platformId: m.id,
+        caption: m.caption || '',
+        media: m.media_type === 'VIDEO' ? [m.thumbnail_url || ''] : [m.media_url || ''],
+        mediaType: m.media_type === 'VIDEO' ? 'video' : 'image',
+        publishedAt: m.timestamp,
+        permalink: m.permalink || '',
+        metrics: {
+          likes: m.like_count || 0,
+          comments: m.comments_count || 0
+        }
+      }));
+    } else if (platform === 'facebook') {
+      // Fetch recent Facebook page posts
+      const pageId = account.pageId || account.accountId;
+      if (!pageId) return jsonResponse(400, { ok: false, error: 'Missing Facebook page ID' });
+
+      const url = `https://graph.facebook.com/v21.0/${pageId}/posts?fields=id,message,created_time,full_picture,permalink_url,shares,reactions.summary(true),comments.summary(true)&limit=25&access_token=${accessToken}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.error) {
+        return jsonResponse(400, { ok: false, error: data.error.message });
+      }
+
+      posts = (data.data || []).map(p => ({
+        platformId: p.id,
+        caption: p.message || '',
+        media: p.full_picture ? [p.full_picture] : [],
+        mediaType: 'image',
+        publishedAt: p.created_time,
+        permalink: p.permalink_url || '',
+        metrics: {
+          likes: p.reactions ? p.reactions.summary.total_count : 0,
+          comments: p.comments ? p.comments.summary.total_count : 0,
+          shares: p.shares ? p.shares.count : 0
+        }
+      }));
+    }
+  } catch (err) {
+    console.error(`[social-posts] Import ${platform} error:`, err);
+    return jsonResponse(500, { ok: false, error: `Failed to fetch ${platform} posts: ${err.message}` });
+  }
+
+  // Filter out already-imported posts
+  const newPosts = posts.filter(p => !existingIds.has(p.platformId));
+
+  // Save new posts to Firestore
+  let imported = 0;
+  for (const p of newPosts) {
+    try {
+      await db.collection(COLLECTION).add({
+        caption: p.caption,
+        platforms: [platform],
+        media: p.media,
+        mediaType: p.mediaType,
+        hashtags: (p.caption.match(/#\w+/g) || []),
+        status: 'published',
+        publishedAt: p.publishedAt,
+        importedPlatformId: p.platformId,
+        importedPermalink: p.permalink,
+        importedMetrics: p.metrics,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: user.email,
+        source: 'imported'
+      });
+      imported++;
+    } catch (err) {
+      console.error(`[social-posts] Import save error:`, err);
+    }
+  }
+
+  console.log(`[social-posts] Imported ${imported} posts from ${platform}`);
+  return jsonResponse(200, { ok: true, imported, total: posts.length, skipped: posts.length - imported });
 }
