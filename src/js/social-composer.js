@@ -869,6 +869,13 @@
       else savePost('published');
     }
 
+    // Canva Design Studio
+    else if (action === 'social-canva-composer') {
+      if (window._ybSocialCanva) {
+        window._ybSocialCanva.openStudio(composer.postId);
+      }
+    }
+
     // Media
     else if (action === 'social-browse-media') openMediaBrowser();
     else if (action === 'social-upload-media') {
