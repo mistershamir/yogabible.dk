@@ -3453,6 +3453,225 @@
     if (data) { toast('Collection created'); loadContentLibrary(); }
   }
 
+  /* ═══ CANVA DESIGN STUDIO ═══ */
+
+  var canvaState = {
+    designs: [],
+    brandKits: {},
+    platformTypes: {},
+    exportFormats: {},
+    currentDesignId: null,
+    pendingPostId: null
+  };
+
+  // Load Canva config (brand kits, platform mappings)
+  async function loadCanvaConfig() {
+    if (Object.keys(canvaState.brandKits).length) return; // Already loaded
+    var data = await api('social-canva?action=brand-kits');
+    if (data) {
+      canvaState.brandKits = data.brandKits || {};
+      canvaState.platformTypes = data.platformTypes || {};
+      canvaState.exportFormats = data.exportFormats || {};
+    }
+  }
+
+  // Open Canva Design Studio modal
+  async function openCanvaStudio(postId) {
+    await loadCanvaConfig();
+    canvaState.pendingPostId = postId || null;
+
+    // Get caption from composer if open
+    var captionEl = document.getElementById('yb-social-caption');
+    var caption = captionEl ? captionEl.value : '';
+
+    // Get selected platforms from composer
+    var selectedPlatforms = [];
+    document.querySelectorAll('#yb-social-composer-platforms input:checked').forEach(function (cb) {
+      selectedPlatforms.push(cb.value);
+    });
+
+    var brandOptions = Object.entries(canvaState.brandKits).map(function (entry) {
+      return '<option value="' + entry[0] + '">' + entry[1].name + '</option>';
+    }).join('');
+
+    var platformOptions = Object.entries(canvaState.platformTypes).map(function (entry) {
+      return '<option value="' + entry[0] + '">' + entry[0].replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }) + '</option>';
+    }).join('');
+
+    var html = '<div class="yb-social__modal-overlay" id="yb-social-canva-modal">' +
+      '<div class="yb-social__modal-box yb-social__modal-box--canva">' +
+        '<div class="yb-social__modal-header">' +
+          '<h3>🎨 Canva Design Studio</h3>' +
+          '<button class="yb-social__btn-sm" data-action="social-canva-close">&times;</button>' +
+        '</div>' +
+        '<div class="yb-social__modal-body">' +
+          // Step 1: Design brief
+          '<div id="yb-canva-step-brief" class="yb-social__canva-step">' +
+            '<p class="yb-social__canva-step-label">Step 1: Design Brief</p>' +
+            // Brand
+            '<label class="yb-social__canva-label">Brand</label>' +
+            '<select id="yb-canva-brand" class="yb-social__input">' + brandOptions + '</select>' +
+            // Platform target
+            '<label class="yb-social__canva-label" style="margin-top:10px">Design For</label>' +
+            '<select id="yb-canva-platform" class="yb-social__input">' + platformOptions + '</select>' +
+            // Design prompt
+            '<label class="yb-social__canva-label" style="margin-top:10px">Design Description</label>' +
+            '<textarea id="yb-canva-prompt" class="yb-social__input" rows="3" placeholder="Describe the design you want... (e.g. \'Enrollment open for April 4-week YTT, warm orange tones, yoga pose silhouette\')">' +
+              (caption ? 'Social post design for: ' + caption.substring(0, 200) : '') +
+            '</textarea>' +
+            // Quick design presets
+            '<label class="yb-social__canva-label" style="margin-top:10px">Quick Presets</label>' +
+            '<div class="yb-social__canva-presets">' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="enrollment">YTT Enrollment</button>' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="blog">Blog Post</button>' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="class">Class Schedule</button>' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="testimonial">Student Story</button>' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="event">Event / Workshop</button>' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="quote">Yoga Quote</button>' +
+            '</div>' +
+          '</div>' +
+          // Step 2: Results / Pick
+          '<div id="yb-canva-step-results" class="yb-social__canva-step" style="display:none">' +
+            '<p class="yb-social__canva-step-label">Step 2: Pick a Design</p>' +
+            '<div id="yb-canva-results" class="yb-social__canva-results"></div>' +
+          '</div>' +
+          // Step 3: Edit & Export
+          '<div id="yb-canva-step-export" class="yb-social__canva-step" style="display:none">' +
+            '<p class="yb-social__canva-step-label">Step 3: Export & Attach</p>' +
+            '<div id="yb-canva-export-info" class="yb-social__canva-export-info"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="yb-social__modal-footer">' +
+          '<button class="yb-social__btn-sm" data-action="social-canva-close">Cancel</button>' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-canva-generate" id="yb-canva-generate-btn">Generate Designs</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  // Preset descriptions for common design types
+  var CANVA_PRESETS = {
+    enrollment: 'Yoga teacher training enrollment announcement. Warm orange and black color scheme. Professional yet inviting. Include space for program dates, price, and CTA text. Yoga poses, studio vibes.',
+    blog: 'Blog post promotion card. Clean design with space for article title overlay. Yoga/wellness imagery. Warm tones. Include reading time badge area.',
+    class: 'Weekly class schedule announcement. Clean grid or list layout. Include time slots and class types. Studio branding. Warm inviting palette.',
+    testimonial: 'Student testimonial or success story. Quote-style layout with space for photo and name. Warm tones, inspirational feel. Include quotation marks design element.',
+    event: 'Event or workshop promotion. Eye-catching design with date, time, and location space. Energetic but professional. Yoga-themed graphics.',
+    quote: 'Inspirational yoga quote card. Minimalist design, beautiful typography. Warm tones or dark cinematic style. Include small logo placement.'
+  };
+
+  function applyCanvaPreset(preset) {
+    var promptEl = document.getElementById('yb-canva-prompt');
+    if (promptEl && CANVA_PRESETS[preset]) {
+      promptEl.value = CANVA_PRESETS[preset];
+    }
+  }
+
+  // Generate designs via Canva — this stores the request info so Claude can process it
+  async function generateCanvaDesign() {
+    var brandKey = (document.getElementById('yb-canva-brand') || {}).value || 'yoga-bible';
+    var platform = (document.getElementById('yb-canva-platform') || {}).value || 'instagram_post';
+    var prompt = (document.getElementById('yb-canva-prompt') || {}).value || '';
+
+    if (!prompt.trim()) { toast('Please describe the design you want', true); return; }
+
+    var brand = canvaState.brandKits[brandKey] || {};
+    var designType = canvaState.platformTypes[platform] || 'instagram_post';
+
+    // Show loading state
+    var resultsEl = document.getElementById('yb-canva-results');
+    var briefEl = document.getElementById('yb-canva-step-brief');
+    var resultsStep = document.getElementById('yb-canva-step-results');
+
+    if (briefEl) briefEl.style.display = 'none';
+    if (resultsStep) resultsStep.style.display = '';
+    if (resultsEl) resultsEl.innerHTML = '<div class="yb-social__canva-loading"><p>Generating designs with Canva AI...</p><p class="yb-admin__muted">Using brand kit: ' + (brand.name || brandKey) + ' · Format: ' + platform.replace(/_/g, ' ') + '</p><div class="yb-social__canva-spinner"></div></div>';
+
+    var genBtn = document.getElementById('yb-canva-generate-btn');
+    if (genBtn) { genBtn.textContent = 'Generating...'; genBtn.disabled = true; }
+
+    // Build the full prompt with brand context
+    var fullPrompt = prompt + '. Brand: Yoga Bible Copenhagen. Style: warm, professional, orange (#f75c03) and dark (#0F0F0F) color scheme. Font: modern sans-serif.';
+
+    // Store the generation request in Firestore for reference
+    var data = await api('social-canva', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'save-design',
+        canvaDesignId: 'pending_' + Date.now(),
+        title: prompt.substring(0, 50),
+        designType: designType,
+        brand: brandKey,
+        platformTarget: platform,
+        caption: prompt,
+        postId: canvaState.pendingPostId
+      })
+    });
+
+    if (data && data.id) {
+      canvaState.currentDesignId = data.id;
+    }
+
+    // Show instructions for Claude-assisted generation
+    // In a Claude Code session, the MCP tools handle the actual Canva API calls
+    // In standalone mode, show a prompt to use with Claude
+    if (resultsEl) {
+      resultsEl.innerHTML =
+        '<div class="yb-social__canva-request-card">' +
+          '<h4>Design Request Ready</h4>' +
+          '<div class="yb-social__canva-request-detail">' +
+            '<div><strong>Brand Kit:</strong> ' + (brand.name || brandKey) + ' (' + (brand.id || '') + ')</div>' +
+            '<div><strong>Design Type:</strong> ' + designType + '</div>' +
+            '<div><strong>Platform:</strong> ' + platform.replace(/_/g, ' ') + '</div>' +
+            '<div><strong>Prompt:</strong> ' + fullPrompt + '</div>' +
+          '</div>' +
+          '<div class="yb-social__canva-request-actions">' +
+            '<p class="yb-admin__muted" style="margin-bottom:10px">In a Claude Code session, ask Claude to generate this design using the Canva MCP tools. Claude will create options for you to pick from.</p>' +
+            '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-canva-copy-request">Copy Design Request</button>' +
+            '<button class="yb-social__btn-sm" data-action="social-canva-back-to-brief">Edit Brief</button>' +
+          '</div>' +
+        '</div>';
+    }
+
+    if (genBtn) { genBtn.textContent = 'Generate Designs'; genBtn.disabled = false; }
+  }
+
+  // When a Canva design is exported and URL is available, attach to post
+  async function attachCanvaDesignToPost(mediaUrl) {
+    if (!canvaState.pendingPostId || !mediaUrl) return;
+
+    var data = await api('social-canva', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'attach-to-post',
+        postId: canvaState.pendingPostId,
+        mediaUrl: mediaUrl
+      })
+    });
+
+    if (data) {
+      toast('Design attached to post!');
+      // Also add to composer media if composer is open
+      if (window._ybSocial && window._ybSocial.addMediaToComposer) {
+        window._ybSocial.addMediaToComposer(mediaUrl);
+      }
+    }
+  }
+
+  // Close Canva modal
+  function closeCanvaModal() {
+    var modal = document.getElementById('yb-social-canva-modal');
+    if (modal) modal.remove();
+  }
+
+  // Expose for composer bridge
+  window._ybSocialCanva = {
+    openStudio: openCanvaStudio,
+    attachDesign: attachCanvaDesignToPost,
+    getState: function () { return canvaState; }
+  };
+
   /* ═══ STORIES ═══ */
   var storiesState = {
     stories: [],
@@ -4189,6 +4408,25 @@
       libraryState.activeTag = ''; libraryState.activeCollection = ''; libraryState.search = '';
       var searchEl = $('yb-social-library-search'); if (searchEl) searchEl.value = '';
       loadContentLibrary();
+    }
+
+    // Canva Design Studio
+    else if (action === 'social-canva-open') openCanvaStudio(btn.getAttribute('data-post-id') || null);
+    else if (action === 'social-canva-close') closeCanvaModal();
+    else if (action === 'social-canva-generate') generateCanvaDesign();
+    else if (action === 'social-canva-preset') applyCanvaPreset(btn.getAttribute('data-preset'));
+    else if (action === 'social-canva-back-to-brief') {
+      var brief = document.getElementById('yb-canva-step-brief');
+      var results = document.getElementById('yb-canva-step-results');
+      if (brief) brief.style.display = '';
+      if (results) results.style.display = 'none';
+    }
+    else if (action === 'social-canva-copy-request') {
+      var detail = document.querySelector('.yb-social__canva-request-detail');
+      if (detail) {
+        var text = detail.innerText;
+        navigator.clipboard.writeText(text).then(function () { toast('Copied!'); });
+      }
     }
 
     // Stories
