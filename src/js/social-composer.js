@@ -16,7 +16,8 @@
     media: [],       // array of CDN URLs
     mediaSelected: [], // temp selection in media browser
     currentPath: 'yoga-bible-DK/social',
-    uploadPlatform: 'general'  // tracks active platform for upload folder
+    uploadPlatform: 'general',  // tracks active platform for upload folder
+    videoThumbnails: {}  // { videoUrl: thumbnailUrl }
   };
 
   var CHAR_LIMITS = {
@@ -244,26 +245,171 @@
     }
   }
 
-  /* ═══ MEDIA PREVIEW (in composer) ═══ */
+  /* ═══ MEDIA PREVIEW (in composer) — with carousel reorder + video thumbnails ═══ */
   function renderMediaPreview() {
     var container = $('yb-social-media-preview');
     if (!container) return;
 
     if (composer.media.length === 0) {
       container.innerHTML = '';
+      toggleCarouselHint();
       return;
     }
 
     container.innerHTML = composer.media.map(function (url, i) {
       var isVideo = url.match(/\.(mp4|mov|webm)$/i);
-      return '<div class="yb-social__media-thumb">' +
+      var thumbUrl = (composer.videoThumbnails && composer.videoThumbnails[url]) || '';
+      return '<div class="yb-social__media-thumb' + (isVideo ? ' is-video' : '') + '" draggable="true" data-media-index="' + i + '">' +
         (isVideo
-          ? '<video src="' + url + '"></video>'
+          ? '<video src="' + url + '"></video>' +
+            (thumbUrl ? '<img class="yb-social__video-thumb-overlay" src="' + thumbUrl + '" alt="Thumbnail">' : '') +
+            '<button class="yb-social__video-thumb-btn" data-action="social-video-thumbnail" data-index="' + i + '" title="' + t('social_select_thumbnail') + '">🖼</button>'
           : '<img src="' + url + '" alt="">') +
+        '<span class="yb-social__media-thumb-index">' + (i + 1) + '</span>' +
         '<button class="yb-social__media-thumb-remove" data-action="social-remove-media" data-index="' + i + '">&times;</button>' +
         '</div>';
     }).join('');
     toggleMediaTypeRow();
+    toggleCarouselHint();
+    initDragReorder(container);
+  }
+
+  function toggleCarouselHint() {
+    var hint = $('yb-social-carousel-hint');
+    if (hint) hint.hidden = composer.media.length < 2;
+  }
+
+  // Drag-and-drop reorder for carousel slides
+  function initDragReorder(container) {
+    var thumbs = container.querySelectorAll('.yb-social__media-thumb');
+    thumbs.forEach(function (el) {
+      el.addEventListener('dragstart', function (e) {
+        e.dataTransfer.setData('text/plain', el.getAttribute('data-media-index'));
+        el.classList.add('is-dragging');
+      });
+      el.addEventListener('dragend', function () { el.classList.remove('is-dragging'); });
+      el.addEventListener('dragover', function (e) { e.preventDefault(); el.classList.add('is-drag-over'); });
+      el.addEventListener('dragleave', function () { el.classList.remove('is-drag-over'); });
+      el.addEventListener('drop', function (e) {
+        e.preventDefault();
+        el.classList.remove('is-drag-over');
+        var fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+        var toIdx = parseInt(el.getAttribute('data-media-index'));
+        if (fromIdx !== toIdx && !isNaN(fromIdx) && !isNaN(toIdx)) {
+          var item = composer.media.splice(fromIdx, 1)[0];
+          composer.media.splice(toIdx, 0, item);
+          renderMediaPreview();
+          updatePreview();
+        }
+      });
+    });
+  }
+
+  // Video thumbnail — capture frame from video or upload custom
+  function openVideoThumbnailPicker(index) {
+    var url = composer.media[index];
+    if (!url) return;
+
+    // Create a temp video to extract frames
+    var vid = document.createElement('video');
+    vid.crossOrigin = 'anonymous';
+    vid.muted = true;
+    vid.src = url;
+
+    vid.addEventListener('loadeddata', function () {
+      var duration = vid.duration || 10;
+      var frames = [];
+      var times = [0, duration * 0.25, duration * 0.5, duration * 0.75];
+      var captured = 0;
+
+      times.forEach(function (time, fi) {
+        vid.currentTime = time;
+        vid.addEventListener('seeked', function onSeek() {
+          var canvas = document.createElement('canvas');
+          canvas.width = 320; canvas.height = 180;
+          canvas.getContext('2d').drawImage(vid, 0, 0, 320, 180);
+          frames.push({ time: Math.round(time), dataUrl: canvas.toDataURL('image/jpeg', 0.8) });
+          captured++;
+          if (captured === times.length) showThumbnailPicker(index, url, frames);
+        }, { once: true });
+      });
+    });
+
+    vid.addEventListener('error', function () {
+      // Fallback: just offer upload
+      showThumbnailPicker(index, url, []);
+    });
+
+    vid.load();
+  }
+
+  function showThumbnailPicker(mediaIndex, videoUrl, frames) {
+    // Build modal
+    var existing = $('yb-social-thumb-picker');
+    if (existing) existing.remove();
+
+    var html = '<div class="yb-social__thumb-picker" id="yb-social-thumb-picker">' +
+      '<div class="yb-social__thumb-picker-overlay" data-action="social-thumb-picker-close"></div>' +
+      '<div class="yb-social__thumb-picker-box">' +
+      '<h4>' + t('social_select_thumbnail') + '</h4>';
+
+    if (frames.length > 0) {
+      html += '<p class="yb-admin__muted">' + t('social_thumb_pick_frame') + '</p>' +
+        '<div class="yb-social__thumb-picker-frames">';
+      frames.forEach(function (f, i) {
+        html += '<img src="' + f.dataUrl + '" class="yb-social__thumb-picker-frame" data-action="social-thumb-pick-frame" data-index="' + mediaIndex + '" data-frame="' + i + '" alt="' + f.time + 's">';
+      });
+      html += '</div>';
+    }
+
+    html += '<div class="yb-social__thumb-picker-upload">' +
+      '<p class="yb-admin__muted">' + t('social_thumb_or_upload') + '</p>' +
+      '<input type="file" id="yb-social-thumb-file" accept="image/*" data-media-index="' + mediaIndex + '">' +
+      '</div>' +
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-thumb-picker-close">' + t('social_cancel') + '</button>' +
+      '</div></div>';
+
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    // Listen for file upload
+    var fileInput = $('yb-social-thumb-file');
+    if (fileInput) {
+      fileInput.addEventListener('change', function () {
+        if (fileInput.files && fileInput.files[0]) {
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            setVideoThumbnail(mediaIndex, videoUrl, e.target.result);
+            closeThumbnailPicker();
+          };
+          reader.readAsDataURL(fileInput.files[0]);
+        }
+      });
+    }
+
+    // Store frames data for pick action
+    window._ybThumbFrames = frames;
+  }
+
+  function closeThumbnailPicker() {
+    var el = $('yb-social-thumb-picker');
+    if (el) el.remove();
+    window._ybThumbFrames = null;
+  }
+
+  function pickThumbnailFrame(mediaIndex, frameIndex) {
+    var frames = window._ybThumbFrames;
+    if (!frames || !frames[frameIndex]) return;
+    var videoUrl = composer.media[mediaIndex];
+    setVideoThumbnail(mediaIndex, videoUrl, frames[frameIndex].dataUrl);
+    closeThumbnailPicker();
+  }
+
+  function setVideoThumbnail(mediaIndex, videoUrl, dataUrl) {
+    if (!composer.videoThumbnails) composer.videoThumbnails = {};
+    composer.videoThumbnails[videoUrl] = dataUrl;
+    renderMediaPreview();
+    updatePreview();
+    S.toast(t('social_thumb_set') || 'Thumbnail set');
   }
 
   /* ═══ SAVE / PUBLISH ═══ */
@@ -294,6 +440,7 @@
       firstComment: ($('yb-social-first-comment') || {}).value || '',
       location: ($('yb-social-location') || {}).value || '',
       mediaType: mediaType,
+      videoThumbnails: composer.videoThumbnails || {},
       status: status
     };
 
@@ -695,6 +842,13 @@
       var idx = parseInt(btn.getAttribute('data-index'));
       composer.media.splice(idx, 1);
       renderMediaPreview(); updatePreview();
+    }
+
+    // Video thumbnail picker
+    else if (action === 'social-video-thumbnail') openVideoThumbnailPicker(parseInt(btn.getAttribute('data-index')));
+    else if (action === 'social-thumb-picker-close') closeThumbnailPicker();
+    else if (action === 'social-thumb-pick-frame') {
+      pickThumbnailFrame(parseInt(btn.getAttribute('data-index')), parseInt(btn.getAttribute('data-frame')));
     }
 
     // Media browser

@@ -343,6 +343,20 @@
     </div>
   </div>
 
+  {# Promote to Ad — Top organic posts suitable for paid boost #}
+  <div class="yb-social__analytics-section">
+    <div class="yb-social__promote-header">
+      <h3>{{ t.social_promote_title or "Promote to Ad" }}</h3>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-find-promotable">
+        🔍 {{ t.social_find_promotable or "Find Top Posts" }}
+      </button>
+    </div>
+    <p class="yb-admin__muted" style="margin-bottom:12px">{{ t.social_promote_desc or "Top-performing organic posts that could work as paid ads." }}</p>
+    <div class="yb-social__promote-grid" id="yb-social-promote-grid">
+      <p class="yb-admin__muted">{{ t.social_promote_empty or "Click 'Find Top Posts' to scan your published posts." }}</p>
+    </div>
+  </div>
+
   {# Cross-Post Comparison #}
   <div class="yb-social__analytics-section">
     <h3>{{ t.social_cross_post_title or "Cross-Platform Comparison" }}</h3>
@@ -626,6 +640,9 @@
             </div>
           </div>
           <div class="yb-social__media-preview" id="yb-social-media-preview"></div>
+          <p class="yb-social__carousel-hint" id="yb-social-carousel-hint" hidden>
+            ↕ {{ t.social_carousel_hint or "Drag to reorder slides" }}
+          </p>
           <div class="yb-social__media-type-row" id="yb-social-media-type-row" hidden>
             <label>{{ t.social_media_type or "Post Type" }}</label>
             <div class="yb-social__media-type-options">

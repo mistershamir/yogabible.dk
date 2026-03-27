@@ -886,6 +886,102 @@
     tbody.innerHTML = rows.join('');
   }
 
+  // ── Promote to Ad — find top organic posts ──────────────
+  function findPromotablePosts() {
+    var grid = $('yb-social-promote-grid');
+    if (!grid) return;
+
+    // Get published posts with engagement metrics
+    var published = state.posts.filter(function (p) {
+      return p.status === 'published' && p.publishResults;
+    });
+
+    // Score each post by total engagement
+    var scored = published.map(function (p) {
+      var totalEng = 0;
+      var totalReach = 0;
+      var platforms = Object.keys(p.publishResults || {});
+      platforms.forEach(function (plat) {
+        var m = (p.publishResults[plat] || {}).metrics || {};
+        totalEng += (m.likes || 0) + (m.comments || 0) * 2 + (m.shares || 0) * 3;
+        totalReach += m.reach || m.post_reach || 0;
+      });
+      return { post: p, engagement: totalEng, reach: totalReach, platforms: platforms };
+    }).filter(function (s) { return s.engagement > 0; });
+
+    // Sort by engagement score descending
+    scored.sort(function (a, b) { return b.engagement - a.engagement; });
+
+    // Take top 5
+    var top = scored.slice(0, 5);
+
+    if (top.length === 0) {
+      grid.innerHTML = '<p class="yb-admin__muted">' + t('social_promote_no_results') + '</p>';
+      return;
+    }
+
+    grid.innerHTML = top.map(function (item, i) {
+      var p = item.post;
+      var thumb = p.media && p.media[0]
+        ? '<img src="' + p.media[0] + '" alt="" class="yb-social__promote-thumb">'
+        : '<span class="yb-social__promote-thumb yb-social__promote-thumb--empty">📝</span>';
+
+      var engRate = item.reach > 0 ? ((item.engagement / item.reach) * 100).toFixed(1) + '%' : '—';
+
+      return '<div class="yb-social__promote-card">' +
+        '<div class="yb-social__promote-rank">#' + (i + 1) + '</div>' +
+        thumb +
+        '<div class="yb-social__promote-info">' +
+        '<p class="yb-social__promote-caption">' + truncate(p.caption, 60) + '</p>' +
+        '<div class="yb-social__promote-stats">' +
+        '<span>❤️ ' + item.engagement + '</span>' +
+        '<span>👁 ' + item.reach + '</span>' +
+        '<span>📊 ' + engRate + '</span>' +
+        '</div>' +
+        '<div class="yb-social__promote-platforms">' + item.platforms.map(platformIcon).join('') + '</div>' +
+        '</div>' +
+        '<div class="yb-social__promote-actions">' +
+        '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-promote-post" data-id="' + p.id + '">🚀 ' + t('social_promote_boost') + '</button>' +
+        '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-duplicate-post" data-id="' + p.id + '">📋 ' + t('social_duplicate') + '</button>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  // Create ad suggestion from a post (opens Meta Ads directions)
+  function promotePost(id) {
+    var post = state.posts.find(function (p) { return p.id === id; });
+    if (!post) return;
+
+    // Prepare ad creative data
+    var creative = {
+      caption: post.caption || '',
+      media: post.media || [],
+      hashtags: post.hashtags || [],
+      platforms: post.platforms || [],
+      engagement: 0
+    };
+
+    Object.keys(post.publishResults || {}).forEach(function (plat) {
+      var m = (post.publishResults[plat] || {}).metrics || {};
+      creative.engagement += (m.likes || 0) + (m.comments || 0) + (m.shares || 0);
+    });
+
+    // Store as ad suggestion in Firestore
+    api('social-posts?action=update', {
+      method: 'POST',
+      body: JSON.stringify({
+        id: id,
+        adSuggestion: {
+          suggestedAt: new Date().toISOString(),
+          engagement: creative.engagement,
+          status: 'suggested'
+        }
+      })
+    }).then(function () {
+      toast(t('social_promote_suggested') || 'Marked as ad candidate — use Meta Ads CLI to create the campaign');
+    });
+  }
+
   function renderCrossPostComparison() {
     var grid = $('yb-social-cross-post-grid');
     if (!grid) return;
@@ -2207,6 +2303,10 @@
     else if (action === 'social-ai-plan-close') { var m = $('yb-social-ai-plan-modal'); if (m) m.hidden = true; }
     else if (action === 'social-ai-plan-generate') aiGeneratePlan();
     else if (action === 'social-ai-plan-create-post') aiPlanCreatePost(btn.getAttribute('data-index'));
+
+    // Promote to Ad
+    else if (action === 'social-find-promotable') findPromotablePosts();
+    else if (action === 'social-promote-post') promotePost(btn.getAttribute('data-id'));
 
     // AI Analytics Insights
     else if (action === 'social-ai-insights') aiGetInsights();
