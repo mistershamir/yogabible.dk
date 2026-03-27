@@ -205,7 +205,7 @@ async function updatePost(db, body) {
   const allowed = [
     'caption', 'platforms', 'media', 'hashtags', 'hashtagSet',
     'status', 'scheduledAt', 'firstComment', 'location', 'altTexts', 'mediaType',
-    'approvedBy', 'approvedAt', 'recycleConfig'
+    'approvedBy', 'approvedAt', 'recycleConfig', 'videoThumbnails', 'adSuggestion'
   ];
 
   const update = { updatedAt: serverTimestamp() };
