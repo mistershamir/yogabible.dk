@@ -1605,3 +1605,13 @@ When you create a new page, follow this order:
 - **API Enabled:** YouTube Data API v3
 - **Consent screen:** Internal (yogabible.dk org only, no verification needed)
 - **Admin UI:** `/admin/` → Social → Accounts → YouTube → paste access token + refresh token + Channel ID
+
+### Pinterest Developer App
+
+- **App Name:** Yoga Bible
+- **App ID:** `1556643`
+- **Platform:** Web
+- **Required Scopes:** `pins:read`, `pins:write`, `boards:read`, `user_accounts:read`
+- **Status:** Trial access pending
+- **Domain Verification:** Meta tag added to `head.njk` (`p:domain_verify`)
+- **Admin UI:** `/admin/` → Social → Accounts → Pinterest → paste access token
