@@ -83,7 +83,7 @@
   /* ═══ VIEW MANAGEMENT ═══ */
   function showView(name) {
     state.view = name;
-    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting'].forEach(function (v) {
+    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting', 'library'].forEach(function (v) {
       var el = $('yb-social-v-' + v);
       if (el) el.hidden = (v !== name);
     });
@@ -99,6 +99,7 @@
     if (name === 'templates') loadTemplates();
     if (name === 'competitors') loadCompetitors();
     if (name === 'abtesting') loadAbTests();
+    if (name === 'library') loadContentLibrary();
   }
 
   /* ═══ ACCOUNTS ═══ */
@@ -3011,6 +3012,359 @@
     if (modal) modal.hidden = true;
   }
 
+  /* ═══ SAVED REPLIES ═══ */
+  var savedRepliesState = { replies: [], loaded: false };
+
+  async function loadSavedReplies() {
+    var data = await api('social-saved-replies?action=list');
+    if (data) {
+      savedRepliesState.replies = data.replies || [];
+      savedRepliesState.loaded = true;
+    }
+  }
+
+  function renderSavedRepliesDropdown() {
+    var container = $('yb-social-saved-replies-dropdown');
+    if (!container) return;
+
+    if (!savedRepliesState.loaded) {
+      loadSavedReplies().then(renderSavedRepliesDropdown);
+      return;
+    }
+
+    if (savedRepliesState.replies.length === 0) {
+      container.innerHTML = '<p class="yb-admin__muted">No saved replies yet</p>';
+      return;
+    }
+
+    container.innerHTML = savedRepliesState.replies.map(function (r) {
+      return '<button type="button" class="yb-social__saved-reply-item" data-action="social-use-saved-reply" data-id="' + r.id + '">' +
+        '<span class="yb-social__saved-reply-name">' + escapeHtml(r.name) + '</span>' +
+        '<span class="yb-social__saved-reply-preview">' + escapeHtml(truncate(r.text, 60)) + '</span>' +
+        (r.shortcut ? '<span class="yb-social__saved-reply-shortcut">/' + r.shortcut + '</span>' : '') +
+      '</button>';
+    }).join('');
+  }
+
+  function useSavedReply(id) {
+    var reply = savedRepliesState.replies.find(function (r) { return r.id === id; });
+    if (!reply) return;
+
+    var replyEl = $('yb-social-inbox-reply');
+    if (replyEl) {
+      replyEl.value = reply.text;
+      replyEl.focus();
+    }
+
+    // Increment usage count
+    api('social-saved-replies', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'update', id: id, incrementUsage: true })
+    });
+
+    // Hide dropdown
+    var dd = $('yb-social-saved-replies-dropdown');
+    if (dd) dd.hidden = true;
+  }
+
+  function toggleSavedRepliesDropdown() {
+    var dd = $('yb-social-saved-replies-dropdown');
+    if (!dd) return;
+    dd.hidden = !dd.hidden;
+    if (!dd.hidden) renderSavedRepliesDropdown();
+  }
+
+  async function saveCurrentReplyAsTemplate() {
+    var replyEl = $('yb-social-inbox-reply');
+    if (!replyEl || !replyEl.value.trim()) { toast('Write a reply first', true); return; }
+
+    var name = prompt('Name for this saved reply:');
+    if (!name) return;
+
+    var data = await api('social-saved-replies', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create', name: name, text: replyEl.value.trim() })
+    });
+
+    if (data) {
+      toast('Reply saved as template');
+      savedRepliesState.loaded = false; // Force reload
+    }
+  }
+
+  /* ═══ CONTENT LIBRARY ═══ */
+  var libraryState = { assets: [], collections: [], tags: [], search: '', activeTag: '', activeCollection: '' };
+
+  async function loadContentLibrary() {
+    var params = 'action=list';
+    if (libraryState.activeTag) params += '&tag=' + encodeURIComponent(libraryState.activeTag);
+    if (libraryState.activeCollection) params += '&collection=' + encodeURIComponent(libraryState.activeCollection);
+    if (libraryState.search) params += '&search=' + encodeURIComponent(libraryState.search);
+
+    var results = await Promise.all([
+      api('social-content-library?' + params),
+      api('social-content-library?action=collections')
+    ]);
+
+    if (results[0]) {
+      libraryState.assets = results[0].assets || [];
+      libraryState.tags = results[0].tags || [];
+    }
+    if (results[1]) {
+      libraryState.collections = results[1].collections || [];
+    }
+
+    renderContentLibrary();
+  }
+
+  function renderContentLibrary() {
+    // Tag cloud
+    var tagCloud = $('yb-social-library-tags');
+    if (tagCloud) {
+      tagCloud.innerHTML = libraryState.tags.slice(0, 30).map(function (t) {
+        var active = libraryState.activeTag === t.tag ? ' is-active' : '';
+        return '<button class="yb-social__library-tag' + active + '" data-action="social-library-filter-tag" data-tag="' + t.tag + '">' +
+          t.tag + ' <span>(' + t.count + ')</span></button>';
+      }).join('');
+    }
+
+    // Collections
+    var collEl = $('yb-social-library-collections');
+    if (collEl) {
+      collEl.innerHTML = libraryState.collections.map(function (c) {
+        var active = libraryState.activeCollection === c.id ? ' is-active' : '';
+        return '<button class="yb-social__library-collection' + active + '" data-action="social-library-filter-collection" data-id="' + c.id + '">' +
+          escapeHtml(c.name) + ' <span>(' + (c.assetCount || 0) + ')</span></button>';
+      }).join('') +
+      '<button class="yb-social__library-collection yb-social__library-collection--add" data-action="social-library-new-collection">+ New</button>';
+    }
+
+    // Asset grid
+    var grid = $('yb-social-library-grid');
+    if (!grid) return;
+
+    if (libraryState.assets.length === 0) {
+      grid.innerHTML = '<div class="yb-social__inbox-empty"><p>No tagged assets yet. Browse media in the composer and tag assets to see them here.</p></div>';
+      return;
+    }
+
+    grid.innerHTML = libraryState.assets.map(function (a) {
+      var isVideo = a.type === 'video';
+      return '<div class="yb-social__library-item" data-action="social-library-edit-asset" data-url="' + a.url + '">' +
+        (isVideo
+          ? '<video src="' + a.url + '?width=300" class="yb-social__library-thumb"></video>'
+          : '<img src="' + a.url + '?width=300" alt="' + escapeHtml(a.alt || '') + '" class="yb-social__library-thumb" loading="lazy">') +
+        '<div class="yb-social__library-item-meta">' +
+          (a.tags && a.tags.length > 0 ? '<div class="yb-social__library-item-tags">' + a.tags.slice(0, 4).map(function (t) {
+            return '<span>' + t + '</span>';
+          }).join('') + '</div>' : '') +
+          (a.alt ? '<p class="yb-admin__muted">' + escapeHtml(truncate(a.alt, 40)) + '</p>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function showAssetEditor(url) {
+    var asset = libraryState.assets.find(function (a) { return a.url === url; });
+    var existing = document.getElementById('yb-social-asset-editor');
+    if (existing) existing.remove();
+
+    var tags = asset ? (asset.tags || []).join(', ') : '';
+    var alt = asset ? (asset.alt || '') : '';
+    var notes = asset ? (asset.notes || '') : '';
+
+    var html = '<div class="yb-social__modal-overlay" id="yb-social-asset-editor">' +
+      '<div class="yb-social__modal-box" style="max-width:500px">' +
+      '<h3>Edit Asset</h3>' +
+      '<div style="margin:10px 0"><img src="' + url + '?width=400" style="width:100%;border-radius:8px" alt=""></div>' +
+      '<div class="yb-admin__field"><label>Tags (comma separated)</label>' +
+      '<input type="text" id="yb-social-asset-tags" value="' + escapeHtml(tags) + '" placeholder="yoga, lifestyle, studio"></div>' +
+      '<div class="yb-admin__field"><label>Alt Text</label>' +
+      '<input type="text" id="yb-social-asset-alt" value="' + escapeHtml(alt) + '" placeholder="Descriptive alt text"></div>' +
+      '<div class="yb-admin__field"><label>Notes</label>' +
+      '<textarea id="yb-social-asset-notes" rows="2" placeholder="Internal notes...">' + escapeHtml(notes) + '</textarea></div>' +
+      '<div style="display:flex;gap:8px;margin-top:12px">' +
+      '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-library-save-asset" data-url="' + url + '">Save</button>' +
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-library-close-editor">Cancel</button></div>' +
+      '</div></div>';
+
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  async function saveAssetMeta(url) {
+    var tags = ($('yb-social-asset-tags') || {}).value || '';
+    var alt = ($('yb-social-asset-alt') || {}).value || '';
+    var notes = ($('yb-social-asset-notes') || {}).value || '';
+
+    var tagArr = tags.split(/[,\n]+/).map(function (t) { return t.trim().toLowerCase(); }).filter(Boolean);
+
+    var data = await api('social-content-library', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'tag', url: url, tags: tagArr, alt: alt, notes: notes })
+    });
+
+    if (data) {
+      toast('Asset saved');
+      var editor = document.getElementById('yb-social-asset-editor');
+      if (editor) editor.remove();
+      loadContentLibrary();
+    }
+  }
+
+  async function createLibraryCollection() {
+    var name = prompt('Collection name:');
+    if (!name) return;
+
+    var data = await api('social-content-library', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create-collection', name: name })
+    });
+
+    if (data) { toast('Collection created'); loadContentLibrary(); }
+  }
+
+  /* ═══ CONTENT CALENDAR AI ═══ */
+  async function aiGenerateCalendar() {
+    var daysEl = $('yb-social-cal-ai-days');
+    var notesEl = $('yb-social-cal-ai-notes');
+    var resultsEl = $('yb-social-cal-ai-results');
+    if (!resultsEl) return;
+
+    var days = daysEl ? parseInt(daysEl.value) || 7 : 7;
+    var notes = notesEl ? notesEl.value : '';
+
+    resultsEl.innerHTML = '<p class="yb-admin__muted">Generating ' + days + '-day plan...</p>';
+
+    // Get recent posts to avoid repetition
+    var existingPosts = state.posts.slice(0, 10).map(function (p) {
+      return { caption: p.caption || '' };
+    });
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'calendar-plan',
+        days: days,
+        notes: notes,
+        existingPosts: existingPosts,
+        platforms: Object.keys(state.accounts).filter(function (k) { return state.accounts[k]; })
+      })
+    });
+
+    if (!data || !data.plan) {
+      resultsEl.innerHTML = '<p class="yb-admin__muted">Could not generate plan.</p>';
+      return;
+    }
+
+    resultsEl.innerHTML = data.plan.map(function (p, i) {
+      return '<div class="yb-social__cal-ai-item">' +
+        '<div class="yb-social__cal-ai-item-head">' +
+          '<span class="yb-social__cal-ai-day">Day ' + p.day + ' · ' + (p.date_label || '') + '</span>' +
+          '<span class="yb-social__cal-ai-pillar">' + (p.pillar || '') + '</span>' +
+          '<span class="yb-social__cal-ai-time">' + (p.best_time || '') + '</span>' +
+        '</div>' +
+        '<h4>' + escapeHtml(p.topic || '') + '</h4>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+          '<div><span class="yb-admin__muted">🇩🇰</span><p style="font-size:12px">' + escapeHtml(p.caption_da || '') + '</p></div>' +
+          '<div><span class="yb-admin__muted">🇬🇧</span><p style="font-size:12px">' + escapeHtml(p.caption_en || '') + '</p></div>' +
+        '</div>' +
+        '<div class="yb-social__cal-ai-item-foot">' +
+          '<span>' + (p.media_type || '') + '</span>' +
+          '<span class="yb-admin__muted">' + escapeHtml(p.visual_idea || '') + '</span>' +
+          '<button class="yb-btn yb-btn--sm yb-btn--outline" data-action="social-cal-ai-create-post" data-index="' + i + '">Create Post</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    resultsEl._plan = data.plan;
+  }
+
+  function calAiCreatePost(index) {
+    var resultsEl = $('yb-social-cal-ai-results');
+    if (!resultsEl || !resultsEl._plan) return;
+    var p = resultsEl._plan[index];
+    if (!p) return;
+
+    // Open composer with pre-filled data
+    if (window.openSocialComposer) {
+      window.openSocialComposer(null);
+      setTimeout(function () {
+        var captionEl = $('yb-social-caption');
+        if (captionEl) captionEl.value = p.caption_en || p.caption_da || '';
+        var hashEl = $('yb-social-hashtags');
+        if (hashEl) hashEl.value = (p.hashtags || []).join(', ');
+      }, 100);
+    }
+  }
+
+  /* ═══ AUTO-REPLY SUGGESTIONS ═══ */
+  async function aiAutoReplySuggest() {
+    if (!inboxState.activeThread) { toast('Open a thread first', true); return; }
+
+    var suggestEl = $('yb-social-ai-reply-suggestions');
+    if (!suggestEl) return;
+    suggestEl.hidden = false;
+    suggestEl.innerHTML = '<p class="yb-admin__muted">Generating quick replies...</p>';
+
+    var thread = inboxState.activeThread;
+    var commentText = '';
+    var sentiment = '';
+
+    if (thread.type === 'comment') {
+      var comment = inboxState.comments.find(function (c) { return c.commentId === thread.id; });
+      if (comment) {
+        commentText = comment.text || '';
+        sentiment = comment._sentiment ? comment._sentiment.sentiment : '';
+      }
+    } else {
+      var conv = inboxState.conversations.find(function (c) { return c.conversationId === thread.id; });
+      if (conv) commentText = conv.lastMessage || '';
+    }
+
+    // Load saved replies if not loaded
+    if (!savedRepliesState.loaded) await loadSavedReplies();
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'auto-reply-suggest',
+        comment: commentText,
+        platform: thread.platform,
+        sentiment: sentiment,
+        savedReplies: savedRepliesState.replies.slice(0, 5)
+      })
+    });
+
+    if (!data || !data.replies) {
+      suggestEl.innerHTML = '<p class="yb-admin__muted">Could not generate suggestions.</p>';
+      return;
+    }
+
+    suggestEl.innerHTML = data.replies.map(function (r, i) {
+      return '<button type="button" class="yb-social__auto-reply-option" data-action="social-use-auto-reply" data-index="' + i + '">' +
+        '<span class="yb-social__auto-reply-text">' + escapeHtml(r.text) + '</span>' +
+        '<span class="yb-social__auto-reply-style">' + (r.style || '') + '</span>' +
+      '</button>';
+    }).join('') +
+    '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-auto-reply-close" style="margin-top:6px">Close</button>';
+
+    suggestEl._replies = data.replies;
+  }
+
+  function useAutoReply(index) {
+    var suggestEl = $('yb-social-ai-reply-suggestions');
+    if (!suggestEl || !suggestEl._replies) return;
+    var r = suggestEl._replies[index];
+    if (!r) return;
+
+    var replyEl = $('yb-social-inbox-reply');
+    if (replyEl) {
+      replyEl.value = r.text;
+      replyEl.focus();
+    }
+    suggestEl.hidden = true;
+  }
+
   /* ═══ EXPORT FOR COMPOSER ═══ */
   window._ybSocial = {
     state: state,
@@ -3042,6 +3396,7 @@
     else if (action === 'social-nav-templates') showView('templates');
     else if (action === 'social-nav-competitors') showView('competitors');
     else if (action === 'social-nav-abtesting') showView('abtesting');
+    else if (action === 'social-nav-library') showView('library');
 
     // Accounts
     else if (action === 'social-connect') connectAccount(btn.getAttribute('data-platform'));
@@ -3181,6 +3536,45 @@
     else if (action === 'social-ab-update-metrics') showMetricsPrompt(btn.getAttribute('data-test-id'), btn.getAttribute('data-variant'));
     else if (action === 'social-ab-declare-winner') declareWinner(btn.getAttribute('data-test-id'), btn.getAttribute('data-variant'));
     else if (action === 'social-ab-delete') deleteAbTest(btn.getAttribute('data-id'));
+
+    // Saved Replies
+    else if (action === 'social-saved-replies-toggle') toggleSavedRepliesDropdown();
+    else if (action === 'social-use-saved-reply') useSavedReply(btn.getAttribute('data-id'));
+    else if (action === 'social-save-reply-template') saveCurrentReplyAsTemplate();
+    else if (action === 'social-auto-reply-suggest') aiAutoReplySuggest();
+    else if (action === 'social-use-auto-reply') useAutoReply(parseInt(btn.getAttribute('data-index')));
+    else if (action === 'social-auto-reply-close') { var s = $('yb-social-ai-reply-suggestions'); if (s) s.hidden = true; }
+
+    // Content Library
+    else if (action === 'social-library-filter-tag') {
+      libraryState.activeTag = libraryState.activeTag === btn.getAttribute('data-tag') ? '' : btn.getAttribute('data-tag');
+      loadContentLibrary();
+    }
+    else if (action === 'social-library-filter-collection') {
+      libraryState.activeCollection = libraryState.activeCollection === btn.getAttribute('data-id') ? '' : btn.getAttribute('data-id');
+      loadContentLibrary();
+    }
+    else if (action === 'social-library-new-collection') createLibraryCollection();
+    else if (action === 'social-library-edit-asset') showAssetEditor(btn.getAttribute('data-url'));
+    else if (action === 'social-library-save-asset') { saveAssetMeta(btn.getAttribute('data-url')); }
+    else if (action === 'social-library-close-editor') { var ed = document.getElementById('yb-social-asset-editor'); if (ed) ed.remove(); }
+    else if (action === 'social-library-search') {
+      libraryState.search = ($('yb-social-library-search') || {}).value || '';
+      loadContentLibrary();
+    }
+    else if (action === 'social-library-clear-filters') {
+      libraryState.activeTag = ''; libraryState.activeCollection = ''; libraryState.search = '';
+      var searchEl = $('yb-social-library-search'); if (searchEl) searchEl.value = '';
+      loadContentLibrary();
+    }
+
+    // Content Calendar AI
+    else if (action === 'social-cal-ai-generate') aiGenerateCalendar();
+    else if (action === 'social-cal-ai-create-post') calAiCreatePost(parseInt(btn.getAttribute('data-index')));
+    else if (action === 'social-cal-ai-toggle') {
+      var panel = $('yb-social-cal-ai-panel');
+      if (panel) panel.hidden = !panel.hidden;
+    }
 
     // New post / Edit post — handled by composer
     else if (action === 'social-new-post' && window.openSocialComposer) {

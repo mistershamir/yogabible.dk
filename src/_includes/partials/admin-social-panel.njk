@@ -11,6 +11,7 @@
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-templates">{{ t.social_nav_templates or "Templates" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-competitors">{{ t.social_nav_competitors or "Competitors" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-abtesting">{{ t.social_nav_abtesting or "A/B Tests" }}</button>
+  <button class="yb-social__nav-btn" type="button" data-action="social-nav-library">{{ t.social_nav_library or "Library" }}</button>
 </div>
 
 {# ════════════════════════════════════════════════════════════════════════════ #}
@@ -164,6 +165,29 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
       {{ t.social_ai_plan or "AI Plan" }}
     </button>
+    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-cal-ai-toggle">
+      &#128197; {{ t.social_cal_ai or "AI Calendar" }}
+    </button>
+  </div>
+
+  {# AI Calendar Generator Panel #}
+  <div class="yb-social__cal-ai-panel" id="yb-social-cal-ai-panel" hidden>
+    <div class="yb-social__cal-ai-head">
+      <h3>{{ t.social_cal_ai_title or "AI Content Calendar" }}</h3>
+      <p class="yb-admin__muted">{{ t.social_cal_ai_desc or "Auto-generate a week of post ideas with bilingual captions" }}</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:end;margin:10px 0">
+      <div class="yb-admin__field" style="flex:0 0 80px">
+        <label>{{ t.social_cal_ai_days or "Days" }}</label>
+        <input type="number" id="yb-social-cal-ai-days" value="7" min="3" max="14">
+      </div>
+      <div class="yb-admin__field" style="flex:1">
+        <label>{{ t.social_cal_ai_notes or "Focus / Notes (optional)" }}</label>
+        <input type="text" id="yb-social-cal-ai-notes" placeholder="{{ t.social_cal_ai_notes_ph or 'e.g., July cohort launch, summer vibes...' }}">
+      </div>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-cal-ai-generate">{{ t.social_generate or "Generate" }}</button>
+    </div>
+    <div id="yb-social-cal-ai-results"></div>
   </div>
 
   {# AI Content Plan Modal #}
@@ -463,11 +487,22 @@
     <div class="yb-social__inbox-thread-body" id="yb-social-inbox-thread-body"></div>
     <div class="yb-social__inbox-reply-box">
       <div class="yb-social__inbox-ai-suggestions" id="yb-social-ai-reply-suggestions" hidden></div>
+      {# Saved Replies Dropdown #}
+      <div class="yb-social__saved-replies-dropdown" id="yb-social-saved-replies-dropdown" hidden></div>
       <textarea id="yb-social-inbox-reply" rows="2" placeholder="{{ t.social_reply_placeholder or 'Type your reply...' }}"></textarea>
       <div class="yb-social__inbox-reply-actions">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-saved-replies-toggle" title="{{ t.social_saved_replies or 'Saved Replies' }}">
+          &#128172; {{ t.social_saved_replies or "Saved" }}
+        </button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-auto-reply-suggest" title="{{ t.social_auto_reply or 'Quick AI Reply' }}">
+          &#9889; {{ t.social_auto_reply or "Quick AI" }}
+        </button>
         <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__ai-reply-btn" data-action="social-ai-draft-reply" title="{{ t.social_ai_draft_reply or 'AI Draft Reply' }}">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
           {{ t.social_ai_draft_reply or "AI Reply" }}
+        </button>
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-save-reply-template" title="{{ t.social_save_reply or 'Save as Template' }}">
+          &#9734;
         </button>
         <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-inbox-send-reply">{{ t.social_send or "Send" }}</button>
       </div>
@@ -632,6 +667,39 @@
 {# ════════════════════════════════════════════════════════════════════════════ #}
 {# COMPOSER MODAL                                                              #}
 {# ════════════════════════════════════════════════════════════════════════════ #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+{# VIEW: Content Library                                                       #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+<div id="yb-social-v-library" hidden>
+  <div class="yb-admin__view-head">
+    <h2>{{ t.social_library_title or "Content Library" }}</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="yb-social__library-search-box">
+        <input type="text" id="yb-social-library-search" placeholder="{{ t.social_library_search or 'Search assets...' }}">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-library-search">&#128269;</button>
+      </div>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-library-clear-filters">{{ t.social_clear_filters or "Clear" }}</button>
+    </div>
+  </div>
+
+  {# Collections Row #}
+  <div class="yb-social__library-section">
+    <h4>{{ t.social_collections or "Collections" }}</h4>
+    <div class="yb-social__library-collections-row" id="yb-social-library-collections"></div>
+  </div>
+
+  {# Tag Cloud #}
+  <div class="yb-social__library-section">
+    <h4>{{ t.social_tags or "Tags" }}</h4>
+    <div class="yb-social__library-tags-row" id="yb-social-library-tags"></div>
+  </div>
+
+  {# Asset Grid #}
+  <div class="yb-social__library-grid" id="yb-social-library-grid">
+    <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+  </div>
+</div>
+
 <div class="yb-social__composer-modal" id="yb-social-composer" hidden>
   <div class="yb-social__composer-overlay" data-action="social-composer-close"></div>
   <div class="yb-social__composer-box">
