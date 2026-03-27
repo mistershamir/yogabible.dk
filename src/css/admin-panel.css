@@ -6119,6 +6119,54 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-social__heatmap-cell--day { aspect-ratio: auto; padding: 6px 2px; border-radius: 4px; }
 .yb-social__heatmap-cell--day span { font-size: 10px; }
 
+/* Engagement Heatmap Grid (7×12) */
+.yb-social__heatmap-grid {
+  display: flex; flex-direction: column; gap: 2px; margin-top: 10px;
+}
+.yb-social__heatmap-grid-row {
+  display: flex; gap: 2px; align-items: center;
+}
+.yb-social__heatmap-grid-label {
+  width: 32px; font-size: 10px; color: #6F6A66; font-weight: 600; flex-shrink: 0; text-align: right; padding-right: 4px;
+}
+.yb-social__heatmap-grid-header {
+  flex: 1; text-align: center; font-size: 9px; color: #6F6A66; min-width: 0;
+}
+.yb-social__heatmap-grid-cell {
+  flex: 1; height: 22px; border-radius: 3px; cursor: pointer; transition: transform 0.1s; min-width: 0;
+}
+.yb-social__heatmap-grid-cell:hover { transform: scale(1.2); z-index: 1; box-shadow: 0 0 4px rgba(247,92,3,0.4); }
+.yb-social__heatmap-legend {
+  display: flex; align-items: center; gap: 6px; margin-top: 8px; justify-content: center;
+}
+.yb-social__heatmap-legend-label { font-size: 10px; color: #6F6A66; }
+.yb-social__heatmap-legend-bar {
+  width: 120px; height: 10px; border-radius: 5px;
+  background: linear-gradient(to right, rgba(247,92,3,0.05), rgba(247,92,3,0.3), rgba(247,92,3,0.6), rgba(247,92,3,1));
+}
+
+/* Preview Link Box */
+.yb-social__preview-link-box {
+  display: flex; gap: 8px; align-items: center;
+}
+.yb-social__preview-link-box input {
+  flex: 1; background: #f5f3f0;
+}
+
+/* Recurring Scheduler */
+.yb-social__recurring-days {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.yb-social__recurring-day-btn {
+  width: 40px; height: 36px; border: 1px solid #E8E4E0; border-radius: 8px;
+  background: #fff; cursor: pointer; font-size: 12px; font-weight: 600;
+  transition: all 0.15s;
+}
+.yb-social__recurring-day-btn:hover { border-color: #f75c03; }
+.yb-social__recurring-day-btn.is-active {
+  background: #f75c03; color: #fff; border-color: #f75c03;
+}
+
 /* Top Posts */
 .yb-social__top-posts { display: flex; flex-direction: column; gap: 10px; }
 .yb-social__top-post-card {

@@ -585,6 +585,8 @@
         (p.status === 'pending_review' ? '<button data-action="social-approve-post" data-id="' + p.id + '" class="yb-social__approve-btn">' + t('social_approve') + '</button>' : '') +
         (p.status === 'draft' || p.status === 'approved' || p.status === 'scheduled' ? '<button data-action="social-publish-now" data-id="' + p.id + '">' + t('social_publish_now') + '</button>' : '') +
         (p.status === 'published' ? '<button data-action="social-recycle-post" data-id="' + p.id + '">' + t('social_recycle') + '</button>' : '') +
+        (p.status === 'published' ? '<button data-action="social-recurring-schedule" data-id="' + p.id + '">Recurring</button>' : '') +
+        '<button data-action="social-preview-link" data-id="' + p.id + '">Share</button>' +
         '<button data-action="social-delete-post" data-id="' + p.id + '">' + t('social_delete') + '</button>' +
         '</div></div></div>';
     }).join('');
@@ -679,6 +681,193 @@
         method: 'POST', body: JSON.stringify({ id: id, status: 'recycled' })
       });
       toast(t('social_recycled') || 'Recycled — re-posting in ' + days + ' days');
+      loadPosts();
+    }
+  }
+
+  // ── Preview Share Links ──────────────────────────────────
+  async function generatePreviewLink(id) {
+    var data = await api('social-preview', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'generate-link', postId: id })
+    });
+    if (!data || !data.previewUrl) return;
+
+    // Show share modal
+    var html = '<div class="yb-social__modal-overlay" id="yb-social-preview-modal">' +
+      '<div class="yb-social__modal-box">' +
+        '<div class="yb-social__modal-header">' +
+          '<h3>Share Preview Link</h3>' +
+          '<button class="yb-social__btn-sm" data-action="social-close-preview-modal">&times;</button>' +
+        '</div>' +
+        '<div class="yb-social__modal-body">' +
+          '<p style="margin-bottom:12px;font-size:13px;color:#6F6A66">Share this link to preview and approve the post from any device — no login required.</p>' +
+          '<div class="yb-social__preview-link-box">' +
+            '<input type="text" id="yb-social-preview-url" value="' + data.previewUrl + '" readonly class="yb-social__input" style="font-size:12px">' +
+            '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-copy-preview-link">Copy</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  // ── Recurring Post Scheduler ────────────────────────────
+  function openRecurringScheduler(id) {
+    var post = state.posts.find(function (p) { return p.id === id; });
+    if (!post) return;
+
+    var html = '<div class="yb-social__modal-overlay" id="yb-social-recurring-modal">' +
+      '<div class="yb-social__modal-box">' +
+        '<div class="yb-social__modal-header">' +
+          '<h3>Recurring Schedule</h3>' +
+          '<button class="yb-social__btn-sm" data-action="social-close-recurring-modal">&times;</button>' +
+        '</div>' +
+        '<div class="yb-social__modal-body">' +
+          '<p style="margin-bottom:12px;font-size:13px;color:#6F6A66">' +
+            'Set this post to automatically re-publish on a recurring schedule.' +
+          '</p>' +
+          '<div class="yb-social__recurring-caption" style="margin-bottom:16px;padding:10px;background:#f5f3f0;border-radius:8px;font-size:13px">' +
+            '"' + ((post.caption || '').substring(0, 80)) + (post.caption && post.caption.length > 80 ? '...' : '') + '"' +
+          '</div>' +
+          // Pattern type
+          '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Frequency</label>' +
+          '<select id="yb-recurring-pattern" class="yb-social__input" style="margin-bottom:12px">' +
+            '<option value="weekly">Weekly</option>' +
+            '<option value="biweekly">Every 2 weeks</option>' +
+            '<option value="monthly">Monthly</option>' +
+            '<option value="custom">Custom interval (days)</option>' +
+          '</select>' +
+          // Custom interval
+          '<div id="yb-recurring-custom-row" style="display:none;margin-bottom:12px">' +
+            '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px">Repeat every (days)</label>' +
+            '<input type="number" id="yb-recurring-custom-days" class="yb-social__input" value="14" min="1" max="365">' +
+          '</div>' +
+          // Day of week (for weekly/biweekly)
+          '<div id="yb-recurring-day-row" style="margin-bottom:12px">' +
+            '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Day</label>' +
+            '<div class="yb-social__recurring-days">' +
+              ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(function (d, i) {
+                return '<button class="yb-social__recurring-day-btn" data-action="social-recurring-toggle-day" data-day="' + (i + 1) + '">' + d + '</button>';
+              }).join('') +
+            '</div>' +
+          '</div>' +
+          // Time
+          '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px">Time</label>' +
+          '<input type="time" id="yb-recurring-time" class="yb-social__input" value="09:00" style="margin-bottom:12px">' +
+          // Max occurrences
+          '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px">Max occurrences (0 = unlimited)</label>' +
+          '<input type="number" id="yb-recurring-max" class="yb-social__input" value="0" min="0" max="52" style="margin-bottom:12px">' +
+        '</div>' +
+        '<div class="yb-social__modal-footer">' +
+          '<button class="yb-social__btn-sm" data-action="social-close-recurring-modal">Cancel</button>' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-save-recurring" data-id="' + id + '">Start Recurring</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    // Pattern change handler
+    var patternEl = document.getElementById('yb-recurring-pattern');
+    if (patternEl) {
+      patternEl.addEventListener('change', function () {
+        var isCustom = patternEl.value === 'custom';
+        var isMonthly = patternEl.value === 'monthly';
+        document.getElementById('yb-recurring-custom-row').style.display = isCustom ? '' : 'none';
+        document.getElementById('yb-recurring-day-row').style.display = isMonthly || isCustom ? 'none' : '';
+      });
+    }
+  }
+
+  async function saveRecurringSchedule(id) {
+    var post = state.posts.find(function (p) { return p.id === id; });
+    if (!post) return;
+
+    var pattern = ($('yb-recurring-pattern') || {}).value || 'weekly';
+    var time = ($('yb-recurring-time') || {}).value || '09:00';
+    var maxOccurrences = parseInt(($('yb-recurring-max') || {}).value) || 0;
+
+    // Get selected days
+    var selectedDays = [];
+    qsa('.yb-social__recurring-day-btn.is-active').forEach(function (btn) {
+      selectedDays.push(parseInt(btn.getAttribute('data-day')));
+    });
+
+    // Calculate interval days
+    var intervalDays;
+    if (pattern === 'weekly') intervalDays = 7;
+    else if (pattern === 'biweekly') intervalDays = 14;
+    else if (pattern === 'monthly') intervalDays = 30;
+    else intervalDays = parseInt(($('yb-recurring-custom-days') || {}).value) || 14;
+
+    if (!selectedDays.length && (pattern === 'weekly' || pattern === 'biweekly')) {
+      // Default to same day as today
+      selectedDays = [new Date().getDay() || 7]; // 1=Mon...7=Sun
+    }
+
+    // Calculate first scheduled date
+    var timeParts = time.split(':');
+    var nextDate = new Date();
+    nextDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+
+    // Find next matching day
+    if (selectedDays.length && (pattern === 'weekly' || pattern === 'biweekly')) {
+      var today = nextDate.getDay() || 7;
+      var daysUntil = Infinity;
+      selectedDays.forEach(function (d) {
+        var diff = d - today;
+        if (diff <= 0) diff += 7;
+        if (diff < daysUntil) daysUntil = diff;
+      });
+      nextDate.setDate(nextDate.getDate() + daysUntil);
+    } else {
+      nextDate.setDate(nextDate.getDate() + intervalDays);
+    }
+
+    var recycleConfig = {
+      intervalDays: intervalDays,
+      originalPostId: id,
+      active: true,
+      pattern: pattern,
+      days: selectedDays,
+      time: time,
+      maxOccurrences: maxOccurrences,
+      recycleCount: 0
+    };
+
+    // Create first scheduled copy
+    var newPost = {
+      caption: post.caption,
+      platforms: post.platforms,
+      media: post.media,
+      hashtags: post.hashtags,
+      hashtagSet: post.hashtagSet,
+      firstComment: post.firstComment,
+      location: post.location,
+      altTexts: post.altTexts,
+      mediaType: post.mediaType || 'auto',
+      platformCaptions: post.platformCaptions || {},
+      contentPillar: post.contentPillar || null,
+      status: 'scheduled',
+      scheduledAt: nextDate.toISOString(),
+      recycledFrom: id,
+      recycleConfig: recycleConfig
+    };
+
+    var data = await api('social-posts', {
+      method: 'POST',
+      body: JSON.stringify(Object.assign({ action: 'create' }, newPost))
+    });
+
+    if (data) {
+      // Mark original as recycled
+      await api('social-posts', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'update', id: id, status: 'recycled', recycleConfig: recycleConfig })
+      });
+      toast('Recurring schedule set — first post on ' + nextDate.toLocaleDateString());
+      var modal = document.getElementById('yb-social-recurring-modal');
+      if (modal) modal.remove();
       loadPosts();
     }
   }
@@ -916,30 +1105,70 @@
         '</div>';
     }
 
-    // Hour heatmap — show every 2 hours to save space
-    html += '<div class="yb-social__heatmap">';
-    html += '<div class="yb-social__heatmap-label">By Hour</div>';
-    html += '<div class="yb-social__heatmap-row">';
+    // Full 7×24 engagement heatmap grid
+    var dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    // Build combined data from byHour and byDay
+    // The API gives us byHour (24) and byDay (7) separately
+    // We'll show both as a combined visual: hours across top, days down left
+    // Use the product of normalized values as intensity
     var maxHourEng = Math.max.apply(null, data.byHour.map(function (h) { return h.avgEngagement; })) || 1;
-    data.byHour.forEach(function (h) {
-      var intensity = maxHourEng > 0 ? Math.round((h.avgEngagement / maxHourEng) * 100) : 0;
-      var opacity = Math.max(0.08, intensity / 100);
-      html += '<div class="yb-social__heatmap-cell" title="' + h.label + '\nAvg engagement: ' + h.avgEngagement + '\nPosts: ' + h.posts + '" style="background:rgba(247,92,3,' + opacity + ')">' +
-        '<span>' + h.hour + '</span></div>';
-    });
+    var maxDayEng = Math.max.apply(null, data.byDay.map(function (d) { return d.avgEngagement; })) || 1;
+
+    html += '<div class="yb-social__heatmap-grid">';
+
+    // Header row — hours (show every 2 hours)
+    html += '<div class="yb-social__heatmap-grid-row">';
+    html += '<div class="yb-social__heatmap-grid-label"></div>';
+    for (var h = 0; h < 24; h++) {
+      if (h % 2 === 0) {
+        html += '<div class="yb-social__heatmap-grid-header">' + (h < 10 ? '0' : '') + h + '</div>';
+      }
+    }
     html += '</div>';
 
-    // Day heatmap
-    html += '<div class="yb-social__heatmap-label" style="margin-top:12px">By Day</div>';
-    html += '<div class="yb-social__heatmap-row yb-social__heatmap-row--days">';
-    var maxDayEng = Math.max.apply(null, data.byDay.map(function (d) { return d.avgEngagement; })) || 1;
-    data.byDay.forEach(function (d) {
-      var intensity = maxDayEng > 0 ? Math.round((d.avgEngagement / maxDayEng) * 100) : 0;
-      var opacity = Math.max(0.08, intensity / 100);
-      html += '<div class="yb-social__heatmap-cell yb-social__heatmap-cell--day" title="' + d.label + '\nAvg engagement: ' + d.avgEngagement + '\nPosts: ' + d.posts + '" style="background:rgba(247,92,3,' + opacity + ')">' +
-        '<span>' + d.label.substring(0, 3) + '</span></div>';
-    });
-    html += '</div></div>';
+    // Day rows
+    for (var d = 0; d < 7; d++) {
+      html += '<div class="yb-social__heatmap-grid-row">';
+      html += '<div class="yb-social__heatmap-grid-label">' + dayNames[d] + '</div>';
+
+      var dayScore = data.byDay[d] ? data.byDay[d].avgEngagement / maxDayEng : 0;
+
+      for (var hh = 0; hh < 24; hh++) {
+        if (hh % 2 !== 0) continue; // Show every 2 hours to keep cells readable
+
+        var hourScore = data.byHour[hh] ? data.byHour[hh].avgEngagement / maxHourEng : 0;
+        // Next hour too
+        var hourScore2 = data.byHour[hh + 1] ? data.byHour[hh + 1].avgEngagement / maxHourEng : 0;
+        var avgHourScore = (hourScore + hourScore2) / 2;
+
+        // Combined intensity: product of day and hour scores
+        var intensity = dayScore * avgHourScore;
+        // Also add base from each dimension so cells aren't all zero when one dimension is sparse
+        var adjustedIntensity = intensity * 0.6 + dayScore * 0.2 + avgHourScore * 0.2;
+        var opacity = Math.max(0.05, Math.min(1, adjustedIntensity));
+
+        var hourEng = data.byHour[hh] ? data.byHour[hh].avgEngagement : 0;
+        var dayEng = data.byDay[d] ? data.byDay[d].avgEngagement : 0;
+
+        // Color: low = light cream, medium = light orange, high = brand orange
+        var r, g, b;
+        if (adjustedIntensity > 0.6) { r = 247; g = 92; b = 3; }
+        else if (adjustedIntensity > 0.3) { r = 255; g = 153; b = 102; }
+        else { r = 247; g = 92; b = 3; }
+
+        html += '<div class="yb-social__heatmap-grid-cell" title="' + dayNames[d] + ' ' + (hh < 10 ? '0' : '') + hh + ':00\nDay avg: ' + dayEng + '\nHour avg: ' + hourEng + '" style="background:rgba(' + r + ',' + g + ',' + b + ',' + opacity.toFixed(2) + ')"></div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // Legend
+    html += '<div class="yb-social__heatmap-legend">' +
+      '<span class="yb-social__heatmap-legend-label">Low</span>' +
+      '<div class="yb-social__heatmap-legend-bar"></div>' +
+      '<span class="yb-social__heatmap-legend-label">High</span>' +
+      '</div>';
 
     container.innerHTML = html;
   }
@@ -3824,6 +4053,16 @@
     else if (action === 'social-submit-review') submitForReview(btn.getAttribute('data-id'));
     else if (action === 'social-approve-post') approvePost(btn.getAttribute('data-id'));
     else if (action === 'social-recycle-post') recyclePost(btn.getAttribute('data-id'));
+    else if (action === 'social-preview-link') generatePreviewLink(btn.getAttribute('data-id'));
+    else if (action === 'social-recurring-schedule') openRecurringScheduler(btn.getAttribute('data-id'));
+    else if (action === 'social-save-recurring') saveRecurringSchedule(btn.getAttribute('data-id'));
+    else if (action === 'social-close-recurring-modal') { var rm = document.getElementById('yb-social-recurring-modal'); if (rm) rm.remove(); }
+    else if (action === 'social-close-preview-modal') { var pm = document.getElementById('yb-social-preview-modal'); if (pm) pm.remove(); }
+    else if (action === 'social-copy-preview-link') {
+      var urlEl = document.getElementById('yb-social-preview-url');
+      if (urlEl) { urlEl.select(); document.execCommand('copy'); toast('Link copied!'); }
+    }
+    else if (action === 'social-recurring-toggle-day') btn.classList.toggle('is-active');
 
     // Bulk actions
     else if (action === 'social-toggle-select') togglePostSelect(btn.getAttribute('data-id'));
