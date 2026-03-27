@@ -16,7 +16,9 @@ const {
   publishToInstagram,
   publishToFacebook,
   publishToTikTok,
-  publishToLinkedIn
+  publishToLinkedIn,
+  publishToYouTube,
+  publishToPinterest
 } = require('./shared/social-api');
 
 const POSTS_COLLECTION = 'social_posts';
@@ -86,6 +88,17 @@ exports.handler = async () => {
               break;
             case 'linkedin':
               result = await publishToLinkedIn(account, postPayload);
+              break;
+            case 'youtube':
+              result = await publishToYouTube(account, postPayload);
+              if (result.refreshedToken) {
+                await db.collection(ACCOUNTS_COLLECTION).doc('youtube').update({
+                  accessToken: result.refreshedToken
+                });
+              }
+              break;
+            case 'pinterest':
+              result = await publishToPinterest(account, postPayload);
               break;
             default:
               result = { success: false, error: `Unsupported platform: ${platform}` };

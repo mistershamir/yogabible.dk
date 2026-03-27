@@ -12,7 +12,9 @@ const {
   publishToInstagram,
   publishToFacebook,
   publishToTikTok,
-  publishToLinkedIn
+  publishToLinkedIn,
+  publishToYouTube,
+  publishToPinterest
 } = require('./shared/social-api');
 
 const POSTS_COLLECTION = 'social_posts';
@@ -93,6 +95,22 @@ async function publishPost(db, postId, platformFilter) {
       } else if (platform === 'linkedin') {
         result = await publishToLinkedIn(
           { accessToken: account.accessToken, organizationId: account.organizationId },
+          post
+        );
+      } else if (platform === 'youtube') {
+        result = await publishToYouTube(
+          { accessToken: account.accessToken, refreshToken: account.refreshToken },
+          post
+        );
+        // If YouTube refreshed its token, update Firestore
+        if (result.refreshedToken) {
+          await db.collection(ACCOUNTS_COLLECTION).doc('youtube').update({
+            accessToken: result.refreshedToken
+          });
+        }
+      } else if (platform === 'pinterest') {
+        result = await publishToPinterest(
+          { accessToken: account.accessToken, boardId: account.boardId },
           post
         );
       } else {

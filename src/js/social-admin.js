@@ -143,17 +143,22 @@
     facebook: { pageId: '878172732056415' },
     instagram: { pageId: '17841474697451627' },
     tiktok: {},
-    linkedin: {}
+    linkedin: {},
+    youtube: {},
+    pinterest: {}
   };
 
   // OAuth support: platforms that have OAuth configured
-  var OAUTH_PLATFORMS = ['instagram', 'facebook', 'tiktok', 'linkedin'];
+  var OAUTH_PLATFORMS = ['instagram', 'facebook', 'tiktok', 'linkedin', 'youtube'];
 
   function connectAccount(platform) {
     // Build and show branded connect modal
     var defaults = PLATFORM_DEFAULTS[platform] || {};
     var needsPageId = platform === 'facebook' || platform === 'instagram';
     var needsOrgId = platform === 'linkedin';
+    var needsChannelId = platform === 'youtube';
+    var needsBoardId = platform === 'pinterest';
+    var needsRefreshToken = platform === 'youtube';
     var pageIdLabel = platform === 'facebook' ? 'Facebook Page ID' : platform === 'instagram' ? 'Instagram Business Account ID' : '';
     var hasOAuth = OAUTH_PLATFORMS.indexOf(platform) !== -1;
 
@@ -167,6 +172,20 @@
       extraFields = '<div class="yb-admin__field">' +
         '<label for="yb-social-connect-orgid">LinkedIn Organization ID</label>' +
         '<input type="text" id="yb-social-connect-orgid" placeholder="e.g. 12345678">' +
+        '</div>';
+    } else if (needsChannelId) {
+      extraFields = '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-refreshtoken">Refresh Token</label>' +
+        '<input type="text" id="yb-social-connect-refreshtoken" placeholder="Required for token refresh">' +
+        '</div>' +
+        '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-channelid">Channel ID <span style="color:var(--yb-muted)">(optional)</span></label>' +
+        '<input type="text" id="yb-social-connect-channelid" placeholder="e.g. UCxxxxxxxx">' +
+        '</div>';
+    } else if (needsBoardId) {
+      extraFields = '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-boardid">Board ID <span style="color:var(--yb-muted)">(optional)</span></label>' +
+        '<input type="text" id="yb-social-connect-boardid" placeholder="Pin to a specific board">' +
         '</div>';
     }
 
@@ -237,7 +256,8 @@
       facebook: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> Facebook',
       tiktok: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78c.27 0 .54.04.8.1v-3.5a6.37 6.37 0 0 0-.8-.05A6.34 6.34 0 0 0 3.15 15.3 6.34 6.34 0 0 0 9.49 21.6a6.34 6.34 0 0 0 6.34-6.34V8.7a8.16 8.16 0 0 0 4.77 1.52V6.77a4.83 4.83 0 0 1-1.01-.08z"/></svg> TikTok',
       linkedin: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg> LinkedIn',
-      youtube: 'YouTube', pinterest: 'Pinterest'
+      youtube: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.4 31.4 0 0 0 0 12a31.4 31.4 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.4 31.4 0 0 0 24 12a31.4 31.4 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg> YouTube',
+      pinterest: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12c0 5 3.1 9.4 7.5 11.1-.1-1-.2-2.4 0-3.5.2-.9 1.5-6.3 1.5-6.3s-.4-.8-.4-1.9c0-1.8 1-3.1 2.3-3.1 1.1 0 1.6.8 1.6 1.8 0 1.1-.7 2.7-1.1 4.2-.3 1.3.6 2.3 1.9 2.3 2.3 0 4-2.4 4-5.9 0-3.1-2.2-5.2-5.4-5.2-3.7 0-5.8 2.7-5.8 5.6 0 1.1.4 2.3 1 3 .1.1.1.2.1.4l-.4 1.5c-.1.2-.2.3-.4.2-1.6-.8-2.6-3.1-2.6-5 0-4.1 3-7.9 8.6-7.9 4.5 0 8 3.2 8 7.5 0 4.5-2.8 8.1-6.8 8.1-1.3 0-2.5-.7-3-1.5l-.8 3.1c-.3 1.1-1.1 2.6-1.6 3.4 1.2.4 2.5.6 3.8.6 6.6 0 12-5.4 12-12S18.6 0 12 0z"/></svg> Pinterest'
     };
     return icons[p] || p;
   }
@@ -254,6 +274,12 @@
     }
     var orgIdEl = $('yb-social-connect-orgid');
     if (orgIdEl && orgIdEl.value.trim()) body.organizationId = orgIdEl.value.trim();
+    var refreshTokenEl = $('yb-social-connect-refreshtoken');
+    if (refreshTokenEl && refreshTokenEl.value.trim()) body.refreshToken = refreshTokenEl.value.trim();
+    var channelIdEl = $('yb-social-connect-channelid');
+    if (channelIdEl && channelIdEl.value.trim()) body.channelId = channelIdEl.value.trim();
+    var boardIdEl = $('yb-social-connect-boardid');
+    if (boardIdEl && boardIdEl.value.trim()) body.boardId = boardIdEl.value.trim();
 
     toast('Connecting...');
     var data = await api('social-accounts?action=save-token', {

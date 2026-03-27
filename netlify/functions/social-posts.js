@@ -17,7 +17,7 @@ const { jsonResponse, optionsResponse } = require('./shared/utils');
 const COLLECTION = 'social_posts';
 const ANALYTICS_SUB = 'social_analytics';
 const VALID_STATUSES = ['draft', 'pending_review', 'approved', 'scheduled', 'published', 'failed', 'recycled'];
-const VALID_PLATFORMS = ['instagram', 'facebook', 'tiktok', 'linkedin'];
+const VALID_PLATFORMS = ['instagram', 'facebook', 'tiktok', 'linkedin', 'youtube', 'pinterest'];
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
