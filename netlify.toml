@@ -30,6 +30,10 @@
 [functions."social-auto-post"]
   schedule = "*/30 * * * *"
 
+# Scheduled function: social engagement notifications via Telegram
+[functions."social-notifications"]
+  schedule = "0 */2 * * *"
+
 # Redirect www to non-www (301)
 [[redirects]]
   from = "https://www.yogabible.dk/*"

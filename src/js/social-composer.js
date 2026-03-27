@@ -15,7 +15,8 @@
     platforms: [],
     media: [],       // array of CDN URLs
     mediaSelected: [], // temp selection in media browser
-    currentPath: 'yoga-bible-DK/social'
+    currentPath: 'yoga-bible-DK/social',
+    uploadPlatform: 'general'  // tracks active platform for upload folder
   };
 
   var CHAR_LIMITS = {
@@ -135,17 +136,52 @@
     el.classList.toggle('is-over', caption.length > limit);
   }
 
+  var previewPlatform = 'instagram';
+
+  function switchPreviewPlatform(platform) {
+    previewPlatform = platform;
+    document.querySelectorAll('.yb-social__preview-tab').forEach(function (tab) {
+      tab.classList.toggle('is-active', tab.getAttribute('data-platform') === platform);
+    });
+    var device = $('yb-social-preview-device');
+    if (device) device.setAttribute('data-preview-platform', platform);
+    updatePreview();
+  }
+
+  var PLATFORM_LAYOUTS = {
+    instagram: { username: 'yogabible', avatar: 'YB', showMedia: true, captionStyle: 'inline', charLimit: 2200 },
+    facebook: { username: 'Yoga Bible', avatar: 'YB', showMedia: true, captionStyle: 'above', charLimit: 63206 },
+    tiktok: { username: '@yogabible', avatar: 'YB', showMedia: true, captionStyle: 'overlay', charLimit: 2200 },
+    linkedin: { username: 'Yoga Bible', avatar: 'YB', showMedia: true, captionStyle: 'above', charLimit: 3000 }
+  };
+
   function updatePreview() {
     var caption = ($('yb-social-caption') || {}).value || '';
     var hashtags = ($('yb-social-hashtags') || {}).value || '';
     var fullCaption = caption + (hashtags ? '\n\n' + hashtags : '');
+    var layout = PLATFORM_LAYOUTS[previewPlatform] || PLATFORM_LAYOUTS.instagram;
 
-    var captionEl = $('yb-social-preview-caption');
-    if (captionEl) {
-      captionEl.innerHTML = '<strong>yogabible</strong> <span>' +
-        (fullCaption || 'Your caption will appear here...') + '</span>';
+    // Header
+    var headerEl = $('yb-social-preview-header');
+    if (headerEl) {
+      headerEl.innerHTML = '<span class="yb-social__preview-avatar">' + layout.avatar + '</span>' +
+        '<span class="yb-social__preview-username">' + layout.username + '</span>';
     }
 
+    // Caption
+    var captionEl = $('yb-social-preview-caption');
+    if (captionEl) {
+      var captionHtml = fullCaption || 'Your caption will appear here...';
+      if (layout.captionStyle === 'inline') {
+        captionEl.innerHTML = '<strong>' + layout.username + '</strong> <span>' + captionHtml + '</span>';
+      } else if (layout.captionStyle === 'overlay') {
+        captionEl.innerHTML = '<span class="yb-social__preview-caption--overlay">' + captionHtml + '</span>';
+      } else {
+        captionEl.innerHTML = '<span>' + captionHtml + '</span>';
+      }
+    }
+
+    // Media
     var mediaEl = $('yb-social-preview-media');
     if (mediaEl) {
       if (composer.media.length > 0) {
@@ -157,6 +193,25 @@
         }
       } else {
         mediaEl.innerHTML = '<p class="yb-admin__muted">' + t('social_no_media') + '</p>';
+      }
+    }
+
+    // Char info
+    var charInfoEl = $('yb-social-preview-char-info');
+    if (charInfoEl) {
+      var len = fullCaption.length;
+      var over = len > layout.charLimit;
+      charInfoEl.textContent = len + ' / ' + layout.charLimit;
+      charInfoEl.style.color = over ? '#dc2626' : '#6F6A66';
+    }
+
+    // Reorder elements based on caption style (above vs below media)
+    var device = $('yb-social-preview-device');
+    if (device && captionEl && mediaEl) {
+      if (layout.captionStyle === 'above') {
+        device.insertBefore(captionEl, mediaEl);
+      } else {
+        device.insertBefore(mediaEl, captionEl);
       }
     }
   }
@@ -287,7 +342,8 @@
     if (!modal) return;
     modal.hidden = false;
     composer.mediaSelected = [];
-    composer.currentPath = 'yoga-bible-DK';
+    // Start in the social folder by default, or the full CDN if browsing all
+    composer.currentPath = 'yoga-bible-DK/social';
     loadMediaFolder(composer.currentPath);
   }
 
@@ -388,9 +444,11 @@
     var token = await S.getToken();
     if (!token) return;
 
-    // Get upload URL
+    // Determine upload folder based on selected platform(s)
     var now = new Date();
-    var folder = 'yoga-bible-DK/social/' + now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var platformFolder = composer.platforms.length === 1 ? composer.platforms[0] : 'general';
+    var folder = 'yoga-bible-DK/social/' + platformFolder + '/' + yearMonth;
     var signRes = await fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(folder), {
       headers: { Authorization: 'Bearer ' + token }
     });
@@ -618,6 +676,7 @@
 
     // Composer
     if (action === 'social-composer-close') closeComposer();
+    else if (action === 'social-preview-tab') switchPreviewPlatform(btn.getAttribute('data-platform'));
     else if (action === 'social-save-draft') savePost('draft');
     else if (action === 'social-publish-post') {
       var schedMode = document.querySelector('input[name="social-schedule"]:checked');
@@ -709,13 +768,59 @@
     else if (action === 'social-best-time') {
       fetchBestTime();
     }
+
+    // UTM builder
+    else if (action === 'social-utm-copy') {
+      var utmResult = $('yb-social-utm-result');
+      if (utmResult && utmResult.value) {
+        navigator.clipboard.writeText(utmResult.value).then(function () { S.toast('Copied'); });
+      }
+    }
+    else if (action === 'social-utm-insert') {
+      var utmResult = $('yb-social-utm-result');
+      var captionEl = $('yb-social-caption');
+      if (utmResult && utmResult.value && captionEl) {
+        captionEl.value = captionEl.value.replace(/https?:\/\/yogabible\.dk\S*/g, utmResult.value) || captionEl.value + '\n\n' + utmResult.value;
+        updateCharCount(); updatePreview();
+        S.toast('URL inserted');
+      }
+    }
   });
 
   // Input events
   document.addEventListener('input', function (e) {
     if (e.target.id === 'yb-social-caption') { updateCharCount(); updatePreview(); }
     if (e.target.id === 'yb-social-hashtags') updatePreview();
+
+    // UTM builder auto-generate
+    if (e.target.id === 'yb-social-utm-url' || e.target.id === 'yb-social-utm-source' ||
+        e.target.id === 'yb-social-utm-medium' || e.target.id === 'yb-social-utm-campaign') {
+      buildUtmUrl();
+    }
   });
+
+  document.addEventListener('change', function (e) {
+    if (e.target.id === 'yb-social-utm-source') buildUtmUrl();
+  });
+
+  function buildUtmUrl() {
+    var base = ($('yb-social-utm-url') || {}).value || '';
+    var source = ($('yb-social-utm-source') || {}).value || '';
+    var medium = ($('yb-social-utm-medium') || {}).value || '';
+    var campaign = ($('yb-social-utm-campaign') || {}).value || '';
+    var resultEl = $('yb-social-utm-result');
+    if (!resultEl || !base) return;
+
+    try {
+      var url = new URL(base);
+      if (source) url.searchParams.set('utm_source', source);
+      if (medium) url.searchParams.set('utm_medium', medium);
+      if (campaign) url.searchParams.set('utm_campaign', campaign);
+      resultEl.value = url.toString();
+    } catch (e) {
+      resultEl.value = base;
+    }
+  }
 
   // Platform toggle changes
   document.addEventListener('change', function (e) {

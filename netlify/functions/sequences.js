@@ -23,6 +23,7 @@ const { jsonResponse, optionsResponse, buildUnsubscribeUrl } = require('./shared
 const { sendSingleViaResend } = require('./shared/resend-service');
 const { detectLeadCountry, normalizeCountryName, detectCountryFromPhone } = require('./shared/country-detect');
 const { prepareTrackedEmail } = require('./shared/email-tracking');
+const { createSequenceSyncPost } = require('./shared/social-sync');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
@@ -845,6 +846,15 @@ async function handleProcess() {
             emailSent: emailSent,
             smsSent: smsSent
           });
+
+          // Social sync: create matching social post for broadcast sequences (non-blocking)
+          if (emailSent && sequence.name && sequence.name.toLowerCase().indexOf('broadcast') >= 0) {
+            createSequenceSyncPost(seqId, enrollment.current_step,
+              substituteVars(step.email_subject || step.email_subject_en || '', vars)
+            ).catch(function (err) {
+              console.warn('[sequences] Social sync error (non-blocking):', err.message);
+            });
+          }
         }
 
         // Advance enrollment

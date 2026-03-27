@@ -19,7 +19,10 @@
 <div id="yb-social-v-accounts">
   <div class="yb-admin__view-head">
     <h2>{{ t.social_accounts_title or "Connected Accounts" }}</h2>
-    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-refresh-accounts">&#8635; {{ t.social_refresh or "Refresh" }}</button>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-init-cdn-folders" title="{{ t.social_init_folders or 'Create CDN folder structure' }}">📁 {{ t.social_init_folders or "Init CDN" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-refresh-accounts">&#8635; {{ t.social_refresh or "Refresh" }}</button>
+    </div>
   </div>
 
   <div class="yb-social__accounts-grid" id="yb-social-accounts-grid">
@@ -157,6 +160,40 @@
     <h2 id="yb-social-cal-month">{{ t.social_calendar_loading or "March 2026" }}</h2>
     <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-cal-next">&rarr;</button>
     <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-new-post">+ {{ t.social_new_post or "New Post" }}</button>
+    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__ai-plan-btn" data-action="social-ai-plan">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      {{ t.social_ai_plan or "AI Plan" }}
+    </button>
+  </div>
+
+  {# AI Content Plan Modal #}
+  <div class="yb-social__ai-plan-modal" id="yb-social-ai-plan-modal" hidden>
+    <div class="yb-social__ai-plan-overlay" data-action="social-ai-plan-close"></div>
+    <div class="yb-social__ai-plan-box">
+      <h3>{{ t.social_ai_plan_title or "AI Content Planner" }}</h3>
+      <p class="yb-admin__muted">{{ t.social_ai_plan_desc or "Claude will generate a content plan based on your goals and themes." }}</p>
+      <div class="yb-admin__field">
+        <label for="yb-social-ai-plan-days">{{ t.social_ai_plan_days or "Days to plan" }}</label>
+        <select id="yb-social-ai-plan-days">
+          <option value="7">7 {{ t.social_days or "days" }}</option>
+          <option value="14" selected>14 {{ t.social_days or "days" }}</option>
+          <option value="30">30 {{ t.social_days or "days" }}</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-social-ai-plan-themes">{{ t.social_ai_plan_themes or "Focus themes (optional)" }}</label>
+        <input type="text" id="yb-social-ai-plan-themes" placeholder="{{ t.social_ai_plan_themes_placeholder or 'e.g., July cohort, summer yoga, Copenhagen' }}">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-social-ai-plan-goals">{{ t.social_ai_plan_goals or "Campaign goals (optional)" }}</label>
+        <input type="text" id="yb-social-ai-plan-goals" placeholder="{{ t.social_ai_plan_goals_placeholder or 'e.g., Drive July enrollment, increase engagement' }}">
+      </div>
+      <div class="yb-social__ai-plan-results" id="yb-social-ai-plan-results" hidden></div>
+      <div class="yb-social__ai-plan-actions">
+        <button type="button" class="yb-btn yb-btn--outline" data-action="social-ai-plan-close">{{ t.social_cancel or "Cancel" }}</button>
+        <button type="button" class="yb-btn yb-btn--primary" data-action="social-ai-plan-generate" id="yb-social-ai-plan-generate-btn">{{ t.social_ai_plan_generate or "Generate Plan" }}</button>
+      </div>
+    </div>
   </div>
 
   <div class="yb-social__calendar-weekdays">
@@ -194,9 +231,26 @@
   <div class="yb-social__filter-bar" id="yb-social-status-filter">
     <button class="yb-social__filter-btn is-active" type="button" data-action="social-filter-status" data-status="all">{{ t.social_filter_all or "All" }}</button>
     <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="draft">{{ t.social_filter_draft or "Drafts" }}</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="pending_review">{{ t.social_filter_pending or "Pending" }}</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="approved">{{ t.social_filter_approved or "Approved" }}</button>
     <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="scheduled">{{ t.social_filter_scheduled or "Scheduled" }}</button>
     <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="published">{{ t.social_filter_published or "Published" }}</button>
     <button class="yb-social__filter-btn" type="button" data-action="social-filter-status" data-status="failed">{{ t.social_filter_failed or "Failed" }}</button>
+  </div>
+
+  {# Bulk actions bar — shown when posts are selected #}
+  <div class="yb-social__bulk-bar" id="yb-social-bulk-bar" hidden>
+    <label class="yb-social__bulk-select-all">
+      <input type="checkbox" id="yb-social-select-all"> {{ t.social_select_all or "Select all" }}
+    </label>
+    <span class="yb-social__bulk-count" id="yb-social-bulk-count">0 {{ t.social_selected or "selected" }}</span>
+    <div class="yb-social__bulk-actions">
+      <button type="button" class="yb-btn yb-btn--sm" data-action="social-bulk-schedule">📅 {{ t.social_bulk_schedule or "Schedule" }}</button>
+      <button type="button" class="yb-btn yb-btn--sm" data-action="social-bulk-approve">✓ {{ t.social_bulk_approve or "Approve" }}</button>
+      <button type="button" class="yb-btn yb-btn--sm" data-action="social-bulk-duplicate">📋 {{ t.social_bulk_duplicate or "Duplicate" }}</button>
+      <button type="button" class="yb-btn yb-btn--sm yb-btn--danger" data-action="social-bulk-delete">🗑 {{ t.social_bulk_delete or "Delete" }}</button>
+    </div>
+    <button type="button" class="yb-social__bulk-clear" data-action="social-bulk-clear">✕</button>
   </div>
 
   <div class="yb-social__posts-count" id="yb-social-posts-count"></div>
@@ -219,9 +273,20 @@
         <option value="90">{{ t.social_range_90d or "Last 90 days" }}</option>
       </select>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-sync-metrics">&#8635; {{ t.social_sync or "Sync" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__ai-plan-btn" data-action="social-ai-insights">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        {{ t.social_ai_insights or "AI Insights" }}
+      </button>
     </div>
   </div>
   <div class="yb-social__last-sync" id="yb-social-last-sync" hidden></div>
+  <div class="yb-social__ai-insights-panel" id="yb-social-ai-insights-panel" hidden>
+    <div class="yb-social__ai-insights-header">
+      <h3>{{ t.social_ai_insights_title or "AI Performance Insights" }}</h3>
+      <button type="button" data-action="social-ai-insights-close" class="yb-btn yb-btn--outline yb-btn--sm">✕</button>
+    </div>
+    <div id="yb-social-ai-insights-body"><p class="yb-admin__muted">{{ t.social_ai_analyzing or "Analyzing your metrics..." }}</p></div>
+  </div>
 
   {# Stat cards #}
   <div class="yb-admin__stats-grid">
@@ -274,6 +339,15 @@
   <div class="yb-social__analytics-section">
     <h3>{{ t.social_top_posts or "Top Performing Posts" }}</h3>
     <div class="yb-social__top-posts" id="yb-social-top-posts">
+      <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+    </div>
+  </div>
+
+  {# Cross-Post Comparison #}
+  <div class="yb-social__analytics-section">
+    <h3>{{ t.social_cross_post_title or "Cross-Platform Comparison" }}</h3>
+    <p class="yb-admin__muted" style="margin-bottom:12px">{{ t.social_cross_post_desc or "Same content posted to multiple platforms — which performed best?" }}</p>
+    <div class="yb-social__cross-post-grid" id="yb-social-cross-post-grid">
       <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
     </div>
   </div>
@@ -333,11 +407,21 @@
     <div class="yb-social__inbox-thread-header">
       <button type="button" data-action="social-inbox-close-thread">&larr; {{ t.social_back or "Back" }}</button>
       <h4 id="yb-social-inbox-thread-title"></h4>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__create-lead-btn" data-action="social-inbox-create-lead" title="{{ t.social_create_lead or 'Create Lead' }}">
+        👤 {{ t.social_create_lead or "Create Lead" }}
+      </button>
     </div>
     <div class="yb-social__inbox-thread-body" id="yb-social-inbox-thread-body"></div>
     <div class="yb-social__inbox-reply-box">
+      <div class="yb-social__inbox-ai-suggestions" id="yb-social-ai-reply-suggestions" hidden></div>
       <textarea id="yb-social-inbox-reply" rows="2" placeholder="{{ t.social_reply_placeholder or 'Type your reply...' }}"></textarea>
-      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-inbox-send-reply">{{ t.social_send or "Send" }}</button>
+      <div class="yb-social__inbox-reply-actions">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__ai-reply-btn" data-action="social-ai-draft-reply" title="{{ t.social_ai_draft_reply or 'AI Draft Reply' }}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          {{ t.social_ai_draft_reply or "AI Reply" }}
+        </button>
+        <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-inbox-send-reply">{{ t.social_send or "Send" }}</button>
+      </div>
     </div>
   </div>
 </div>
@@ -575,6 +659,41 @@
           <input type="text" id="yb-social-location" placeholder="{{ t.social_location_placeholder or 'Yoga Bible, Copenhagen' }}">
         </div>
 
+        {# UTM Builder #}
+        <details class="yb-social__utm-builder">
+          <summary>{{ t.social_utm_builder or "🔗 UTM Link Builder" }}</summary>
+          <div class="yb-social__utm-fields">
+            <div class="yb-admin__field">
+              <label for="yb-social-utm-url">URL</label>
+              <input type="text" id="yb-social-utm-url" placeholder="https://yogabible.dk/..." value="https://yogabible.dk">
+            </div>
+            <div class="yb-social__utm-grid">
+              <div class="yb-admin__field">
+                <label for="yb-social-utm-source">Source</label>
+                <select id="yb-social-utm-source" class="yb-admin__select">
+                  <option value="instagram">instagram</option>
+                  <option value="facebook">facebook</option>
+                  <option value="tiktok">tiktok</option>
+                  <option value="linkedin">linkedin</option>
+                </select>
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-social-utm-medium">Medium</label>
+                <input type="text" id="yb-social-utm-medium" value="social" placeholder="social">
+              </div>
+              <div class="yb-admin__field">
+                <label for="yb-social-utm-campaign">Campaign</label>
+                <input type="text" id="yb-social-utm-campaign" placeholder="e.g. july-cohort-2026">
+              </div>
+            </div>
+            <div class="yb-social__utm-result">
+              <input type="text" id="yb-social-utm-result" readonly placeholder="{{ t.social_utm_result or 'Generated URL will appear here' }}">
+              <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-utm-copy">{{ t.social_copy or "Copy" }}</button>
+              <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-utm-insert">{{ t.social_utm_insert or "Insert in Caption" }}</button>
+            </div>
+          </div>
+        </details>
+
         {# Schedule #}
         <div class="yb-social__schedule-section">
           <label>{{ t.social_when or "When to post" }}</label>
@@ -632,11 +751,16 @@
 
       </div>{# /composer-editor #}
 
-      {# Right: Preview #}
+      {# Right: Preview with platform tabs #}
       <div class="yb-social__composer-preview">
-        <h4>{{ t.social_preview or "Preview" }}</h4>
-        <div class="yb-social__preview-device" id="yb-social-preview-device">
-          <div class="yb-social__preview-header">
+        <div class="yb-social__preview-tabs" id="yb-social-preview-tabs">
+          <button type="button" class="yb-social__preview-tab is-active" data-action="social-preview-tab" data-platform="instagram">IG</button>
+          <button type="button" class="yb-social__preview-tab" data-action="social-preview-tab" data-platform="facebook">FB</button>
+          <button type="button" class="yb-social__preview-tab" data-action="social-preview-tab" data-platform="tiktok">TT</button>
+          <button type="button" class="yb-social__preview-tab" data-action="social-preview-tab" data-platform="linkedin">LI</button>
+        </div>
+        <div class="yb-social__preview-device" id="yb-social-preview-device" data-preview-platform="instagram">
+          <div class="yb-social__preview-header" id="yb-social-preview-header">
             <span class="yb-social__preview-avatar">YB</span>
             <span class="yb-social__preview-username">yogabible</span>
           </div>
@@ -646,6 +770,7 @@
           <div class="yb-social__preview-caption" id="yb-social-preview-caption">
             <strong>yogabible</strong> <span>{{ t.social_preview_placeholder or "Your caption will appear here..." }}</span>
           </div>
+          <div class="yb-social__preview-char-info" id="yb-social-preview-char-info"></div>
         </div>
       </div>
 

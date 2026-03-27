@@ -16,8 +16,8 @@ const { jsonResponse, optionsResponse } = require('./shared/utils');
 
 const COLLECTION = 'social_posts';
 const ANALYTICS_SUB = 'social_analytics';
-const VALID_STATUSES = ['draft', 'scheduled', 'published', 'failed'];
-const VALID_PLATFORMS = ['instagram', 'facebook'];
+const VALID_STATUSES = ['draft', 'pending_review', 'approved', 'scheduled', 'published', 'failed', 'recycled'];
+const VALID_PLATFORMS = ['instagram', 'facebook', 'tiktok', 'linkedin'];
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
@@ -44,6 +44,8 @@ exports.handler = async (event) => {
         case 'update': return updatePost(db, body);
         case 'delete': return deletePost(db, body.id);
         case 'bulk-delete': return bulkDeletePosts(db, body.ids);
+        case 'bulk-update': return bulkUpdatePosts(db, body.ids, body.fields);
+        case 'bulk-duplicate': return bulkDuplicatePosts(db, body.ids, user);
         default:
           return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
       }
@@ -202,7 +204,8 @@ async function updatePost(db, body) {
   // Only allow updating known fields
   const allowed = [
     'caption', 'platforms', 'media', 'hashtags', 'hashtagSet',
-    'status', 'scheduledAt', 'firstComment', 'location', 'altTexts', 'mediaType'
+    'status', 'scheduledAt', 'firstComment', 'location', 'altTexts', 'mediaType',
+    'approvedBy', 'approvedAt', 'recycleConfig'
   ];
 
   const update = { updatedAt: serverTimestamp() };
@@ -288,4 +291,91 @@ async function bulkDeletePosts(db, ids) {
 
   console.log('[social-posts] Bulk deleted:', deleted.length, 'errors:', errors.length);
   return jsonResponse(200, { ok: true, deleted, errors });
+}
+
+
+// ── Bulk update posts ──────────────────────────────────────────
+
+async function bulkUpdatePosts(db, ids, fields) {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return jsonResponse(400, { ok: false, error: 'Missing ids array' });
+  }
+  if (!fields || typeof fields !== 'object') {
+    return jsonResponse(400, { ok: false, error: 'Missing fields object' });
+  }
+
+  const ALLOWED = ['status', 'scheduledAt', 'platforms', 'approvedBy', 'approvedAt'];
+  const updates = {};
+  for (const key of Object.keys(fields)) {
+    if (ALLOWED.includes(key)) {
+      if (key === 'status' && !VALID_STATUSES.includes(fields[key])) continue;
+      if (key === 'scheduledAt') { updates[key] = fields[key] ? new Date(fields[key]) : null; continue; }
+      updates[key] = fields[key];
+    }
+  }
+  updates.updatedAt = serverTimestamp();
+
+  const updated = [];
+  const errors = [];
+
+  for (const id of ids) {
+    try {
+      const ref = db.collection(COLLECTION).doc(id);
+      const doc = await ref.get();
+      if (!doc.exists) { errors.push({ id, error: 'Not found' }); continue; }
+      await ref.update(updates);
+      updated.push(id);
+    } catch (err) {
+      errors.push({ id, error: err.message });
+    }
+  }
+
+  console.log('[social-posts] Bulk updated:', updated.length, 'errors:', errors.length);
+  return jsonResponse(200, { ok: true, updated, errors });
+}
+
+
+// ── Bulk duplicate posts ───────────────────────────────────────
+
+async function bulkDuplicatePosts(db, ids, user) {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return jsonResponse(400, { ok: false, error: 'Missing ids array' });
+  }
+
+  const created = [];
+  const errors = [];
+
+  for (const id of ids) {
+    try {
+      const doc = await db.collection(COLLECTION).doc(id).get();
+      if (!doc.exists) { errors.push({ id, error: 'Not found' }); continue; }
+      const data = doc.data();
+      const copy = {
+        caption: data.caption || '',
+        platforms: data.platforms || [],
+        media: data.media || [],
+        hashtags: data.hashtags || [],
+        hashtagSet: data.hashtagSet || null,
+        firstComment: data.firstComment || '',
+        location: data.location || '',
+        altTexts: data.altTexts || {},
+        mediaType: data.mediaType || 'auto',
+        status: 'draft',
+        scheduledAt: null,
+        publishedAt: null,
+        publishResults: {},
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: user.email,
+        duplicatedFrom: id
+      };
+      const ref = await db.collection(COLLECTION).add(copy);
+      created.push(ref.id);
+    } catch (err) {
+      errors.push({ id, error: err.message });
+    }
+  }
+
+  console.log('[social-posts] Bulk duplicated:', created.length, 'errors:', errors.length);
+  return jsonResponse(200, { ok: true, created, errors });
 }

@@ -141,6 +141,50 @@ function getResourceType(ext) {
 }
 
 // ── Handler ──
+// ── Action: create social media platform folders ──
+const SOCIAL_FOLDERS = [
+  'yoga-bible-DK/social/instagram',
+  'yoga-bible-DK/social/facebook',
+  'yoga-bible-DK/social/tiktok',
+  'yoga-bible-DK/social/linkedin',
+  'yoga-bible-DK/social/general',
+  'yoga-bible-DK/social/stories',
+  'yoga-bible-DK/social/reels'
+];
+
+async function initSocialFolders() {
+  const results = [];
+  for (const folder of SOCIAL_FOLDERS) {
+    try {
+      // Upload a zero-byte .keep file to create the folder
+      const keepPath = folder + '/.keep';
+      await new Promise((resolve, reject) => {
+        const options = {
+          hostname: BUNNY_STORAGE_HOST,
+          path: '/' + BUNNY_STORAGE_ZONE + '/' + keepPath,
+          method: 'PUT',
+          headers: {
+            'AccessKey': BUNNY_STORAGE_KEY,
+            'Content-Type': 'application/octet-stream',
+            'Content-Length': 0
+          }
+        };
+        const req = https.request(options, (res) => {
+          let data = '';
+          res.on('data', (c) => { data += c; });
+          res.on('end', () => resolve({ status: res.statusCode }));
+        });
+        req.on('error', reject);
+        req.end();
+      });
+      results.push({ folder, status: 'created' });
+    } catch (err) {
+      results.push({ folder, status: 'error', error: err.message });
+    }
+  }
+  return jsonResponse(200, { ok: true, folders: results });
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
 
@@ -170,7 +214,9 @@ exports.handler = async (event) => {
       return listResources(path);
     case 'sign_upload':
       return signUpload(folder);
+    case 'init-social-folders':
+      return initSocialFolders();
     default:
-      return jsonResponse(400, { ok: false, error: 'Invalid action. Use: folders, resources, sign_upload' });
+      return jsonResponse(400, { ok: false, error: 'Invalid action. Use: folders, resources, sign_upload, init-social-folders' });
   }
 };

@@ -17,6 +17,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const { getDb, serverTimestamp } = require('./shared/firestore');
 const { jsonResponse } = require('./shared/utils');
 
@@ -111,11 +112,16 @@ exports.handler = async (event) => {
       // Skip if already has posts for this slug (double-check)
       if (!targetSlug && existingSlugs.has(entry.slug)) continue;
 
-      // Generate social post content from journal entry
-      const postContent = generatePostContent(entry);
-
-      // Create one draft post per connected platform
+      // Generate social post content — try AI first, fall back to basic
+      let postContent;
       for (const platform of platforms) {
+        try {
+          postContent = await generateSmartCaption(entry, platform);
+        } catch (aiErr) {
+          console.warn('[social-auto-post] AI caption failed, using basic:', aiErr.message);
+          postContent = generatePostContent(entry);
+        }
+
         const postData = {
           caption: postContent.caption,
           platforms: [platform],
@@ -187,4 +193,105 @@ async function updateLastRun(db, created) {
   } catch (err) {
     console.warn('[social-auto-post] Could not update last run:', err.message);
   }
+}
+
+
+/**
+ * Generate a platform-native caption using Claude AI.
+ * Calls social-ai internally via the smart-blog-caption action pattern.
+ */
+async function generateSmartCaption(entry, platform) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error('No ANTHROPIC_API_KEY');
+
+  const siteUrl = process.env.URL || 'https://yogabible.dk';
+  const postUrl = `${siteUrl}/yoga-journal/${entry.slug}/`;
+  const title = entry.title_en || entry.title_da || '';
+  const excerpt = entry.excerpt_en || entry.excerpt_da || '';
+  const tags = entry.tags || [];
+
+  const prompt = `Write a native social media caption for ${platform} to promote this blog post.
+
+Blog title: "${title}"
+Blog excerpt: "${excerpt}"
+Blog URL: ${postUrl}
+Tags: ${tags.join(', ')}
+
+Do NOT just copy the excerpt. Write a platform-native caption that:
+- Opens with a compelling hook (question, bold statement, or surprising fact)
+- Teases the blog content without giving everything away
+- Ends with a CTA to read the full post (include the URL naturally)
+- Feels like a genuine social media post, not a blog announcement
+- NEVER mention course language or refund policies
+
+Also provide 15-20 hashtags.
+
+Respond with ONLY valid JSON:
+{"caption": "The caption with \\n line breaks", "hashtags": ["#tag1", "#tag2"]}`;
+
+  const response = await claudeRequest(apiKey, prompt);
+  let parsed;
+  try {
+    parsed = JSON.parse(response);
+  } catch (e) {
+    const match = response.match(/\{[\s\S]*\}/);
+    if (match) parsed = JSON.parse(match[0]);
+    else throw new Error('Failed to parse AI response');
+  }
+
+  let mediaUrl = null;
+  if (entry.image && !entry.image.includes('og-1200x630')) {
+    mediaUrl = entry.image.startsWith('http') ? entry.image : `${siteUrl}${entry.image}`;
+  }
+
+  return {
+    caption: parsed.caption || `${title}\n\n${excerpt}\n\n📖 ${postUrl}`,
+    hashtags: parsed.hashtags || tags.map(t => '#' + t.replace(/[^a-zA-Z0-9]/g, '')),
+    mediaUrl
+  };
+}
+
+
+function claudeRequest(apiKey, userMessage) {
+  return new Promise(function (resolve, reject) {
+    const body = JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1500,
+      system: 'You are a social media manager for Yoga Bible, a yoga teacher training school in Copenhagen. Write engaging, authentic captions. Never mention course language or refund policies. Always respond with valid JSON only.',
+      messages: [{ role: 'user', content: userMessage }]
+    });
+
+    const opts = {
+      hostname: 'api.anthropic.com',
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    };
+
+    const req = https.request(opts, function (res) {
+      const chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () {
+        const raw = Buffer.concat(chunks).toString();
+        try {
+          const json = JSON.parse(raw);
+          if (json.content && json.content[0]) {
+            resolve(json.content[0].text);
+          } else {
+            reject(new Error('Claude API error: ' + raw.substring(0, 300)));
+          }
+        } catch (e) {
+          reject(new Error('Claude parse error: ' + raw.substring(0, 300)));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
 }

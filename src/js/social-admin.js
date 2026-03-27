@@ -20,7 +20,8 @@
     templates: [],
     competitors: [],
     abTests: [],
-    abTestFilter: 'all'
+    abTestFilter: 'all',
+    selectedPosts: []
   };
 
   /* ═══ HELPERS ═══ */
@@ -283,6 +284,15 @@
     loadAccounts();
   }
 
+  async function initCdnFolders() {
+    toast('Creating CDN folders...');
+    var data = await api('bunny-browser?action=init-social-folders');
+    if (data && data.folders) {
+      var created = data.folders.filter(function (f) { return f.status === 'created'; }).length;
+      toast(created + ' CDN folders initialized');
+    }
+  }
+
   /* ═══ CALENDAR ═══ */
   var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
@@ -432,7 +442,10 @@
       else if (p.publishedAt) schedTime = fmtDateTime(p.publishedAt);
       else schedTime = fmtDate(p.createdAt);
 
-      return '<div class="yb-social__post-card">' +
+      var isSelected = state.selectedPosts.indexOf(p.id) !== -1;
+
+      return '<div class="yb-social__post-card' + (isSelected ? ' is-selected' : '') + '">' +
+        '<label class="yb-social__post-check"><input type="checkbox" data-action="social-toggle-select" data-id="' + p.id + '"' + (isSelected ? ' checked' : '') + '></label>' +
         thumb +
         '<div class="yb-social__post-body">' +
         '<p class="yb-social__post-caption">' + truncate(p.caption, 80) + '</p>' +
@@ -445,7 +458,10 @@
         '<div class="yb-social__post-actions">' +
         '<button data-action="social-edit-post" data-id="' + p.id + '">' + t('social_edit') + '</button>' +
         '<button data-action="social-duplicate-post" data-id="' + p.id + '">' + t('social_duplicate') + '</button>' +
-        (p.status === 'draft' || p.status === 'scheduled' ? '<button data-action="social-publish-now" data-id="' + p.id + '">' + t('social_publish_now') + '</button>' : '') +
+        (p.status === 'draft' ? '<button data-action="social-submit-review" data-id="' + p.id + '">' + t('social_submit_review') + '</button>' : '') +
+        (p.status === 'pending_review' ? '<button data-action="social-approve-post" data-id="' + p.id + '" class="yb-social__approve-btn">' + t('social_approve') + '</button>' : '') +
+        (p.status === 'draft' || p.status === 'approved' || p.status === 'scheduled' ? '<button data-action="social-publish-now" data-id="' + p.id + '">' + t('social_publish_now') + '</button>' : '') +
+        (p.status === 'published' ? '<button data-action="social-recycle-post" data-id="' + p.id + '">' + t('social_recycle') + '</button>' : '') +
         '<button data-action="social-delete-post" data-id="' + p.id + '">' + t('social_delete') + '</button>' +
         '</div></div></div>';
     }).join('');
@@ -479,6 +495,154 @@
       method: 'POST', body: JSON.stringify({ postId: id })
     });
     if (data) { toast(t('social_published')); loadPosts(); }
+  }
+
+  // ── Approval Workflow ──────────────────────────────────────
+  async function submitForReview(id) {
+    var data = await api('social-posts?action=update', {
+      method: 'POST', body: JSON.stringify({ id: id, status: 'pending_review' })
+    });
+    if (data) { toast(t('social_submitted_review')); loadPosts(); }
+  }
+
+  async function approvePost(id) {
+    var data = await api('social-posts?action=update', {
+      method: 'POST', body: JSON.stringify({
+        id: id, status: 'approved',
+        approvedBy: 'admin',
+        approvedAt: new Date().toISOString()
+      })
+    });
+    if (data) { toast(t('social_approved')); loadPosts(); }
+  }
+
+  // ── Content Recycling ─────────────────────────────────────
+  async function recyclePost(id) {
+    var post = state.posts.find(function (p) { return p.id === id; });
+    if (!post) return;
+
+    var daysStr = prompt(t('social_recycle_prompt') || 'Re-post after how many days? (e.g., 30)', '30');
+    if (!daysStr) return;
+    var days = parseInt(daysStr);
+    if (isNaN(days) || days < 1) { toast('Invalid number', true); return; }
+
+    var nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + days);
+
+    // Create a new post as a recycled copy
+    var recycledPost = {
+      caption: post.caption,
+      platforms: post.platforms,
+      media: post.media,
+      hashtags: post.hashtags,
+      hashtagSet: post.hashtagSet,
+      firstComment: post.firstComment,
+      location: post.location,
+      altTexts: post.altTexts,
+      mediaType: post.mediaType || 'auto',
+      status: 'scheduled',
+      scheduledAt: nextDate.toISOString(),
+      recycledFrom: id,
+      recycleConfig: { intervalDays: days, originalPostId: id }
+    };
+
+    var data = await api('social-posts?action=create', {
+      method: 'POST', body: JSON.stringify(recycledPost)
+    });
+
+    // Mark original as recycled
+    if (data) {
+      await api('social-posts?action=update', {
+        method: 'POST', body: JSON.stringify({ id: id, status: 'recycled' })
+      });
+      toast(t('social_recycled') || 'Recycled — re-posting in ' + days + ' days');
+      loadPosts();
+    }
+  }
+
+  // ── Bulk Selection ───────────────────────────────────────
+  function togglePostSelect(id) {
+    var idx = state.selectedPosts.indexOf(id);
+    if (idx === -1) state.selectedPosts.push(id);
+    else state.selectedPosts.splice(idx, 1);
+    updateBulkBar();
+    // Toggle card highlight without full re-render
+    var cards = qsa('.yb-social__post-card');
+    cards.forEach(function (card) {
+      var cb = card.querySelector('[data-action="social-toggle-select"]');
+      if (cb && cb.getAttribute('data-id') === id) {
+        card.classList.toggle('is-selected', state.selectedPosts.indexOf(id) !== -1);
+      }
+    });
+  }
+
+  function toggleSelectAll() {
+    var allBox = $('yb-social-select-all');
+    if (!allBox) return;
+    if (allBox.checked) {
+      state.selectedPosts = state.posts.map(function (p) { return p.id; });
+    } else {
+      state.selectedPosts = [];
+    }
+    updateBulkBar();
+    renderPosts();
+  }
+
+  function clearSelection() {
+    state.selectedPosts = [];
+    var allBox = $('yb-social-select-all');
+    if (allBox) allBox.checked = false;
+    updateBulkBar();
+    renderPosts();
+  }
+
+  function updateBulkBar() {
+    var bar = $('yb-social-bulk-bar');
+    var countEl = $('yb-social-bulk-count');
+    if (!bar) return;
+    bar.hidden = state.selectedPosts.length === 0;
+    if (countEl) countEl.textContent = state.selectedPosts.length + ' ' + t('social_selected');
+  }
+
+  async function bulkSchedule() {
+    if (state.selectedPosts.length === 0) return;
+    var dateStr = prompt(t('social_bulk_schedule_prompt') || 'Schedule date/time (YYYY-MM-DD HH:mm):', '');
+    if (!dateStr) return;
+    var d = new Date(dateStr.replace(' ', 'T'));
+    if (isNaN(d.getTime())) { toast('Invalid date', true); return; }
+    var data = await api('social-posts?action=bulk-update', {
+      method: 'POST',
+      body: JSON.stringify({ ids: state.selectedPosts, fields: { status: 'scheduled', scheduledAt: d.toISOString() } })
+    });
+    if (data) { toast(t('social_bulk_scheduled') || 'Scheduled ' + (data.updated || []).length + ' posts'); clearSelection(); loadPosts(); }
+  }
+
+  async function bulkApprove() {
+    if (state.selectedPosts.length === 0) return;
+    var data = await api('social-posts?action=bulk-update', {
+      method: 'POST',
+      body: JSON.stringify({ ids: state.selectedPosts, fields: { status: 'approved', approvedBy: 'admin', approvedAt: new Date().toISOString() } })
+    });
+    if (data) { toast(t('social_approved') + ' (' + (data.updated || []).length + ')'); clearSelection(); loadPosts(); }
+  }
+
+  async function bulkDuplicate() {
+    if (state.selectedPosts.length === 0) return;
+    var data = await api('social-posts?action=bulk-duplicate', {
+      method: 'POST',
+      body: JSON.stringify({ ids: state.selectedPosts })
+    });
+    if (data) { toast(t('social_duplicated') || 'Duplicated ' + (data.created || []).length + ' posts'); clearSelection(); loadPosts(); }
+  }
+
+  async function bulkDelete() {
+    if (state.selectedPosts.length === 0) return;
+    if (!confirm(t('social_bulk_delete_confirm') || 'Delete ' + state.selectedPosts.length + ' posts? This cannot be undone.')) return;
+    var data = await api('social-posts?action=bulk-delete', {
+      method: 'POST',
+      body: JSON.stringify({ ids: state.selectedPosts })
+    });
+    if (data) { toast('Deleted ' + (data.deleted || []).length + ' posts'); clearSelection(); loadPosts(); }
   }
 
   /* ═══ ANALYTICS ═══ */
@@ -527,6 +691,9 @@
 
     // 6. Recent performance table
     renderRecentTable(recent);
+
+    // 7. Cross-post comparison
+    renderCrossPostComparison();
   }
 
   function renderTrendChart(trend) {
@@ -717,6 +884,96 @@
     });
 
     tbody.innerHTML = rows.join('');
+  }
+
+  function renderCrossPostComparison() {
+    var grid = $('yb-social-cross-post-grid');
+    if (!grid) return;
+
+    // Find published posts that were posted to multiple platforms
+    var multiPosts = state.posts.filter(function (p) {
+      return p.status === 'published' && p.platforms && p.platforms.length > 1 && p.publishResults;
+    });
+
+    // Also find recycled posts that share the same caption (cross-posted separately)
+    var captionMap = {};
+    state.posts.forEach(function (p) {
+      if (p.status !== 'published' || !p.caption) return;
+      var key = p.caption.substring(0, 60);
+      if (!captionMap[key]) captionMap[key] = [];
+      captionMap[key].push(p);
+    });
+
+    // Build comparison cards
+    var comparisons = [];
+
+    // From multi-platform posts
+    multiPosts.forEach(function (p) {
+      var results = p.publishResults || {};
+      var platformData = [];
+      Object.keys(results).forEach(function (plat) {
+        var r = results[plat];
+        if (r && r.metrics) {
+          platformData.push({
+            platform: plat,
+            likes: r.metrics.likes || 0,
+            comments: r.metrics.comments || 0,
+            reach: r.metrics.reach || r.metrics.post_reach || 0,
+            engagement: (r.metrics.likes || 0) + (r.metrics.comments || 0) + (r.metrics.shares || 0)
+          });
+        }
+      });
+      if (platformData.length > 1) {
+        comparisons.push({ caption: p.caption, platforms: platformData, date: p.publishedAt });
+      }
+    });
+
+    // From duplicate-caption posts
+    Object.keys(captionMap).forEach(function (key) {
+      var group = captionMap[key];
+      if (group.length < 2) return;
+      var platformData = [];
+      group.forEach(function (p) {
+        var plat = p.platforms[0];
+        var results = (p.publishResults || {})[plat] || {};
+        platformData.push({
+          platform: plat,
+          likes: (results.metrics || {}).likes || 0,
+          comments: (results.metrics || {}).comments || 0,
+          reach: (results.metrics || {}).reach || 0,
+          engagement: ((results.metrics || {}).likes || 0) + ((results.metrics || {}).comments || 0)
+        });
+      });
+      if (platformData.length > 1) {
+        comparisons.push({ caption: group[0].caption, platforms: platformData, date: group[0].publishedAt });
+      }
+    });
+
+    if (comparisons.length === 0) {
+      grid.innerHTML = '<p class="yb-admin__muted">' + (t('social_no_cross_post') || 'No cross-platform posts yet. Post the same content to multiple platforms to see comparison.') + '</p>';
+      return;
+    }
+
+    grid.innerHTML = comparisons.slice(0, 5).map(function (comp) {
+      var maxEng = Math.max.apply(null, comp.platforms.map(function (p) { return p.engagement; })) || 1;
+      var winner = comp.platforms.reduce(function (a, b) { return a.engagement > b.engagement ? a : b; });
+
+      return '<div class="yb-social__cross-post-card">' +
+        '<p class="yb-social__cross-post-caption">' + truncate(comp.caption, 60) + '</p>' +
+        comp.platforms.map(function (p) {
+          var pct = Math.round((p.engagement / maxEng) * 100);
+          var isWinner = p === winner && comp.platforms.length > 1;
+          return '<div class="yb-social__cross-post-row' + (isWinner ? ' yb-social__cross-post-row--winner' : '') + '">' +
+            '<span class="yb-social__cross-post-platform">' + platformIcon(p.platform) + '</span>' +
+            '<div class="yb-social__cross-post-bar-wrap">' +
+            '<div class="yb-social__cross-post-bar" style="width:' + pct + '%"></div>' +
+            '</div>' +
+            '<span class="yb-social__cross-post-stats">' + p.likes + '❤️ ' + p.comments + '💬 ' + (p.reach ? p.reach.toLocaleString() + '👁' : '') + '</span>' +
+            (isWinner ? '<span class="yb-social__cross-post-winner">🏆</span>' : '') +
+          '</div>';
+        }).join('') +
+      '</div>';
+    }).join('');
   }
 
   async function syncMetrics() {
@@ -1015,6 +1272,233 @@
     inboxState.pollTimer = setInterval(function () {
       if (state.view === 'inbox') loadInbox();
     }, 60000); // Poll every 60s when inbox is active
+  }
+
+  // ── AI Draft Reply ──────────────────────────────────────────
+  async function aiDraftReply() {
+    if (!inboxState.activeThread) { toast('Open a thread first', true); return; }
+    var thread = inboxState.activeThread;
+
+    // Find the original comment/message text
+    var commentText = '';
+    var contextText = '';
+    if (thread.type === 'comment') {
+      var c = inboxState.comments.find(function (x) { return x.commentId === thread.id; });
+      if (c) { commentText = c.text; contextText = c.postCaption || ''; }
+    } else {
+      var conv = inboxState.conversations.find(function (x) { return x.conversationId === thread.id; });
+      if (conv) { commentText = conv.lastMessage; }
+    }
+
+    if (!commentText) { toast('No message to reply to', true); return; }
+
+    var sugEl = $('yb-social-ai-reply-suggestions');
+    if (sugEl) { sugEl.hidden = false; sugEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_generating') + '</p>'; }
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'reply-comment',
+        comment: commentText,
+        context: contextText,
+        platform: thread.platform
+      })
+    });
+
+    if (!data || !data.replies) {
+      if (sugEl) sugEl.innerHTML = '<p class="yb-admin__muted">AI could not generate replies.</p>';
+      return;
+    }
+
+    // Store globally for use
+    state.aiReplyOptions = data.replies;
+
+    if (sugEl) {
+      sugEl.innerHTML = '<div class="yb-social__ai-reply-label">' + t('social_ai_suggestions') + '</div>' +
+        data.replies.map(function (r, i) {
+          return '<div class="yb-social__ai-reply-opt">' +
+            '<p>' + escapeHtml(r.text) + '</p>' +
+            '<div class="yb-social__ai-reply-opt-meta">' +
+            '<span class="yb-social__ai-reply-style">' + r.style + '</span>' +
+            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-use-reply" data-index="' + i + '">' + t('social_ai_use') + '</button>' +
+            '</div></div>';
+        }).join('') +
+        (data.sentiment ? '<p class="yb-admin__muted" style="margin-top:8px">Sentiment: ' + data.sentiment + (data.suggestPrivate ? ' — suggest moving to DM' : '') + '</p>' : '');
+    }
+  }
+
+  function useAiReply(index) {
+    if (!state.aiReplyOptions || !state.aiReplyOptions[index]) return;
+    var replyEl = $('yb-social-inbox-reply');
+    if (replyEl) replyEl.value = state.aiReplyOptions[index].text;
+    var sugEl = $('yb-social-ai-reply-suggestions');
+    if (sugEl) sugEl.hidden = true;
+  }
+
+  // ── Create Lead from DM/Comment ───────────────────────────────
+  async function createLeadFromInbox() {
+    if (!inboxState.activeThread) { toast('Open a thread first', true); return; }
+    var thread = inboxState.activeThread;
+    var name = '';
+    var source = thread.platform + '_' + thread.type;
+
+    if (thread.type === 'comment') {
+      var c = inboxState.comments.find(function (x) { return x.commentId === thread.id; });
+      if (c) name = c.author || '';
+    } else {
+      var conv = inboxState.conversations.find(function (x) { return x.conversationId === thread.id; });
+      if (conv && conv.participants) name = conv.participants[0] || '';
+    }
+
+    var nameInput = prompt(t('social_create_lead_name') || 'Lead name:', name);
+    if (!nameInput) return;
+
+    var emailInput = prompt(t('social_create_lead_email') || 'Email (optional):', '');
+
+    var leadData = {
+      first_name: nameInput.split(' ')[0] || nameInput,
+      last_name: nameInput.split(' ').slice(1).join(' ') || '',
+      email: emailInput || '',
+      source: source,
+      status: 'new',
+      notes: 'Created from social media ' + thread.type + ' on ' + thread.platform
+    };
+
+    toast('Creating lead...');
+    var data = await api('lead', {
+      method: 'POST',
+      body: JSON.stringify(leadData)
+    });
+
+    if (data) {
+      toast(t('social_lead_created') || 'Lead created');
+    }
+  }
+
+  // ── AI Content Planner ────────────────────────────────────────
+  var aiPlanData = null;
+
+  async function aiGeneratePlan() {
+    var daysEl = $('yb-social-ai-plan-days');
+    var themesEl = $('yb-social-ai-plan-themes');
+    var goalsEl = $('yb-social-ai-plan-goals');
+    var resultsEl = $('yb-social-ai-plan-results');
+    var genBtn = $('yb-social-ai-plan-generate-btn');
+
+    var days = daysEl ? parseInt(daysEl.value) : 14;
+    var themes = themesEl && themesEl.value ? themesEl.value.split(',').map(function (s) { return s.trim(); }) : [];
+    var goals = goalsEl ? goalsEl.value : '';
+
+    // Collect existing scheduled posts for context
+    var existingPosts = state.posts.filter(function (p) { return p.status === 'scheduled'; }).map(function (p) {
+      return { date: p.scheduledAt, caption: p.caption };
+    });
+
+    if (genBtn) genBtn.disabled = true;
+    if (resultsEl) { resultsEl.hidden = false; resultsEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_generating') + '</p>'; }
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'content-plan', days: days, themes: themes, goals: goals, existingPosts: existingPosts })
+    });
+
+    if (genBtn) genBtn.disabled = false;
+
+    if (!data || !data.plan) {
+      if (resultsEl) resultsEl.innerHTML = '<p class="yb-admin__muted">Could not generate plan.</p>';
+      return;
+    }
+
+    aiPlanData = data.plan;
+
+    if (resultsEl) {
+      var planHtml = data.strategy_notes ? '<p class="yb-social__ai-plan-strategy">' + escapeHtml(data.strategy_notes) + '</p>' : '';
+      planHtml += '<div class="yb-social__ai-plan-list">';
+      data.plan.forEach(function (item, i) {
+        planHtml += '<div class="yb-social__ai-plan-item">' +
+          '<div class="yb-social__ai-plan-item-date">' +
+            '<strong>' + item.date + '</strong> ' + (item.time || '') +
+            '<span class="yb-social__ai-plan-cat yb-social__ai-plan-cat--' + (item.category || 'educational') + '">' + (item.category || '') + '</span>' +
+          '</div>' +
+          '<p>' + escapeHtml(item.caption_idea || '') + '</p>' +
+          '<div class="yb-social__ai-plan-item-meta">' +
+            '<span>' + (item.visual_type || '') + '</span>' +
+            '<span>' + (item.platforms || []).join(', ') + '</span>' +
+            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-plan-create-post" data-index="' + i + '">' + t('social_ai_create_post') + '</button>' +
+          '</div></div>';
+      });
+      planHtml += '</div>';
+      resultsEl.innerHTML = planHtml;
+    }
+  }
+
+  function aiPlanCreatePost(index) {
+    if (!aiPlanData || !aiPlanData[index]) return;
+    var item = aiPlanData[index];
+    // Open composer pre-filled with the plan item
+    if (window._ybSocial && window._ybSocial.openSocialComposer) {
+      window._ybSocial.openSocialComposer({
+        caption: item.caption_idea || '',
+        platforms: item.platforms || [],
+        scheduledAt: item.date && item.time ? item.date + 'T' + item.time : null
+      });
+    }
+    // Close plan modal
+    var m = $('yb-social-ai-plan-modal');
+    if (m) m.hidden = true;
+  }
+
+  // ── AI Analytics Insights ─────────────────────────────────────
+  async function aiGetInsights() {
+    var panel = $('yb-social-ai-insights-panel');
+    var bodyEl = $('yb-social-ai-insights-body');
+    if (!panel) return;
+
+    panel.hidden = false;
+    if (bodyEl) bodyEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_analyzing') + '</p>';
+
+    // Gather current metrics from the DOM
+    var metrics = {
+      followers: ($('yb-social-stat-followers') || {}).textContent || '0',
+      engagement: ($('yb-social-stat-engagement') || {}).textContent || '0',
+      reach: ($('yb-social-stat-reach') || {}).textContent || '0',
+      posts: ($('yb-social-stat-posts') || {}).textContent || '0',
+      period: ($('yb-social-analytics-range') || {}).value || '30'
+    };
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'analytics-insight', metrics: metrics, period: metrics.period + ' days' })
+    });
+
+    if (!data || !data.summary) {
+      if (bodyEl) bodyEl.innerHTML = '<p class="yb-admin__muted">Could not generate insights.</p>';
+      return;
+    }
+
+    var html = '<div class="yb-social__ai-insight-summary"><p>' + escapeHtml(data.summary) + '</p></div>';
+
+    if (data.highlights && data.highlights.length) {
+      html += '<div class="yb-social__ai-insight-section"><h4>✅ ' + t('social_ai_highlights') + '</h4><ul>' +
+        data.highlights.map(function (h) { return '<li>' + escapeHtml(h) + '</li>'; }).join('') + '</ul></div>';
+    }
+
+    if (data.concerns && data.concerns.length) {
+      html += '<div class="yb-social__ai-insight-section yb-social__ai-insight-section--warn"><h4>⚠️ ' + t('social_ai_concerns') + '</h4><ul>' +
+        data.concerns.map(function (h) { return '<li>' + escapeHtml(h) + '</li>'; }).join('') + '</ul></div>';
+    }
+
+    if (data.recommendations && data.recommendations.length) {
+      html += '<div class="yb-social__ai-insight-section"><h4>💡 ' + t('social_ai_recommendations') + '</h4>';
+      data.recommendations.forEach(function (r) {
+        var prioClass = r.priority === 'high' ? 'yb-social__ai-priority--high' : r.priority === 'low' ? 'yb-social__ai-priority--low' : '';
+        html += '<div class="yb-social__ai-recommendation"><span class="yb-social__ai-priority ' + prioClass + '">' + (r.priority || 'medium') + '</span>' +
+          '<strong>' + escapeHtml(r.action) + '</strong><p class="yb-admin__muted">' + escapeHtml(r.reason) + '</p></div>';
+      });
+      html += '</div>';
+    }
+
+    if (bodyEl) bodyEl.innerHTML = html;
   }
 
   function switchInboxTab(tab) {
@@ -1651,6 +2135,7 @@
     else if (action === 'social-connect-cancel') closeConnectModal();
     else if (action === 'social-disconnect') disconnectAccount(btn.getAttribute('data-platform'));
     else if (action === 'social-refresh-accounts') refreshAccounts();
+    else if (action === 'social-init-cdn-folders') initCdnFolders();
 
     // Calendar
     else if (action === 'social-cal-prev') {
@@ -1682,6 +2167,17 @@
     else if (action === 'social-delete-post') deletePost(btn.getAttribute('data-id'));
     else if (action === 'social-duplicate-post') duplicatePost(btn.getAttribute('data-id'));
     else if (action === 'social-publish-now') publishNow(btn.getAttribute('data-id'));
+    else if (action === 'social-submit-review') submitForReview(btn.getAttribute('data-id'));
+    else if (action === 'social-approve-post') approvePost(btn.getAttribute('data-id'));
+    else if (action === 'social-recycle-post') recyclePost(btn.getAttribute('data-id'));
+
+    // Bulk actions
+    else if (action === 'social-toggle-select') togglePostSelect(btn.getAttribute('data-id'));
+    else if (action === 'social-bulk-schedule') bulkSchedule();
+    else if (action === 'social-bulk-approve') bulkApprove();
+    else if (action === 'social-bulk-duplicate') bulkDuplicate();
+    else if (action === 'social-bulk-delete') bulkDelete();
+    else if (action === 'social-bulk-clear') clearSelection();
 
     // Hashtags
     else if (action === 'social-new-hashtag-set') showHashtagForm(null);
@@ -1702,6 +2198,19 @@
     else if (action === 'social-inbox-open-conversation') openConversationThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
     else if (action === 'social-inbox-close-thread') closeThread();
     else if (action === 'social-inbox-send-reply') sendReply();
+    else if (action === 'social-ai-draft-reply') aiDraftReply();
+    else if (action === 'social-ai-use-reply') useAiReply(btn.getAttribute('data-index'));
+    else if (action === 'social-inbox-create-lead') createLeadFromInbox();
+
+    // AI Content Planner
+    else if (action === 'social-ai-plan') { var m = $('yb-social-ai-plan-modal'); if (m) m.hidden = false; }
+    else if (action === 'social-ai-plan-close') { var m = $('yb-social-ai-plan-modal'); if (m) m.hidden = true; }
+    else if (action === 'social-ai-plan-generate') aiGeneratePlan();
+    else if (action === 'social-ai-plan-create-post') aiPlanCreatePost(btn.getAttribute('data-index'));
+
+    // AI Analytics Insights
+    else if (action === 'social-ai-insights') aiGetInsights();
+    else if (action === 'social-ai-insights-close') { var p = $('yb-social-ai-insights-panel'); if (p) p.hidden = true; }
 
     // Templates
     else if (action === 'social-template-create') createTemplate();
@@ -1742,11 +2251,19 @@
     }
   });
 
-  // Analytics range change
+  // Analytics range change + bulk select checkboxes
   document.addEventListener('change', function (e) {
     if (e.target.id === 'yb-social-analytics-range') {
       state.analyticsRange = parseInt(e.target.value) || 30;
       loadAnalytics();
+    }
+    if (e.target.id === 'yb-social-select-all') {
+      toggleSelectAll();
+    }
+    // Individual post checkbox
+    if (e.target.getAttribute && e.target.getAttribute('data-action') === 'social-toggle-select') {
+      togglePostSelect(e.target.getAttribute('data-id'));
+      e.stopPropagation();
     }
   });
 
