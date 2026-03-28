@@ -104,13 +104,22 @@
   /* ═══ OPEN / CLOSE ═══ */
   function openStudio(postId) {
     S = window._ybSocial;
+    if (typeof fabric === 'undefined') {
+      alert('Fabric.js is still loading. Please try again in a moment.');
+      return;
+    }
     studio.pendingPostId = postId || null;
     var modal = $('yb-social-design-modal');
     if (!modal) return;
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
-    initCanvas();
-    loadTemplates();
+    // Delay canvas init to allow the modal to lay out first
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        initCanvas();
+        loadTemplates();
+      });
+    });
   }
 
   function closeStudio() {
@@ -133,19 +142,30 @@
     var canvasEl = $('yb-design-canvas');
     if (!canvasEl) return;
 
-    // Calculate scale to fit container
-    var container = $('yb-design-canvas-wrap');
-    if (container) {
-      var maxW = container.clientWidth - 20;
-      var maxH = container.clientHeight - 20;
-      SCALE = Math.min(maxW / p.w, maxH / p.h, 0.6);
+    // Dispose previous canvas first
+    if (studio.canvas) {
+      studio.canvas.dispose();
+      studio.canvas = null;
     }
 
-    canvasEl.width = p.w;
-    canvasEl.height = p.h;
+    // Reset the canvas element — Fabric.dispose() removes the original,
+    // so we need to re-create it inside our inner wrapper
+    var inner = document.querySelector('.yb-social__design-canvas-inner');
+    if (!inner) return;
+    inner.innerHTML = '<canvas id="yb-design-canvas"></canvas>';
+    canvasEl = $('yb-design-canvas');
 
-    if (studio.canvas) studio.canvas.dispose();
+    // Calculate scale based on the canvas AREA (the flex:1 center column),
+    // not the wrap div which hasn't been sized yet
+    var area = document.querySelector('.yb-social__design-canvas-area');
+    if (area) {
+      var maxW = area.clientWidth - 60;
+      var maxH = area.clientHeight - 60;
+      SCALE = Math.min(maxW / p.w, maxH / p.h, 0.55);
+      if (SCALE <= 0) SCALE = 0.4; // safety fallback
+    }
 
+    // Create Fabric canvas
     studio.canvas = new fabric.Canvas('yb-design-canvas', {
       width: p.w,
       height: p.h,
@@ -153,19 +173,20 @@
       preserveObjectStacking: true
     });
 
-    // Apply scale via CSS
-    var wrapInner = canvasEl.parentElement;
-    if (wrapInner) {
-      wrapInner.style.transform = 'scale(' + SCALE + ')';
-      wrapInner.style.transformOrigin = 'top left';
-      wrapInner.style.width = p.w + 'px';
-      wrapInner.style.height = p.h + 'px';
+    // Fabric wraps the canvas in a .canvas-container div.
+    // We scale that container via CSS transform.
+    var fabricWrap = canvasEl.parentElement; // .canvas-container created by Fabric
+    if (fabricWrap) {
+      fabricWrap.style.transform = 'scale(' + SCALE + ')';
+      fabricWrap.style.transformOrigin = 'top left';
     }
 
-    // Set container size
-    if (container) {
-      container.style.width = Math.round(p.w * SCALE) + 'px';
-      container.style.height = Math.round(p.h * SCALE) + 'px';
+    // Size the outer wrap to the scaled dimensions so the layout is correct
+    var wrap = $('yb-design-canvas-wrap');
+    if (wrap) {
+      wrap.style.width = Math.round(p.w * SCALE) + 'px';
+      wrap.style.height = Math.round(p.h * SCALE) + 'px';
+      wrap.style.overflow = 'hidden';
     }
 
     // Events
@@ -176,8 +197,11 @@
     studio.canvas.on('object:added', function () { studio.dirty = true; renderLayers(); });
     studio.canvas.on('object:removed', function () { studio.dirty = true; renderLayers(); });
 
-    // Keyboard shortcuts
-    document.addEventListener('keydown', onKeydown);
+    // Keyboard shortcuts — only add once
+    if (!studio._keydownBound) {
+      document.addEventListener('keydown', onKeydown);
+      studio._keydownBound = true;
+    }
 
     updatePresetButtons();
     renderLayers();
@@ -785,11 +809,18 @@
       overlay.appendChild(el);
     });
 
-    // Insert overlay into the canvas-inner div (same coordinate space)
-    var inner = wrap.querySelector('.yb-social__design-canvas-inner');
-    if (inner) {
-      inner.style.position = 'relative';
-      inner.appendChild(overlay);
+    // Insert overlay into the Fabric canvas container (same coordinate space)
+    var fabricContainer = wrap.querySelector('.canvas-container');
+    if (fabricContainer) {
+      fabricContainer.style.position = 'relative';
+      fabricContainer.appendChild(overlay);
+    } else {
+      // Fallback: append to inner
+      var inner = wrap.querySelector('.yb-social__design-canvas-inner');
+      if (inner) {
+        inner.style.position = 'relative';
+        inner.appendChild(overlay);
+      }
     }
 
     return { overlay: overlay, animTexts: animTexts };
