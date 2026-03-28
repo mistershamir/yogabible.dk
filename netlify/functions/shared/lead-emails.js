@@ -2081,7 +2081,7 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   bodyHtml += i18nBookingCta(lang) + i18nQuestionPrompt(lang);
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // ---- Plain text ----
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2097,7 +2097,7 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   bodyPlain += t.lookingForward;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({
     to: leadData.email,
@@ -2180,7 +2180,7 @@ async function sendMultiFormatEmail(leadData, lang, tokenData) {
   bodyHtml += '<p>' + t.lookingForward + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // ---- Plain text ----
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2201,7 +2201,7 @@ async function sendMultiFormatEmail(leadData, lang, tokenData) {
   bodyPlain += t.lookingForward;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({
     to: leadData.email,
@@ -2269,7 +2269,7 @@ async function sendUndecidedEmail(leadData, lang, tokenData) {
   bodyHtml += '<p>' + u.replyOk + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // Plain text
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2282,7 +2282,7 @@ async function sendUndecidedEmail(leadData, lang, tokenData) {
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
@@ -2308,13 +2308,13 @@ async function sendEmailGenericBilingual(leadData, lang, tokenData = {}) {
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + g.intro.replace(/<[^>]+>/g, '') + '\n\n' +
     g.body + '\n\n' + g.bookLink + ': ' + CONFIG.MEETING_LINK + '\n' + g.visitLink + ': ' + g.visitUrl;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
@@ -2337,13 +2337,13 @@ async function sendMentorshipEmail(leadData, lang, tokenData = {}) {
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + p.intro.replace(/<[^>]+>/g, '').replace('{{service}}', service) + '\n\n' +
     p.description + '\n\n' + t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
@@ -2384,13 +2384,13 @@ async function sendCoursesEmail(leadData, lang, tokenData = {}) {
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + (isBundle ? c.introBundle : c.introSingle).replace(/<[^>]+>/g, '').replace('{{courses}}', courses) + '\n\n';
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
