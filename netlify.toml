@@ -18,6 +18,50 @@
 [functions."live-room-cleanup"]
   schedule = "*/5 * * * *"
 
+# Scheduled function: publish due social media posts every 5 minutes
+[functions."social-schedule"]
+  schedule = "*/5 * * * *"
+
+# Scheduled function: auto-sync social media post metrics every 6 hours
+[functions."social-metric-sync"]
+  schedule = "0 */6 * * *"
+
+# Scheduled function: auto-create draft social posts from new journal entries
+[functions."social-auto-post"]
+  schedule = "*/30 * * * *"
+
+# Scheduled function: social engagement notifications via Telegram
+[functions."social-notifications"]
+  schedule = "0 */2 * * *"
+
+# Scheduled function: weekly social performance digest (Monday 8am UTC)
+[functions."social-weekly-digest"]
+  schedule = "0 8 * * 1"
+
+# Scheduled function: social mentions monitor (every 2 hours)
+[functions."social-mentions"]
+  schedule = "0 */2 * * *"
+
+# Scheduled function: publish scheduled posts (every 5 minutes)
+[functions."social-publish-scheduled"]
+  schedule = "*/5 * * * *"
+
+# Scheduled function: evergreen post recycler (daily 6am UTC)
+[functions."social-recycle"]
+  schedule = "0 6 * * *"
+
+# Scheduled function: post approval & failure Telegram alerts (every 15 minutes)
+[functions."social-notify"]
+  schedule = "*/15 * * * *"
+
+# Scheduled function: competitor metrics refresh (daily 7am UTC)
+[functions."social-competitors"]
+  schedule = "0 7 * * *"
+
+# Scheduled function: A/B test metric sync (every 6 hours)
+[functions."social-ab-sync"]
+  schedule = "0 */6 * * *"
+
 # Redirect www to non-www (301)
 [[redirects]]
   from = "https://www.yogabible.dk/*"

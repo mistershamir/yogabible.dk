@@ -32,6 +32,8 @@ const {
   getPricingSectionHtml
 } = require('./email-service');
 const { getDb } = require('./firestore');
+const { prepareTrackedEmail } = require('./email-tracking');
+
 // Form ID → language map (same as facebook-leads-webhook.js)
 const FORM_LANG_MAP = {
   '827004866473769':  'en',     // july-vinyasa-plus-en (UK)
@@ -48,9 +50,14 @@ const FORM_LANG_MAP = {
 // Shared HTML helpers
 // =========================================================================
 
-function wrapHtml(body) {
-  return '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">' +
+function wrapHtml(body, trackingLeadId, trackingSource) {
+  var html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">' +
     body + '</div>';
+  // Inject email open/click tracking if leadId provided
+  if (trackingLeadId) {
+    html = prepareTrackedEmail(html, trackingLeadId, trackingSource || 'welcome');
+  }
+  return html;
 }
 
 function bookingCta() {
@@ -201,7 +208,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
   try {
     // Waitlist 300h — bilingual, handles lang internally
     if (action === 'lead_waitlist_300h') {
-      const result = await sendWaitlist300hEmail(leadData);
+      const result = await sendWaitlist300hEmail(leadData, tokenData);
       if (result && result.success) {
         await logWelcomeEmail(leadData.email, result.subject || 'Waitlist 300h email');
       }
@@ -240,9 +247,9 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       } else if (action === 'lead_undecided') {
         result = await sendUndecidedEmail(leadData, 'de', tokenData);
       } else if (action === 'lead_courses') {
-        result = await sendCoursesEmail(leadData, 'de');
+        result = await sendCoursesEmail(leadData, 'de', tokenData);
       } else if (action === 'lead_mentorship') {
-        result = await sendMentorshipEmail(leadData, 'de');
+        result = await sendMentorshipEmail(leadData, 'de', tokenData);
       } else if (programKeyMap[action]) {
         result = await sendProgramEmail(leadData, programKeyMap[action], 'de', tokenData);
       } else if (action === 'lead_meta' && leadData.type === 'ytt') {
@@ -250,7 +257,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         if (!i18n.PROGRAMS[metaKey]) metaKey = '4-week';
         result = await sendProgramEmail(leadData, metaKey, 'de', tokenData);
       } else {
-        result = await sendEmailGenericBilingual(leadData, 'de');
+        result = await sendEmailGenericBilingual(leadData, 'de', tokenData);
       }
       if (result && result.success) {
         await logWelcomeEmail(leadData.email, result.subject || 'Welcome email (DE)');
@@ -281,9 +288,9 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       } else if (action === 'lead_undecided') {
         result = await sendUndecidedEmail(leadData, 'en', tokenData);
       } else if (action === 'lead_courses') {
-        result = await sendCoursesEmail(leadData, 'en');
+        result = await sendCoursesEmail(leadData, 'en', tokenData);
       } else if (action === 'lead_mentorship') {
-        result = await sendMentorshipEmail(leadData, 'en');
+        result = await sendMentorshipEmail(leadData, 'en', tokenData);
       } else if (programKeyMap[action]) {
         result = await sendProgramEmail(leadData, programKeyMap[action], 'en', tokenData);
       } else if (action === 'lead_meta' && leadData.type === 'ytt') {
@@ -292,7 +299,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         if (!i18n.PROGRAMS[metaKey]) metaKey = '4-week';
         result = await sendProgramEmail(leadData, metaKey, 'en', tokenData);
       } else {
-        result = await sendEmailGenericBilingual(leadData, 'en');
+        result = await sendEmailGenericBilingual(leadData, 'en', tokenData);
       }
       if (result && result.success) {
         await logWelcomeEmail(leadData.email, result.subject || 'Welcome email (EN)');
@@ -333,38 +340,45 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         result = await sendEmailMultiYTT(leadData, tokenData);
         break;
       case 'lead_schedule_300h':
-        result = await sendEmail300hYTT(leadData);
+        result = await sendEmail300hYTT(leadData, tokenData);
         break;
       case 'lead_waitlist_300h':
-        result = await sendWaitlist300hEmail(leadData);
+        result = await sendWaitlist300hEmail(leadData, tokenData);
         break;
       case 'lead_schedule_50h':
       case 'lead_schedule_30h':
-        result = await sendEmailSpecialtyYTT(leadData);
+        result = await sendEmailSpecialtyYTT(leadData, tokenData);
         break;
       case 'lead_courses':
-        result = await sendEmailCourses(leadData);
+        result = await sendEmailCourses(leadData, tokenData);
         break;
       case 'lead_mentorship':
-        result = await sendEmailMentorship(leadData);
+        result = await sendEmailMentorship(leadData, tokenData);
         break;
       case 'lead_undecided':
         result = await sendEmailUndecidedYTT(leadData, tokenData);
         break;
       case 'lead_meta':
-        result = await sendEmailGeneric(leadData);
+        result = await sendEmailGeneric(leadData, tokenData);
         break;
       case 'contact':
-        result = await sendEmailGeneric(leadData);
+        result = await sendEmailGeneric(leadData, tokenData);
         break;
       default:
-        result = await sendEmailGeneric(leadData);
+        result = await sendEmailGeneric(leadData, tokenData);
         break;
     }
 
-    // Log to email_log
+    // Log to email_log + record sent timestamp on lead for timing signals
     if (result && result.success) {
       await logWelcomeEmail(leadData.email, result.subject || 'Welcome email');
+      if (tokenData && tokenData.leadId) {
+        const db = getDb();
+        db.collection('leads').doc(tokenData.leadId).update({
+          welcome_email_sent_at: new Date(),
+          'email_engagement.welcome_sent_at': new Date()
+        }).catch(() => {});
+      }
     }
 
     return result;
@@ -450,7 +464,7 @@ async function sendEmail4wYTT(leadData, tokenData = {}) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
   return { ...result, subject };
@@ -525,7 +539,7 @@ async function sendEmail4wJulyYTT(leadData, tokenData = {}) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
   return { ...result, subject };
@@ -1196,7 +1210,7 @@ async function sendEmail8wYTT(leadData, tokenData = {}) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain,
   });
   return { ...result, subject };
@@ -1278,7 +1292,7 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain,
   });
   return { ...result, subject };
@@ -1350,7 +1364,7 @@ async function sendEmail18wAugYTT(leadData, tokenData = {}) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain,
   });
   return { ...result, subject };
@@ -1531,7 +1545,7 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
   return { ...result, subject };
@@ -1664,7 +1678,7 @@ async function sendEmailUndecidedYTT(leadData, tokenData = {}) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
   return { ...result, subject };
@@ -1674,7 +1688,7 @@ async function sendEmailUndecidedYTT(leadData, tokenData = {}) {
 // 300h Advanced YTT Email
 // =========================================================================
 
-async function sendEmail300hYTT(leadData) {
+async function sendEmail300hYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const program = leadData.program || '300-Hour Advanced YTT';
   const subject = 'Din foresp\u00f8rgsel \u2014 300-timers avanceret yogal\u00e6reruddannelse';
@@ -1703,7 +1717,7 @@ async function sendEmail300hYTT(leadData) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain,
     attachments: attachment ? [attachment] : []
   });
@@ -1714,7 +1728,7 @@ async function sendEmail300hYTT(leadData) {
 // 300h Waitlist Confirmation Email (Bilingual)
 // =========================================================================
 
-async function sendWaitlist300hEmail(leadData) {
+async function sendWaitlist300hEmail(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const lang = (leadData.lang || 'da').toLowerCase();
   const isEn = lang === 'en';
@@ -1772,7 +1786,7 @@ async function sendWaitlist300hEmail(leadData) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
   return { ...result, subject };
@@ -1782,7 +1796,7 @@ async function sendWaitlist300hEmail(leadData) {
 // Specialty YTT Email (50h, 30h)
 // =========================================================================
 
-async function sendEmailSpecialtyYTT(leadData) {
+async function sendEmailSpecialtyYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const program = leadData.program || 'Specialty Teacher Training';
   const specialty = leadData.subcategories || '';
@@ -1802,7 +1816,7 @@ async function sendEmailSpecialtyYTT(leadData) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
   return { ...result, subject };
@@ -1812,7 +1826,7 @@ async function sendEmailSpecialtyYTT(leadData) {
 // Courses Email
 // =========================================================================
 
-async function sendEmailCourses(leadData) {
+async function sendEmailCourses(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const courses = leadData.program || '';
   const preferredMonth = leadData.preferred_month || leadData.cohort_label || '';
@@ -1885,7 +1899,7 @@ async function sendEmailCourses(leadData) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain,
     attachments: attachment ? [attachment] : []
   });
@@ -1896,7 +1910,7 @@ async function sendEmailCourses(leadData) {
 // Mentorship Email
 // =========================================================================
 
-async function sendEmailMentorship(leadData) {
+async function sendEmailMentorship(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const service = leadData.service || 'Mentorship';
   const subcategories = leadData.subcategories || '';
@@ -1917,7 +1931,7 @@ async function sendEmailMentorship(leadData) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
   return { ...result, subject };
@@ -2088,7 +2102,7 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   var result = await sendRawEmail({
     to: leadData.email,
     subject: subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
   return { ...result, subject: subject };
@@ -2192,7 +2206,7 @@ async function sendMultiFormatEmail(leadData, lang, tokenData) {
   var result = await sendRawEmail({
     to: leadData.email,
     subject: subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
   return { ...result, subject: subject };
@@ -2270,14 +2284,14 @@ async function sendUndecidedEmail(leadData, lang, tokenData) {
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
   bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
 
-  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });
+  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
 }
 
 /**
  * Generic / Contact email — bilingual
  */
-async function sendEmailGenericBilingual(leadData, lang) {
+async function sendEmailGenericBilingual(leadData, lang, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const t = i18n.SHARED[lang] || i18n.SHARED.en;
   const g = (i18n.PROGRAMS['generic'] || {})[lang] || i18n.PROGRAMS['generic'].en;
@@ -2302,14 +2316,14 @@ async function sendEmailGenericBilingual(leadData, lang) {
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
   bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
 
-  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });
+  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
 }
 
 /**
  * Mentorship email — bilingual
  */
-async function sendMentorshipEmail(leadData, lang) {
+async function sendMentorshipEmail(leadData, lang, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const t = i18n.SHARED[lang] || i18n.SHARED.en;
   const p = (i18n.PROGRAMS['mentorship'] || {})[lang] || i18n.PROGRAMS['mentorship'].en;
@@ -2331,14 +2345,14 @@ async function sendMentorshipEmail(leadData, lang) {
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
   bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
 
-  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });
+  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
 }
 
 /**
  * Courses email — bilingual
  */
-async function sendCoursesEmail(leadData, lang) {
+async function sendCoursesEmail(leadData, lang, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const t = i18n.SHARED[lang] || i18n.SHARED.en;
   const c = (i18n.PROGRAMS['courses'] || {})[lang] || i18n.PROGRAMS['courses'].en;
@@ -2378,11 +2392,11 @@ async function sendCoursesEmail(leadData, lang) {
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
   bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
 
-  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml), text: bodyPlain });
+  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
 }
 
-async function sendEmailGeneric(leadData) {
+async function sendEmailGeneric(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const subject = 'Tak for din henvendelse \u2014 Yoga Bible';
 
@@ -2402,7 +2416,7 @@ async function sendEmailGeneric(leadData) {
   const result = await sendRawEmail({
     to: leadData.email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
   return { ...result, subject };
@@ -2427,7 +2441,7 @@ async function sendApplicationConfirmation(email, applicationId, firstName) {
   const result = await sendRawEmail({
     to: email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
 
@@ -2454,7 +2468,7 @@ async function sendCareersConfirmation(email, firstName, category, role) {
   const result = await sendRawEmail({
     to: email,
     subject,
-    html: wrapHtml(bodyHtml),
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
     text: bodyPlain
   });
 

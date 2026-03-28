@@ -1545,3 +1545,73 @@ When you create a new page, follow this order:
 10. **Photography page uses dark cinematic layouts** from section 31 — dark backgrounds, editorial grids
 11. **Model showcase cards** must include: name, bio, social links, 1 portrait + featured yoga photos — use section 32 variations
 12. **Scroll-draw vines** are a brand element — use across landing pages for visual storytelling. Variation B should be custom-pathed to touch keywords on each specific page
+
+---
+
+## Social Media Platform Credentials
+
+### TikTok Developer App
+
+- **App Name:** Yoga Bible DK
+- **Organization:** Yoga Bible
+- **Organization ID:** `7621584075303699477`
+- **Client Key:** `aw0ak2eupqflz21x`
+- **Client Secret:** `dxz3xIbgqPEw980FWUaGDeuRh15LxTfb`
+- **Platform:** Web
+- **Required Scopes:** `video.publish`, `video.upload`, `user.info.basic`
+- **Required Products:** Content Posting API, TikTok Account
+- **Verified Domains:** `yogabible.dk`, `yogabible.com` (DNS TXT record method)
+- **DNS TXT Record:** `tiktok-developers-site-verification=Ak7sI4jD9mUC9h2a44GZ6iY0s9dzpDiR` (root domain, no hostname prefix)
+- **Terms URL:** `https://yogabible.dk/terms-conditions/`
+- **Privacy URL:** `https://yogabible.dk/privacy-policy/`
+- **Status:** Pending review (submitted March 2026)
+- **Admin UI:** `/admin/` → Social → Accounts → TikTok → paste access token
+- **Note:** Domain verification covers all subdomains (www included). No need to verify www separately.
+
+### Meta (Instagram + Facebook) App
+
+- **App Name:** Yoga Bible (same app for both IG and FB)
+- **App ID:** `911693838016427`
+- **App Secret:** `957ea128eb84074709c6ceba8a0103cd`
+- **Facebook Page ID:** `878172732056415`
+- **Facebook Page Name:** Yoga Bible
+- **IG Business Account ID:** `17841474697451627`
+- **Page Access Token (never expires):** stored in Firestore `social_accounts` collection
+- **Permissions:** `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`, `instagram_manage_messages`, `instagram_manage_insights`, `pages_manage_posts`, `pages_read_engagement`, `pages_show_list`, `pages_manage_metadata`, `ads_management`, `ads_read`, `business_management`, `leads_retrieval`, `whatsapp_business_messaging`, `whatsapp_business_management`
+- **Admin UI:** `/admin/` → Social → Accounts → Instagram/Facebook → paste access token + IDs
+- **Token refresh:** Page tokens never expire. If permissions change, regenerate via Graph API Explorer → exchange short→long-lived → get page token via `/me/accounts`
+
+### LinkedIn Developer App
+
+- **App Name:** Yoga Bible
+- **Client ID:** `78eu35dic8g09s`
+- **Client Secret:** `WPL_AP1.kAu04Qag3m5MCtfV.18Uzsw==`
+- **Organization ID:** `109163211`
+- **Company Page:** `https://www.linkedin.com/company/109163211/`
+- **Products:** Share on LinkedIn, Sign In with LinkedIn using OpenID Connect
+- **Scopes:** `w_member_social`, `openid`, `profile` (org scopes pending page verification)
+- **Token expires:** ~60 days
+- **Redirect URI:** `https://yogabible.dk/admin/`
+- **Admin UI:** `/admin/` → Social → Accounts → LinkedIn → paste access token + Organization ID
+
+### YouTube (Google Cloud OAuth)
+
+- **Google Cloud Project:** YogaBibleNetlifyProject (Project ID: `yogabiblenetlifyproject`)
+- **Organization:** yogabible.dk
+- **OAuth Client ID:** `969617587598-u23upn58qi3l3i1dgqm4en1th9kel602.apps.googleusercontent.com`
+- **OAuth Client Secret:** `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`
+- **Redirect URI:** `https://yogabible.dk/admin/`
+- **Required Scopes:** `https://www.googleapis.com/auth/youtube.upload`, `https://www.googleapis.com/auth/youtube.readonly`
+- **API Enabled:** YouTube Data API v3
+- **Consent screen:** Internal (yogabible.dk org only, no verification needed)
+- **Admin UI:** `/admin/` → Social → Accounts → YouTube → paste access token + refresh token + Channel ID
+
+### Pinterest Developer App
+
+- **App Name:** Yoga Bible
+- **App ID:** `1556643`
+- **Platform:** Web
+- **Required Scopes:** `pins:read`, `pins:write`, `boards:read`, `user_accounts:read`
+- **Status:** Trial access pending
+- **Domain Verification:** Meta tag added to `head.njk` (`p:domain_verify`)
+- **Admin UI:** `/admin/` → Social → Accounts → Pinterest → paste access token

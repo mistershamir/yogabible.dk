@@ -721,6 +721,99 @@
     }
   }
 
+  /**
+   * Compute dynamic heat score (1-5) from all available lead signals.
+   * Combines: form_score, pre-lead journey, email engagement, site engagement.
+   */
+  function computeLeadHeat(l) {
+    var score = 0;
+    // Form score (0-7, normalize to 0-2)
+    var fs = l.form_score || 0;
+    if (fs >= 4) score += 2;
+    else if (fs >= 2) score += 1;
+
+    // Pre-lead journey (0-2)
+    var plj = l.pre_lead_journey || {};
+    if (plj.total_sessions >= 3 && plj.viewed_schedule) score += 2;
+    else if (plj.total_sessions >= 2 || plj.return_visitor) score += 1;
+
+    // Email engagement (0-3)
+    var ee = l.email_engagement || {};
+    if (ee.total_clicks >= 3) score += 3;
+    else if (ee.welcome_clicked || ee.total_clicks >= 1) score += 2;
+    else if (ee.welcome_opened || ee.total_opens >= 2) score += 1;
+
+    // Post-lead site engagement (0-3)
+    var se = l.site_engagement || {};
+    var schedRevisits = se.schedule_revisits || 0;
+    if (schedRevisits >= 2 && se.accommodation_visited) score += 3;
+    else if (schedRevisits >= 1 || se.accommodation_visited) score += 2;
+    else if (se.total_pageviews >= 3) score += 1;
+
+    // Consultation / application intent (bonus)
+    if (se.consultation_booking_clicked || se.application_page_visited) score += 1;
+
+    // Map 0-12 raw score → 1-5 heat
+    if (score >= 8) return 5;
+    if (score >= 6) return 4;
+    if (score >= 4) return 3;
+    if (score >= 2) return 2;
+    return 1;
+  }
+
+  /**
+   * Compute lead status flags from all engagement data.
+   * Returns array of { emoji, label, color, title }.
+   */
+  function computeStatusFlags(l) {
+    var flags = [];
+    var ee = l.email_engagement || {};
+    var se = l.site_engagement || {};
+    var schedRevisits = se.schedule_revisits || 0;
+
+    // 📧 Engaged — opened 2+ emails
+    if ((ee.total_opens || 0) >= 2) {
+      flags.push({ emoji: '\ud83d\udce7', label: 'Engaged', color: '#2E7D32', title: 'Opened ' + ee.total_opens + ' emails' });
+    }
+
+    // 🔄 Returning — revisited site after form
+    if ((se.total_sessions || 0) >= 2) {
+      flags.push({ emoji: '\ud83d\udd04', label: 'Returning', color: '#1565C0', title: se.total_sessions + ' sessions on site' });
+    }
+
+    // 📅 Planning — viewed schedule + accommodation post-lead
+    if (schedRevisits >= 1 && se.accommodation_visited) {
+      flags.push({ emoji: '\ud83d\udcc5', label: 'Planning', color: '#6A1B9A', title: 'Viewed schedule ' + schedRevisits + 'x + accommodation' });
+    }
+
+    // ⏰ Fast responder — opened within 30 min
+    var ttfo = ee.time_to_first_open_min;
+    if (typeof ttfo === 'number' && ttfo <= 30) {
+      flags.push({ emoji: '\u23f0', label: 'Fast', color: '#E65100', title: 'Opened email in ' + ttfo + ' min' });
+    }
+
+    // 🔇 Gone quiet — no activity for 7+ days
+    var lastAct = l.last_activity;
+    if (lastAct) {
+      var lastMs = lastAct.toDate ? lastAct.toDate().getTime() :
+        (lastAct._seconds ? lastAct._seconds * 1000 : new Date(lastAct).getTime());
+      var daysSilent = (Date.now() - lastMs) / (1000 * 60 * 60 * 24);
+      if (daysSilent >= 7) {
+        flags.push({ emoji: '\ud83d\udd07', label: 'Quiet ' + Math.round(daysSilent) + 'd', color: '#9e9e9e', title: 'No activity for ' + Math.round(daysSilent) + ' days' });
+      }
+    } else if (l.created_at) {
+      // No activity ever recorded after lead creation
+      var creMs = l.created_at.toDate ? l.created_at.toDate().getTime() :
+        (l.created_at._seconds ? l.created_at._seconds * 1000 : new Date(l.created_at).getTime());
+      var daysSinceCreate = (Date.now() - creMs) / (1000 * 60 * 60 * 24);
+      if (daysSinceCreate >= 7) {
+        flags.push({ emoji: '\ud83d\udd07', label: 'Silent', color: '#9e9e9e', title: 'No engagement since signup (' + Math.round(daysSinceCreate) + ' days ago)' });
+      }
+    }
+
+    return flags;
+  }
+
   function renderLeadTable() {
     var tbody = $('yb-lead-table-body');
     if (!tbody) return;
@@ -804,6 +897,29 @@
         reEngBadge = ' <span style="color:#f75c03;font-weight:700" title="Came back after ' + reDays + ' days of silence!">\ud83d\udd04</span>';
       }
 
+      // Dynamic heat score badge (combines form, pre-lead, email, site signals)
+      var heatBadge = '';
+      var heatLevel = computeLeadHeat(l);
+      if (heatLevel >= 2) {
+        var fires = '';
+        for (var hi = 0; hi < heatLevel; hi++) fires += '\ud83d\udd25';
+        var heatColor = heatLevel >= 4 ? '#d32f2f' : heatLevel >= 3 ? '#f57c00' : '#fbc02d';
+        var heatTitle = 'Heat ' + heatLevel + '/5';
+        if (l.form_score) heatTitle += ' \u00b7 Form: ' + l.form_score + '/7';
+        var _ee = l.email_engagement || {};
+        if (_ee.total_opens) heatTitle += ' \u00b7 ' + _ee.total_opens + ' opens, ' + (_ee.total_clicks || 0) + ' clicks';
+        var _se = l.site_engagement || {};
+        if (_se.total_pageviews) heatTitle += ' \u00b7 ' + _se.total_pageviews + ' pages';
+        heatBadge = ' <span style="color:' + heatColor + ';font-size:.75rem;" title="' + esc(heatTitle) + '">' + fires + '</span>';
+      }
+
+      // Status flags (inline after heat)
+      var statusFlagsBadge = '';
+      var sFlags = computeStatusFlags(l);
+      sFlags.forEach(function (f) {
+        statusFlagsBadge += ' <span style="color:' + f.color + ';font-size:.7rem;font-weight:600;" title="' + esc(f.title) + '">' + f.emoji + '</span>';
+      });
+
       // Notes count
       var notesCount = Array.isArray(l.notes) ? l.notes.length : 0;
 
@@ -819,7 +935,7 @@
         '<td class="yb-lead__cell-name">' +
           priorityBadgeHtml(l.priority) +
           esc((l.first_name || '') + ' ' + (l.last_name || '')).trim() +
-          unreadBadge + reEngBadge + schedBadge + emailBadge + siteBadge +
+          unreadBadge + heatBadge + statusFlagsBadge + reEngBadge + schedBadge + emailBadge + siteBadge +
         '</td>' +
         '<td class="yb-lead__cell-contact">' +
           '<div class="yb-lead__cell-email-text">' + esc(l.email || '') +
@@ -1360,6 +1476,46 @@
     '</div>';
     html += '</div>'; // end card 1
 
+    // Card 1b: Lead Intelligence (heat + form score + status flags)
+    var detailHeat = computeLeadHeat(l);
+    var detailFlags = computeStatusFlags(l);
+    if (detailHeat >= 2 || detailFlags.length > 0 || l.form_score) {
+      html += '<div class="yb-lead__section-card">';
+      html += '<h4 class="yb-lead__card-title" style="color:#d32f2f;">LEAD INTELLIGENCE</h4>';
+
+      // Heat score visual
+      var heatFires = '';
+      for (var hfi = 0; hfi < 5; hfi++) heatFires += hfi < detailHeat ? '\ud83d\udd25' : '\u2b1c';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Heat Score</span>' +
+        '<span class="yb-lead__card-value" style="font-size:1.1rem;">' + heatFires + ' <strong>' + detailHeat + '/5</strong></span>' +
+      '</div>';
+
+      // Form score
+      if (l.form_score) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Form Quality</span>' +
+          '<span class="yb-lead__card-value"><strong>' + l.form_score + '</strong>/7</span>' +
+        '</div>';
+      }
+
+      // Status flags
+      if (detailFlags.length > 0) {
+        html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">';
+        detailFlags.forEach(function (f) {
+          html += '<span class="yb-lead__badge" style="background:' +
+            (f.color === '#2E7D32' ? '#E8F5E9' : f.color === '#1565C0' ? '#E3F2FD' :
+             f.color === '#6A1B9A' ? '#F3E5F5' : f.color === '#E65100' ? '#FFF3E0' :
+             f.color === '#9e9e9e' ? '#F5F5F5' : '#FFF3E0') +
+            ';color:' + f.color + ';padding:4px 10px;font-size:.78rem;">' +
+            f.emoji + ' ' + esc(f.label) + '</span>';
+        });
+        html += '</div>';
+      }
+
+      html += '</div>'; // end card 1b
+    }
+
     // Card 2: Program Details
     html += '<div class="yb-lead__section-card">';
     html += '<h4 class="yb-lead__card-title">PROGRAM DETAILS</h4>';
@@ -1549,14 +1705,46 @@
     if (ee && (ee.total_opens || ee.total_clicks)) {
       html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
       html += '<h4 class="yb-lead__card-title">EMAIL ENGAGEMENT</h4>';
+
+      // Welcome email row
+      if (ee.welcome_opened) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">\u2709\ufe0f Welcome Email</span>' +
+          '<span class="yb-lead__card-value" style="color:#2E7D32;font-weight:600;">Opened' +
+            (ee.welcome_clicked ? ' + Clicked' : '') +
+          '</span></div>';
+      }
+      // Time to first open
+      if (typeof ee.time_to_first_open_min === 'number') {
+        var ttfo = ee.time_to_first_open_min;
+        var ttfoText = ttfo < 60 ? ttfo + ' min' : Math.round(ttfo / 60) + 'h ' + (ttfo % 60) + 'm';
+        var ttfoColor = ttfo <= 30 ? '#2E7D32' : ttfo <= 120 ? '#f57c00' : '#6F6A66';
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">\u23f1 Time to First Open</span>' +
+          '<span class="yb-lead__card-value" style="color:' + ttfoColor + ';font-weight:600;">' + ttfoText + '</span>' +
+        '</div>';
+      }
+
       html += '<div class="yb-lead__card-row">' +
-        '<span class="yb-lead__card-label">Opens</span>' +
-        '<span class="yb-lead__card-value"><strong>' + (ee.total_opens || 0) + '</strong></span>' +
-      '</div>';
+        '<span class="yb-lead__card-label">Total Opens</span>' +
+        '<span class="yb-lead__card-value"><strong>' + (ee.total_opens || 0) + '</strong>' +
+          (ee.sequence_opens ? ' <span style="font-size:.72rem;color:#6F6A66;">(seq: ' + ee.sequence_opens + ')</span>' : '') +
+        '</span></div>';
       html += '<div class="yb-lead__card-row">' +
-        '<span class="yb-lead__card-label">Clicks</span>' +
-        '<span class="yb-lead__card-value"><strong>' + (ee.total_clicks || 0) + '</strong></span>' +
-      '</div>';
+        '<span class="yb-lead__card-label">Total Clicks</span>' +
+        '<span class="yb-lead__card-value"><strong>' + (ee.total_clicks || 0) + '</strong>' +
+          (ee.sequence_clicks ? ' <span style="font-size:.72rem;color:#6F6A66;">(seq: ' + ee.sequence_clicks + ')</span>' : '') +
+        '</span></div>';
+
+      // Days active
+      var activeDates = ee.active_dates || [];
+      if (activeDates.length > 0) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Days Active</span>' +
+          '<span class="yb-lead__card-value"><strong>' + activeDates.length + '</strong> distinct days</span>' +
+        '</div>';
+      }
+
       if (ee.last_opened) {
         html += '<div class="yb-lead__card-row">' +
           '<span class="yb-lead__card-label">Last Opened</span>' +
@@ -1622,6 +1810,30 @@
           }).join(' ') + '</span>' +
         '</div>';
       }
+      // Post-lead key page flags
+      var keyPageBadges = [];
+      if (ste.schedule_revisits) keyPageBadges.push({ bg: '#E8F5E9', color: '#2E7D32', text: '\ud83d\udcc5 Schedule (' + ste.schedule_revisits + 'x)' });
+      if (ste.accommodation_visited) keyPageBadges.push({ bg: '#FFF3E0', color: '#E65100', text: '\ud83c\udfe0 Accommodation' });
+      if (ste.prep_phase_page_visited) keyPageBadges.push({ bg: '#FCE4EC', color: '#C62828', text: '\ud83d\udcb0 Checkout page' });
+      if (ste.consultation_booking_clicked) keyPageBadges.push({ bg: '#E0F7FA', color: '#00695C', text: '\ud83d\udcc6 Booking' });
+      if (ste.application_page_visited) keyPageBadges.push({ bg: '#F3E5F5', color: '#6A1B9A', text: '\ud83d\udcdd Application' });
+      if (keyPageBadges.length > 0) {
+        html += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">';
+        keyPageBadges.forEach(function (b) {
+          html += '<span class="yb-lead__badge" style="background:' + b.bg + ';color:' + b.color + ';">' + b.text + '</span>';
+        });
+        html += '</div>';
+      }
+
+      // Days active (site)
+      var siteActiveDates = ste.active_dates || [];
+      if (siteActiveDates.length > 0) {
+        html += '<div class="yb-lead__card-row" style="margin-top:6px;">' +
+          '<span class="yb-lead__card-label">Days Active on Site</span>' +
+          '<span class="yb-lead__card-value"><strong>' + siteActiveDates.length + '</strong> distinct days</span>' +
+        '</div>';
+      }
+
       // Top pages
       var sitePages = ste.pages || {};
       var spSlugs = Object.keys(sitePages).sort(function (a, b) {
@@ -1681,6 +1893,78 @@
         '</div>';
       });
       html += '</div>'; // end card 7
+    }
+
+    // Card 8: Pre-Lead Journey (anonymous browsing before signup)
+    var plj = l.pre_lead_journey;
+    if (plj) {
+      html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+      var heatFires = '';
+      var hScore = l.lead_heat || 0;
+      for (var hfi = 0; hfi < 5; hfi++) heatFires += hfi < hScore ? '\ud83d\udd25' : '\u2b1c';
+      html += '<h4 class="yb-lead__card-title" style="color:#d32f2f;">' + heatFires + ' PRE-LEAD JOURNEY (Heat ' + hScore + '/5)</h4>';
+
+      // Summary line
+      var summaryParts = [];
+      if (plj.total_sessions) summaryParts.push(plj.total_sessions + ' session' + (plj.total_sessions > 1 ? 's' : ''));
+      if (plj.total_pageviews) summaryParts.push(plj.total_pageviews + ' page' + (plj.total_pageviews > 1 ? 's' : ''));
+      if (plj.days_before_signup) summaryParts.push('over ' + plj.days_before_signup + ' day' + (plj.days_before_signup > 1 ? 's' : ''));
+      if (summaryParts.length > 0) {
+        html += '<div style="font-size:.85rem;margin-bottom:8px;color:#333;">Visited ' + summaryParts.join(', ') + ' before signing up</div>';
+      }
+
+      // Return visitor badge
+      if (plj.return_visitor) {
+        html += '<span class="yb-lead__badge" style="background:#E3F2FD;color:#1565C0;margin-right:6px;">\u21a9\ufe0f Return Visitor</span>';
+      }
+
+      // Key page badges
+      if (plj.viewed_schedule) {
+        html += '<span class="yb-lead__badge" style="background:#E8F5E9;color:#2E7D32;margin-right:6px;">\ud83d\udcc5 Schedule</span>';
+      }
+      if (plj.viewed_accommodation) {
+        html += '<span class="yb-lead__badge" style="background:#FFF3E0;color:#E65100;margin-right:6px;">\ud83c\udfe0 Accommodation</span>';
+      }
+      if (plj.viewed_copenhagen) {
+        html += '<span class="yb-lead__badge" style="background:#E0F7FA;color:#00695C;margin-right:6px;">\ud83c\udf0d Copenhagen</span>';
+      }
+      if (plj.viewed_pricing) {
+        html += '<span class="yb-lead__badge" style="background:#FCE4EC;color:#C62828;margin-right:6px;">\ud83d\udcb0 Pricing</span>';
+      }
+      if (plj.viewed_application) {
+        html += '<span class="yb-lead__badge" style="background:#F3E5F5;color:#6A1B9A;margin-right:6px;">\ud83d\udcdd Application</span>';
+      }
+
+      // Attribution
+      if (plj.attribution) {
+        var attrParts = [];
+        if (plj.attribution.utm_source) attrParts.push('Source: ' + plj.attribution.utm_source);
+        if (plj.attribution.utm_medium) attrParts.push('Medium: ' + plj.attribution.utm_medium);
+        if (plj.attribution.utm_campaign) attrParts.push('Campaign: ' + plj.attribution.utm_campaign);
+        if (plj.attribution.channel) attrParts.push('Channel: ' + plj.attribution.channel);
+        if (attrParts.length > 0) {
+          html += '<div style="font-size:.75rem;color:#6F6A66;margin-top:8px;">' + esc(attrParts.join(' \u00b7 ')) + '</div>';
+        }
+      }
+
+      // Top pages visited
+      var pljPages = plj.pages || {};
+      var pageKeys = Object.keys(pljPages);
+      if (pageKeys.length > 0) {
+        pageKeys.sort(function (a, b) { return (pljPages[b].views || 0) - (pljPages[a].views || 0); });
+        html += '<div style="margin-top:10px;font-size:.78rem;">';
+        html += '<div style="font-weight:600;color:#333;margin-bottom:4px;">Pages visited:</div>';
+        pageKeys.slice(0, 8).forEach(function (pk) {
+          var pg = pljPages[pk];
+          html += '<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #F5F3F0;">' +
+            '<span style="color:#333;">' + esc(pg.title || pg.path || pk) + '</span>' +
+            '<span style="color:#6F6A66;">' + (pg.views || 0) + 'x' + (pg.max_scroll ? ' \u00b7 ' + pg.max_scroll + '% scroll' : '') + '</span>' +
+          '</div>';
+        });
+        html += '</div>';
+      }
+
+      html += '</div>'; // end card 8
     }
 
     html += '</div>'; // end yb-lead__detail-cards wrapper

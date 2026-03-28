@@ -18,6 +18,7 @@ const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 const { detectLeadCountry } = require('./shared/country-detect');
+const { createMilestonePost } = require('./shared/social-sync');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
@@ -66,6 +67,11 @@ exports.handler = async (event) => {
 
     // Write to Firestore
     const db = getDb();
+
+    // Calculate form score from lead answers (0-7)
+    const formScore = calculateFormScore(leadData);
+    if (formScore > 0) leadData.form_score = formScore;
+
     const docRef = await db.collection('leads').add({
       ...leadData,
       created_at: new Date(),
@@ -77,6 +83,14 @@ exports.handler = async (event) => {
     await db.collection('leads').doc(docRef.id).update({
       schedule_token: scheduleTokenForDoc
     });
+
+    // Identity stitching: merge anonymous browsing history into lead profile
+    const visitorId = payload.visitor_id || payload.visitorId || '';
+    if (visitorId) {
+      stitchAnonymousVisits(db, docRef.id, visitorId).catch(err => {
+        console.error('[lead] Anonymous visit stitching error (non-blocking):', err.message);
+      });
+    }
 
     console.log(`[lead] New lead saved: ${docRef.id} (${leadData.email})`);
 
@@ -94,6 +108,11 @@ exports.handler = async (event) => {
     // Auto-add to lead-synced email lists (non-blocking)
     autoAddLeadToLists(db, docRef.id, leadData).catch(err => {
       console.error('[lead] Auto-add to email list error (non-blocking):', err.message);
+    });
+
+    // Social media: create milestone post every 10 new leads (non-blocking)
+    checkLeadBatchMilestone(db, leadData).catch(err => {
+      console.error('[lead] Social milestone error (non-blocking):', err.message);
     });
 
     const response = jsonResponse(200, { ok: true, message: 'Request received successfully' });
@@ -147,6 +166,29 @@ function wrapCallback(callback, response) {
     headers: { 'Content-Type': 'application/javascript' },
     body: `${callback}(${response.body});`
   };
+}
+
+/**
+ * Check if we've hit a lead batch milestone and create a social post.
+ * Creates a post every 10 new leads (checking 7-day window).
+ */
+async function checkLeadBatchMilestone(db, leadData) {
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const recentSnap = await db.collection('leads')
+    .where('created', '>=', weekAgo)
+    .select()
+    .get();
+
+  const count = recentSnap.size;
+  // Only trigger at multiples of 10
+  if (count > 0 && count % 10 === 0) {
+    await createMilestonePost('new_lead_batch', {
+      count,
+      program: leadData.ytt_program_type || 'general',
+      period: '7 days'
+    });
+    console.log(`[lead] Social milestone: ${count} leads this week`);
+  }
 }
 
 /**
@@ -575,6 +617,50 @@ async function getExistingApplicationId(email) {
 }
 
 /**
+ * Calculate a form quality score from lead answers.
+ * Scores accommodation engagement level (0-7 scale, expandable).
+ * - accommodation_plus / "Yes, I need help finding accommodation" = +2 (most engaged)
+ * - accommodation / "Yes" = +1
+ * - self_arranged / lives_in_denmark / lives_in_copenhagen = +0
+ * - city_country provided (international) = +1
+ * - type is ytt = +1
+ * - multi-format interest = +1
+ */
+function calculateFormScore(leadData) {
+  let score = 0;
+
+  // Accommodation signal
+  const acc = (leadData.accommodation || '').toLowerCase();
+  if (acc === 'accommodation_plus' || acc.includes('help finding')) {
+    score += 2;
+  } else if (acc === 'yes' || acc === 'accommodation') {
+    score += 1;
+  }
+
+  // International lead (city/country filled = travelling for training)
+  if (leadData.city_country && leadData.city_country.trim().length > 0) {
+    score += 1;
+  }
+
+  // YTT interest = serious
+  if (leadData.type === 'ytt') {
+    score += 1;
+  }
+
+  // Multi-format interest = exploring, engaged
+  if (leadData.all_formats && leadData.all_formats.includes(',')) {
+    score += 1;
+  }
+
+  // Phone provided = higher intent
+  if (leadData.phone && leadData.phone.trim().length > 4) {
+    score += 1;
+  }
+
+  return Math.min(score, 7);
+}
+
+/**
  * Fire-and-forget notifications when a new lead comes in
  * - Admin notification email
  * - Welcome SMS to the lead
@@ -627,4 +713,113 @@ async function triggerNotifications(leadData, leadDocId, action) {
   }
 
   await Promise.all(promises);
+}
+
+// ── Anonymous visit stitching ─────────────────────────────────────────────────
+
+/**
+ * Merge anonymous browsing history into the lead profile and calculate heat score.
+ * Called when a lead form includes a visitor_id (yb_vid cookie).
+ */
+async function stitchAnonymousVisits(db, leadId, visitorId) {
+  const anonRef = db.collection('anonymous_visits').doc(visitorId);
+  const anonDoc = await anonRef.get();
+  if (!anonDoc.exists) return;
+
+  const anon = anonDoc.data();
+  const pages = anon.pages || {};
+  const visits = anon.visits || [];
+  const ctaClicks = anon.cta_clicks || [];
+
+  // Build pre-lead journey summary
+  const uniquePages = Object.keys(pages);
+  const totalPageviews = anon.total_pageviews || 0;
+  const totalSessions = anon.total_sessions || 0;
+
+  // Calculate days between first visit and now (lead signup)
+  let daysBeforeSignup = 0;
+  if (anon.created_at) {
+    const firstMs = anon.created_at.toDate ? anon.created_at.toDate().getTime() : new Date(anon.created_at).getTime();
+    daysBeforeSignup = Math.max(0, Math.round((Date.now() - firstMs) / (1000 * 60 * 60 * 24)));
+  }
+
+  // Key page flags
+  const allPaths = uniquePages.map(s => (pages[s].path || '').toLowerCase());
+  const viewedSchedule = allPaths.some(p => p.includes('/skema/') || p.includes('/schedule/') || p.includes('/tidsplan/'));
+  const viewedAccommodation = allPaths.some(p => p.includes('/bolig') || p.includes('/accommodation') || p.includes('/housing'));
+  const viewedCopenhagen = allPaths.some(p => p.includes('/koebenhavn') || p.includes('/copenhagen'));
+  const viewedPricing = allPaths.some(p =>
+    p.includes('/4-ugers-') || p.includes('/8-ugers-') || p.includes('/18-ugers-') ||
+    p.includes('/4-week-') || p.includes('/8-week-') || p.includes('/18-week-') ||
+    p.includes('/om-200') || p.includes('/about-200') || p.includes('/priser') || p.includes('/prices')
+  );
+  const viewedJournal = allPaths.some(p => p.includes('/yoga-journal'));
+
+  // Calculate heat score (1-5)
+  let leadHeat = 1;
+  if (totalSessions >= 4 && viewedSchedule && viewedAccommodation) {
+    leadHeat = 5;
+  } else if (totalSessions >= 2 && viewedSchedule) {
+    leadHeat = 4;
+  } else if (totalSessions === 1 && totalPageviews >= 3 && viewedSchedule) {
+    leadHeat = 3;
+  } else if (totalSessions >= 1 && totalPageviews >= 2) {
+    leadHeat = 2;
+  }
+
+  // Merge into lead doc
+  const updates = {
+    // Pre-lead journey summary
+    'pre_lead_journey.visitor_id': visitorId,
+    'pre_lead_journey.total_sessions': totalSessions,
+    'pre_lead_journey.total_pageviews': totalPageviews,
+    'pre_lead_journey.days_before_signup': daysBeforeSignup,
+    'pre_lead_journey.return_visitor': totalSessions > 1,
+    'pre_lead_journey.first_visit': anon.created_at || null,
+    'pre_lead_journey.pages': pages,
+    'pre_lead_journey.visits': visits.slice(-100), // keep last 100 entries
+    'pre_lead_journey.attribution': anon.attribution || null,
+    // Key page flags
+    'pre_lead_journey.viewed_schedule': viewedSchedule,
+    'pre_lead_journey.viewed_accommodation': viewedAccommodation,
+    'pre_lead_journey.viewed_copenhagen': viewedCopenhagen,
+    'pre_lead_journey.viewed_pricing': viewedPricing,
+    'pre_lead_journey.viewed_journal': viewedJournal,
+    // Heat score
+    lead_heat: leadHeat,
+    updated_at: new Date()
+  };
+
+  // Also seed site_engagement from anonymous data so it's immediately visible
+  updates['site_engagement.total_pageviews'] = totalPageviews;
+  updates['site_engagement.total_sessions'] = totalSessions;
+  updates['site_engagement.first_visit'] = anon.created_at || null;
+  updates['site_engagement.last_visit'] = anon.last_visit || null;
+  updates['site_engagement.pages'] = pages;
+  if (ctaClicks.length > 0) {
+    updates['site_engagement.cta_clicks'] = ctaClicks;
+  }
+
+  // Detect interests from pages
+  const interests = [];
+  allPaths.forEach(p => {
+    if ((p.includes('/skema/') || p.includes('/schedule/') || p.includes('/tidsplan/')) && interests.indexOf('schedule') === -1) interests.push('schedule');
+    if ((p.includes('/4-ugers-') || p.includes('/4-week-')) && interests.indexOf('4-week') === -1) interests.push('4-week');
+    if ((p.includes('/8-ugers-') || p.includes('/8-week-')) && interests.indexOf('8-week') === -1) interests.push('8-week');
+    if ((p.includes('/18-ugers-') || p.includes('/18-week-')) && interests.indexOf('18-week') === -1) interests.push('18-week');
+    if ((p.includes('/om-200') || p.includes('/about-200')) && interests.indexOf('teacher-training') === -1) interests.push('teacher-training');
+    if ((p.includes('/priser') || p.includes('/prices')) && interests.indexOf('pricing') === -1) interests.push('pricing');
+    if (p.includes('/yoga-journal') && interests.indexOf('blog') === -1) interests.push('blog');
+    if ((p.includes('/kurser') || p.includes('/courses')) && interests.indexOf('courses') === -1) interests.push('courses');
+  });
+  if (interests.length > 0) {
+    updates['site_engagement.interests'] = interests;
+  }
+
+  await db.collection('leads').doc(leadId).update(updates);
+
+  // Archive the anonymous visits doc (delete to save storage)
+  await anonRef.delete();
+
+  console.log(`[lead] Stitched anonymous visits for ${visitorId} → lead ${leadId} (heat: ${leadHeat}, sessions: ${totalSessions}, pages: ${totalPageviews})`);
 }

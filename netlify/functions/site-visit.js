@@ -135,6 +135,29 @@ exports.handler = async (event) => {
         updates['site_engagement.interests'] = admin.firestore.FieldValue.arrayUnion(interest);
       }
 
+      // Post-lead key page flags (set once, never unset)
+      var pageLower = page.toLowerCase();
+      if (pageLower.includes('/skema/') || pageLower.includes('/schedule/') || pageLower.includes('/tidsplan/')) {
+        updates['site_engagement.schedule_revisits'] = admin.firestore.FieldValue.increment(1);
+      }
+      if (pageLower.includes('/bolig') || pageLower.includes('/accommodation') || pageLower.includes('/housing')) {
+        updates['site_engagement.accommodation_visited'] = true;
+      }
+      if (pageLower.includes('/profile') && pageLower.includes('#') ||
+          pageLower.includes('/checkout') || pageLower.includes('product=')) {
+        updates['site_engagement.prep_phase_page_visited'] = true;
+      }
+      if (pageLower.includes('booking=') || pageLower.includes('/book')) {
+        updates['site_engagement.consultation_booking_clicked'] = true;
+      }
+      if (pageLower.includes('/ansoeg') || pageLower.includes('/apply')) {
+        updates['site_engagement.application_page_visited'] = true;
+      }
+
+      // Track days_active for this lead (distinct dates)
+      var todayStr = new Date().toISOString().slice(0, 10);
+      updates['site_engagement.active_dates'] = admin.firestore.FieldValue.arrayUnion(todayStr);
+
       // Check re-engagement
       var reEngagement = checkReEngagement(lead, 'site_visit', page);
       if (reEngagement) {

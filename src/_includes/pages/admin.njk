@@ -99,6 +99,10 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
             <span>{{ t.tab_careers }}</span>
           </button>
+          <button class="yb-admin__nav-item" type="button" data-yb-admin-tab="social">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            <span>{{ t.tab_social or "Social" }}</span>
+          </button>
         </div>
 
         {# Operations group #}
@@ -740,6 +744,13 @@
         {% include "partials/admin-ads-panel.njk" %}
       </div>{# end ads tab panel #}
 
+      {# ═══════════════════════════════════
+         TAB: Social Media Manager
+         ═══════════════════════════════════ #}
+      <div class="yb-admin__tab-panel" data-yb-admin-panel="social">
+        {% include "partials/admin-social-panel.njk" %}
+      </div>{# end social tab panel #}
+
       </div>{# end yb-admin__main #}
     </div>{# end yb-admin-panel #}
 
@@ -842,3 +853,6 @@
 <script src="/js/nurture-admin.js"></script>
 <script src="/js/knowledge-admin.js"></script>
 <script src="/js/ads-admin.js"></script>
+<script src="/js/social-admin.js"></script>
+<script src="/js/social-composer.js"></script>
+<script src="/js/social-design-studio.js"></script>
