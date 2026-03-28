@@ -16,6 +16,7 @@ const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 
 const DESIGNS_COLLECTION = 'social_canva_designs';
+const TEMPLATES_COLLECTION = 'social_design_templates';
 const POSTS_COLLECTION = 'social_posts';
 
 // Canva brand kit IDs (from Canva MCP list-brand-kits)
@@ -71,6 +72,7 @@ exports.handler = async (event) => {
       const action = params.action || 'designs';
 
       if (action === 'designs') return listDesigns(db, params);
+      if (action === 'design-templates') return listDesignTemplates(db);
       if (action === 'brand-kits') return jsonResponse(200, {
         ok: true,
         brandKits: BRAND_KITS,
@@ -91,6 +93,8 @@ exports.handler = async (event) => {
         case 'save-export': return saveExport(db, body);
         case 'resize-map': return saveResizeMap(db, body);
         case 'delete-design': return deleteDesign(db, body);
+        case 'save-design-template': return saveDesignTemplate(db, body, user.email);
+        case 'delete-design-template': return deleteDesignTemplate(db, body);
         default:
           return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
       }
@@ -237,5 +241,59 @@ async function deleteDesign(db, body) {
   if (!designId) return jsonResponse(400, { ok: false, error: 'Missing designId' });
 
   await db.collection(DESIGNS_COLLECTION).doc(designId).delete();
+  return jsonResponse(200, { ok: true });
+}
+
+
+// ── Design Studio Templates (Fabric.js) ──────────────────────────────
+
+async function listDesignTemplates(db) {
+  const snap = await db.collection(TEMPLATES_COLLECTION)
+    .orderBy('createdAt', 'desc')
+    .limit(50)
+    .get();
+
+  const templates = [];
+  snap.forEach(doc => {
+    const d = doc.data();
+    templates.push({
+      id: doc.id,
+      name: d.name || 'Untitled',
+      preset: d.preset || '1080x1080',
+      thumbnail: d.thumbnail || '',
+      canvasJson: d.canvasJson || null,
+      createdAt: d.createdAt,
+      createdBy: d.createdBy
+    });
+  });
+
+  return jsonResponse(200, { ok: true, templates });
+}
+
+async function saveDesignTemplate(db, body, email) {
+  const { name, preset, canvasJson, thumbnail } = body;
+
+  if (!name || !canvasJson) {
+    return jsonResponse(400, { ok: false, error: 'Missing name or canvasJson' });
+  }
+
+  const data = {
+    name,
+    preset: preset || '1080x1080',
+    canvasJson,
+    thumbnail: thumbnail || '',
+    createdAt: serverTimestamp(),
+    createdBy: email
+  };
+
+  const ref = await db.collection(TEMPLATES_COLLECTION).add(data);
+  return jsonResponse(200, { ok: true, id: ref.id });
+}
+
+async function deleteDesignTemplate(db, body) {
+  const { templateId } = body;
+  if (!templateId) return jsonResponse(400, { ok: false, error: 'Missing templateId' });
+
+  await db.collection(TEMPLATES_COLLECTION).doc(templateId).delete();
   return jsonResponse(200, { ok: true });
 }

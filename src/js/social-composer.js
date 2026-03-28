@@ -18,7 +18,10 @@
     currentPath: 'yoga-bible-DK/social',
     uploadPlatform: 'general',  // tracks active platform for upload folder
     videoThumbnails: {},  // { videoUrl: thumbnailUrl }
-    platformCaptions: {}  // { instagram: "...", facebook: "...", ... }
+    platformCaptions: {},  // { instagram: "...", facebook: "...", ... }
+    captions: null,         // { utterances[], language, vtt, srt }
+    captionStyle: { fontSize: 'medium', position: 'bottom', background: 'black-bar' },
+    captionBurnActive: false
   };
 
   var CHAR_LIMITS = {
@@ -266,6 +269,7 @@
     if (composer.media.length === 0) {
       container.innerHTML = '';
       toggleCarouselHint();
+      toggleCaptionButton();
       return;
     }
 
@@ -284,6 +288,7 @@
     }).join('');
     toggleMediaTypeRow();
     toggleCarouselHint();
+    toggleCaptionButton();
     initDragReorder(container);
   }
 
@@ -835,6 +840,291 @@
     S.toast('Applied');
   }
 
+  /* ═══ VIDEO CAPTIONS ═══ */
+
+  function hasVideoMedia() {
+    return composer.media.some(function (url) { return /\.(mp4|mov|webm)$/i.test(url); });
+  }
+
+  function getFirstVideoUrl() {
+    return composer.media.find(function (url) { return /\.(mp4|mov|webm)$/i.test(url); }) || '';
+  }
+
+  function toggleCaptionButton() {
+    var btn = $('yb-social-caption-btn');
+    if (btn) btn.hidden = !hasVideoMedia();
+  }
+
+  async function transcribeVideo() {
+    var videoUrl = getFirstVideoUrl();
+    if (!videoUrl) return;
+    if (!S) return;
+
+    var panel = $('yb-social-caption-panel');
+    var loader = $('yb-social-caption-loader');
+    var editor = $('yb-social-caption-editor');
+    if (panel) panel.hidden = false;
+    if (loader) loader.hidden = false;
+    if (editor) editor.hidden = true;
+
+    try {
+      var data = await S.api('social-captions', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'transcribe', videoUrl: videoUrl })
+      });
+
+      if (loader) loader.hidden = true;
+
+      if (data && data.ok) {
+        composer.captions = {
+          utterances: data.utterances || [],
+          language: data.language || 'unknown',
+          vtt: data.vtt || '',
+          srt: data.srt || ''
+        };
+        renderCaptionEditor();
+      } else {
+        throw new Error((data && data.error) || 'Transcription failed');
+      }
+    } catch (err) {
+      if (loader) loader.hidden = true;
+      S.toast('Caption error: ' + err.message, true);
+      console.error('[composer] transcribe error:', err);
+    }
+  }
+
+  function renderCaptionEditor() {
+    var editor = $('yb-social-caption-editor');
+    if (!editor || !composer.captions) return;
+    editor.hidden = false;
+
+    var c = composer.captions;
+    var html = '';
+
+    // Language badge
+    html += '<div class="yb-social__caption-header">';
+    html += '<span class="yb-social__caption-lang-badge">' + (c.language || 'auto').toUpperCase() + '</span>';
+    html += '<span class="yb-social__caption-count">' + c.utterances.length + ' segments</span>';
+    html += '</div>';
+
+    // Utterance list (editable)
+    html += '<div class="yb-social__caption-utterances" id="yb-social-caption-utterances">';
+    c.utterances.forEach(function (u, i) {
+      var startFmt = formatTimestamp(u.start);
+      var endFmt = formatTimestamp(u.end);
+      html += '<div class="yb-social__caption-utterance">';
+      html += '<span class="yb-social__caption-time">' + startFmt + ' → ' + endFmt + '</span>';
+      html += '<textarea class="yb-social__caption-text" data-caption-idx="' + i + '" rows="2">' + escapeHtml(u.text) + '</textarea>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // Controls row
+    html += '<div class="yb-social__caption-controls">';
+
+    // Translate dropdown
+    html += '<div class="yb-social__caption-translate">';
+    html += '<select id="yb-social-caption-translate-lang">';
+    html += '<option value="">Translate to...</option>';
+    html += '<option value="da">Danish</option>';
+    html += '<option value="en">English</option>';
+    html += '<option value="de">German</option>';
+    html += '<option value="sv">Swedish</option>';
+    html += '<option value="no">Norwegian</option>';
+    html += '</select>';
+    html += '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-caption-translate">Translate</button>';
+    html += '</div>';
+
+    // Style options
+    html += '<div class="yb-social__caption-style">';
+    html += '<select id="yb-social-caption-fontsize" data-caption-style="fontSize">';
+    html += '<option value="small"' + (composer.captionStyle.fontSize === 'small' ? ' selected' : '') + '>Small</option>';
+    html += '<option value="medium"' + (composer.captionStyle.fontSize === 'medium' ? ' selected' : '') + '>Medium</option>';
+    html += '<option value="large"' + (composer.captionStyle.fontSize === 'large' ? ' selected' : '') + '>Large</option>';
+    html += '</select>';
+
+    html += '<select id="yb-social-caption-position" data-caption-style="position">';
+    html += '<option value="top"' + (composer.captionStyle.position === 'top' ? ' selected' : '') + '>Top</option>';
+    html += '<option value="center"' + (composer.captionStyle.position === 'center' ? ' selected' : '') + '>Center</option>';
+    html += '<option value="bottom"' + (composer.captionStyle.position === 'bottom' ? ' selected' : '') + '>Bottom</option>';
+    html += '</select>';
+
+    html += '<select id="yb-social-caption-bg" data-caption-style="background">';
+    html += '<option value="none"' + (composer.captionStyle.background === 'none' ? ' selected' : '') + '>No BG</option>';
+    html += '<option value="black-bar"' + (composer.captionStyle.background === 'black-bar' ? ' selected' : '') + '>Black Bar</option>';
+    html += '<option value="blur"' + (composer.captionStyle.background === 'blur' ? ' selected' : '') + '>Blur</option>';
+    html += '</select>';
+    html += '</div>';
+
+    html += '</div>';
+
+    // Action buttons
+    html += '<div class="yb-social__caption-actions">';
+    html += '<label class="yb-social__caption-burn-toggle"><input type="checkbox" id="yb-social-caption-burn"' + (composer.captionBurnActive ? ' checked' : '') + '> Burn into preview</label>';
+    html += '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-caption-download-srt">Download SRT</button>';
+    html += '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-caption-download-vtt">Download VTT</button>';
+    html += '</div>';
+
+    editor.innerHTML = html;
+  }
+
+  function formatTimestamp(seconds) {
+    var m = Math.floor(seconds / 60);
+    var s = Math.floor(seconds % 60);
+    var ms = Math.round((seconds % 1) * 10);
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + ms;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function updateUtteranceText(idx, text) {
+    if (!composer.captions || !composer.captions.utterances[idx]) return;
+    composer.captions.utterances[idx].text = text;
+    // Regenerate VTT/SRT
+    regenerateCaptionFormats();
+  }
+
+  function regenerateCaptionFormats() {
+    if (!composer.captions) return;
+    var utts = composer.captions.utterances;
+    var vtt = 'WEBVTT\n\n';
+    var srt = '';
+    utts.forEach(function (u, i) {
+      var s = fmtVttTime(u.start);
+      var e = fmtVttTime(u.end);
+      vtt += (i + 1) + '\n' + s + ' --> ' + e + '\n' + u.text + '\n\n';
+      srt += (i + 1) + '\n' + s.replace('.', ',') + ' --> ' + e.replace('.', ',') + '\n' + u.text + '\n\n';
+    });
+    composer.captions.vtt = vtt;
+    composer.captions.srt = srt;
+  }
+
+  function fmtVttTime(sec) {
+    var h = Math.floor(sec / 3600);
+    var m = Math.floor((sec % 3600) / 60);
+    var s = Math.floor(sec % 60);
+    var ms = Math.round((sec % 1) * 1000);
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + String(ms).padStart(3, '0');
+  }
+
+  async function translateCaptions() {
+    var langSelect = $('yb-social-caption-translate-lang');
+    if (!langSelect || !langSelect.value) { S.toast('Select a language'); return; }
+    if (!composer.captions) return;
+
+    var targetLang = langSelect.value;
+    var allText = composer.captions.utterances.map(function (u) { return u.text; }).join('\n---\n');
+
+    S.toast('Translating...');
+
+    try {
+      var data = await S.api('social-captions', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'translate', text: allText, targetLang: targetLang })
+      });
+
+      if (data && data.ok && data.translated) {
+        var parts = data.translated.split(/\n---\n/);
+        composer.captions.utterances.forEach(function (u, i) {
+          if (parts[i]) u.text = parts[i].trim();
+        });
+        composer.captions.language = targetLang;
+        regenerateCaptionFormats();
+        renderCaptionEditor();
+        S.toast('Translated to ' + targetLang.toUpperCase());
+      }
+    } catch (err) {
+      S.toast('Translation failed: ' + err.message, true);
+    }
+  }
+
+  function downloadCaptionFile(format) {
+    if (!composer.captions) return;
+    var content = format === 'srt' ? composer.captions.srt : composer.captions.vtt;
+    var ext = format === 'srt' ? 'srt' : 'vtt';
+    var blob = new Blob([content], { type: 'text/plain' });
+    var link = document.createElement('a');
+    link.download = 'captions-' + Date.now() + '.' + ext;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  // Caption burn overlay on preview video
+  function toggleCaptionBurn(active) {
+    composer.captionBurnActive = active;
+    if (active) {
+      setupCaptionOverlay();
+    } else {
+      removeCaptionOverlay();
+    }
+  }
+
+  function setupCaptionOverlay() {
+    var mediaEl = $('yb-social-preview-media');
+    if (!mediaEl) return;
+    var video = mediaEl.querySelector('video');
+    if (!video || !composer.captions) return;
+
+    // Remove old overlay
+    removeCaptionOverlay();
+
+    // Create overlay container
+    var overlay = document.createElement('div');
+    overlay.id = 'yb-social-caption-overlay';
+    overlay.className = 'yb-social__caption-overlay';
+
+    var sub = document.createElement('div');
+    sub.id = 'yb-social-caption-sub';
+    sub.className = 'yb-social__caption-sub';
+
+    // Apply style
+    var sty = composer.captionStyle;
+    sub.classList.add('yb-social__caption-sub--' + sty.position);
+    sub.classList.add('yb-social__caption-sub--' + sty.background);
+    sub.classList.add('yb-social__caption-sub--' + sty.fontSize);
+
+    overlay.appendChild(sub);
+
+    // Wrap video in a relative container if not already
+    var wrapper = mediaEl.querySelector('.yb-social__caption-video-wrap');
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      wrapper.className = 'yb-social__caption-video-wrap';
+      video.parentNode.insertBefore(wrapper, video);
+      wrapper.appendChild(video);
+    }
+    wrapper.appendChild(overlay);
+
+    // Sync captions to video timeupdate
+    video._captionHandler = function () {
+      var t = video.currentTime;
+      var utt = composer.captions.utterances.find(function (u) {
+        return t >= u.start && t <= u.end;
+      });
+      sub.textContent = utt ? utt.text : '';
+      sub.style.opacity = utt ? '1' : '0';
+    };
+    video.addEventListener('timeupdate', video._captionHandler);
+  }
+
+  function removeCaptionOverlay() {
+    var overlay = document.getElementById('yb-social-caption-overlay');
+    if (overlay) overlay.remove();
+
+    // Clean up event listener
+    var mediaEl = $('yb-social-preview-media');
+    if (mediaEl) {
+      var video = mediaEl.querySelector('video');
+      if (video && video._captionHandler) {
+        video.removeEventListener('timeupdate', video._captionHandler);
+        delete video._captionHandler;
+      }
+    }
+  }
+
   /* ═══ DRAG & DROP ═══ */
   function setupDragDrop() {
     var drop = $('yb-social-media-drop');
@@ -876,6 +1166,13 @@
       }
     }
 
+    // Fabric.js Design Studio
+    else if (action === 'social-design-studio') {
+      if (window._ybSocialDesign) {
+        window._ybSocialDesign.openStudio(composer.postId);
+      }
+    }
+
     // Media
     else if (action === 'social-browse-media') openMediaBrowser();
     else if (action === 'social-upload-media') {
@@ -893,6 +1190,17 @@
     else if (action === 'social-thumb-picker-close') closeThumbnailPicker();
     else if (action === 'social-thumb-pick-frame') {
       pickThumbnailFrame(parseInt(btn.getAttribute('data-index')), parseInt(btn.getAttribute('data-frame')));
+    }
+
+    // Video captions
+    else if (action === 'social-caption-transcribe') transcribeVideo();
+    else if (action === 'social-caption-translate') translateCaptions();
+    else if (action === 'social-caption-download-srt') downloadCaptionFile('srt');
+    else if (action === 'social-caption-download-vtt') downloadCaptionFile('vtt');
+    else if (action === 'social-caption-close') {
+      var cp = $('yb-social-caption-panel');
+      if (cp) cp.hidden = true;
+      removeCaptionOverlay();
     }
 
     // Media browser
@@ -1014,6 +1322,11 @@
     if (e.target.id === 'yb-social-caption') { updateCharCount(); updatePreview(); }
     if (e.target.id === 'yb-social-hashtags') updatePreview();
 
+    // Caption utterance editing
+    if (e.target.hasAttribute('data-caption-idx')) {
+      updateUtteranceText(parseInt(e.target.getAttribute('data-caption-idx')), e.target.value);
+    }
+
     // UTM builder auto-generate
     if (e.target.id === 'yb-social-utm-url' || e.target.id === 'yb-social-utm-source' ||
         e.target.id === 'yb-social-utm-medium' || e.target.id === 'yb-social-utm-campaign') {
@@ -1075,6 +1388,15 @@
     if (e.target.id === 'yb-social-file-input') {
       uploadFiles(e.target.files);
       e.target.value = '';
+    }
+    // Caption style selects
+    if (e.target.hasAttribute('data-caption-style')) {
+      composer.captionStyle[e.target.getAttribute('data-caption-style')] = e.target.value;
+      if (composer.captionBurnActive) { removeCaptionOverlay(); setupCaptionOverlay(); }
+    }
+    // Caption burn toggle
+    if (e.target.id === 'yb-social-caption-burn') {
+      toggleCaptionBurn(e.target.checked);
     }
   });
 
