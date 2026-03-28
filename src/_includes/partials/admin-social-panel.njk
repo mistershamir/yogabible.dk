@@ -823,6 +823,24 @@
               <label class="yb-social__media-type-opt"><input type="radio" name="social-media-type" value="stories"> {{ t.social_type_stories or "Story" }}</label>
             </div>
           </div>
+
+          {# Caption button — visible when video is attached #}
+          <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__caption-btn" id="yb-social-caption-btn" data-action="social-caption-transcribe" hidden>
+            CC {{ t.social_add_captions or "Add Captions" }}
+          </button>
+
+          {# Caption panel — shown after transcription #}
+          <div class="yb-social__caption-panel" id="yb-social-caption-panel" hidden>
+            <div class="yb-social__caption-panel-header">
+              <h4>{{ t.social_captions or "Captions" }}</h4>
+              <button type="button" data-action="social-caption-close">&times;</button>
+            </div>
+            <div class="yb-social__caption-loader" id="yb-social-caption-loader" hidden>
+              <div class="yb-social__caption-spinner"></div>
+              <span>{{ t.social_transcribing or "Transcribing audio..." }}</span>
+            </div>
+            <div id="yb-social-caption-editor" hidden></div>
+          </div>
         </div>
 
         {# Hashtags #}
