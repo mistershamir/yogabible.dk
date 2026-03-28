@@ -876,6 +876,13 @@
       }
     }
 
+    // Fabric.js Design Studio
+    else if (action === 'social-design-studio') {
+      if (window._ybSocialDesign) {
+        window._ybSocialDesign.openStudio(composer.postId);
+      }
+    }
+
     // Media
     else if (action === 'social-browse-media') openMediaBrowser();
     else if (action === 'social-upload-media') {

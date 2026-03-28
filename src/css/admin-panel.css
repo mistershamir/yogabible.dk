@@ -7332,15 +7332,218 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   background: #f75c03; color: #fff; border-color: #f75c03;
 }
 
+/* ══════════════════════════════════════════════════════════════════════════ */
+/* DESIGN STUDIO (Fabric.js Canvas Editor)                                   */
+/* ══════════════════════════════════════════════════════════════════════════ */
+
+.yb-social__design-modal {
+  position: fixed; inset: 0; z-index: 10000;
+  background: #FFFCF9; display: flex; flex-direction: column;
+}
+
+/* Header */
+.yb-social__design-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; border-bottom: 1px solid #E8E4E0;
+  background: #fff; min-height: 48px; gap: 12px; flex-shrink: 0;
+}
+.yb-social__design-header h3 {
+  font-size: 15px; font-weight: 700; margin: 0; white-space: nowrap;
+}
+.yb-social__design-header-left,
+.yb-social__design-header-right {
+  display: flex; align-items: center; gap: 10px;
+}
+.yb-social__design-presets {
+  display: flex; gap: 4px;
+}
+.yb-social__design-preset-btn {
+  padding: 4px 10px; font-size: 11px; border: 1px solid #E8E4E0;
+  border-radius: 14px; background: #fff; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.yb-social__design-preset-btn:hover { border-color: #f75c03; color: #f75c03; }
+.yb-social__design-preset-btn.is-active {
+  background: #f75c03; color: #fff; border-color: #f75c03;
+}
+.yb-social__design-size-label {
+  font-size: 11px; color: #6F6A66; white-space: nowrap;
+}
+.yb-social__design-close {
+  background: none; border: none; font-size: 24px; cursor: pointer;
+  color: #6F6A66; padding: 0 4px; line-height: 1;
+}
+.yb-social__design-close:hover { color: #0F0F0F; }
+
+/* Body layout */
+.yb-social__design-body {
+  display: flex; flex: 1; overflow: hidden;
+}
+
+/* Left Toolbar */
+.yb-social__design-toolbar {
+  display: flex; flex-direction: column; gap: 4px; padding: 10px 8px;
+  border-right: 1px solid #E8E4E0; background: #fff; flex-shrink: 0;
+  width: 48px; align-items: center;
+}
+.yb-social__design-toolbar button {
+  width: 34px; height: 34px; border: 1px solid #E8E4E0; border-radius: 8px;
+  background: #fff; cursor: pointer; font-size: 16px; display: flex;
+  align-items: center; justify-content: center; transition: all 0.15s;
+  font-family: inherit; padding: 0;
+}
+.yb-social__design-toolbar button:hover {
+  border-color: #f75c03; color: #f75c03; background: #FFF5F0;
+}
+.yb-social__design-toolbar hr {
+  width: 24px; border: none; border-top: 1px solid #E8E4E0; margin: 4px 0;
+}
+
+/* Canvas Area */
+.yb-social__design-canvas-area {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; background: #F0EDEA; overflow: auto;
+  padding: 16px; min-width: 0;
+}
+.yb-social__design-canvas-wrap {
+  overflow: hidden; box-shadow: 0 2px 20px rgba(0,0,0,0.12);
+  border-radius: 4px; background: #fff;
+}
+.yb-social__design-canvas-inner {
+  transform-origin: top left;
+}
+.yb-social__design-bg-row {
+  display: flex; align-items: center; gap: 6px; margin-top: 10px;
+}
+.yb-social__design-bg-row span {
+  font-size: 11px; color: #6F6A66;
+}
+
+/* Color Swatches */
+.yb-social__design-color-swatch {
+  width: 22px; height: 22px; border-radius: 50%; border: 2px solid #E8E4E0;
+  cursor: pointer; padding: 0; transition: border-color 0.15s;
+}
+.yb-social__design-color-swatch:hover,
+.yb-social__design-color-swatch.is-active {
+  border-color: #f75c03; box-shadow: 0 0 0 2px rgba(247,92,3,0.25);
+}
+
+/* Right Sidebar */
+.yb-social__design-sidebar {
+  width: 240px; flex-shrink: 0; border-left: 1px solid #E8E4E0;
+  background: #fff; overflow-y: auto; padding: 0;
+}
+.yb-social__design-sidebar-section {
+  padding: 12px; border-bottom: 1px solid #E8E4E0;
+}
+.yb-social__design-sidebar-section h4 {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: #6F6A66; margin: 0 0 8px;
+}
+
+/* Properties */
+.yb-social__design-props-empty,
+.yb-social__design-layers-empty,
+.yb-social__design-templates-empty {
+  font-size: 11px; color: #6F6A66; text-align: center; padding: 12px 0;
+}
+.yb-social__design-prop-group {
+  margin-bottom: 10px;
+}
+.yb-social__design-prop-group label {
+  display: block; font-size: 11px; font-weight: 600; margin-bottom: 3px; color: #0F0F0F;
+}
+.yb-social__design-prop-group input[type="range"] {
+  width: 100%; accent-color: #f75c03;
+}
+.yb-social__design-prop-group input[type="number"],
+.yb-social__design-prop-group select {
+  width: 100%; padding: 4px 6px; font-size: 12px; border: 1px solid #E8E4E0;
+  border-radius: 6px; font-family: inherit; background: #fff;
+}
+.yb-social__design-align-btns {
+  display: flex; gap: 4px;
+}
+.yb-social__design-align-btns button {
+  flex: 1; padding: 4px; border: 1px solid #E8E4E0; border-radius: 6px;
+  background: #fff; cursor: pointer; font-size: 11px; font-weight: 600;
+  font-family: inherit; transition: all 0.15s;
+}
+.yb-social__design-align-btns button:hover { border-color: #f75c03; color: #f75c03; }
+.yb-social__design-align-btns button.is-active {
+  background: #f75c03; color: #fff; border-color: #f75c03;
+}
+.yb-social__design-colors {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+
+/* Layers */
+.yb-social__design-layers {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.yb-social__design-layer {
+  display: flex; align-items: center; gap: 6px; padding: 5px 6px;
+  border-radius: 6px; cursor: pointer; font-size: 12px;
+  transition: background 0.1s;
+}
+.yb-social__design-layer:hover { background: #F5F3F0; }
+.yb-social__design-layer.is-active { background: #FFF5F0; border: 1px solid #f75c03; }
+.yb-social__design-layer-icon {
+  width: 20px; text-align: center; font-size: 14px; flex-shrink: 0;
+}
+.yb-social__design-layer-name {
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.yb-social__design-layer-vis,
+.yb-social__design-layer-del {
+  background: none; border: none; cursor: pointer; padding: 0 2px;
+  font-size: 12px; opacity: 0.5; transition: opacity 0.15s;
+}
+.yb-social__design-layer-vis:hover,
+.yb-social__design-layer-del:hover { opacity: 1; }
+
+/* Templates */
+.yb-social__design-template-list {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.yb-social__design-template-card {
+  display: flex; align-items: center; gap: 8px; padding: 6px;
+  border: 1px solid #E8E4E0; border-radius: 8px; cursor: pointer;
+  transition: border-color 0.15s; position: relative;
+}
+.yb-social__design-template-card:hover { border-color: #f75c03; }
+.yb-social__design-template-card img {
+  width: 40px; height: 40px; object-fit: cover; border-radius: 4px; flex-shrink: 0;
+}
+.yb-social__design-template-card span {
+  font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.yb-social__design-template-placeholder {
+  width: 40px; height: 40px; background: #F5F3F0; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; color: #6F6A66; flex-shrink: 0;
+}
+.yb-social__design-template-del {
+  background: none; border: none; cursor: pointer; font-size: 14px;
+  color: #6F6A66; padding: 0 4px; opacity: 0; transition: opacity 0.15s;
+}
+.yb-social__design-template-card:hover .yb-social__design-template-del { opacity: 1; }
+.yb-social__design-template-del:hover { color: #dc2626; }
+
 /* ── Responsive Fixes ── */
 @media (max-width: 900px) {
   .yb-social__composer-body { grid-template-columns: 1fr; }
   .yb-social__composer-preview { border-left: none; border-top: 1px solid #E8E4E0; max-height: 300px; }
   .yb-social__inbox-thread { width: 100%; }
+  .yb-social__design-sidebar { width: 200px; }
 }
 @media (max-width: 600px) {
   .yb-social__nav-btn { padding: 6px 10px; font-size: 11px; }
   .yb-social__accounts-grid { grid-template-columns: 1fr; }
   .yb-social__post-actions { gap: 2px; }
   .yb-social__post-actions button { padding: 2px 5px; font-size: 9px; }
+  .yb-social__design-body { flex-direction: column; }
+  .yb-social__design-toolbar { flex-direction: row; width: 100%; border-right: none; border-bottom: 1px solid #E8E4E0; }
+  .yb-social__design-sidebar { width: 100%; border-left: none; border-top: 1px solid #E8E4E0; max-height: 200px; }
 }

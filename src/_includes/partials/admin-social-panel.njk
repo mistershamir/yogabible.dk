@@ -807,6 +807,7 @@
               <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-browse-media">{{ t.social_browse_library or "Browse Library" }}</button>
               <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-upload-media">{{ t.social_upload or "Upload" }}</button>
               <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-canva-composer" title="Design with Canva AI">🎨 {{ t.social_design_canva or "Design with Canva" }}</button>
+              <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-design-studio" title="Design Studio">🖌 {{ t.social_design_studio or "Design Studio" }}</button>
               <input type="file" id="yb-social-file-input" multiple accept="image/*,video/*" hidden>
             </div>
           </div>
@@ -1027,6 +1028,93 @@
     <div class="yb-social__media-modal-footer">
       <span id="yb-social-media-selected-count">{{ t.social_selected_count or "0 selected" }}</span>
       <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-media-confirm">{{ t.social_add_selected or "Add Selected" }}</button>
+    </div>
+
+  </div>
+</div>
+
+{# ════════════════════════════════════════════════════════════════════════════ #}
+{# DESIGN STUDIO MODAL (Fabric.js Canvas Editor)                              #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+<div class="yb-social__design-modal" id="yb-social-design-modal" hidden>
+
+  {# Header #}
+  <div class="yb-social__design-header">
+    <div class="yb-social__design-header-left">
+      <h3>{{ t.social_design_studio or "Design Studio" }}</h3>
+      <div class="yb-social__design-presets">
+        <button type="button" class="yb-social__design-preset-btn is-active" data-design-preset="1080x1080">1:1 Post</button>
+        <button type="button" class="yb-social__design-preset-btn" data-design-preset="1080x1350">4:5 Feed</button>
+        <button type="button" class="yb-social__design-preset-btn" data-design-preset="1080x1920">9:16 Story</button>
+      </div>
+      <span class="yb-social__design-size-label" id="yb-design-size-label">1080 × 1080px</span>
+    </div>
+    <div class="yb-social__design-header-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-design-action="save-template">Save Template</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-design-action="download-png">Download</button>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-design-action="export-png">Export &amp; Attach</button>
+      <button type="button" class="yb-social__design-close" data-design-action="close-studio">&times;</button>
+    </div>
+  </div>
+
+  {# Body: Toolbar + Canvas + Sidebar #}
+  <div class="yb-social__design-body">
+
+    {# Left Toolbar #}
+    <div class="yb-social__design-toolbar">
+      <button type="button" data-design-action="add-text" title="Add Text">T</button>
+      <button type="button" data-design-action="add-rect" title="Add Rectangle">□</button>
+      <button type="button" data-design-action="add-circle" title="Add Circle">○</button>
+      <button type="button" data-design-action="add-image" title="Add Image">🖼</button>
+      <button type="button" data-design-action="add-logo" title="Add Brand Logo">✦</button>
+      <hr>
+      <button type="button" data-design-action="bring-forward" title="Bring Forward">↑</button>
+      <button type="button" data-design-action="send-backward" title="Send Backward">↓</button>
+      <button type="button" data-design-action="delete-selected" title="Delete Selected">🗑</button>
+    </div>
+
+    {# Canvas Area #}
+    <div class="yb-social__design-canvas-area">
+      <div class="yb-social__design-canvas-wrap" id="yb-design-canvas-wrap">
+        <div class="yb-social__design-canvas-inner">
+          <canvas id="yb-design-canvas"></canvas>
+        </div>
+      </div>
+
+      {# Background colors #}
+      <div class="yb-social__design-bg-row">
+        <span>Background:</span>
+        <button type="button" class="yb-social__design-color-swatch" style="background:#ffffff" data-design-bg="#ffffff"></button>
+        <button type="button" class="yb-social__design-color-swatch" style="background:#0F0F0F" data-design-bg="#0F0F0F"></button>
+        <button type="button" class="yb-social__design-color-swatch" style="background:#f75c03" data-design-bg="#f75c03"></button>
+        <button type="button" class="yb-social__design-color-swatch" style="background:#FFFCF9" data-design-bg="#FFFCF9"></button>
+        <button type="button" class="yb-social__design-color-swatch" style="background:#F5F3F0" data-design-bg="#F5F3F0"></button>
+        <button type="button" class="yb-social__design-color-swatch" style="background:#6F6A66" data-design-bg="#6F6A66"></button>
+      </div>
+    </div>
+
+    {# Right Sidebar: Properties + Layers + Templates #}
+    <div class="yb-social__design-sidebar">
+      <div class="yb-social__design-sidebar-section">
+        <h4>Properties</h4>
+        <div id="yb-design-props">
+          <p class="yb-social__design-props-empty">Select an element to edit its properties</p>
+        </div>
+      </div>
+
+      <div class="yb-social__design-sidebar-section">
+        <h4>Layers</h4>
+        <div id="yb-design-layers" class="yb-social__design-layers">
+          <p class="yb-social__design-layers-empty">No elements yet</p>
+        </div>
+      </div>
+
+      <div class="yb-social__design-sidebar-section">
+        <h4>Templates</h4>
+        <div id="yb-design-template-list" class="yb-social__design-template-list">
+          <p class="yb-social__design-templates-empty">No saved templates</p>
+        </div>
+      </div>
     </div>
 
   </div>
