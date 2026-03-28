@@ -488,39 +488,8 @@
     </div>
   </div>
 
-  {# Thread / Reply Panel (slides in from right) #}
-  <div class="yb-social__inbox-thread" id="yb-social-inbox-thread" hidden>
-    <div class="yb-social__inbox-thread-header">
-      <button type="button" data-action="social-inbox-close-thread">&larr; {{ t.social_back or "Back" }}</button>
-      <h4 id="yb-social-inbox-thread-title"></h4>
-      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__create-lead-btn" data-action="social-inbox-create-lead" title="{{ t.social_create_lead or 'Create Lead' }}">
-        👤 {{ t.social_create_lead or "Create Lead" }}
-      </button>
-    </div>
-    <div class="yb-social__inbox-thread-body" id="yb-social-inbox-thread-body"></div>
-    <div class="yb-social__inbox-reply-box">
-      <div class="yb-social__inbox-ai-suggestions" id="yb-social-ai-reply-suggestions" hidden></div>
-      {# Saved Replies Dropdown #}
-      <div class="yb-social__saved-replies-dropdown" id="yb-social-saved-replies-dropdown" hidden></div>
-      <textarea id="yb-social-inbox-reply" rows="2" placeholder="{{ t.social_reply_placeholder or 'Type your reply...' }}"></textarea>
-      <div class="yb-social__inbox-reply-actions">
-        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-saved-replies-toggle" title="{{ t.social_saved_replies or 'Saved Replies' }}">
-          &#128172; {{ t.social_saved_replies or "Saved" }}
-        </button>
-        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-auto-reply-suggest" title="{{ t.social_auto_reply or 'Quick AI Reply' }}">
-          &#9889; {{ t.social_auto_reply or "Quick AI" }}
-        </button>
-        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__ai-reply-btn" data-action="social-ai-draft-reply" title="{{ t.social_ai_draft_reply or 'AI Draft Reply' }}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          {{ t.social_ai_draft_reply or "AI Reply" }}
-        </button>
-        <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-save-reply-template" title="{{ t.social_save_reply or 'Save as Template' }}">
-          &#9734;
-        </button>
-        <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-inbox-send-reply">{{ t.social_send or "Send" }}</button>
-      </div>
-    </div>
-  </div>
+  {# Multi-Thread Container (threads spawn dynamically via JS) #}
+  <div class="yb-social__inbox-threads-container" id="yb-social-inbox-threads-container"></div>
 </div>
 
 {# ════════════════════════════════════════════════════════════════════════════ #}
