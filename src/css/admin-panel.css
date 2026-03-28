@@ -5715,6 +5715,11 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-social__post-thumb img {
   width: 100%; height: 100%; object-fit: cover;
 }
+.yb-social__post-thumb-fallback {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%; background: #F5F3F0; color: #6F6A66;
+  font-size: 13px;
+}
 .yb-social__post-body { padding: 10px 12px; }
 .yb-social__post-caption {
   font-size: 13px; color: #0F0F0F; margin: 0 0 8px;

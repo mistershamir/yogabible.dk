@@ -87,8 +87,8 @@ async function listPosts(db, params) {
     }
   }
 
-  // Order by scheduledAt first, fallback to createdAt
-  query = query.orderBy('scheduledAt', 'desc').limit(100);
+  // Order by createdAt (all docs have this field, unlike scheduledAt)
+  query = query.orderBy('createdAt', 'desc').limit(100);
 
   let snap;
   try {
@@ -421,21 +421,25 @@ async function importFromPlatform(db, body, user) {
   try {
     if (platform === 'instagram') {
       // Fetch recent Instagram media
-      const igAccountId = account.accountId || account.igBusinessAccountId;
+      const igAccountId = account.igAccountId || account.accountId || account.igBusinessAccountId;
       if (!igAccountId) return jsonResponse(400, { ok: false, error: 'Missing Instagram account ID' });
 
-      const url = `https://graph.facebook.com/v21.0/${igAccountId}/media?fields=id,caption,media_type,media_url,thumbnail_url,timestamp,permalink,like_count,comments_count&limit=25&access_token=${accessToken}`;
+      // Use permalink for stable image references (media_url expires after ~1h)
+      const url = `https://graph.facebook.com/v21.0/${igAccountId}/media?fields=id,caption,media_type,media_url,thumbnail_url,timestamp,permalink,like_count,comments_count&limit=50&access_token=${accessToken}`;
       const res = await fetch(url);
       const data = await res.json();
 
       if (data.error) {
+        console.error('[social-posts] IG API error:', JSON.stringify(data.error));
         return jsonResponse(400, { ok: false, error: data.error.message });
       }
 
       posts = (data.data || []).map(m => ({
         platformId: m.id,
         caption: m.caption || '',
-        media: m.media_type === 'VIDEO' ? [m.thumbnail_url || ''] : [m.media_url || ''],
+        media: m.media_type === 'VIDEO'
+          ? [m.thumbnail_url || m.media_url || '']
+          : [m.media_url || ''],
         mediaType: m.media_type === 'VIDEO' ? 'video' : 'image',
         publishedAt: m.timestamp,
         permalink: m.permalink || '',
@@ -449,11 +453,12 @@ async function importFromPlatform(db, body, user) {
       const pageId = account.pageId || account.accountId;
       if (!pageId) return jsonResponse(400, { ok: false, error: 'Missing Facebook page ID' });
 
-      const url = `https://graph.facebook.com/v21.0/${pageId}/posts?fields=id,message,created_time,full_picture,permalink_url,shares,reactions.summary(true),comments.summary(true)&limit=25&access_token=${accessToken}`;
+      const url = `https://graph.facebook.com/v21.0/${pageId}/posts?fields=id,message,created_time,full_picture,permalink_url,shares,reactions.summary(true),comments.summary(true)&limit=50&access_token=${accessToken}`;
       const res = await fetch(url);
       const data = await res.json();
 
       if (data.error) {
+        console.error('[social-posts] FB API error:', JSON.stringify(data.error));
         return jsonResponse(400, { ok: false, error: data.error.message });
       }
 
@@ -483,6 +488,7 @@ async function importFromPlatform(db, body, user) {
   let imported = 0;
   for (const p of newPosts) {
     try {
+      const pubDate = p.publishedAt ? new Date(p.publishedAt) : new Date();
       await db.collection(COLLECTION).add({
         caption: p.caption,
         platforms: [platform],
@@ -490,6 +496,7 @@ async function importFromPlatform(db, body, user) {
         mediaType: p.mediaType,
         hashtags: (p.caption.match(/#\w+/g) || []),
         status: 'published',
+        scheduledAt: pubDate,
         publishedAt: p.publishedAt,
         importedPlatformId: p.platformId,
         importedPermalink: p.permalink,

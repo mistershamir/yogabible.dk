@@ -203,7 +203,7 @@
         if (url.match(/\.(mp4|mov|webm)$/i)) {
           mediaEl.innerHTML = '<video src="' + url + '" style="width:100%;max-height:300px" controls></video>';
         } else {
-          mediaEl.innerHTML = '<img src="' + url + '" alt="Preview">';
+          mediaEl.innerHTML = '<img src="' + url + '" alt="Preview" onerror="this.outerHTML=\'<p class=yb-admin__muted style=padding:40px;text-align:center>Image expired — re-upload media</p>\'">';
         }
       } else {
         mediaEl.innerHTML = '<p class="yb-admin__muted">' + t('social_no_media') + '</p>';

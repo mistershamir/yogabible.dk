@@ -570,9 +570,16 @@
     }
 
     grid.innerHTML = state.posts.map(function (p) {
-      var thumb = p.media && p.media[0]
-        ? '<div class="yb-social__post-thumb"><img src="' + p.media[0] + '" alt="" loading="lazy"></div>'
-        : '<div class="yb-social__post-thumb"><span class="yb-admin__muted" style="font-size:24px">📝</span></div>';
+      var thumbContent = '';
+      if (p.media && p.media[0]) {
+        thumbContent = '<img src="' + p.media[0] + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+          '<span class="yb-social__post-thumb-fallback" style="display:none">' +
+          (p.importedPermalink ? '<a href="' + p.importedPermalink + '" target="_blank" style="color:#f75c03;font-size:11px;text-decoration:none">🔗 View on ' + ((p.platforms || [])[0] || 'platform') + '</a>' : '📝') +
+          '</span>';
+      } else {
+        thumbContent = '<span class="yb-admin__muted" style="font-size:24px">📝</span>';
+      }
+      var thumb = '<div class="yb-social__post-thumb">' + thumbContent + '</div>';
 
       var schedTime = '';
       if (p.status === 'scheduled' && p.scheduledAt) schedTime = fmtDateTime(p.scheduledAt);
@@ -4484,8 +4491,7 @@
     }
     else if (action === 'social-recurring-toggle-day') btn.classList.toggle('is-active');
 
-    // Bulk actions
-    else if (action === 'social-toggle-select') togglePostSelect(btn.getAttribute('data-id'));
+    // Bulk actions (social-toggle-select handled in change listener only to avoid double-toggle)
     else if (action === 'social-bulk-schedule') bulkSchedule();
     else if (action === 'social-bulk-approve') bulkApprove();
     else if (action === 'social-bulk-duplicate') bulkDuplicate();
