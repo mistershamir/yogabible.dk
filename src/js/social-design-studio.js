@@ -27,6 +27,78 @@
 
   var BRAND_COLORS = ['#f75c03', '#0F0F0F', '#FFFCF9', '#6F6A66', '#F5F3F0', '#d94f02', '#ff9966', '#ffffff'];
 
+  var ANIMATIONS = {
+    none:       { label: 'None',       css: '' },
+    fadeIn:     { label: 'Fade In',    css: 'yb-fadeIn' },
+    slideUp:    { label: 'Slide Up',   css: 'yb-slideUp' },
+    slideLeft:  { label: 'Slide Left', css: 'yb-slideLeft' },
+    typewriter: { label: 'Typewriter', css: 'yb-typewriter' },
+    pulse:      { label: 'Pulse',      css: 'yb-pulse' },
+    zoomIn:     { label: 'Zoom In',    css: 'yb-zoomIn' },
+    wave:       { label: 'Wave',       css: 'yb-wave' },
+    bounce:     { label: 'Bounce',     css: 'yb-bounce' }
+  };
+
+  var ANIM_SPEEDS = { slow: 2, normal: 1, fast: 0.5 };
+  var ANIM_DELAYS = [0, 0.5, 1, 1.5];
+
+  var ANIM_PRESETS = {
+    quoteCard: {
+      label: 'Quote Card',
+      setup: function () {
+        var p = PRESETS[studio.preset];
+        setCanvasBg('#f75c03');
+        var q = new fabric.IText('"Your quote here"', {
+          left: p.w * 0.1, top: p.h * 0.35, width: p.w * 0.8,
+          fontFamily: 'Abacaxi, Helvetica Neue, Helvetica, Arial, sans-serif',
+          fontSize: 56, fill: '#FFFCF9', fontWeight: 700, textAlign: 'center',
+          _yb_anim: 'fadeIn', _yb_anim_speed: 'normal', _yb_anim_delay: 0
+        });
+        studio.canvas.add(q);
+        studio.canvas.setActiveObject(q);
+        studio.canvas.renderAll();
+      }
+    },
+    announcement: {
+      label: 'Announcement',
+      setup: function () {
+        var p = PRESETS[studio.preset];
+        setCanvasBg('#0F0F0F');
+        var title = new fabric.IText('BIG NEWS', {
+          left: p.w * 0.1, top: p.h * 0.3,
+          fontFamily: 'Abacaxi, Helvetica Neue, Helvetica, Arial, sans-serif',
+          fontSize: 72, fill: '#f75c03', fontWeight: 700, textAlign: 'center',
+          _yb_anim: 'slideUp', _yb_anim_speed: 'normal', _yb_anim_delay: 0
+        });
+        var sub = new fabric.IText('Your subtitle here', {
+          left: p.w * 0.1, top: p.h * 0.5,
+          fontFamily: 'Abacaxi, Helvetica Neue, Helvetica, Arial, sans-serif',
+          fontSize: 36, fill: '#FFFCF9', fontWeight: 400, textAlign: 'center',
+          _yb_anim: 'fadeIn', _yb_anim_speed: 'normal', _yb_anim_delay: 0.5
+        });
+        studio.canvas.add(title);
+        studio.canvas.add(sub);
+        studio.canvas.renderAll();
+      }
+    },
+    storyText: {
+      label: 'Story Text',
+      setup: function () {
+        var p = PRESETS[studio.preset];
+        setCanvasBg('#0F0F0F');
+        var txt = new fabric.IText('YOUR TEXT', {
+          left: p.w * 0.1, top: p.h * 0.4,
+          fontFamily: 'Abacaxi, Helvetica Neue, Helvetica, Arial, sans-serif',
+          fontSize: 96, fill: '#f75c03', fontWeight: 700, textAlign: 'center',
+          _yb_anim: 'pulse', _yb_anim_speed: 'normal', _yb_anim_delay: 0
+        });
+        studio.canvas.add(txt);
+        studio.canvas.setActiveObject(txt);
+        studio.canvas.renderAll();
+      }
+    }
+  };
+
   var SCALE = 0.5; // canvas display scale
 
   /* ═══ OPEN / CLOSE ═══ */
@@ -168,7 +240,10 @@
       fontFamily: 'Abacaxi, Helvetica Neue, Helvetica, Arial, sans-serif',
       fontSize: 48,
       fill: '#0F0F0F',
-      fontWeight: 400
+      fontWeight: 400,
+      _yb_anim: 'none',
+      _yb_anim_speed: 'normal',
+      _yb_anim_delay: 0
     });
     studio.canvas.add(text);
     studio.canvas.setActiveObject(text);
@@ -326,6 +401,36 @@
         html += '<button type="button" class="yb-social__design-color-swatch' + (obj.fill === c ? ' is-active' : '') + '" style="background:' + c + '" data-design-prop="fill" data-design-val="' + c + '"></button>';
       });
       html += '</div></div>';
+
+      // Animation picker
+      var curAnim = obj._yb_anim || 'none';
+      var curSpeed = obj._yb_anim_speed || 'normal';
+      var curDelay = obj._yb_anim_delay || 0;
+
+      html += '<div class="yb-social__design-anim-section">';
+      html += '<label class="yb-social__design-anim-label">Animation</label>';
+      html += '<div class="yb-social__design-anim-grid">';
+      Object.keys(ANIMATIONS).forEach(function (key) {
+        html += '<button type="button" class="yb-social__design-anim-chip' + (curAnim === key ? ' is-active' : '') + '" data-design-anim="' + key + '">' + ANIMATIONS[key].label + '</button>';
+      });
+      html += '</div>';
+
+      if (curAnim !== 'none') {
+        html += '<div class="yb-social__design-anim-opts">';
+        html += '<div class="yb-social__design-prop-group"><label>Speed</label><div class="yb-social__design-anim-grid">';
+        Object.keys(ANIM_SPEEDS).forEach(function (s) {
+          html += '<button type="button" class="yb-social__design-anim-chip' + (curSpeed === s ? ' is-active' : '') + '" data-design-anim-speed="' + s + '">' + s.charAt(0).toUpperCase() + s.slice(1) + '</button>';
+        });
+        html += '</div></div>';
+
+        html += '<div class="yb-social__design-prop-group"><label>Delay</label><div class="yb-social__design-anim-grid">';
+        ANIM_DELAYS.forEach(function (d) {
+          html += '<button type="button" class="yb-social__design-anim-chip' + (curDelay === d ? ' is-active' : '') + '" data-design-anim-delay="' + d + '">' + d + 's</button>';
+        });
+        html += '</div></div>';
+        html += '</div>';
+      }
+      html += '</div>';
     }
 
     // Shape fill
@@ -530,7 +635,7 @@
 
     S.toast('Saving template...');
 
-    var json = studio.canvas.toJSON(['name']);
+    var json = studio.canvas.toJSON(['name', '_yb_anim', '_yb_anim_speed', '_yb_anim_delay']);
     var thumbnail = studio.canvas.toDataURL({ format: 'png', quality: 0.3, multiplier: 0.2 });
 
     try {
@@ -594,6 +699,311 @@
     } catch (err) {
       S.toast('Failed to delete template', true);
     }
+  }
+
+  /* ═══ ANIMATION PREVIEW & RECORDING ═══ */
+
+  function getAnimatedTextObjects() {
+    if (!studio.canvas) return [];
+    return studio.canvas.getObjects().filter(function (obj) {
+      return (obj.type === 'i-text' || obj.type === 'text' || obj.type === 'textbox') &&
+             obj._yb_anim && obj._yb_anim !== 'none';
+    });
+  }
+
+  function calcTotalAnimDuration() {
+    var max = 0;
+    getAnimatedTextObjects().forEach(function (obj) {
+      var speed = ANIM_SPEEDS[obj._yb_anim_speed || 'normal'] || 1;
+      var delay = obj._yb_anim_delay || 0;
+      var end = delay + speed;
+      if (obj._yb_anim === 'typewriter') {
+        end = delay + (obj.text || '').length * 0.06 + 0.2;
+      }
+      if (end > max) max = end;
+    });
+    return max;
+  }
+
+  function buildAnimOverlay() {
+    var p = PRESETS[studio.preset];
+    var wrap = $('yb-design-canvas-wrap');
+    if (!wrap) return null;
+
+    // Remove any old overlay
+    var old = wrap.querySelector('.yb-social__design-anim-overlay');
+    if (old) old.remove();
+
+    var overlay = document.createElement('div');
+    overlay.className = 'yb-social__design-anim-overlay';
+    overlay.style.cssText = 'position:absolute;top:0;left:0;width:' + p.w + 'px;height:' + p.h + 'px;pointer-events:none;overflow:hidden;';
+
+    var animTexts = getAnimatedTextObjects();
+    if (!animTexts.length) return null;
+
+    // Hide animated text on the canvas temporarily
+    animTexts.forEach(function (obj) { obj.set('opacity', 0); });
+    studio.canvas.renderAll();
+
+    animTexts.forEach(function (obj) {
+      var el = document.createElement('div');
+      var speed = ANIM_SPEEDS[obj._yb_anim_speed || 'normal'] || 1;
+      var delay = obj._yb_anim_delay || 0;
+      var animCss = ANIMATIONS[obj._yb_anim] ? ANIMATIONS[obj._yb_anim].css : '';
+
+      // Position and style to match canvas object
+      var left = obj.left || 0;
+      var top = obj.top || 0;
+      el.style.cssText = 'position:absolute;' +
+        'left:' + left + 'px;top:' + top + 'px;' +
+        'font-family:' + (obj.fontFamily || 'Abacaxi, sans-serif') + ';' +
+        'font-size:' + (obj.fontSize || 48) + 'px;' +
+        'font-weight:' + (obj.fontWeight || 400) + ';' +
+        'color:' + (obj.fill || '#0F0F0F') + ';' +
+        'text-align:' + (obj.textAlign || 'left') + ';' +
+        'white-space:pre-wrap;line-height:1.2;' +
+        'opacity:0;';
+
+      if (obj._yb_anim === 'typewriter') {
+        // Typewriter: reveal characters one by one
+        el.style.opacity = '1';
+        el.style.overflow = 'hidden';
+        el.style.borderRight = '2px solid ' + (obj.fill || '#0F0F0F');
+        el.style.whiteSpace = 'nowrap';
+        el.textContent = '';
+        el.setAttribute('data-tw-text', obj.text || '');
+        el.setAttribute('data-tw-delay', String(delay));
+      } else if (animCss) {
+        el.style.animationName = animCss;
+        el.style.animationDuration = speed + 's';
+        el.style.animationDelay = delay + 's';
+        el.style.animationFillMode = 'forwards';
+        el.style.animationTimingFunction = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      }
+
+      el.textContent = obj.text || '';
+      overlay.appendChild(el);
+    });
+
+    // Insert overlay into the canvas-inner div (same coordinate space)
+    var inner = wrap.querySelector('.yb-social__design-canvas-inner');
+    if (inner) {
+      inner.style.position = 'relative';
+      inner.appendChild(overlay);
+    }
+
+    return { overlay: overlay, animTexts: animTexts };
+  }
+
+  function runTypewriterEffects(overlay) {
+    var twEls = overlay.querySelectorAll('[data-tw-text]');
+    twEls.forEach(function (el) {
+      var fullText = el.getAttribute('data-tw-text');
+      var delay = parseFloat(el.getAttribute('data-tw-delay') || '0') * 1000;
+      var charIdx = 0;
+      setTimeout(function () {
+        var interval = setInterval(function () {
+          if (charIdx <= fullText.length) {
+            el.textContent = fullText.substring(0, charIdx);
+            charIdx++;
+          } else {
+            el.style.borderRight = 'none';
+            clearInterval(interval);
+          }
+        }, 60);
+      }, delay);
+    });
+  }
+
+  function cleanupAnimOverlay(data) {
+    if (!data) return;
+    if (data.overlay && data.overlay.parentNode) data.overlay.remove();
+    // Restore text opacity
+    data.animTexts.forEach(function (obj) { obj.set('opacity', 1); });
+    if (studio.canvas) studio.canvas.renderAll();
+  }
+
+  function previewAnimations() {
+    if (!studio.canvas) return;
+    var animTexts = getAnimatedTextObjects();
+    if (!animTexts.length) {
+      if (S) S.toast('No animated text elements');
+      return;
+    }
+
+    var data = buildAnimOverlay();
+    if (!data) return;
+
+    runTypewriterEffects(data.overlay);
+
+    var duration = calcTotalAnimDuration();
+    setTimeout(function () {
+      cleanupAnimOverlay(data);
+    }, (duration + 1.5) * 1000);
+  }
+
+  async function recordAnimation() {
+    if (!studio.canvas) return;
+    var animTexts = getAnimatedTextObjects();
+    if (!animTexts.length) {
+      if (S) S.toast('No animated text elements to record');
+      return;
+    }
+
+    var p = PRESETS[studio.preset];
+    var duration = calcTotalAnimDuration() + 1; // extra 1s buffer
+
+    // Show progress
+    var progress = $('yb-design-record-progress');
+    if (progress) {
+      progress.hidden = false;
+      progress.textContent = 'Preparing...';
+    }
+
+    // Create off-screen recording canvas at full resolution
+    var recCanvas = document.createElement('canvas');
+    recCanvas.width = p.w;
+    recCanvas.height = p.h;
+    var recCtx = recCanvas.getContext('2d');
+
+    // Get static canvas snapshot (everything except animated text)
+    var data = buildAnimOverlay();
+    if (!data) return;
+
+    // Capture the static canvas as an image
+    var staticImg = new Image();
+    staticImg.src = studio.canvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
+
+    await new Promise(function (resolve) { staticImg.onload = resolve; });
+
+    // Set up MediaRecorder
+    var stream = recCanvas.captureStream(30);
+    var mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' :
+                   MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : 'video/mp4';
+    var recorder = new MediaRecorder(stream, { mimeType: mimeType, videoBitsPerSecond: 5000000 });
+    var chunks = [];
+
+    recorder.ondataavailable = function (e) { if (e.data.size > 0) chunks.push(e.data); };
+
+    recorder.onstop = function () {
+      cleanupAnimOverlay(data);
+      var blob = new Blob(chunks, { type: mimeType });
+      var ext = mimeType.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
+      var url = URL.createObjectURL(blob);
+
+      // Download
+      var link = document.createElement('a');
+      link.download = 'design-anim-' + studio.preset + '-' + Date.now() + '.' + ext;
+      link.href = url;
+      link.click();
+
+      // Also try to upload and attach
+      uploadVideoBlob(blob, ext);
+
+      if (progress) {
+        progress.textContent = 'Done!';
+        setTimeout(function () { progress.hidden = true; }, 2000);
+      }
+    };
+
+    // Start recording
+    recorder.start();
+    if (progress) progress.textContent = 'Recording...';
+
+    // Start CSS animations on the overlay
+    runTypewriterEffects(data.overlay);
+
+    // Render loop: composite static canvas + animated overlay onto recCanvas
+    var startTime = performance.now();
+    var totalMs = duration * 1000;
+
+    function renderFrame() {
+      var elapsed = performance.now() - startTime;
+      if (progress) {
+        var pct = Math.min(100, Math.round((elapsed / totalMs) * 100));
+        progress.textContent = 'Recording... ' + pct + '%';
+      }
+
+      // Draw static canvas
+      recCtx.clearRect(0, 0, p.w, p.h);
+      recCtx.drawImage(staticImg, 0, 0, p.w, p.h);
+
+      // Draw each animated text element at its current visual state
+      var childNodes = data.overlay.children;
+      for (var i = 0; i < childNodes.length; i++) {
+        var el = childNodes[i];
+        var computed = window.getComputedStyle(el);
+        var opacity = parseFloat(computed.opacity);
+        if (opacity <= 0) continue;
+
+        recCtx.save();
+        recCtx.globalAlpha = opacity;
+        recCtx.font = computed.fontWeight + ' ' + computed.fontSize + ' ' + computed.fontFamily;
+        recCtx.fillStyle = computed.color;
+        recCtx.textBaseline = 'top';
+
+        // Parse transform for translate/scale
+        var transform = computed.transform;
+        if (transform && transform !== 'none') {
+          var matrix = new DOMMatrix(transform);
+          var elLeft = parseFloat(el.style.left) || 0;
+          var elTop = parseFloat(el.style.top) || 0;
+          recCtx.translate(elLeft, elTop);
+          recCtx.transform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+          recCtx.fillText(el.textContent, 0, 0);
+        } else {
+          recCtx.fillText(el.textContent, parseFloat(el.style.left) || 0, parseFloat(el.style.top) || 0);
+        }
+        recCtx.restore();
+      }
+
+      if (elapsed < totalMs) {
+        requestAnimationFrame(renderFrame);
+      } else {
+        recorder.stop();
+      }
+    }
+
+    requestAnimationFrame(renderFrame);
+  }
+
+  async function uploadVideoBlob(blob, ext) {
+    if (!S) return;
+    try {
+      var fileName = 'design-anim-' + Date.now() + '.' + ext;
+      var file = new File([blob], fileName, { type: blob.type });
+      var token = await S.getToken();
+      var formData = new FormData();
+      formData.append('file', file);
+      formData.append('path', 'yoga-bible-DK/social/designs');
+
+      var resp = await fetch('/.netlify/functions/bunny-browser', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+      });
+
+      var result = await resp.json();
+      if (result.ok && result.url) {
+        if (window._ybSocialComposer && window._ybSocialComposer.addMedia) {
+          window._ybSocialComposer.addMedia(result.url);
+        }
+        S.toast('Video exported and attached!');
+      }
+    } catch (err) {
+      console.error('[design-studio] Video upload error:', err);
+    }
+  }
+
+  function applyAnimPreset(presetKey) {
+    if (!studio.canvas || !ANIM_PRESETS[presetKey]) return;
+    if (studio.canvas.getObjects().length > 0) {
+      if (!confirm('This will add elements to your canvas. Continue?')) return;
+    }
+    ANIM_PRESETS[presetKey].setup();
+    renderLayers();
+    updatePropsPanel();
+    studio.dirty = true;
   }
 
   /* ═══ IMAGE BROWSER (reuse media browser) ═══ */
@@ -687,6 +1097,46 @@
         studio.canvas.remove(dObjs[di]);
         studio.canvas.renderAll();
       }
+    }
+    else if (action === 'preview-anim') previewAnimations();
+    else if (action === 'record-anim') recordAnimation();
+    else if (action === 'anim-preset') {
+      var pk = btn.getAttribute('data-anim-preset');
+      if (pk) applyAnimPreset(pk);
+    }
+  });
+
+  // Animation chip clicks (anim type, speed, delay)
+  document.addEventListener('click', function (e) {
+    var animBtn = e.target.closest('[data-design-anim]');
+    if (animBtn && studio.canvas) {
+      var obj = studio.canvas.getActiveObject();
+      if (obj && (obj.type === 'i-text' || obj.type === 'text' || obj.type === 'textbox')) {
+        obj._yb_anim = animBtn.getAttribute('data-design-anim');
+        studio.dirty = true;
+        updatePropsPanel();
+      }
+      return;
+    }
+    var speedBtn = e.target.closest('[data-design-anim-speed]');
+    if (speedBtn && studio.canvas) {
+      var sObj = studio.canvas.getActiveObject();
+      if (sObj) {
+        sObj._yb_anim_speed = speedBtn.getAttribute('data-design-anim-speed');
+        studio.dirty = true;
+        updatePropsPanel();
+      }
+      return;
+    }
+    var delayBtn = e.target.closest('[data-design-anim-delay]');
+    if (delayBtn && studio.canvas) {
+      var dObj = studio.canvas.getActiveObject();
+      if (dObj) {
+        dObj._yb_anim_delay = parseFloat(delayBtn.getAttribute('data-design-anim-delay'));
+        studio.dirty = true;
+        updatePropsPanel();
+      }
+      return;
     }
   });
 
