@@ -767,7 +767,8 @@ async function handleProcess() {
             var emailResult = await sendSequenceEmail(
               lead.email,
               substituteVars(selectedSubject, vars),
-              finalBody
+              finalBody,
+              leadLang
             );
 
             if (emailResult.success) {
@@ -1118,13 +1119,14 @@ async function sendProcessingDigest(sentSummary, errors) {
   });
 }
 
-async function sendSequenceEmail(to, subject, bodyHtml) {
+async function sendSequenceEmail(to, subject, bodyHtml, lang) {
   try {
     var result = await sendSingleViaResend({
       to,
       subject,
       bodyHtml,
-      bodyPlain: ''
+      bodyPlain: '',
+      lang: lang || 'da'
     });
     return { success: true, messageId: result.messageId };
   } catch (err) {
