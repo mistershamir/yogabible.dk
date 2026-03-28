@@ -719,7 +719,7 @@ async function handleProcess() {
         // German and Danish leads never see country blocks — their content is baked in
         if (selectedBody && selectedBody.includes('{{country_block}}')) {
           if (!isDanish && !isGerman && step.country_blocks) {
-            var countryCode = (leadCountry === 'OTHER' || leadCountry === 'DK') ? 'UK' : leadCountry;
+            var countryCode = (!hardCountry || hardCountry === 'OTHER' || hardCountry === 'DK') ? 'UK' : hardCountry;
             var block = step.country_blocks[countryCode] || step.country_blocks['UK'] || '';
             selectedBody = selectedBody.replace('{{country_block}}', block);
           } else {
