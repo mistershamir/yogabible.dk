@@ -7523,6 +7523,14 @@ section {
   transition: transform 0.4s ease;
 }
 
+.yb-cph-life__card-img picture,
+.yb-cph-life__card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .yb-cph-life__card:hover .yb-cph-life__card-img {
   transform: scale(1.05);
 }
@@ -7560,6 +7568,10 @@ section {
 @media (max-width: 480px) {
   .yb-cph-life__grid {
     grid-template-columns: 1fr;
+  }
+
+  .yb-cph-life__card {
+    aspect-ratio: 4 / 3;
   }
 }
 
@@ -7678,6 +7690,11 @@ section {
   .yb-cph-location__content {
     grid-template-columns: 1fr;
     gap: 2rem;
+  }
+
+  .yb-cph-location__video-wrap {
+    aspect-ratio: 4 / 3;
+    max-height: 400px;
   }
 
   .yb-cph-location__gallery {
@@ -7887,6 +7904,11 @@ section {
     grid-template-columns: 1fr;
   }
 
+  .yb-cph-why__media-main {
+    aspect-ratio: 3 / 2;
+    max-height: 360px;
+  }
+
   .yb-cph-why__flights {
     grid-column: span 1;
     grid-template-columns: 1fr;
@@ -8067,9 +8089,25 @@ section {
     margin: 0 auto;
   }
 
+  .yb-cph-hygge__media-main {
+    aspect-ratio: 3 / 4;
+    max-height: 420px;
+  }
+
   .yb-cph-hygge__media-accent {
     bottom: -20px;
     right: -15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .yb-cph-hygge__media {
+    max-width: 100%;
+  }
+
+  .yb-cph-hygge__media-main {
+    aspect-ratio: 3 / 4;
+    max-height: 360px;
   }
 }
 
@@ -8210,7 +8248,10 @@ section {
   cursor: pointer;
 }
 
-.yb-cph-explore__card-img {
+.yb-cph-explore__card-img,
+.yb-cph-explore__card > picture,
+.yb-cph-explore__card > picture > img,
+.yb-cph-explore__card > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -8218,7 +8259,9 @@ section {
   transition: transform 0.5s ease;
 }
 
-.yb-cph-explore__card:hover .yb-cph-explore__card-img {
+.yb-cph-explore__card:hover .yb-cph-explore__card-img,
+.yb-cph-explore__card:hover > picture > img,
+.yb-cph-explore__card:hover > img {
   transform: scale(1.06);
 }
 
