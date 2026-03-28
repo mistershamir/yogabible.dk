@@ -1545,6 +1545,7 @@
     comments: [],
     conversations: [],
     activeThread: null,
+    openThreads: [],
     pollTimer: null,
     sentimentFilter: '',
     sentimentAnalyzed: false
@@ -1680,19 +1681,87 @@
     }).join('');
   }
 
+  // ── Multi-Thread Panel Helpers ─────────────────────────────
+  function getThreadPanelId(type, id) { return 'thread-' + type + '-' + id; }
+
+  function createThreadPanel(panelId, titleText) {
+    var container = $('yb-social-inbox-threads-container');
+    if (!container) return null;
+
+    // If panel already open, focus it
+    var existing = document.getElementById(panelId);
+    if (existing) {
+      existing.querySelector('.yb-social__inbox-thread-body').scrollTop = existing.querySelector('.yb-social__inbox-thread-body').scrollHeight;
+      return existing;
+    }
+
+    var panel = document.createElement('div');
+    panel.className = 'yb-social__inbox-thread';
+    panel.id = panelId;
+    panel.innerHTML =
+      '<div class="yb-social__inbox-thread-header">' +
+        '<button type="button" data-action="social-inbox-close-thread" data-panel-id="' + panelId + '">&times;</button>' +
+        '<h4 class="yb-social__inbox-thread-title">' + escapeHtml(titleText) + '</h4>' +
+        '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__create-lead-btn" data-action="social-inbox-create-lead" data-panel-id="' + panelId + '" title="Create Lead">👤</button>' +
+      '</div>' +
+      '<div class="yb-social__inbox-thread-body"></div>' +
+      '<div class="yb-social__inbox-reply-box">' +
+        '<div class="yb-social__inbox-ai-suggestions" hidden></div>' +
+        '<div class="yb-social__saved-replies-dropdown" hidden></div>' +
+        '<textarea class="yb-social__inbox-reply-input" rows="2" placeholder="Type your reply..."></textarea>' +
+        '<div class="yb-social__inbox-reply-actions">' +
+          '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-saved-replies-toggle" data-panel-id="' + panelId + '">&#128172;</button>' +
+          '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-auto-reply-suggest" data-panel-id="' + panelId + '">&#9889; Quick AI</button>' +
+          '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__ai-reply-btn" data-action="social-ai-draft-reply" data-panel-id="' + panelId + '">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> AI Reply</button>' +
+          '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-save-reply-template" data-panel-id="' + panelId + '">&#9734;</button>' +
+          '<button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-inbox-send-reply" data-panel-id="' + panelId + '">Send</button>' +
+        '</div>' +
+      '</div>';
+
+    container.appendChild(panel);
+    return panel;
+  }
+
+  function getActiveThreadForPanel(panelId) {
+    return inboxState.openThreads.find(function (t) { return t.panelId === panelId; });
+  }
+
+  function getActiveThread() {
+    return inboxState.activeThread;
+  }
+
+  function setActiveThread(panelId) {
+    inboxState.activeThread = getActiveThreadForPanel(panelId) || null;
+  }
+
+  function getReplyElForPanel(panelId) {
+    var panel = document.getElementById(panelId);
+    return panel ? panel.querySelector('.yb-social__inbox-reply-input') : null;
+  }
+
+  function getSuggestionsElForPanel(panelId) {
+    var panel = document.getElementById(panelId);
+    return panel ? panel.querySelector('.yb-social__inbox-ai-suggestions') : null;
+  }
+
   async function openCommentThread(commentId, platform, inboxId) {
-    var thread = $('yb-social-inbox-thread');
-    var body = $('yb-social-inbox-thread-body');
-    var title = $('yb-social-inbox-thread-title');
-    if (!thread || !body) return;
+    var panelId = getThreadPanelId('comment', commentId);
 
     // Find the comment in state
     var comment = inboxState.comments.find(function (c) { return c.commentId === commentId; });
+    var titleText = (comment ? comment.author : 'Comment') + ' — ' + platform;
 
-    thread.hidden = false;
-    inboxState.activeThread = { type: 'comment', id: commentId, platform: platform, inboxId: inboxId };
+    var panel = createThreadPanel(panelId, titleText);
+    if (!panel) return;
+    var body = panel.querySelector('.yb-social__inbox-thread-body');
 
-    if (title) title.textContent = (comment ? comment.author : 'Comment') + ' — ' + platform;
+    var threadData = { type: 'comment', id: commentId, platform: platform, inboxId: inboxId, panelId: panelId };
+    // Add to openThreads if not already there
+    if (!inboxState.openThreads.find(function (t) { return t.panelId === panelId; })) {
+      inboxState.openThreads.push(threadData);
+    }
+    inboxState.activeThread = threadData;
 
     // Show the original comment + replies
     var html = '';
@@ -1702,7 +1771,6 @@
         '<p>' + escapeHtml(comment.text) + '</p>' +
       '</div>';
 
-      // Show existing replies
       (comment.replies || []).forEach(function (r) {
         var isOwn = r.username === 'yogabible' || (r.from && r.from.name === 'Yoga Bible');
         html += '<div class="yb-social__inbox-msg' + (isOwn ? ' yb-social__inbox-msg--own' : ' yb-social__inbox-msg--them') + '">' +
@@ -1713,8 +1781,6 @@
     }
 
     body.innerHTML = html || '<p class="yb-admin__muted">Loading thread...</p>';
-
-    // Mark as read
     markInboxRead([inboxId]);
 
     // Fetch full thread from API
@@ -1728,7 +1794,6 @@
           '<p>' + escapeHtml(r.text || r.message || '') + '</p>' +
         '</div>';
       });
-      // Replace replies section (keep original comment)
       if (comment) {
         body.innerHTML = '<div class="yb-social__inbox-msg yb-social__inbox-msg--them">' +
           '<div class="yb-social__inbox-msg-head"><strong>' + escapeHtml(comment.author) + '</strong> <span>' + formatTimeAgo(comment.timestamp) + '</span></div>' +
@@ -1739,24 +1804,27 @@
   }
 
   async function openConversationThread(conversationId, platform, inboxId) {
-    var thread = $('yb-social-inbox-thread');
-    var body = $('yb-social-inbox-thread-body');
-    var title = $('yb-social-inbox-thread-title');
-    if (!thread || !body) return;
+    var panelId = getThreadPanelId('conversation', conversationId);
 
     var conv = inboxState.conversations.find(function (c) { return c.conversationId === conversationId; });
+    var titleText = (conv ? conv.participants.join(', ') : 'Conversation') + ' — ' + platform;
 
-    thread.hidden = false;
-    inboxState.activeThread = { type: 'conversation', id: conversationId, platform: platform, inboxId: inboxId };
+    var panel = createThreadPanel(panelId, titleText);
+    if (!panel) return;
+    var body = panel.querySelector('.yb-social__inbox-thread-body');
 
-    if (title) title.textContent = (conv ? conv.participants.join(', ') : 'Conversation') + ' — ' + platform;
+    var threadData = { type: 'conversation', id: conversationId, platform: platform, inboxId: inboxId, panelId: panelId };
+    if (!inboxState.openThreads.find(function (t) { return t.panelId === panelId; })) {
+      inboxState.openThreads.push(threadData);
+    }
+    inboxState.activeThread = threadData;
+
     body.innerHTML = '<p class="yb-admin__muted">Loading messages...</p>';
-
     markInboxRead([inboxId]);
 
     var data = await api('social-inbox?action=thread&id=' + conversationId + '&platform=' + platform + '&type=conversation');
     if (data && data.thread) {
-      var msgs = data.thread.reverse(); // oldest first
+      var msgs = data.thread.reverse();
       body.innerHTML = msgs.map(function (m) {
         var isOwn = (m.from && (m.from.name === 'Yoga Bible' || m.from.id === '878172732056415'));
         return '<div class="yb-social__inbox-msg' + (isOwn ? ' yb-social__inbox-msg--own' : ' yb-social__inbox-msg--them') + '">' +
@@ -1764,30 +1832,43 @@
           '<p>' + escapeHtml(m.message || '') + '</p>' +
         '</div>';
       }).join('') || '<p class="yb-admin__muted">No messages</p>';
-
-      // Scroll to bottom
       body.scrollTop = body.scrollHeight;
     }
   }
 
-  function closeThread() {
-    var thread = $('yb-social-inbox-thread');
-    if (thread) thread.hidden = true;
-    inboxState.activeThread = null;
+  function closeThread(panelId) {
+    if (!panelId) {
+      // Legacy fallback — close all
+      var container = $('yb-social-inbox-threads-container');
+      if (container) container.innerHTML = '';
+      inboxState.openThreads = [];
+      inboxState.activeThread = null;
+      return;
+    }
+    var panel = document.getElementById(panelId);
+    if (panel) panel.remove();
+    inboxState.openThreads = inboxState.openThreads.filter(function (t) { return t.panelId !== panelId; });
+    if (inboxState.activeThread && inboxState.activeThread.panelId === panelId) {
+      inboxState.activeThread = inboxState.openThreads.length > 0 ? inboxState.openThreads[inboxState.openThreads.length - 1] : null;
+    }
   }
 
-  async function sendReply() {
-    var replyEl = $('yb-social-inbox-reply');
-    if (!replyEl || !replyEl.value.trim() || !inboxState.activeThread) return;
+  async function sendReply(panelId) {
+    // Find thread data for this panel
+    var threadInfo = panelId ? getActiveThreadForPanel(panelId) : inboxState.activeThread;
+    if (!threadInfo) return;
+    var pid = threadInfo.panelId || panelId;
+
+    var replyEl = getReplyElForPanel(pid);
+    if (!replyEl || !replyEl.value.trim()) return;
 
     var text = replyEl.value.trim();
-    var thread = inboxState.activeThread;
     var body = {};
 
-    if (thread.type === 'comment') {
-      body = { action: 'reply-comment', commentId: thread.id, text: text, platform: thread.platform };
+    if (threadInfo.type === 'comment') {
+      body = { action: 'reply-comment', commentId: threadInfo.id, text: text, platform: threadInfo.platform };
     } else {
-      body = { action: 'reply-message', conversationId: thread.id, text: text, platform: thread.platform };
+      body = { action: 'reply-message', conversationId: threadInfo.id, text: text, platform: threadInfo.platform };
     }
 
     toast('Sending...');
@@ -1797,8 +1878,8 @@
       replyEl.value = '';
       toast('Reply sent');
 
-      // Add reply to thread UI
-      var threadBody = $('yb-social-inbox-thread-body');
+      var panel = document.getElementById(pid);
+      var threadBody = panel ? panel.querySelector('.yb-social__inbox-thread-body') : null;
       if (threadBody) {
         var msgHtml = '<div class="yb-social__inbox-msg yb-social__inbox-msg--own">' +
           '<div class="yb-social__inbox-msg-head"><strong>Yoga Bible</strong> <span>Just now</span></div>' +
@@ -1855,11 +1936,11 @@
   }
 
   // ── AI Draft Reply ──────────────────────────────────────────
-  async function aiDraftReply() {
-    if (!inboxState.activeThread) { toast('Open a thread first', true); return; }
-    var thread = inboxState.activeThread;
+  async function aiDraftReply(panelId) {
+    var thread = panelId ? getActiveThreadForPanel(panelId) : inboxState.activeThread;
+    if (!thread) { toast('Open a thread first', true); return; }
+    var pid = thread.panelId || panelId;
 
-    // Find the original comment/message text
     var commentText = '';
     var contextText = '';
     if (thread.type === 'comment') {
@@ -1872,7 +1953,7 @@
 
     if (!commentText) { toast('No message to reply to', true); return; }
 
-    var sugEl = $('yb-social-ai-reply-suggestions');
+    var sugEl = getSuggestionsElForPanel(pid);
     if (sugEl) { sugEl.hidden = false; sugEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_generating') + '</p>'; }
 
     var data = await api('social-ai', {
@@ -1890,8 +1971,8 @@
       return;
     }
 
-    // Store globally for use
     state.aiReplyOptions = data.replies;
+    state.aiReplyPanelId = pid;
 
     if (sugEl) {
       sugEl.innerHTML = '<div class="yb-social__ai-reply-label">' + t('social_ai_suggestions') + '</div>' +
@@ -1900,18 +1981,19 @@
             '<p>' + escapeHtml(r.text) + '</p>' +
             '<div class="yb-social__ai-reply-opt-meta">' +
             '<span class="yb-social__ai-reply-style">' + r.style + '</span>' +
-            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-use-reply" data-index="' + i + '">' + t('social_ai_use') + '</button>' +
+            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-use-reply" data-index="' + i + '" data-panel-id="' + pid + '">' + t('social_ai_use') + '</button>' +
             '</div></div>';
         }).join('') +
         (data.sentiment ? '<p class="yb-admin__muted" style="margin-top:8px">Sentiment: ' + data.sentiment + (data.suggestPrivate ? ' — suggest moving to DM' : '') + '</p>' : '');
     }
   }
 
-  function useAiReply(index) {
+  function useAiReply(index, panelId) {
     if (!state.aiReplyOptions || !state.aiReplyOptions[index]) return;
-    var replyEl = $('yb-social-inbox-reply');
+    var pid = panelId || state.aiReplyPanelId;
+    var replyEl = pid ? getReplyElForPanel(pid) : null;
     if (replyEl) replyEl.value = state.aiReplyOptions[index].text;
-    var sugEl = $('yb-social-ai-reply-suggestions');
+    var sugEl = pid ? getSuggestionsElForPanel(pid) : null;
     if (sugEl) sugEl.hidden = true;
   }
 
@@ -3316,8 +3398,8 @@
     }
   }
 
-  function renderSavedRepliesDropdown() {
-    var container = $('yb-social-saved-replies-dropdown');
+  function renderSavedRepliesDropdown(ddEl) {
+    var container = ddEl || $('yb-social-saved-replies-dropdown');
     if (!container) return;
 
     if (!savedRepliesState.loaded) {
@@ -3339,36 +3421,43 @@
     }).join('');
   }
 
-  function useSavedReply(id) {
+  function useSavedReply(id, panelId) {
     var reply = savedRepliesState.replies.find(function (r) { return r.id === id; });
     if (!reply) return;
 
-    var replyEl = $('yb-social-inbox-reply');
+    var pid = panelId || (inboxState.activeThread ? inboxState.activeThread.panelId : null);
+    var replyEl = pid ? getReplyElForPanel(pid) : null;
     if (replyEl) {
       replyEl.value = reply.text;
       replyEl.focus();
     }
 
-    // Increment usage count
     api('social-saved-replies', {
       method: 'POST',
       body: JSON.stringify({ action: 'update', id: id, incrementUsage: true })
     });
 
-    // Hide dropdown
-    var dd = $('yb-social-saved-replies-dropdown');
-    if (dd) dd.hidden = true;
+    // Hide dropdown in the panel
+    if (pid) {
+      var panel = document.getElementById(pid);
+      var dd = panel ? panel.querySelector('.yb-social__saved-replies-dropdown') : null;
+      if (dd) dd.hidden = true;
+    }
   }
 
-  function toggleSavedRepliesDropdown() {
-    var dd = $('yb-social-saved-replies-dropdown');
+  function toggleSavedRepliesDropdown(panelId) {
+    var pid = panelId || (inboxState.activeThread ? inboxState.activeThread.panelId : null);
+    if (!pid) return;
+    var panel = document.getElementById(pid);
+    var dd = panel ? panel.querySelector('.yb-social__saved-replies-dropdown') : null;
     if (!dd) return;
     dd.hidden = !dd.hidden;
-    if (!dd.hidden) renderSavedRepliesDropdown();
+    if (!dd.hidden) renderSavedRepliesDropdown(dd);
   }
 
-  async function saveCurrentReplyAsTemplate() {
-    var replyEl = $('yb-social-inbox-reply');
+  async function saveCurrentReplyAsTemplate(panelId) {
+    var pid = panelId || (inboxState.activeThread ? inboxState.activeThread.panelId : null);
+    var replyEl = pid ? getReplyElForPanel(pid) : null;
     if (!replyEl || !replyEl.value.trim()) { toast('Write a reply first', true); return; }
 
     var name = prompt('Name for this saved reply:');
@@ -4197,15 +4286,16 @@
   }
 
   /* ═══ AUTO-REPLY SUGGESTIONS ═══ */
-  async function aiAutoReplySuggest() {
-    if (!inboxState.activeThread) { toast('Open a thread first', true); return; }
+  async function aiAutoReplySuggest(panelId) {
+    var thread = panelId ? getActiveThreadForPanel(panelId) : inboxState.activeThread;
+    if (!thread) { toast('Open a thread first', true); return; }
+    var pid = thread.panelId || panelId;
 
-    var suggestEl = $('yb-social-ai-reply-suggestions');
+    var suggestEl = getSuggestionsElForPanel(pid);
     if (!suggestEl) return;
     suggestEl.hidden = false;
     suggestEl.innerHTML = '<p class="yb-admin__muted">Generating quick replies...</p>';
 
-    var thread = inboxState.activeThread;
     var commentText = '';
     var sentiment = '';
 
@@ -4220,7 +4310,6 @@
       if (conv) commentText = conv.lastMessage || '';
     }
 
-    // Load saved replies if not loaded
     if (!savedRepliesState.loaded) await loadSavedReplies();
 
     var data = await api('social-ai', {
@@ -4240,23 +4329,24 @@
     }
 
     suggestEl.innerHTML = data.replies.map(function (r, i) {
-      return '<button type="button" class="yb-social__auto-reply-option" data-action="social-use-auto-reply" data-index="' + i + '">' +
+      return '<button type="button" class="yb-social__auto-reply-option" data-action="social-use-auto-reply" data-index="' + i + '" data-panel-id="' + pid + '">' +
         '<span class="yb-social__auto-reply-text">' + escapeHtml(r.text) + '</span>' +
         '<span class="yb-social__auto-reply-style">' + (r.style || '') + '</span>' +
       '</button>';
     }).join('') +
-    '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-auto-reply-close" style="margin-top:6px">Close</button>';
+    '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-auto-reply-close" data-panel-id="' + pid + '" style="margin-top:6px">Close</button>';
 
     suggestEl._replies = data.replies;
   }
 
-  function useAutoReply(index) {
-    var suggestEl = $('yb-social-ai-reply-suggestions');
+  function useAutoReply(index, panelId) {
+    var pid = panelId || (inboxState.activeThread ? inboxState.activeThread.panelId : null);
+    var suggestEl = pid ? getSuggestionsElForPanel(pid) : null;
     if (!suggestEl || !suggestEl._replies) return;
     var r = suggestEl._replies[index];
     if (!r) return;
 
-    var replyEl = $('yb-social-inbox-reply');
+    var replyEl = pid ? getReplyElForPanel(pid) : null;
     if (replyEl) {
       replyEl.value = r.text;
       replyEl.focus();
@@ -4420,13 +4510,13 @@
     else if (action === 'social-inbox-mark-all-read') markAllRead();
     else if (action === 'social-inbox-open-comment') openCommentThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
     else if (action === 'social-inbox-open-conversation') openConversationThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
-    else if (action === 'social-inbox-close-thread') closeThread();
-    else if (action === 'social-inbox-send-reply') sendReply();
-    else if (action === 'social-ai-draft-reply') aiDraftReply();
-    else if (action === 'social-ai-use-reply') useAiReply(btn.getAttribute('data-index'));
+    else if (action === 'social-inbox-close-thread') closeThread(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-inbox-send-reply') sendReply(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-ai-draft-reply') aiDraftReply(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-ai-use-reply') useAiReply(btn.getAttribute('data-index'), btn.getAttribute('data-panel-id'));
     else if (action === 'social-inbox-sentiment-filter') filterInboxBySentiment(btn.getAttribute('data-filter'));
     else if (action === 'social-inbox-analyze-sentiment') analyzeInboxSentiment();
-    else if (action === 'social-inbox-create-lead') createLeadFromInbox();
+    else if (action === 'social-inbox-create-lead') { var cpid = btn.getAttribute('data-panel-id'); if (cpid) setActiveThread(cpid); createLeadFromInbox(); }
     else if (action === 'social-lead-modal-save') saveLeadFromModal();
     else if (action === 'social-lead-modal-close') { var lm = document.getElementById('yb-social-lead-modal'); if (lm) lm.remove(); }
 
@@ -4497,12 +4587,12 @@
     else if (action === 'social-ab-delete') deleteAbTest(btn.getAttribute('data-id'));
 
     // Saved Replies
-    else if (action === 'social-saved-replies-toggle') toggleSavedRepliesDropdown();
-    else if (action === 'social-use-saved-reply') useSavedReply(btn.getAttribute('data-id'));
-    else if (action === 'social-save-reply-template') saveCurrentReplyAsTemplate();
-    else if (action === 'social-auto-reply-suggest') aiAutoReplySuggest();
-    else if (action === 'social-use-auto-reply') useAutoReply(parseInt(btn.getAttribute('data-index')));
-    else if (action === 'social-auto-reply-close') { var s = $('yb-social-ai-reply-suggestions'); if (s) s.hidden = true; }
+    else if (action === 'social-saved-replies-toggle') toggleSavedRepliesDropdown(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-use-saved-reply') useSavedReply(btn.getAttribute('data-id'), btn.getAttribute('data-panel-id'));
+    else if (action === 'social-save-reply-template') saveCurrentReplyAsTemplate(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-auto-reply-suggest') aiAutoReplySuggest(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-use-auto-reply') useAutoReply(parseInt(btn.getAttribute('data-index')), btn.getAttribute('data-panel-id'));
+    else if (action === 'social-auto-reply-close') { var pid = btn.getAttribute('data-panel-id'); var s = pid ? getSuggestionsElForPanel(pid) : null; if (s) s.hidden = true; }
 
     // Content Library
     else if (action === 'social-library-filter-tag') {
