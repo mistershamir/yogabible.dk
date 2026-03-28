@@ -21,7 +21,7 @@ const { getDb, serverTimestamp } = require('./shared/firestore');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse, buildUnsubscribeUrl } = require('./shared/utils');
 const { sendSingleViaResend } = require('./shared/resend-service');
-const { detectLeadCountry, normalizeCountryName, detectCountryFromPhone } = require('./shared/country-detect');
+const { detectLeadCountry } = require('./shared/country-detect');
 const { prepareTrackedEmail } = require('./shared/email-tracking');
 const { createSequenceSyncPost } = require('./shared/social-sync');
 
@@ -31,13 +31,14 @@ const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 // The old webhook defaulted ALL leads to lang='da', so this is the only
 // reliable way to determine language for Meta form leads
 const FORM_LANG_MAP = {
-  '827004866473769':  'en',     // july-vinyasa-plus-en
+  '827004866473769':  'en',     // july-vinyasa-plus-en (UK)
   '25716246641411656':'en',     // july-vinyasa-plus-no
   '4318151781759438': 'en',     // july-vinyasa-plus-se
   '2450631555377690': 'de',     // july-vinyasa-plus-de
   '1668412377638315': 'en',     // july-vinyasa-plus-fi
   '960877763097239':  'en',     // july-vinyasa-plus-nl
-  '1344364364192542': 'da'      // july-vinyasa-plus-dk
+  '1344364364192542': 'da',     // july-vinyasa-plus-dk
+  '961808297026346':  'da'      // july 4w intensive dk (second form)
 };
 
 const SEQUENCES_COL = 'sequences';
@@ -637,66 +638,16 @@ async function handleProcess() {
         var emailSent = false;
         var smsSent = false;
 
-        // Language branching — determine lead language for content selection
-        //
-        // The old Facebook webhook stamped lang='da' on ALL leads regardless of
-        // actual language. Country detection uses lang as a fallback, so it also
-        // returns 'DK' for international leads with wrong lang. We fix this with
-        // a multi-layer approach:
-        //
-        // Priority:
-        //   1. FORM_LANG_MAP — bulletproof form_id→language (if Meta form)
-        //   2. Explicit country field or phone prefix (ignoring lang fallback)
-        //   3. rawLang (only if not 'da' — 'da' is unreliable due to old webhook)
-        //   4. Default Danish (domestic market)
+        // Language branching — simple two-source logic:
+        //   1. Meta leads: FORM_LANG_MAP determines language from form_id
+        //   2. Website leads: lang field (set by /en/ path detection) determines language
+        //   3. Default: Danish
 
-        var rawLang = (lead.lang || lead.meta_lang || lead.language || '').toLowerCase().trim();
-        var leadLang, isDanish, isGerman;
-
-        // Layer 1: Form ID → language (most reliable for Meta leads)
         var formLang = FORM_LANG_MAP[lead.meta_form_id];
-
-        // Layer 2: Country from explicit field or phone (NOT lang — lang is unreliable)
-        var leadCountryFromField = null;
-        if (lead.country || lead.city_country) {
-          leadCountryFromField = normalizeCountryName(lead.country || lead.city_country);
-        }
-        var leadCountryFromPhone = null;
-        if (!leadCountryFromField && lead.phone) {
-          leadCountryFromPhone = detectCountryFromPhone(lead.phone);
-        }
-        // Use field/phone country — do NOT fall back to lang for country detection
-        var hardCountry = leadCountryFromField || leadCountryFromPhone;
-
-        if (formLang) {
-          // Trust the form mapping — it's bulletproof
-          leadLang = formLang.substring(0, 2);
-          isDanish = ['da', 'dk'].includes(leadLang);
-          isGerman = leadLang === 'de';
-        } else if (hardCountry === 'DK') {
-          isDanish = true;
-          isGerman = false;
-          leadLang = 'da';
-        } else if (hardCountry && ['DE', 'AT', 'CH'].includes(hardCountry)) {
-          isDanish = false;
-          isGerman = true;
-          leadLang = 'de';
-        } else if (hardCountry && hardCountry !== 'OTHER') {
-          // Known non-DK country from field/phone (NO, SE, FI, NL, UK)
-          isDanish = false;
-          isGerman = false;
-          leadLang = 'en';
-        } else if (rawLang && rawLang !== 'da' && rawLang !== 'dk') {
-          // Only trust non-Danish lang values (Danish was the buggy default)
-          leadLang = rawLang.substring(0, 2);
-          isDanish = false;
-          isGerman = leadLang === 'de';
-        } else {
-          // No form map, no country/phone, lang is 'da' or empty → default Danish
-          isDanish = true;
-          isGerman = false;
-          leadLang = 'da';
-        }
+        var rawLang = formLang || (lead.lang || lead.meta_lang || lead.language || 'da').toLowerCase().trim();
+        var leadLang = rawLang.substring(0, 2);
+        var isDanish = ['da', 'dk'].includes(leadLang);
+        var isGerman = leadLang === 'de';
 
         // Select language-appropriate email content
         // Priority: DE (if available) → EN (non-Danish) → DA (default)
@@ -720,7 +671,8 @@ async function handleProcess() {
         // German and Danish leads never see country blocks — their content is baked in
         if (selectedBody && selectedBody.includes('{{country_block}}')) {
           if (!isDanish && !isGerman && step.country_blocks) {
-            var countryCode = (leadCountry === 'OTHER' || leadCountry === 'DK') ? 'UK' : leadCountry;
+            var detectedCountry = detectLeadCountry(lead);
+            var countryCode = (!detectedCountry || detectedCountry === 'OTHER' || detectedCountry === 'DK') ? 'UK' : detectedCountry;
             var block = step.country_blocks[countryCode] || step.country_blocks['UK'] || '';
             selectedBody = selectedBody.replace('{{country_block}}', block);
           } else {
