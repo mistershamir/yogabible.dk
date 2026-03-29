@@ -122,9 +122,25 @@ async function getCommentsInbox(db, params) {
     const publishResults = post.publishResults || {};
     const caption = (post.caption || '').substring(0, 60);
 
+    // Build a list of platform→postId pairs to fetch comments for
+    const platformPostIds = [];
+
+    // From publishResults (posts published via our system)
     for (const [platform, result] of Object.entries(publishResults)) {
       if (platform.startsWith('_') || !result.success || !result.id) continue;
+      platformPostIds.push({ platform, platformPostId: result.id });
+    }
 
+    // From imported posts (imported from IG/FB)
+    if (post.importedPlatformId && post.platforms && post.platforms.length > 0) {
+      const platform = post.platforms[0];
+      // Avoid duplicates
+      if (!platformPostIds.find(p => p.platformPostId === post.importedPlatformId)) {
+        platformPostIds.push({ platform, platformPostId: post.importedPlatformId });
+      }
+    }
+
+    for (const { platform, platformPostId } of platformPostIds) {
       const account = accounts[platform];
       if (!account || !account.accessToken) continue;
 
@@ -134,12 +150,12 @@ async function getCommentsInbox(db, params) {
         if (platform === 'instagram') {
           commentsData = await getInstagramComments(
             { accessToken: account.accessToken },
-            result.id
+            platformPostId
           );
         } else if (platform === 'facebook') {
           commentsData = await getFacebookComments(
             { accessToken: account.accessToken },
-            result.id
+            platformPostId
           );
         }
 
@@ -152,7 +168,7 @@ async function getCommentsInbox(db, params) {
               platform,
               postId: doc.id,
               postCaption: caption,
-              platformPostId: result.id,
+              platformPostId: platformPostId,
               text: c.text || c.message || '',
               author: c.username || (c.from ? c.from.name : 'Unknown'),
               authorId: c.from ? c.from.id : null,

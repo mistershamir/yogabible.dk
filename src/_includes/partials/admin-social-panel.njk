@@ -532,6 +532,11 @@
     <button class="yb-social__filter-btn" type="button" data-action="social-inbox-tab" data-tab="mentions">{{ t.social_inbox_mentions or "Mentions" }} <span id="yb-social-inbox-mentions-count" class="yb-social__inbox-count"></span></button>
   </div>
 
+  {# Platform filter for inbox #}
+  <div class="yb-social__platform-filter" id="yb-social-inbox-platform-filter">
+    {# Rendered by JS #}
+  </div>
+
   {# Comments List #}
   <div id="yb-social-inbox-comments" class="yb-social__inbox-list">
     <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
@@ -890,13 +895,13 @@
 </div>
 
 <div class="yb-social__composer-modal" id="yb-social-composer" hidden>
-  <div class="yb-social__composer-overlay" data-action="social-composer-close"></div>
+  <div class="yb-social__composer-overlay"></div>
   <div class="yb-social__composer-box">
 
     {# Header #}
     <div class="yb-social__composer-header">
+      <button type="button" class="yb-social__composer-back" data-action="social-composer-close">&larr; {{ t.social_back or "Back" }}</button>
       <h3 id="yb-social-composer-title">{{ t.social_composer_new or "New Post" }}</h3>
-      <button type="button" data-action="social-composer-close">&times;</button>
     </div>
 
     {# Body: Editor + Preview #}
@@ -1083,7 +1088,7 @@
 
         {# AI Assistant #}
         <div class="yb-social__ai-section">
-          <button type="button" class="yb-btn yb-btn--outline" data-action="social-ai-toggle">&#129302; {{ t.social_ai_assistant or "AI Assistant" }}</button>
+          <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-ai-toggle">&#129302; {{ t.social_ai_assistant or "AI Assistant" }}</button>
           <div class="yb-social__ai-panel" id="yb-social-ai-panel" hidden>
             <div class="yb-admin__field">
               <label for="yb-social-ai-topic">{{ t.social_ai_topic or "Topic / Prompt" }}</label>
@@ -1116,7 +1121,7 @@
 
         {# Per-Platform Captions #}
         <div class="yb-social__platform-captions-section">
-          <button type="button" class="yb-btn yb-btn--outline" data-action="social-platform-captions-toggle">&#128221; {{ t.social_platform_captions or "Per-Platform Captions" }}</button>
+          <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-platform-captions-toggle">&#128221; {{ t.social_platform_captions or "Per-Platform Captions" }}</button>
           <div class="yb-social__platform-captions-panel" id="yb-social-platform-captions" hidden>
             <div class="yb-social__platform-captions-head">
               <span class="yb-admin__muted">{{ t.social_platform_captions_desc or "Override the main caption for specific platforms" }}</span>
@@ -1157,7 +1162,7 @@
     {# Footer #}
     <div class="yb-social__composer-footer">
       <input type="hidden" id="yb-social-post-id">
-      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-save-as-template" title="{{ t.social_save_as_template or 'Save as Template' }}">&#9734; {{ t.social_save_as_template or "Save as Template" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-save-as-template" title="{{ t.social_save_as_template or 'Save as Template' }}">&#9734; {{ t.social_save_as_template or "Template" }}</button>
       <button type="button" class="yb-btn yb-btn--outline" data-action="social-save-draft">{{ t.social_save_draft or "Save Draft" }}</button>
       <button type="button" class="yb-btn yb-btn--primary" data-action="social-publish-post" id="yb-social-publish-btn">{{ t.social_post_now or "Post Now" }}</button>
     </div>

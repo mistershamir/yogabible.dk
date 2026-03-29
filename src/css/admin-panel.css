@@ -5864,44 +5864,45 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   .yb-social__bulk-actions { width: 100%; }
 }
 
-/* ── Composer modal ── */
+/* ── Composer full-page view ── */
 .yb-social__composer-modal {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 9999; display: flex; align-items: center; justify-content: center;
+  z-index: 9999; display: flex; flex-direction: column;
+  background: #FFFCF9;
 }
-.yb-social__composer-overlay {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(15, 15, 15, 0.6); backdrop-filter: blur(4px);
-}
+.yb-social__composer-overlay { display: none; }
 .yb-social__composer-box {
   position: relative; background: #FFFCF9;
-  border-radius: 14px; width: 95vw; max-width: 1100px;
-  max-height: 92vh; margin-top: 1vh;
+  width: 100%; height: 100%;
   display: flex; flex-direction: column;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.18);
   overflow: hidden;
 }
 .yb-social__composer-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 20px; border-bottom: 1px solid #E8E4E0;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 24px; border-bottom: 1px solid #E8E4E0;
+  background: #FAFAF8;
 }
 .yb-social__composer-header h3 {
-  font-size: 15px; margin: 0; font-weight: 700;
+  font-size: 15px; margin: 0; font-weight: 700; flex: 1;
 }
-.yb-social__composer-header button {
-  background: none; border: none; font-size: 24px;
-  cursor: pointer; color: #6F6A66; line-height: 1;
-  font-family: inherit;
+.yb-social__composer-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: 1px solid #E8E4E0; border-radius: 8px;
+  padding: 6px 14px; font-size: 13px; font-weight: 600;
+  cursor: pointer; color: #0F0F0F; font-family: inherit;
+  transition: all 0.15s;
 }
+.yb-social__composer-back:hover { border-color: #f75c03; color: #f75c03; }
+.yb-social__composer-header .yb-social__composer-close-x { display: none; }
 .yb-social__composer-body {
-  display: grid; grid-template-columns: 1fr 340px;
+  display: grid; grid-template-columns: 1fr 360px;
   flex: 1; overflow: hidden;
 }
 .yb-social__composer-editor {
-  padding: 18px 20px; overflow-y: auto;
+  padding: 20px 28px; overflow-y: auto;
 }
 .yb-social__composer-preview {
-  border-left: 1px solid #E8E4E0; padding: 16px;
+  border-left: 1px solid #E8E4E0; padding: 20px;
   background: #FAFAF8; overflow-y: auto;
 }
 .yb-social__composer-preview h4 {
@@ -5910,7 +5911,8 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 }
 .yb-social__composer-footer {
   display: flex; align-items: center; justify-content: flex-end;
-  gap: 6px; padding: 10px 20px; border-top: 1px solid #E8E4E0;
+  gap: 8px; padding: 12px 24px; border-top: 1px solid #E8E4E0;
+  background: #FAFAF8;
 }
 
 /* Platform toggles */
@@ -6298,23 +6300,32 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-social__inbox-thread-header {
   display: flex; align-items: center; gap: 10px;
   padding: 12px 16px; border-bottom: 1px solid #E8E4E0;
-  flex-shrink: 0;
+  flex-shrink: 0; background: #FAFAF8;
 }
 .yb-social__inbox-thread-header button[data-action="social-inbox-close-thread"] {
-  background: none; border: none; font-size: 1.1rem; color: #6F6A66;
-  cursor: pointer; font-family: inherit; padding: 2px 6px; border-radius: 4px;
-  line-height: 1; flex-shrink: 0;
+  background: #F5F3F0; border: 1px solid #E8E4E0; font-size: 1.2rem; color: #6F6A66;
+  cursor: pointer; font-family: inherit; padding: 4px 10px; border-radius: 6px;
+  line-height: 1; flex-shrink: 0; order: 10;
 }
 .yb-social__inbox-thread-header button[data-action="social-inbox-close-thread"]:hover {
-  background: #F5F3F0; color: #0F0F0F;
+  background: #E8E4E0; color: #0F0F0F;
 }
 .yb-social__inbox-thread-header button {
   background: none; border: none; font-size: 0.8rem; color: #f75c03;
   cursor: pointer; font-family: inherit; padding: 0;
 }
 .yb-social__inbox-thread-header .yb-social__inbox-thread-title {
-  margin: 0; font-size: 0.8rem; font-weight: 600; flex: 1; overflow: hidden;
+  margin: 0; font-size: 0.85rem; font-weight: 600; flex: 1; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap;
+}
+.yb-social__inbox-thread-platform {
+  font-size: 11px; padding: 2px 6px; border-radius: 4px;
+  font-weight: 600; flex-shrink: 0;
+}
+.yb-social__inbox-thread-platform--instagram { background: #fce4ec; color: #c2185b; }
+.yb-social__inbox-thread-platform--facebook { background: #e3f2fd; color: #1565c0; }
+.yb-social__inbox-thread-time {
+  font-size: 11px; color: #6F6A66; flex-shrink: 0;
 }
 .yb-social__inbox-thread-body {
   flex: 1; overflow-y: auto; padding: 16px 20px;
@@ -6828,18 +6839,89 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   border: 1px solid #E8E4E0; border-radius: 6px; background: #F5F3F0;
 }
 
+/* ── Unified action buttons in composer ── */
+.yb-social__composer-footer .yb-btn {
+  padding: 8px 20px; font-size: 13px; font-weight: 600;
+  border-radius: 8px; min-width: 110px; text-align: center;
+}
+.yb-social__ai-section > .yb-btn,
+.yb-social__platform-captions-section > .yb-btn {
+  padding: 7px 14px; font-size: 12px; font-weight: 600;
+  border-radius: 8px;
+}
+
+/* ── Post card reel play button ── */
+.yb-social__post-play-btn {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(0,0,0,0.6); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 14px; transition: background 0.15s;
+}
+.yb-social__post-play-btn:hover { background: rgba(247,92,3,0.85); }
+
+/* ── Post card type badge ── */
+.yb-social__post-type-badge {
+  font-size: 10px; font-weight: 600; padding: 1px 7px;
+  border-radius: 4px; letter-spacing: 0.2px;
+}
+.yb-social__post-type-badge--reel { background: #E1306C; color: #fff; }
+.yb-social__post-type-badge--carousel { background: #1877F2; color: #fff; }
+
+/* ── Video play modal in post list ── */
+.yb-social__video-play-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 10000; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+}
+.yb-social__video-play-box {
+  position: relative; max-width: 480px; width: 90%; border-radius: 12px;
+  overflow: hidden; background: #000;
+}
+.yb-social__video-play-box video { width: 100%; max-height: 85vh; display: block; }
+.yb-social__video-play-close {
+  position: absolute; top: 8px; right: 8px; width: 32px; height: 32px;
+  border-radius: 50%; background: rgba(0,0,0,0.6); border: none;
+  color: #fff; font-size: 18px; cursor: pointer; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Upload preview & progress ── */
+.yb-social__upload-preview {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+}
+.yb-social__upload-item {
+  width: 80px; position: relative;
+}
+.yb-social__upload-item img,
+.yb-social__upload-item video {
+  width: 80px; height: 80px; object-fit: cover; border-radius: 8px;
+  border: 1px solid #E8E4E0;
+}
+.yb-social__upload-item-bar {
+  position: absolute; bottom: 4px; left: 4px; right: 4px;
+  height: 4px; background: #E8E4E0; border-radius: 2px; overflow: hidden;
+}
+.yb-social__upload-item-fill {
+  height: 100%; background: #f75c03; border-radius: 2px;
+  transition: width 0.2s;
+}
+.yb-social__upload-item-pct {
+  display: block; text-align: center; font-size: 10px;
+  color: #6F6A66; margin-top: 2px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .yb-social__accounts-grid { grid-template-columns: repeat(2, 1fr); }
   .yb-social__composer-body { grid-template-columns: 1fr; }
-  .yb-social__composer-preview { display: none; }
+  .yb-social__composer-preview { border-left: none; border-top: 1px solid #E8E4E0; max-height: 300px; }
 }
 @media (max-width: 768px) {
   .yb-social__accounts-grid { grid-template-columns: 1fr; }
   .yb-social__calendar-sidebar { width: 100%; }
   .yb-social__subnav { overflow-x: auto; flex-wrap: nowrap; }
   .yb-social__subnav-btn { white-space: nowrap; }
-  .yb-social__composer-box { width: 100vw; max-width: 100vw; border-radius: 0; max-height: 100vh; }
   .yb-social__composer-platforms { flex-wrap: wrap; }
   .yb-social__posts-grid { grid-template-columns: 1fr; }
   .yb-social__filter-bar { flex-wrap: wrap; }
