@@ -489,7 +489,7 @@
   }
 
   function getPostsForDate(dateStr) {
-    return state.posts.filter(function (p) {
+    return (state.allPosts || state.posts).filter(function (p) {
       var d = p.scheduledAt || p.publishedAt || p.createdAt;
       if (!d) return false;
       var dt = d._seconds ? new Date(d._seconds * 1000) : new Date(d);
@@ -533,17 +533,58 @@
   }
 
   /* ═══ POSTS LIST ═══ */
+  // Track whether auto-import has run this session
+  var _autoImportDone = false;
+
   async function loadPosts() {
-    var url = 'social-posts?action=list';
-    if (state.postsFilter !== 'all') url += '&status=' + state.postsFilter;
-    if (state.postsPlatform !== 'all') url += '&platform=' + state.postsPlatform;
     var grid = $('yb-social-posts-grid');
     if (grid) grid.innerHTML = '<p class="yb-admin__muted">Loading...</p>';
-    var data = await api(url);
+
+    // Always fetch ALL posts — filtering happens client-side
+    var data = await api('social-posts?action=list');
     if (!data) return;
-    state.posts = data.posts || [];
+    state.allPosts = data.posts || [];
     renderPosts();
     if ($('yb-social-cal-grid')) renderCalendar();
+
+    // Auto-import from connected platforms (once per session)
+    if (!_autoImportDone) {
+      _autoImportDone = true;
+      autoImportFromPlatforms();
+    }
+  }
+
+  async function autoImportFromPlatforms() {
+    // Ensure accounts are loaded
+    if (!state.accounts || Object.keys(state.accounts).length === 0) {
+      var acctData = await api('social-accounts?action=list');
+      if (acctData) {
+        state.accounts = {};
+        (acctData.accounts || []).forEach(function (a) { state.accounts[a.platform] = a; });
+      }
+    }
+    var platforms = ['instagram', 'facebook'];
+    var imported = 0;
+    for (var i = 0; i < platforms.length; i++) {
+      var p = platforms[i];
+      if (!state.accounts[p]) continue;
+      try {
+        var data = await api('social-posts?action=import-from-platform', {
+          method: 'POST',
+          body: JSON.stringify({ platform: p })
+        });
+        if (data && data.imported > 0) imported += data.imported;
+      } catch (e) { /* silent */ }
+    }
+    if (imported > 0) {
+      toast('Auto-imported ' + imported + ' new posts');
+      // Reload to show new posts
+      var data2 = await api('social-posts?action=list');
+      if (data2) {
+        state.allPosts = data2.posts || [];
+        renderPosts();
+      }
+    }
   }
 
   function renderPosts() {
@@ -551,25 +592,64 @@
     var countEl = $('yb-social-posts-count');
     if (!grid) return;
 
-    // Render platform filter bar
+    var all = state.allPosts || [];
+
+    // ── Count by status ──
+    var statusCounts = { all: all.length };
+    all.forEach(function (p) {
+      statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+    });
+
+    // Update status filter button counts
+    qsa('#yb-social-v-posts .yb-social__filter-btn[data-action="social-filter-status"]').forEach(function (btn) {
+      var s = btn.getAttribute('data-status');
+      var count = statusCounts[s] || 0;
+      var label = btn.textContent.replace(/\s*\(\d+\)$/, '');
+      btn.textContent = label + ' (' + count + ')';
+    });
+
+    // ── Count by platform ──
+    var platCounts = { all: all.length };
+    all.forEach(function (p) {
+      (p.platforms || []).forEach(function (pl) {
+        platCounts[pl] = (platCounts[pl] || 0) + 1;
+      });
+    });
+
+    // Render platform filter bar with counts
     var pfBar = $('yb-social-platform-filter');
     if (pfBar) {
       var pfs = ['all', 'instagram', 'facebook', 'tiktok', 'linkedin', 'youtube', 'pinterest'];
       var pfLabels = { all: 'All', instagram: 'IG', facebook: 'FB', tiktok: 'TT', linkedin: 'LI', youtube: 'YT', pinterest: 'PIN' };
       pfBar.innerHTML = '<span class="yb-social__platform-filter-label">Platform:</span>' +
         pfs.map(function (p) {
-          return '<button class="yb-social__platform-filter-btn' + (state.postsPlatform === p ? ' is-active' : '') + '" data-action="social-filter-platform" data-platform="' + p + '">' + pfLabels[p] + '</button>';
+          var count = platCounts[p] || 0;
+          if (p !== 'all' && count === 0) return '';
+          return '<button class="yb-social__platform-filter-btn' + (state.postsPlatform === p ? ' is-active' : '') + '" data-action="social-filter-platform" data-platform="' + p + '">' + pfLabels[p] + ' (' + count + ')</button>';
         }).join('');
     }
 
-    if (countEl) countEl.textContent = state.posts.length + ' ' + t('social_posts_title').toLowerCase();
+    // ── Client-side filtering ──
+    var filtered = all;
+    if (state.postsFilter !== 'all') {
+      filtered = filtered.filter(function (p) { return p.status === state.postsFilter; });
+    }
+    if (state.postsPlatform !== 'all') {
+      filtered = filtered.filter(function (p) {
+        return (p.platforms || []).indexOf(state.postsPlatform) !== -1;
+      });
+    }
 
-    if (state.posts.length === 0) {
+    state.posts = filtered;
+
+    if (countEl) countEl.textContent = filtered.length + ' ' + t('social_posts_title').toLowerCase();
+
+    if (filtered.length === 0) {
       grid.innerHTML = '<p class="yb-admin__muted">' + t('social_no_posts') + '</p>';
       return;
     }
 
-    grid.innerHTML = state.posts.map(function (p) {
+    grid.innerHTML = filtered.map(function (p) {
       var thumbContent = '';
       if (p.media && p.media[0]) {
         thumbContent = '<img src="' + p.media[0] + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
@@ -4871,7 +4951,9 @@
 
     if (data && data.imported) {
       toast('Imported ' + data.imported + ' posts from ' + platform);
-      loadPosts();
+      // Reload all posts
+      var d2 = await api('social-posts?action=list');
+      if (d2) { state.allPosts = d2.posts || []; renderPosts(); }
     } else if (data && data.imported === 0) {
       toast('No new posts to import');
     }
@@ -4942,14 +5024,14 @@
     // Posts
     else if (action === 'social-filter-status') {
       state.postsFilter = btn.getAttribute('data-status');
-      qsa('#yb-social-v-posts .yb-social__filter-btn').forEach(function (b) {
+      qsa('#yb-social-v-posts .yb-social__filter-btn[data-action="social-filter-status"]').forEach(function (b) {
         b.classList.toggle('is-active', b.getAttribute('data-status') === state.postsFilter);
       });
-      loadPosts();
+      renderPosts();
     }
     else if (action === 'social-filter-platform') {
       state.postsPlatform = btn.getAttribute('data-platform') || 'all';
-      loadPosts();
+      renderPosts();
     }
     else if (action === 'social-import-posts') {
       importExistingPosts(btn.getAttribute('data-platform'));
@@ -5212,7 +5294,7 @@
       if (!user) return;
       // Pre-load posts for calendar dots
       api('social-posts?action=list').then(function (data) {
-        if (data) state.posts = data.posts || [];
+        if (data) { state.allPosts = data.posts || []; state.posts = state.allPosts; }
       });
     });
   }

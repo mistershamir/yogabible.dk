@@ -19,6 +19,10 @@ const ANALYTICS_SUB = 'social_analytics';
 const VALID_STATUSES = ['draft', 'pending_review', 'approved', 'scheduled', 'published', 'failed', 'recycled'];
 const VALID_PLATFORMS = ['instagram', 'facebook', 'tiktok', 'linkedin', 'youtube', 'pinterest'];
 
+const BUNNY_STORAGE_ZONE = process.env.BUNNY_STORAGE_ZONE || 'yogabible';
+const BUNNY_STORAGE_KEY = process.env.BUNNY_STORAGE_API_KEY || '';
+const BUNNY_CDN_HOST = process.env.BUNNY_CDN_HOST || 'yogabible.b-cdn.net';
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
 
@@ -63,44 +67,12 @@ exports.handler = async (event) => {
 // ── List posts with filters ─────────────────────────────────────
 
 async function listPosts(db, params) {
-  let query = db.collection(COLLECTION);
-
-  if (params.status && VALID_STATUSES.includes(params.status)) {
-    query = query.where('status', '==', params.status);
-  }
-
-  if (params.platform && VALID_PLATFORMS.includes(params.platform)) {
-    query = query.where('platforms', 'array-contains', params.platform);
-  }
-
-  if (params.from) {
-    const fromDate = new Date(params.from);
-    if (!isNaN(fromDate)) {
-      query = query.where('scheduledAt', '>=', fromDate);
-    }
-  }
-
-  if (params.to) {
-    const toDate = new Date(params.to);
-    if (!isNaN(toDate)) {
-      query = query.where('scheduledAt', '<=', toDate);
-    }
-  }
-
-  // Order by createdAt (all docs have this field, unlike scheduledAt)
-  query = query.orderBy('createdAt', 'desc').limit(100);
-
-  let snap;
-  try {
-    snap = await query.get();
-  } catch (indexErr) {
-    // If composite index missing, fall back to simpler query
-    console.warn('[social-posts] Index fallback:', indexErr.message);
-    snap = await db.collection(COLLECTION)
-      .orderBy('createdAt', 'desc')
-      .limit(100)
-      .get();
-  }
+  // Fetch ALL posts with a simple orderBy (no composite index needed).
+  // Filtering by status/platform is done client-side to avoid missing indexes.
+  const snap = await db.collection(COLLECTION)
+    .orderBy('createdAt', 'desc')
+    .limit(200)
+    .get();
 
   const posts = [];
   snap.forEach(doc => {
@@ -386,6 +358,39 @@ async function bulkDuplicatePosts(db, ids, user) {
 }
 
 
+// ── Persist image to Bunny Storage ──────────────────────────────
+
+async function persistImageToBunny(imageUrl, platform, postId) {
+  if (!BUNNY_STORAGE_KEY || !imageUrl) return imageUrl;
+  try {
+    const res = await fetch(imageUrl);
+    if (!res.ok) return imageUrl;
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const ext = (res.headers.get('content-type') || '').includes('png') ? 'png' : 'jpg';
+    const filename = `${postId}.${ext}`;
+    const storagePath = `yoga-bible-DK/social-imports/${platform}/${filename}`;
+
+    const uploadRes = await fetch(`https://storage.bunnycdn.com/${BUNNY_STORAGE_ZONE}/${storagePath}`, {
+      method: 'PUT',
+      headers: {
+        AccessKey: BUNNY_STORAGE_KEY,
+        'Content-Type': res.headers.get('content-type') || 'image/jpeg'
+      },
+      body: buffer
+    });
+
+    if (uploadRes.ok || uploadRes.status === 201) {
+      return `https://${BUNNY_CDN_HOST}/${storagePath}`;
+    }
+    console.warn('[social-posts] Bunny upload failed:', uploadRes.status);
+    return imageUrl;
+  } catch (err) {
+    console.warn('[social-posts] Image persist error:', err.message);
+    return imageUrl;
+  }
+}
+
+
 // ── Import existing posts from Instagram/Facebook ─────────────────
 
 async function importFromPlatform(db, body, user) {
@@ -484,15 +489,26 @@ async function importFromPlatform(db, body, user) {
   // Filter out already-imported posts
   const newPosts = posts.filter(p => !existingIds.has(p.platformId));
 
-  // Save new posts to Firestore
+  // Save new posts to Firestore, persisting images to Bunny Storage
   let imported = 0;
   for (const p of newPosts) {
     try {
       const pubDate = p.publishedAt ? new Date(p.publishedAt) : new Date();
+
+      // Persist media to Bunny Storage so URLs don't expire
+      const persistedMedia = [];
+      for (const url of p.media) {
+        if (url) {
+          const bunnyUrl = await persistImageToBunny(url, platform, p.platformId);
+          persistedMedia.push(bunnyUrl);
+        }
+      }
+
       await db.collection(COLLECTION).add({
         caption: p.caption,
         platforms: [platform],
-        media: p.media,
+        media: persistedMedia.length ? persistedMedia : p.media,
+        originalMedia: p.media,
         mediaType: p.mediaType,
         hashtags: (p.caption.match(/#\w+/g) || []),
         status: 'published',
