@@ -651,6 +651,7 @@ async function handleProcess() {
 
         // Select language-appropriate email content
         // Priority: DE (if available) → EN (non-Danish) → DA (default)
+        // Safety: if selected content is empty, fall back to EN then DA
         var selectedSubject, selectedBody;
         if (isGerman && step.email_subject_de) {
           selectedSubject = step.email_subject_de;
@@ -665,6 +666,14 @@ async function handleProcess() {
         } else {
           selectedSubject = step.email_subject;
           selectedBody = step.email_body;
+        }
+
+        // Fallback: if DA content is null (e.g. international-only sequences),
+        // use EN content. This catches leads with wrong lang='da' enrolled in
+        // sequences that only have EN content.
+        if (!selectedSubject && step.email_subject_en) {
+          selectedSubject = step.email_subject_en;
+          selectedBody = step.email_body_en || selectedBody;
         }
 
         // Replace {{country_block}} with country-specific content (EN emails only)
