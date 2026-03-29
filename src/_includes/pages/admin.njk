@@ -31,11 +31,13 @@
     {# ── Logged-in content ── #}
     <div id="yb-admin-panel" style="display:none" class="yb-admin__layout">
 
+      {# Mobile sidebar toggle — MUST be outside sidebar so it's visible when sidebar is closed #}
+      <button class="yb-admin__sidebar-toggle" id="yb-admin-sidebar-toggle" type="button" aria-label="Toggle menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
       {# ── Sidebar Navigation ── #}
       <nav class="yb-admin__sidebar" id="yb-admin-sidebar">
-        <button class="yb-admin__sidebar-toggle" id="yb-admin-sidebar-toggle" type="button" aria-label="Toggle menu">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
 
         {# Overview group #}
         <div class="yb-admin__nav-group">
