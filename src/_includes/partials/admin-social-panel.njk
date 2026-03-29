@@ -5,6 +5,7 @@
   <button class="yb-social__nav-btn is-active" type="button" data-action="social-nav-accounts">{{ t.social_nav_accounts or "Accounts" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-calendar">{{ t.social_nav_calendar or "Calendar" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-posts">{{ t.social_nav_posts or "Posts" }}</button>
+  <button class="yb-social__nav-btn" type="button" data-action="social-nav-crossshare">Cross-Share</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-analytics">{{ t.social_nav_analytics or "Analytics" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-inbox">{{ t.social_nav_inbox or "Inbox" }} <span class="yb-social__inbox-badge" id="yb-social-inbox-badge" hidden>0</span></button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-hashtags">{{ t.social_nav_hashtags or "Hashtags" }}</button>
@@ -295,6 +296,80 @@
 
   <div class="yb-social__posts-grid" id="yb-social-posts-grid">
     {# Post cards rendered by JS #}
+  </div>
+</div>
+
+{# ════════════════════════════════════════════════════════════════════════════ #}
+{# VIEW: Cross-Share                                                           #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+<div id="yb-social-v-crossshare" hidden>
+  <div class="yb-admin__view-head">
+    <h2>Cross-Share</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-crossshare-selected" id="yb-crossshare-share-btn" disabled>
+        Share Selected (0)
+      </button>
+    </div>
+  </div>
+
+  <p class="yb-admin__muted" style="margin:0 0 16px;font-size:13px">
+    Browse posts by source platform, see which ones are compatible with other platforms, and cross-share individually or in bulk.
+  </p>
+
+  {# Source platform tabs #}
+  <div class="yb-social__filter-bar" id="yb-crossshare-source-tabs">
+    <button class="yb-social__filter-btn is-active" type="button" data-action="social-crossshare-source" data-platform="instagram">IG</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-crossshare-source" data-platform="facebook">FB</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-crossshare-source" data-platform="tiktok">TT</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-crossshare-source" data-platform="linkedin">LI</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-crossshare-source" data-platform="youtube">YT</button>
+  </div>
+
+  {# Target platform selector #}
+  <div class="yb-social__crossshare-target" id="yb-crossshare-target">
+    <span class="yb-social__platform-filter-label">Share to:</span>
+    <button class="yb-social__platform-filter-btn is-active" type="button" data-action="social-crossshare-target" data-platform="all">All</button>
+    <button class="yb-social__platform-filter-btn" type="button" data-action="social-crossshare-target" data-platform="tiktok">TikTok</button>
+    <button class="yb-social__platform-filter-btn" type="button" data-action="social-crossshare-target" data-platform="facebook">FB</button>
+    <button class="yb-social__platform-filter-btn" type="button" data-action="social-crossshare-target" data-platform="instagram">IG</button>
+    <button class="yb-social__platform-filter-btn" type="button" data-action="social-crossshare-target" data-platform="linkedin">LI</button>
+    <button class="yb-social__platform-filter-btn" type="button" data-action="social-crossshare-target" data-platform="youtube">YT</button>
+    {# Compatibility filter #}
+    <span style="margin-left:auto">
+      <label style="font-size:12px;color:var(--yb-muted);cursor:pointer">
+        <input type="checkbox" id="yb-crossshare-compat-only" checked> Compatible only
+      </label>
+    </span>
+  </div>
+
+  {# Bulk select #}
+  <div class="yb-social__bulk-bar" id="yb-crossshare-bulk-bar" style="margin:8px 0">
+    <label class="yb-social__bulk-select-all">
+      <input type="checkbox" id="yb-crossshare-select-all" data-action="social-crossshare-select-all"> Select all compatible
+    </label>
+    <span class="yb-social__bulk-count" id="yb-crossshare-count">0 posts</span>
+  </div>
+
+  {# Post grid — rendered by JS #}
+  <div class="yb-social__crossshare-grid" id="yb-crossshare-grid">
+    <p class="yb-admin__muted">Loading...</p>
+  </div>
+</div>
+
+{# Cross-Share Modal #}
+<div class="yb-social__modal-overlay" id="yb-crossshare-modal" hidden>
+  <div class="yb-social__modal-box" style="max-width:640px">
+    <div class="yb-social__modal-header">
+      <h3 id="yb-crossshare-modal-title">Cross-Share Posts</h3>
+      <button class="yb-social__btn-sm" data-action="social-crossshare-modal-close">&times;</button>
+    </div>
+    <div class="yb-social__modal-body" id="yb-crossshare-modal-body">
+      {# Rendered by JS: target picker, caption editors, preview #}
+    </div>
+    <div class="yb-social__modal-footer" style="display:flex;gap:8px;justify-content:flex-end;padding:16px 20px;border-top:1px solid var(--yb-border)">
+      <button type="button" class="yb-btn yb-btn--outline" data-action="social-crossshare-modal-close">Cancel</button>
+      <button type="button" class="yb-btn yb-btn--primary" data-action="social-crossshare-confirm" id="yb-crossshare-confirm-btn">Create Posts</button>
+    </div>
   </div>
 </div>
 

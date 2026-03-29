@@ -130,7 +130,7 @@ async function createPost(db, body, user) {
   const {
     caption, platforms, media, hashtags, hashtagSet,
     status, scheduledAt, firstComment, location, altTexts, mediaType,
-    contentPillar, platformCaptions
+    contentPillar, platformCaptions, crossSharedFrom
   } = body;
 
   if (!caption && (!media || media.length === 0)) {
@@ -157,7 +157,8 @@ async function createPost(db, body, user) {
     platformCaptions: platformCaptions || {},
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-    createdBy: user.email
+    createdBy: user.email,
+    ...(crossSharedFrom ? { crossSharedFrom, source: 'cross-shared' } : {})
   };
 
   const ref = await db.collection(COLLECTION).add(postData);
