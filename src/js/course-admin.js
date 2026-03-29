@@ -84,15 +84,27 @@
         if (sidebar.classList.contains('is-open')) {
           closeSidebar();
         } else {
-          sidebar.classList.add('is-open');
-          var ov = document.getElementById('yb-admin-sidebar-overlay');
-          if (ov) ov.classList.add('is-visible');
+          openSidebar();
         }
       });
     }
 
+    // Close button inside sidebar
+    var closeBtn = document.getElementById('yb-admin-sidebar-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeSidebar);
+    }
+
+    function openSidebar() {
+      if (sidebar) sidebar.classList.add('is-open');
+      if (toggleBtn) toggleBtn.classList.add('is-hidden');
+      var ov = document.getElementById('yb-admin-sidebar-overlay');
+      if (ov) ov.classList.add('is-visible');
+    }
+
     function closeSidebar() {
       if (sidebar) sidebar.classList.remove('is-open');
+      if (toggleBtn) toggleBtn.classList.remove('is-hidden');
       var ov = document.getElementById('yb-admin-sidebar-overlay');
       if (ov) ov.classList.remove('is-visible');
     }
