@@ -84,7 +84,7 @@
   /* ═══ VIEW MANAGEMENT ═══ */
   function showView(name) {
     state.view = name;
-    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting', 'library', 'stories'].forEach(function (v) {
+    ['accounts', 'calendar', 'posts', 'crossshare', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting', 'library', 'stories'].forEach(function (v) {
       var el = $('yb-social-v-' + v);
       if (el) el.hidden = (v !== name);
     });
@@ -100,7 +100,8 @@
     if (name === 'templates') loadTemplates();
     if (name === 'competitors') loadCompetitors();
     if (name === 'abtesting') loadAbTests();
-    if (name === 'library') loadContentLibrary();
+    if (name === 'crossshare') loadCrossShare();
+    if (name === 'library') { loadContentLibrary(); loadVideoLibrary(); initVideoUploadZone(); initTrimHandles(); }
     if (name === 'stories') loadStories();
   }
 
@@ -489,7 +490,7 @@
   }
 
   function getPostsForDate(dateStr) {
-    return state.posts.filter(function (p) {
+    return (state.allPosts || state.posts).filter(function (p) {
       var d = p.scheduledAt || p.publishedAt || p.createdAt;
       if (!d) return false;
       var dt = d._seconds ? new Date(d._seconds * 1000) : new Date(d);
@@ -533,17 +534,58 @@
   }
 
   /* ═══ POSTS LIST ═══ */
+  // Track whether auto-import has run this session
+  var _autoImportDone = false;
+
   async function loadPosts() {
-    var url = 'social-posts?action=list';
-    if (state.postsFilter !== 'all') url += '&status=' + state.postsFilter;
-    if (state.postsPlatform !== 'all') url += '&platform=' + state.postsPlatform;
     var grid = $('yb-social-posts-grid');
     if (grid) grid.innerHTML = '<p class="yb-admin__muted">Loading...</p>';
-    var data = await api(url);
+
+    // Always fetch ALL posts — filtering happens client-side
+    var data = await api('social-posts?action=list');
     if (!data) return;
-    state.posts = data.posts || [];
+    state.allPosts = data.posts || [];
     renderPosts();
     if ($('yb-social-cal-grid')) renderCalendar();
+
+    // Auto-import from connected platforms (once per session)
+    if (!_autoImportDone) {
+      _autoImportDone = true;
+      autoImportFromPlatforms();
+    }
+  }
+
+  async function autoImportFromPlatforms() {
+    // Ensure accounts are loaded
+    if (!state.accounts || Object.keys(state.accounts).length === 0) {
+      var acctData = await api('social-accounts?action=list');
+      if (acctData) {
+        state.accounts = {};
+        (acctData.accounts || []).forEach(function (a) { state.accounts[a.platform] = a; });
+      }
+    }
+    var platforms = ['instagram', 'facebook'];
+    var imported = 0;
+    for (var i = 0; i < platforms.length; i++) {
+      var p = platforms[i];
+      if (!state.accounts[p]) continue;
+      try {
+        var data = await api('social-posts?action=import-from-platform', {
+          method: 'POST',
+          body: JSON.stringify({ platform: p })
+        });
+        if (data && data.imported > 0) imported += data.imported;
+      } catch (e) { /* silent */ }
+    }
+    if (imported > 0) {
+      toast('Auto-imported ' + imported + ' new posts');
+      // Reload to show new posts
+      var data2 = await api('social-posts?action=list');
+      if (data2) {
+        state.allPosts = data2.posts || [];
+        renderPosts();
+      }
+    }
   }
 
   function renderPosts() {
@@ -551,28 +593,85 @@
     var countEl = $('yb-social-posts-count');
     if (!grid) return;
 
-    // Render platform filter bar
+    var all = state.allPosts || [];
+
+    // ── Count by status ──
+    var statusCounts = { all: all.length };
+    all.forEach(function (p) {
+      statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+    });
+
+    // Update status filter button counts
+    qsa('#yb-social-v-posts .yb-social__filter-btn[data-action="social-filter-status"]').forEach(function (btn) {
+      var s = btn.getAttribute('data-status');
+      var count = statusCounts[s] || 0;
+      var label = btn.textContent.replace(/\s*\(\d+\)$/, '');
+      btn.textContent = label + ' (' + count + ')';
+    });
+
+    // ── Count by platform ──
+    var platCounts = { all: all.length };
+    all.forEach(function (p) {
+      (p.platforms || []).forEach(function (pl) {
+        platCounts[pl] = (platCounts[pl] || 0) + 1;
+      });
+    });
+
+    // Render platform filter bar with counts
     var pfBar = $('yb-social-platform-filter');
     if (pfBar) {
       var pfs = ['all', 'instagram', 'facebook', 'tiktok', 'linkedin', 'youtube', 'pinterest'];
       var pfLabels = { all: 'All', instagram: 'IG', facebook: 'FB', tiktok: 'TT', linkedin: 'LI', youtube: 'YT', pinterest: 'PIN' };
       pfBar.innerHTML = '<span class="yb-social__platform-filter-label">Platform:</span>' +
         pfs.map(function (p) {
-          return '<button class="yb-social__platform-filter-btn' + (state.postsPlatform === p ? ' is-active' : '') + '" data-action="social-filter-platform" data-platform="' + p + '">' + pfLabels[p] + '</button>';
+          var count = platCounts[p] || 0;
+          if (p !== 'all' && count === 0) return '';
+          return '<button class="yb-social__platform-filter-btn' + (state.postsPlatform === p ? ' is-active' : '') + '" data-action="social-filter-platform" data-platform="' + p + '">' + pfLabels[p] + ' (' + count + ')</button>';
         }).join('');
     }
 
-    if (countEl) countEl.textContent = state.posts.length + ' ' + t('social_posts_title').toLowerCase();
+    // ── Client-side filtering ──
+    var filtered = all;
+    if (state.postsFilter !== 'all') {
+      filtered = filtered.filter(function (p) { return p.status === state.postsFilter; });
+    }
+    if (state.postsPlatform !== 'all') {
+      filtered = filtered.filter(function (p) {
+        return (p.platforms || []).indexOf(state.postsPlatform) !== -1;
+      });
+    }
 
-    if (state.posts.length === 0) {
+    state.posts = filtered;
+
+    if (countEl) countEl.textContent = filtered.length + ' ' + t('social_posts_title').toLowerCase();
+
+    if (filtered.length === 0) {
       grid.innerHTML = '<p class="yb-admin__muted">' + t('social_no_posts') + '</p>';
       return;
     }
 
-    grid.innerHTML = state.posts.map(function (p) {
-      var thumb = p.media && p.media[0]
-        ? '<div class="yb-social__post-thumb"><img src="' + p.media[0] + '" alt="" loading="lazy"></div>'
-        : '<div class="yb-social__post-thumb"><span class="yb-admin__muted" style="font-size:24px">📝</span></div>';
+    grid.innerHTML = filtered.map(function (p) {
+      var isVideo = p.mediaType === 'video' || p.mediaType === 'reels';
+      var isCarousel = p.media && p.media.length > 1;
+      var thumbContent = '';
+      if (p.media && p.media[0]) {
+        thumbContent = '<img src="' + p.media[0] + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+          '<span class="yb-social__post-thumb-fallback" style="display:none">' +
+          (p.importedPermalink ? '<a href="' + p.importedPermalink + '" target="_blank" style="color:#f75c03;font-size:11px;text-decoration:none">🔗 View on ' + ((p.platforms || [])[0] || 'platform') + '</a>' : '📝') +
+          '</span>';
+        // Add play button for video/reel posts
+        if (isVideo && (p.videoUrl || p.importedPermalink)) {
+          thumbContent += '<button class="yb-social__post-play-btn" data-action="social-play-reel" data-id="' + p.id + '" data-video="' + (p.videoUrl || '') + '" data-permalink="' + (p.importedPermalink || '') + '" title="Play">▶</button>';
+        }
+      } else {
+        thumbContent = '<span class="yb-admin__muted" style="font-size:24px">📝</span>';
+      }
+      var thumb = '<div class="yb-social__post-thumb" style="position:relative">' + thumbContent + '</div>';
+
+      // Type badge: Reel or Carousel
+      var typeBadge = '';
+      if (isVideo) typeBadge = '<span class="yb-social__post-type-badge yb-social__post-type-badge--reel">Reel</span>';
+      else if (isCarousel) typeBadge = '<span class="yb-social__post-type-badge yb-social__post-type-badge--carousel">Carousel</span>';
 
       var schedTime = '';
       if (p.status === 'scheduled' && p.scheduledAt) schedTime = fmtDateTime(p.scheduledAt);
@@ -589,7 +688,7 @@
         '<div class="yb-social__post-meta">' +
         '<div class="yb-social__post-platforms">' + (p.platforms || []).map(platformIcon).join('') + '</div>' +
         statusBadge(p.status) +
-        (p.autoGenerated ? '<span class="yb-social__auto-badge">🤖 ' + t('social_auto_generated') + '</span>' : '') +
+        typeBadge +
         '<span>' + schedTime + '</span>' +
         '</div>' +
         '<div class="yb-social__post-actions">' +
@@ -604,6 +703,26 @@
         '<button data-action="social-delete-post" data-id="' + p.id + '">' + t('social_delete') + '</button>' +
         '</div></div></div>';
     }).join('');
+  }
+
+  // ── Play reel from post list ─────────────────────────────
+  function playReelFromList(btn) {
+    var videoUrl = btn.getAttribute('data-video');
+    var permalink = btn.getAttribute('data-permalink');
+    if (videoUrl) {
+      var html = '<div class="yb-social__video-play-modal" id="yb-social-video-player">' +
+        '<div class="yb-social__video-play-box">' +
+        '<button class="yb-social__video-play-close" data-action="social-close-video-player">&times;</button>' +
+        '<video src="' + videoUrl + '" controls autoplay style="width:100%;max-height:85vh"></video>' +
+        '</div></div>';
+      document.body.insertAdjacentHTML('beforeend', html);
+      // Close on backdrop click
+      document.getElementById('yb-social-video-player').addEventListener('click', function (e) {
+        if (e.target === this) this.remove();
+      });
+    } else if (permalink) {
+      window.open(permalink, '_blank');
+    }
   }
 
   async function deletePost(id) {
@@ -1542,6 +1661,7 @@
   /* ═══ INBOX ═══ */
   var inboxState = {
     tab: 'comments',
+    platformFilter: 'all',
     comments: [],
     conversations: [],
     activeThread: null,
@@ -1553,7 +1673,7 @@
 
   async function loadInbox() {
     var results = await Promise.all([
-      api('social-inbox?action=comments&days=7'),
+      api('social-inbox?action=comments&days=30'),
       api('social-inbox?action=conversations')
     ]);
 
@@ -1585,11 +1705,37 @@
   }
 
   function renderInbox() {
+    renderInboxPlatformFilter();
     if (inboxState.tab === 'comments') {
       renderComments();
     } else {
       renderConversations();
     }
+  }
+
+  function renderInboxPlatformFilter() {
+    var pfBar = $('yb-social-inbox-platform-filter');
+    if (!pfBar) return;
+
+    // Count by platform
+    var items = inboxState.tab === 'comments' ? inboxState.comments :
+      inboxState.tab === 'messages' ? inboxState.conversations : [];
+    var platCounts = { all: items.length };
+    items.forEach(function (item) {
+      var p = item.platform;
+      platCounts[p] = (platCounts[p] || 0) + 1;
+    });
+
+    var pfs = ['all', 'instagram', 'facebook'];
+    var pfLabels = { all: 'All', instagram: 'IG', facebook: 'FB', tiktok: 'TT', linkedin: 'LI' };
+    pfBar.innerHTML = '<span class="yb-social__platform-filter-label">Platform:</span>' +
+      pfs.map(function (p) {
+        var count = platCounts[p] || 0;
+        if (p !== 'all' && count === 0) return '';
+        return '<button class="yb-social__platform-filter-btn' + (inboxState.platformFilter === p ? ' is-active' : '') +
+          '" data-action="social-inbox-platform-filter" data-platform="' + p + '">' +
+          pfLabels[p] + ' (' + count + ')</button>';
+      }).join('');
   }
 
   function renderComments() {
@@ -1611,6 +1757,9 @@
       '</div>';
 
     var filtered = inboxState.comments;
+    if (inboxState.platformFilter !== 'all') {
+      filtered = filtered.filter(function (c) { return c.platform === inboxState.platformFilter; });
+    }
     if (inboxState.sentimentFilter) {
       filtered = filtered.filter(function (c) {
         if (!c._sentiment) return false;
@@ -1640,6 +1789,7 @@
         '" data-action="social-inbox-open-comment" data-id="' + c.commentId + '" data-platform="' + c.platform + '" data-inbox-id="' + c.id + '">' +
         '<div class="yb-social__inbox-item-head">' +
           platformIcon(c.platform) +
+          (c.isAd ? '<span class="yb-social__post-type-badge yb-social__post-type-badge--ad" title="Ad comment">Ad</span>' : '') +
           '<span class="yb-social__inbox-item-author">' + (c.author || 'Unknown') + '</span>' +
           sentimentBadge +
           '<span class="yb-social__inbox-item-time">' + formatTimeAgo(c.timestamp) + '</span>' +
@@ -1659,12 +1809,17 @@
     var container = $('yb-social-inbox-messages');
     if (!container) return;
 
-    if (inboxState.conversations.length === 0) {
+    var filtered = inboxState.conversations;
+    if (inboxState.platformFilter !== 'all') {
+      filtered = filtered.filter(function (c) { return c.platform === inboxState.platformFilter; });
+    }
+
+    if (filtered.length === 0) {
       container.innerHTML = '<div class="yb-social__inbox-empty"><p>' + t('social_no_messages') + '</p></div>';
       return;
     }
 
-    container.innerHTML = inboxState.conversations.map(function (c) {
+    container.innerHTML = filtered.map(function (c) {
       return '<div class="yb-social__inbox-item' + (c.read ? '' : ' yb-social__inbox-item--unread') + '" data-action="social-inbox-open-conversation" data-id="' + c.conversationId + '" data-platform="' + c.platform + '" data-inbox-id="' + c.id + '">' +
         '<div class="yb-social__inbox-item-head">' +
           platformIcon(c.platform) +
@@ -1684,9 +1839,11 @@
   // ── Multi-Thread Panel Helpers ─────────────────────────────
   function getThreadPanelId(type, id) { return 'thread-' + type + '-' + id; }
 
-  function createThreadPanel(panelId, titleText) {
+  function createThreadPanel(panelId, titleText, meta) {
     var container = $('yb-social-inbox-threads-container');
     if (!container) return null;
+
+    meta = meta || {};
 
     // If panel already open, focus it
     var existing = document.getElementById(panelId);
@@ -1695,14 +1852,27 @@
       return existing;
     }
 
+    // Platform badge
+    var platBadge = '';
+    if (meta.platform) {
+      var platLabels = { instagram: 'IG', facebook: 'FB', tiktok: 'TT', linkedin: 'LI' };
+      platBadge = '<span class="yb-social__inbox-thread-platform yb-social__inbox-thread-platform--' + meta.platform + '">' +
+        (platLabels[meta.platform] || meta.platform) + '</span>';
+    }
+
+    // Time
+    var timeHtml = meta.time ? '<span class="yb-social__inbox-thread-time">' + meta.time + '</span>' : '';
+
     var panel = document.createElement('div');
     panel.className = 'yb-social__inbox-thread';
     panel.id = panelId;
     panel.innerHTML =
       '<div class="yb-social__inbox-thread-header">' +
-        '<button type="button" data-action="social-inbox-close-thread" data-panel-id="' + panelId + '">&times;</button>' +
+        platBadge +
         '<h4 class="yb-social__inbox-thread-title">' + escapeHtml(titleText) + '</h4>' +
+        timeHtml +
         '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__create-lead-btn" data-action="social-inbox-create-lead" data-panel-id="' + panelId + '" title="Create Lead">👤</button>' +
+        '<button type="button" data-action="social-inbox-close-thread" data-panel-id="' + panelId + '">&times;</button>' +
       '</div>' +
       '<div class="yb-social__inbox-thread-body"></div>' +
       '<div class="yb-social__inbox-reply-box">' +
@@ -1750,9 +1920,12 @@
 
     // Find the comment in state
     var comment = inboxState.comments.find(function (c) { return c.commentId === commentId; });
-    var titleText = (comment ? comment.author : 'Comment') + ' — ' + platform;
+    var titleText = comment ? comment.author : 'Comment';
 
-    var panel = createThreadPanel(panelId, titleText);
+    var panel = createThreadPanel(panelId, titleText, {
+      platform: platform,
+      time: comment ? formatTimeAgo(comment.timestamp) : ''
+    });
     if (!panel) return;
     var body = panel.querySelector('.yb-social__inbox-thread-body');
 
@@ -1807,9 +1980,12 @@
     var panelId = getThreadPanelId('conversation', conversationId);
 
     var conv = inboxState.conversations.find(function (c) { return c.conversationId === conversationId; });
-    var titleText = (conv ? conv.participants.join(', ') : 'Conversation') + ' — ' + platform;
+    var titleText = conv ? conv.participants.join(', ') : 'Conversation';
 
-    var panel = createThreadPanel(panelId, titleText);
+    var panel = createThreadPanel(panelId, titleText, {
+      platform: platform,
+      time: conv && conv.lastMessageAt ? formatTimeAgo(conv.lastMessageAt) : ''
+    });
     if (!panel) return;
     var body = panel.querySelector('.yb-social__inbox-thread-body');
 
@@ -2241,6 +2417,7 @@
 
   function switchInboxTab(tab) {
     inboxState.tab = tab;
+    inboxState.platformFilter = 'all';
     var commentsEl = $('yb-social-inbox-comments');
     var messagesEl = $('yb-social-inbox-messages');
     var mentionsEl = $('yb-social-inbox-mentions');
@@ -3496,6 +3673,32 @@
       libraryState.collections = results[1].collections || [];
     }
 
+    // If no tagged assets but we have imported posts, build library from imported media
+    if (libraryState.assets.length === 0 && !libraryState.activeTag && !libraryState.activeCollection && !libraryState.search) {
+      var allPosts = state.allPosts || [];
+      var importedAssets = [];
+      var seenUrls = {};
+      allPosts.forEach(function (p) {
+        if (!p.media || !p.media.length) return;
+        p.media.forEach(function (url) {
+          if (!url || seenUrls[url]) return;
+          seenUrls[url] = true;
+          var isVideo = (p.mediaType === 'video' || p.mediaType === 'reels') ||
+            url.match(/\.(mp4|mov|webm)$/i);
+          importedAssets.push({
+            url: url,
+            type: isVideo ? 'video' : 'image',
+            tags: p.platforms || [],
+            alt: (p.caption || '').substring(0, 60),
+            createdAt: p.createdAt
+          });
+        });
+      });
+      if (importedAssets.length > 0) {
+        libraryState.assets = importedAssets;
+      }
+    }
+
     renderContentLibrary();
   }
 
@@ -3605,6 +3808,486 @@
     if (data) { toast('Collection created'); loadContentLibrary(); }
   }
 
+  /* ═══ VIDEO UPLOAD & EDITOR ═══ */
+  var videoState = { videos: [], uploading: false, editorVideoId: null, editorTrim: { start: 0, end: 0 }, editorAspect: 'original', editorThumbTime: 0 };
+
+  // ── Upload via TUS (chunked, resumable) ──
+  async function startVideoUpload(file) {
+    if (!file || videoState.uploading) return;
+    videoState.uploading = true;
+
+    var progressEl = $('yb-social-video-progress');
+    var nameEl = $('yb-social-video-progress-name');
+    var pctEl = $('yb-social-video-progress-pct');
+    var fillEl = $('yb-social-video-progress-fill');
+    var statusEl = $('yb-social-video-progress-status');
+    if (progressEl) progressEl.hidden = false;
+    if (nameEl) nameEl.textContent = file.name;
+    if (statusEl) statusEl.textContent = 'Creating video entry...';
+
+    // 1. Create video entry in Bunny Stream (get TUS credentials)
+    var title = file.name.replace(/\.[^.]+$/, '');
+    var data = await api('social-media-upload', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create-video', title: title })
+    });
+
+    if (!data || !data.videoId) {
+      toast('Failed to create video', true);
+      videoState.uploading = false;
+      if (progressEl) progressEl.hidden = true;
+      return;
+    }
+
+    if (statusEl) statusEl.textContent = 'Uploading... 0%';
+    toast('Uploading ' + file.name + '...');
+
+    // 2. Upload via TUS protocol directly to Bunny Stream
+    try {
+      await tusUpload(file, data, function (pct) {
+        if (fillEl) fillEl.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+        if (statusEl) statusEl.textContent = 'Uploading... ' + Math.round(pct) + '%';
+      });
+
+      if (statusEl) statusEl.textContent = 'Upload complete — encoding in progress';
+      toast(file.name + ' uploaded — encoding will take 1-2 min');
+      loadVideoLibrary();
+    } catch (err) {
+      toast('Upload failed: ' + err.message, true);
+      if (statusEl) statusEl.textContent = 'Upload failed: ' + err.message;
+    }
+
+    videoState.uploading = false;
+
+    // Auto-hide progress after 5s
+    setTimeout(function () {
+      if (progressEl) progressEl.hidden = true;
+    }, 5000);
+  }
+
+  // TUS upload implementation (chunked, resumable)
+  function tusUpload(file, creds, onProgress) {
+    return new Promise(function (resolve, reject) {
+      var chunkSize = 5 * 1024 * 1024; // 5MB chunks
+      var offset = 0;
+      var uploadUrl = '';
+
+      // Step 1: Create TUS upload
+      var createXhr = new XMLHttpRequest();
+      createXhr.open('POST', creds.tusUploadUrl, true);
+      createXhr.setRequestHeader('Tus-Resumable', '1.0.0');
+      createXhr.setRequestHeader('Upload-Length', file.size.toString());
+      createXhr.setRequestHeader('Upload-Metadata',
+        'filetype ' + btoa(file.type) +
+        ',title ' + btoa(file.name.replace(/\.[^.]+$/, ''))
+      );
+      createXhr.setRequestHeader('AuthorizationSignature', creds.authSignature);
+      createXhr.setRequestHeader('AuthorizationExpire', creds.authExpiration.toString());
+      createXhr.setRequestHeader('VideoId', creds.videoId);
+      createXhr.setRequestHeader('LibraryId', creds.libraryId);
+
+      createXhr.onload = function () {
+        if (createXhr.status !== 201 && createXhr.status !== 200) {
+          reject(new Error('TUS create failed: ' + createXhr.status));
+          return;
+        }
+        uploadUrl = createXhr.getResponseHeader('Location');
+        if (!uploadUrl) {
+          reject(new Error('No upload URL returned'));
+          return;
+        }
+        uploadNextChunk();
+      };
+      createXhr.onerror = function () { reject(new Error('Network error during TUS create')); };
+      createXhr.send(null);
+
+      // Step 2: Upload chunks
+      function uploadNextChunk() {
+        if (offset >= file.size) {
+          onProgress(100);
+          resolve();
+          return;
+        }
+
+        var end = Math.min(offset + chunkSize, file.size);
+        var chunk = file.slice(offset, end);
+
+        var patchXhr = new XMLHttpRequest();
+        patchXhr.open('PATCH', uploadUrl, true);
+        patchXhr.setRequestHeader('Tus-Resumable', '1.0.0');
+        patchXhr.setRequestHeader('Upload-Offset', offset.toString());
+        patchXhr.setRequestHeader('Content-Type', 'application/offset+octet-stream');
+
+        patchXhr.upload.onprogress = function (e) {
+          if (e.lengthComputable) {
+            var totalProgress = ((offset + e.loaded) / file.size) * 100;
+            onProgress(totalProgress);
+          }
+        };
+
+        patchXhr.onload = function () {
+          if (patchXhr.status === 204 || patchXhr.status === 200) {
+            var newOffset = parseInt(patchXhr.getResponseHeader('Upload-Offset') || end.toString());
+            offset = newOffset;
+            uploadNextChunk();
+          } else {
+            reject(new Error('Chunk upload failed: ' + patchXhr.status));
+          }
+        };
+        patchXhr.onerror = function () { reject(new Error('Network error during chunk upload')); };
+        patchXhr.send(chunk);
+      }
+    });
+  }
+
+  // ── Video Library ──
+  async function loadVideoLibrary() {
+    var grid = $('yb-social-video-library-grid');
+    var countEl = $('yb-social-video-count');
+    if (grid) grid.innerHTML = '<p class="yb-admin__muted">Loading videos...</p>';
+
+    var data = await api('social-media-upload?action=list');
+    if (!data) return;
+    videoState.videos = data.videos || [];
+
+    if (countEl) countEl.textContent = '(' + videoState.videos.length + ')';
+    if (!grid) return;
+
+    if (videoState.videos.length === 0) {
+      grid.innerHTML = '<p class="yb-admin__muted">No videos uploaded yet. Drag a video above to get started.</p>';
+      return;
+    }
+
+    grid.innerHTML = videoState.videos.map(function (v) {
+      var thumb = v.thumbnailUrl
+        ? '<img src="' + v.thumbnailUrl + '" alt="" loading="lazy">'
+        : '<span style="color:#6F6A66;font-size:28px">🎬</span>';
+
+      var statusClass = v.status === 'ready' ? '--ready' : v.status === 'failed' ? '--failed' : v.status === 'encoding' || v.status === 'processing' ? '--encoding' : '--uploading';
+      var duration = v.duration ? formatDuration(v.duration) : '';
+      var fileSize = v.fileSize ? formatFileSize(v.fileSize) : '';
+      var date = v.createdAt ? fmtDate(v.createdAt) : '';
+
+      return '<div class="yb-social__video-card">' +
+        '<div class="yb-social__video-card-thumb">' + thumb +
+        (duration ? '<span class="yb-social__video-card-duration">' + duration + '</span>' : '') +
+        '<span class="yb-social__video-card-status yb-social__video-card-status' + statusClass + '">' + (v.status || 'unknown') + '</span>' +
+        '</div>' +
+        '<div class="yb-social__video-card-body">' +
+        '<p class="yb-social__video-card-title">' + escapeHtml(v.title || 'Untitled') + '</p>' +
+        '<p class="yb-social__video-card-meta">' + [fileSize, date].filter(Boolean).join(' · ') + '</p>' +
+        '</div>' +
+        '<div class="yb-social__video-card-actions">' +
+        (v.status === 'ready' ? '<button data-action="social-video-edit" data-id="' + v.videoId + '">Edit</button>' : '') +
+        (v.status === 'ready' ? '<button data-action="social-video-use" data-id="' + v.videoId + '">Use in Post</button>' : '') +
+        '<button data-action="social-video-delete" data-id="' + v.videoId + '">Delete</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function formatDuration(seconds) {
+    var m = Math.floor(seconds / 60);
+    var s = Math.floor(seconds % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(0) + ' KB';
+    if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+    return (bytes / 1073741824).toFixed(2) + ' GB';
+  }
+
+  // ── Video Editor ──
+  function openVideoEditor(videoId) {
+    var video = videoState.videos.find(function (v) { return v.videoId === videoId; });
+    if (!video || video.status !== 'ready') { toast('Video not ready', true); return; }
+
+    videoState.editorVideoId = videoId;
+    videoState.editorTrim = { start: 0, end: video.duration || 0 };
+    videoState.editorAspect = 'original';
+    videoState.editorThumbTime = 0;
+
+    var modal = $('yb-social-video-editor');
+    if (modal) modal.hidden = false;
+
+    // Set video source
+    var player = $('yb-social-video-player');
+    if (player) {
+      player.src = video.mp4Url || '';
+      player.load();
+
+      player.onloadedmetadata = function () {
+        videoState.editorTrim.end = player.duration;
+        updateTrimDisplay();
+        generateThumbnails(player);
+      };
+
+      // Update playhead position
+      player.ontimeupdate = function () {
+        var playhead = $('yb-social-trim-playhead');
+        if (playhead && player.duration) {
+          var pct = (player.currentTime / player.duration) * 100;
+          playhead.style.left = pct + '%';
+        }
+      };
+    }
+
+    // Reset aspect buttons
+    qsa('.yb-social__video-aspect-btns .yb-social__btn-sm').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-ratio') === 'original');
+    });
+  }
+
+  function closeVideoEditor() {
+    var modal = $('yb-social-video-editor');
+    if (modal) modal.hidden = true;
+    var player = $('yb-social-video-player');
+    if (player) { player.pause(); player.src = ''; }
+    videoState.editorVideoId = null;
+  }
+
+  function updateTrimDisplay() {
+    var startEl = $('yb-social-trim-start-time');
+    var endEl = $('yb-social-trim-end-time');
+    var durEl = $('yb-social-trim-duration');
+    if (startEl) startEl.value = formatTimecode(videoState.editorTrim.start);
+    if (endEl) endEl.value = formatTimecode(videoState.editorTrim.end);
+    if (durEl) durEl.textContent = 'Duration: ' + formatTimecode(videoState.editorTrim.end - videoState.editorTrim.start);
+
+    // Update trim selection visual
+    var player = $('yb-social-video-player');
+    if (player && player.duration) {
+      var startPct = (videoState.editorTrim.start / player.duration) * 100;
+      var endPct = (videoState.editorTrim.end / player.duration) * 100;
+      var startHandle = $('yb-social-trim-start');
+      var endHandle = $('yb-social-trim-end');
+      var selection = $('yb-social-trim-selection');
+      if (startHandle) startHandle.style.left = startPct + '%';
+      if (endHandle) endHandle.style.left = endPct + '%';
+      if (selection) { selection.style.left = startPct + '%'; selection.style.right = (100 - endPct) + '%'; }
+    }
+  }
+
+  function formatTimecode(seconds) {
+    var m = Math.floor(seconds / 60);
+    var s = Math.floor(seconds % 60);
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function parseTimecode(tc) {
+    var parts = tc.split(':');
+    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+    return parseFloat(tc) || 0;
+  }
+
+  function generateThumbnails(videoEl) {
+    var container = $('yb-social-video-thumbnails');
+    if (!container || !videoEl.duration) return;
+    container.innerHTML = '';
+
+    var count = Math.min(6, Math.max(3, Math.floor(videoEl.duration / 5)));
+    var interval = videoEl.duration / count;
+    var generated = 0;
+
+    function captureFrame(time, index) {
+      var canvas = document.createElement('canvas');
+      canvas.width = 160;
+      canvas.height = 120;
+      var ctx = canvas.getContext('2d');
+
+      var tempVid = document.createElement('video');
+      tempVid.crossOrigin = 'anonymous';
+      tempVid.src = videoEl.src;
+      tempVid.currentTime = time;
+      tempVid.muted = true;
+
+      tempVid.onseeked = function () {
+        ctx.drawImage(tempVid, 0, 0, 160, 120);
+        var img = document.createElement('img');
+        img.src = canvas.toDataURL('image/jpeg', 0.7);
+        var item = document.createElement('div');
+        item.className = 'yb-social__video-thumbnail-item' + (index === 0 ? ' is-selected' : '');
+        item.setAttribute('data-action', 'social-video-select-thumb');
+        item.setAttribute('data-time', time.toFixed(2));
+        item.appendChild(img);
+        container.appendChild(item);
+        generated++;
+        tempVid.remove();
+      };
+      tempVid.onerror = function () { generated++; tempVid.remove(); };
+    }
+
+    for (var i = 0; i < count; i++) {
+      captureFrame(i * interval + 0.5, i);
+    }
+  }
+
+  function captureCurrentFrame() {
+    var player = $('yb-social-video-player');
+    var container = $('yb-social-video-thumbnails');
+    if (!player || !container) return;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = 160;
+    canvas.height = 120;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(player, 0, 0, 160, 120);
+
+    var img = document.createElement('img');
+    img.src = canvas.toDataURL('image/jpeg', 0.7);
+    var item = document.createElement('div');
+    item.className = 'yb-social__video-thumbnail-item is-selected';
+    item.setAttribute('data-action', 'social-video-select-thumb');
+    item.setAttribute('data-time', player.currentTime.toFixed(2));
+    item.appendChild(img);
+
+    // Deselect others
+    qsa('.yb-social__video-thumbnail-item').forEach(function (el) { el.classList.remove('is-selected'); });
+    container.insertBefore(item, container.firstChild);
+    videoState.editorThumbTime = player.currentTime;
+  }
+
+  function selectThumbnail(time) {
+    videoState.editorThumbTime = parseFloat(time);
+    qsa('.yb-social__video-thumbnail-item').forEach(function (el) {
+      el.classList.toggle('is-selected', el.getAttribute('data-time') === time);
+    });
+    var player = $('yb-social-video-player');
+    if (player) player.currentTime = videoState.editorThumbTime;
+  }
+
+  function setVideoAspect(ratio) {
+    videoState.editorAspect = ratio;
+    qsa('.yb-social__video-aspect-btns .yb-social__btn-sm').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-ratio') === ratio);
+    });
+  }
+
+  function useVideoInPost(videoId) {
+    var video = videoState.videos.find(function (v) { return v.videoId === (videoId || videoState.editorVideoId); });
+    if (!video) return;
+
+    var url = video.mp4Url || video.hlsUrl || '';
+
+    // If editor is open, include trim data
+    var editData = null;
+    if (videoState.editorVideoId) {
+      editData = {
+        videoId: video.videoId,
+        trim: videoState.editorTrim,
+        aspect: videoState.editorAspect,
+        thumbTime: videoState.editorThumbTime,
+        keepAudio: $('yb-social-video-mute') ? $('yb-social-video-mute').checked : true
+      };
+      closeVideoEditor();
+    }
+
+    // Open composer with the video
+    if (window.openSocialComposer) {
+      window.openSocialComposer(null);
+      setTimeout(function () {
+        // Inject video into composer media
+        if (window._ybSocial && window._ybSocial.state) {
+          // Access composer through the bridge
+          var captionEl = $('yb-social-caption');
+          if (captionEl && !captionEl.value) captionEl.value = video.title || '';
+        }
+      }, 200);
+    }
+
+    toast('Video added to composer');
+  }
+
+  async function deleteVideo(videoId) {
+    if (!confirm('Delete this video? This cannot be undone.')) return;
+    var data = await api('social-media-upload', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', videoId: videoId })
+    });
+    if (data) { toast('Video deleted'); loadVideoLibrary(); }
+  }
+
+  // ── Drag & Drop + File Input Setup ──
+  function initVideoUploadZone() {
+    var droparea = $('yb-social-video-droparea');
+    var fileInput = $('yb-social-video-file');
+    if (!droparea || !fileInput) return;
+
+    droparea.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      droparea.classList.add('is-dragover');
+    });
+    droparea.addEventListener('dragleave', function () {
+      droparea.classList.remove('is-dragover');
+    });
+    droparea.addEventListener('drop', function (e) {
+      e.preventDefault();
+      droparea.classList.remove('is-dragover');
+      var files = e.dataTransfer.files;
+      for (var i = 0; i < files.length; i++) {
+        if (files[i].type.startsWith('video/')) startVideoUpload(files[i]);
+      }
+    });
+    droparea.addEventListener('click', function (e) {
+      if (e.target.tagName !== 'BUTTON') fileInput.click();
+    });
+    fileInput.addEventListener('change', function () {
+      for (var i = 0; i < fileInput.files.length; i++) {
+        startVideoUpload(fileInput.files[i]);
+      }
+      fileInput.value = '';
+    });
+  }
+
+  // ── Trim Handle Dragging ──
+  function initTrimHandles() {
+    var timeline = $('yb-social-video-timeline');
+    if (!timeline) return;
+
+    var dragging = null;
+
+    timeline.addEventListener('mousedown', function (e) {
+      var startHandle = $('yb-social-trim-start');
+      var endHandle = $('yb-social-trim-end');
+      if (e.target === startHandle || e.target.closest('#yb-social-trim-start')) dragging = 'start';
+      else if (e.target === endHandle || e.target.closest('#yb-social-trim-end')) dragging = 'end';
+      else {
+        // Click on timeline = seek
+        var player = $('yb-social-video-player');
+        if (player && player.duration) {
+          var rect = timeline.getBoundingClientRect();
+          var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          player.currentTime = pct * player.duration;
+        }
+        return;
+      }
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      var rect = timeline.getBoundingClientRect();
+      var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      var player = $('yb-social-video-player');
+      if (!player || !player.duration) return;
+      var time = pct * player.duration;
+
+      if (dragging === 'start') {
+        videoState.editorTrim.start = Math.min(time, videoState.editorTrim.end - 0.5);
+      } else {
+        videoState.editorTrim.end = Math.max(time, videoState.editorTrim.start + 0.5);
+      }
+      updateTrimDisplay();
+      player.currentTime = dragging === 'start' ? videoState.editorTrim.start : videoState.editorTrim.end;
+    });
+
+    document.addEventListener('mouseup', function () { dragging = null; });
+  }
+
   /* ═══ CANVA DESIGN STUDIO ═══ */
 
   var canvaState = {
@@ -3629,7 +4312,11 @@
 
   // Open Canva Design Studio modal
   async function openCanvaStudio(postId) {
-    await loadCanvaConfig();
+    try {
+      await loadCanvaConfig();
+    } catch (err) {
+      console.warn('[canva] loadCanvaConfig failed:', err);
+    }
     canvaState.pendingPostId = postId || null;
 
     // Get caption from composer if open
@@ -3642,11 +4329,22 @@
       selectedPlatforms.push(cb.value);
     });
 
-    var brandOptions = Object.entries(canvaState.brandKits).map(function (entry) {
+    // Fallback brand kits + platform types if API didn't load
+    var brandKits = Object.keys(canvaState.brandKits).length ? canvaState.brandKits : {
+      'yoga-bible': { id: '', name: 'Yoga Bible DK' },
+      'hot-yoga-cph': { id: '', name: 'Hot Yoga CPH' },
+      'vibro-yoga': { id: '', name: 'Vibro Yoga' }
+    };
+    var platformTypes = Object.keys(canvaState.platformTypes).length ? canvaState.platformTypes : {
+      instagram_post: 'instagram_post', instagram_story: 'your_story', instagram_reel: 'your_story',
+      facebook_post: 'facebook_post', linkedin_post: 'facebook_post', tiktok: 'your_story'
+    };
+
+    var brandOptions = Object.entries(brandKits).map(function (entry) {
       return '<option value="' + entry[0] + '">' + entry[1].name + '</option>';
     }).join('');
 
-    var platformOptions = Object.entries(canvaState.platformTypes).map(function (entry) {
+    var platformOptions = Object.entries(platformTypes).map(function (entry) {
       return '<option value="' + entry[0] + '">' + entry[0].replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }) + '</option>';
     }).join('');
 
@@ -3695,10 +4393,14 @@
         '</div>' +
         '<div class="yb-social__modal-footer">' +
           '<button class="yb-social__btn-sm" data-action="social-canva-close">Cancel</button>' +
-          '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-canva-generate" id="yb-canva-generate-btn">Generate Designs</button>' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-canva-generate" id="yb-canva-generate-btn">Create Brief &amp; Open Canva</button>' +
         '</div>' +
       '</div>' +
     '</div>';
+
+    // Remove existing modal if present
+    var existingModal = document.getElementById('yb-social-canva-modal');
+    if (existingModal) existingModal.remove();
 
     document.body.insertAdjacentHTML('beforeend', html);
   }
@@ -3738,10 +4440,10 @@
 
     if (briefEl) briefEl.style.display = 'none';
     if (resultsStep) resultsStep.style.display = '';
-    if (resultsEl) resultsEl.innerHTML = '<div class="yb-social__canva-loading"><p>Generating designs with Canva AI...</p><p class="yb-admin__muted">Using brand kit: ' + (brand.name || brandKey) + ' · Format: ' + platform.replace(/_/g, ' ') + '</p><div class="yb-social__canva-spinner"></div></div>';
+    if (resultsEl) resultsEl.innerHTML = '<div class="yb-social__canva-loading"><p>Preparing design brief...</p><p class="yb-admin__muted">Brand: ' + (brand.name || brandKey) + ' · Format: ' + platform.replace(/_/g, ' ') + '</p><div class="yb-social__canva-spinner"></div></div>';
 
     var genBtn = document.getElementById('yb-canva-generate-btn');
-    if (genBtn) { genBtn.textContent = 'Generating...'; genBtn.disabled = true; }
+    if (genBtn) { genBtn.textContent = 'Preparing...'; genBtn.disabled = true; }
 
     // Build the full prompt with brand context
     var fullPrompt = prompt + '. Brand: Yoga Bible Copenhagen. Style: warm, professional, orange (#f75c03) and dark (#0F0F0F) color scheme. Font: modern sans-serif.';
@@ -3765,28 +4467,41 @@
       canvaState.currentDesignId = data.id;
     }
 
-    // Show instructions for Claude-assisted generation
-    // In a Claude Code session, the MCP tools handle the actual Canva API calls
-    // In standalone mode, show a prompt to use with Claude
+    // Build Canva create URL for the selected design type
+    var canvaSizeMap = {
+      instagram_post: { w: 1080, h: 1080, label: 'Instagram Post' },
+      instagram_story: { w: 1080, h: 1920, label: 'Instagram Story' },
+      instagram_reel: { w: 1080, h: 1920, label: 'Instagram Reel' },
+      facebook_post: { w: 1200, h: 630, label: 'Facebook Post' },
+      facebook_story: { w: 1080, h: 1920, label: 'Facebook Story' },
+      facebook_cover: { w: 820, h: 312, label: 'Facebook Cover' },
+      linkedin_post: { w: 1200, h: 627, label: 'LinkedIn Post' },
+      tiktok: { w: 1080, h: 1920, label: 'TikTok' },
+      pinterest: { w: 1000, h: 1500, label: 'Pinterest Pin' },
+      youtube_thumbnail: { w: 1280, h: 720, label: 'YouTube Thumbnail' }
+    };
+    var sizeInfo = canvaSizeMap[platform] || { w: 1080, h: 1080, label: platform };
+    var canvaCreateUrl = 'https://www.canva.com/design/create?width=' + sizeInfo.w + '&height=' + sizeInfo.h + '&type=TAB';
+
     if (resultsEl) {
       resultsEl.innerHTML =
         '<div class="yb-social__canva-request-card">' +
-          '<h4>Design Request Ready</h4>' +
+          '<h4>Design Brief Saved</h4>' +
           '<div class="yb-social__canva-request-detail">' +
-            '<div><strong>Brand Kit:</strong> ' + (brand.name || brandKey) + ' (' + (brand.id || '') + ')</div>' +
-            '<div><strong>Design Type:</strong> ' + designType + '</div>' +
-            '<div><strong>Platform:</strong> ' + platform.replace(/_/g, ' ') + '</div>' +
+            '<div><strong>Brand:</strong> ' + (brand.name || brandKey) + '</div>' +
+            '<div><strong>Format:</strong> ' + sizeInfo.label + ' (' + sizeInfo.w + ' &times; ' + sizeInfo.h + 'px)</div>' +
             '<div><strong>Prompt:</strong> ' + fullPrompt + '</div>' +
           '</div>' +
           '<div class="yb-social__canva-request-actions">' +
-            '<p class="yb-admin__muted" style="margin-bottom:10px">In a Claude Code session, ask Claude to generate this design using the Canva MCP tools. Claude will create options for you to pick from.</p>' +
-            '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-canva-copy-request">Copy Design Request</button>' +
-            '<button class="yb-social__btn-sm" data-action="social-canva-back-to-brief">Edit Brief</button>' +
+            '<a href="' + canvaCreateUrl + '" target="_blank" rel="noopener" class="yb-social__btn-sm yb-social__btn-sm--primary" style="display:inline-block;text-decoration:none;text-align:center">Open Canva (' + sizeInfo.w + '&times;' + sizeInfo.h + ')</a>' +
+            '<button class="yb-social__btn-sm" data-action="social-canva-copy-request" style="margin-left:6px">Copy Brief</button>' +
+            '<button class="yb-social__btn-sm" data-action="social-canva-back-to-brief" style="margin-left:6px">Edit Brief</button>' +
           '</div>' +
+          '<p class="yb-admin__muted" style="margin-top:10px;font-size:12px">Open Canva to create the design with the correct dimensions. Use the brief above as your guide. After exporting, upload the image via the media section.</p>' +
         '</div>';
     }
 
-    if (genBtn) { genBtn.textContent = 'Generate Designs'; genBtn.disabled = false; }
+    if (genBtn) { genBtn.textContent = 'Create Brief & Open Canva'; genBtn.disabled = false; }
   }
 
   // When a Canva design is exported and URL is available, attach to post
@@ -4370,6 +5085,515 @@
   }
 
   /* ═══ IMPORT EXISTING POSTS FROM PLATFORMS ═══ */
+  /* ═══ CROSS-SHARE ENGINE ═══ */
+
+  // Platform compatibility rules
+  var PLATFORM_RULES = {
+    instagram: {
+      label: 'Instagram', abbr: 'IG',
+      mediaTypes: ['image', 'video', 'carousel'],
+      maxVideoDuration: 90,        // Reels: 90s (feed: 60min but reels are the main format)
+      maxImageRatio: 1.91,         // landscape max (1.91:1)
+      minImageRatio: 0.8,          // portrait min (4:5)
+      videoRatios: [0.5625, 1],    // 9:16 (reels), 1:1
+      maxCaptionLength: 2200,
+      maxHashtags: 30,
+      supportsCarousel: true,
+      requiresMedia: true
+    },
+    tiktok: {
+      label: 'TikTok', abbr: 'TT',
+      mediaTypes: ['video'],
+      maxVideoDuration: 600,       // 10 minutes
+      videoRatios: [0.5625],       // 9:16 only
+      maxCaptionLength: 4000,
+      maxHashtags: 100,
+      supportsCarousel: false,
+      requiresMedia: true,
+      videoOnly: true
+    },
+    facebook: {
+      label: 'Facebook', abbr: 'FB',
+      mediaTypes: ['image', 'video', 'carousel', 'text'],
+      maxVideoDuration: 14400,     // 4 hours
+      maxImageRatio: 4,
+      minImageRatio: 0.25,
+      maxCaptionLength: 63206,
+      maxHashtags: 100,
+      supportsCarousel: true,
+      requiresMedia: false
+    },
+    linkedin: {
+      label: 'LinkedIn', abbr: 'LI',
+      mediaTypes: ['image', 'video', 'text'],
+      maxVideoDuration: 600,       // 10 minutes
+      maxImageRatio: 3,
+      minImageRatio: 0.33,
+      maxCaptionLength: 3000,
+      maxHashtags: 30,
+      supportsCarousel: false,
+      requiresMedia: false
+    },
+    youtube: {
+      label: 'YouTube', abbr: 'YT',
+      mediaTypes: ['video'],
+      maxVideoDuration: 43200,     // 12 hours
+      videoRatios: [0.5625, 1.778],// 9:16 (shorts), 16:9
+      maxCaptionLength: 5000,
+      maxHashtags: 15,
+      supportsCarousel: false,
+      requiresMedia: true,
+      videoOnly: true
+    }
+  };
+
+  // Cross-share state
+  var crossShareState = {
+    sourcePlatform: 'instagram',
+    targetPlatform: 'all',
+    compatOnly: true,
+    selectedIds: [],
+    posts: []
+  };
+
+  /**
+   * Check if a post is compatible with a target platform
+   * Returns { compatible, warnings[], blockers[] }
+   */
+  function checkCompatibility(post, targetPlatform) {
+    var rules = PLATFORM_RULES[targetPlatform];
+    if (!rules) return { compatible: false, warnings: [], blockers: ['Unknown platform'] };
+
+    // Skip if already on that platform
+    if ((post.platforms || []).indexOf(targetPlatform) !== -1) {
+      return { compatible: false, warnings: [], blockers: ['Already posted on ' + rules.label] };
+    }
+
+    var blockers = [];
+    var warnings = [];
+    var mediaType = post.mediaType || 'image';
+    var hasMedia = post.media && post.media.length > 0 && post.media[0];
+
+    // Check: video-only platforms
+    if (rules.videoOnly && mediaType !== 'video') {
+      blockers.push(rules.label + ' requires video content');
+    }
+
+    // Check: media required
+    if (rules.requiresMedia && !hasMedia) {
+      blockers.push(rules.label + ' requires media');
+    }
+
+    // Check: carousel support
+    if (post.media && post.media.length > 1 && !rules.supportsCarousel) {
+      warnings.push(rules.label + ' doesn\'t support carousels — only first image will be used');
+    }
+
+    // Check: caption length
+    var captionLen = (post.caption || '').length;
+    if (captionLen > rules.maxCaptionLength) {
+      warnings.push('Caption exceeds ' + rules.label + ' limit (' + captionLen + '/' + rules.maxCaptionLength + ')');
+    }
+
+    // Check: hashtag count
+    var hashtagCount = (post.hashtags || []).length;
+    if (hashtagCount > rules.maxHashtags) {
+      warnings.push('Too many hashtags for ' + rules.label + ' (' + hashtagCount + '/' + rules.maxHashtags + ')');
+    }
+
+    // Check: video duration
+    if (mediaType === 'video' && post.videoDuration) {
+      if (post.videoDuration > rules.maxVideoDuration) {
+        blockers.push('Video too long for ' + rules.label + ' (max ' + formatDuration(rules.maxVideoDuration) + ')');
+      }
+    }
+
+    return {
+      compatible: blockers.length === 0,
+      warnings: warnings,
+      blockers: blockers
+    };
+  }
+
+  /**
+   * Get compatibility info for a post across all target platforms
+   */
+  function getPostCompatibility(post) {
+    var results = {};
+    var platforms = Object.keys(PLATFORM_RULES);
+    for (var i = 0; i < platforms.length; i++) {
+      var p = platforms[i];
+      results[p] = checkCompatibility(post, p);
+    }
+    return results;
+  }
+
+  /**
+   * Load and render the cross-share view
+   */
+  async function loadCrossShare() {
+    // Make sure posts are loaded
+    if (!state.allPosts || state.allPosts.length === 0) {
+      var data = await api('social-posts?action=list');
+      if (data) state.allPosts = data.posts || [];
+    }
+    crossShareState.selectedIds = [];
+    renderCrossShare();
+  }
+
+  function renderCrossShare() {
+    var grid = $('yb-crossshare-grid');
+    if (!grid) return;
+
+    var all = state.allPosts || [];
+    var src = crossShareState.sourcePlatform;
+    var tgt = crossShareState.targetPlatform;
+    var compatOnly = crossShareState.compatOnly;
+
+    // Filter to source platform posts
+    var sourcePosts = all.filter(function (p) {
+      return (p.platforms || []).indexOf(src) !== -1;
+    });
+
+    // Calculate compatibility for each post
+    var postsWithCompat = sourcePosts.map(function (p) {
+      var compat = getPostCompatibility(p);
+      // For "all" target, count how many platforms it can go to
+      var compatCount = 0;
+      var targetPlatforms = Object.keys(PLATFORM_RULES).filter(function (k) { return k !== src; });
+      targetPlatforms.forEach(function (tp) {
+        if (compat[tp].compatible) compatCount++;
+      });
+      return { post: p, compat: compat, compatCount: compatCount };
+    });
+
+    // Filter by target platform compatibility
+    if (tgt !== 'all' && compatOnly) {
+      postsWithCompat = postsWithCompat.filter(function (item) {
+        return item.compat[tgt] && item.compat[tgt].compatible;
+      });
+    } else if (tgt !== 'all') {
+      // Show all but sort compatible first
+      postsWithCompat.sort(function (a, b) {
+        var aOk = a.compat[tgt] && a.compat[tgt].compatible ? 1 : 0;
+        var bOk = b.compat[tgt] && b.compat[tgt].compatible ? 1 : 0;
+        return bOk - aOk;
+      });
+    }
+
+    crossShareState.posts = postsWithCompat;
+
+    // Update source tabs with counts
+    qsa('#yb-crossshare-source-tabs .yb-social__filter-btn').forEach(function (btn) {
+      var p = btn.getAttribute('data-platform');
+      var count = all.filter(function (post) { return (post.platforms || []).indexOf(p) !== -1; }).length;
+      var label = PLATFORM_RULES[p] ? PLATFORM_RULES[p].abbr : p;
+      btn.textContent = label + ' (' + count + ')';
+      btn.classList.toggle('is-active', p === src);
+    });
+
+    // Update target tabs — hide source platform, show compatible counts
+    qsa('#yb-crossshare-target .yb-social__platform-filter-btn').forEach(function (btn) {
+      var p = btn.getAttribute('data-platform');
+      btn.classList.toggle('is-active', p === tgt);
+      if (p === 'all' || p === src) {
+        btn.hidden = (p === src);
+        return;
+      }
+      // Count how many source posts are compatible with this target
+      var compatCount = 0;
+      sourcePosts.forEach(function (post) {
+        var c = checkCompatibility(post, p);
+        if (c.compatible) compatCount++;
+      });
+      var label = PLATFORM_RULES[p] ? PLATFORM_RULES[p].label : p;
+      btn.textContent = label + ' (' + compatCount + ')';
+    });
+
+    // Update counts
+    var countEl = $('yb-crossshare-count');
+    if (countEl) countEl.textContent = postsWithCompat.length + ' posts';
+
+    // Update share button
+    updateCrossShareBtn();
+
+    if (postsWithCompat.length === 0) {
+      grid.innerHTML = '<p class="yb-admin__muted">No ' + (compatOnly ? 'compatible ' : '') + 'posts found from ' +
+        (PLATFORM_RULES[src] ? PLATFORM_RULES[src].label : src) +
+        (tgt !== 'all' ? ' for ' + (PLATFORM_RULES[tgt] ? PLATFORM_RULES[tgt].label : tgt) : '') + '.</p>';
+      return;
+    }
+
+    grid.innerHTML = postsWithCompat.map(function (item) {
+      var p = item.post;
+      var isSelected = crossShareState.selectedIds.indexOf(p.id) !== -1;
+
+      // Thumbnail
+      var thumb = '';
+      if (p.media && p.media[0]) {
+        thumb = '<img src="' + p.media[0] + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.yb-social__crossshare-fallback\').style.display=\'flex\'">' +
+          '<span class="yb-social__crossshare-fallback" style="display:none">' +
+          (p.mediaType === 'video' ? '🎬' : '📝') + '</span>';
+      } else {
+        thumb = '<span class="yb-social__crossshare-fallback">📝</span>';
+      }
+
+      // Media type badge
+      var typeBadge = '<span class="yb-social__crossshare-type yb-social__crossshare-type--' + (p.mediaType || 'image') + '">' +
+        (p.mediaType === 'video' ? '🎬 Video' : p.media && p.media.length > 1 ? '📷 Carousel (' + p.media.length + ')' : '📷 Image') + '</span>';
+
+      // Compatibility badges for each target platform
+      var compatBadges = '';
+      var targetPlatforms = Object.keys(PLATFORM_RULES).filter(function (k) { return k !== src; });
+      if (tgt === 'all') {
+        compatBadges = targetPlatforms.map(function (tp) {
+          var c = item.compat[tp];
+          var cls = c.compatible ? (c.warnings.length ? 'warn' : 'ok') : 'no';
+          var title = c.compatible ?
+            (c.warnings.length ? c.warnings.join('; ') : 'Compatible') :
+            c.blockers.join('; ');
+          return '<span class="yb-social__compat-badge yb-social__compat-badge--' + cls + '" title="' + escapeAttr(title) + '">' +
+            PLATFORM_RULES[tp].abbr +
+            (cls === 'ok' ? ' ✓' : cls === 'warn' ? ' ⚠' : ' ✕') + '</span>';
+        }).join('');
+      } else {
+        var c = item.compat[tgt];
+        if (c) {
+          var cls = c.compatible ? (c.warnings.length ? 'warn' : 'ok') : 'no';
+          var msgs = c.compatible ? c.warnings : c.blockers;
+          compatBadges = '<span class="yb-social__compat-badge yb-social__compat-badge--' + cls + '">' +
+            (cls === 'ok' ? '✓ Compatible' : cls === 'warn' ? '⚠ ' + msgs[0] : '✕ ' + msgs[0]) + '</span>';
+        }
+      }
+
+      // Determine if this post can be selected (has at least one compatible target)
+      var canSelect = tgt === 'all' ? item.compatCount > 0 :
+        (item.compat[tgt] && item.compat[tgt].compatible);
+
+      return '<div class="yb-social__crossshare-card' + (isSelected ? ' is-selected' : '') + (canSelect ? '' : ' is-incompatible') + '">' +
+        '<label class="yb-social__crossshare-check">' +
+        '<input type="checkbox" data-action="social-crossshare-toggle" data-id="' + p.id + '"' +
+        (isSelected ? ' checked' : '') + (canSelect ? '' : ' disabled') + '>' +
+        '</label>' +
+        '<div class="yb-social__crossshare-thumb">' + thumb + typeBadge + '</div>' +
+        '<div class="yb-social__crossshare-body">' +
+        '<p class="yb-social__crossshare-caption">' + truncate(p.caption, 100) + '</p>' +
+        '<div class="yb-social__crossshare-compat">' + compatBadges + '</div>' +
+        '<div class="yb-social__crossshare-meta">' +
+        '<span>' + fmtDate(p.publishedAt || p.createdAt) + '</span>' +
+        (p.importedMetrics ? '<span>❤ ' + (p.importedMetrics.likes || 0) + '</span>' : '') +
+        '</div>' +
+        '</div>' +
+        '<button class="yb-social__btn-sm yb-social__crossshare-single" data-action="social-crossshare-one" data-id="' + p.id + '"' +
+        (canSelect ? '' : ' disabled') + '>Share →</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function escapeAttr(s) {
+    return (s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  function updateCrossShareBtn() {
+    var btn = $('yb-crossshare-share-btn');
+    if (!btn) return;
+    var count = crossShareState.selectedIds.length;
+    btn.textContent = 'Share Selected (' + count + ')';
+    btn.disabled = count === 0;
+  }
+
+  function toggleCrossShareSelect(id) {
+    var idx = crossShareState.selectedIds.indexOf(id);
+    if (idx === -1) crossShareState.selectedIds.push(id);
+    else crossShareState.selectedIds.splice(idx, 1);
+    updateCrossShareBtn();
+    // Update card visual
+    var card = document.querySelector('.yb-social__crossshare-card input[data-id="' + id + '"]');
+    if (card) card.closest('.yb-social__crossshare-card').classList.toggle('is-selected', idx === -1);
+  }
+
+  /**
+   * Open cross-share modal for one or multiple posts
+   */
+  function openCrossShareModal(postIds) {
+    var modal = $('yb-crossshare-modal');
+    var body = $('yb-crossshare-modal-body');
+    var title = $('yb-crossshare-modal-title');
+    if (!modal || !body) return;
+
+    var allPosts = state.allPosts || [];
+    var posts = postIds.map(function (id) {
+      return allPosts.find(function (p) { return p.id === id; });
+    }).filter(Boolean);
+
+    if (posts.length === 0) { toast('No posts selected', true); return; }
+
+    var src = crossShareState.sourcePlatform;
+    var tgt = crossShareState.targetPlatform;
+    var isBulk = posts.length > 1;
+
+    title.textContent = isBulk ? 'Cross-Share ' + posts.length + ' Posts' : 'Cross-Share Post';
+
+    // Determine available targets
+    var targetPlatforms = tgt !== 'all' ? [tgt] :
+      Object.keys(PLATFORM_RULES).filter(function (k) { return k !== src; });
+
+    // For bulk, find which targets ALL selected posts are compatible with
+    if (isBulk) {
+      targetPlatforms = targetPlatforms.filter(function (tp) {
+        return posts.every(function (p) {
+          return checkCompatibility(p, tp).compatible;
+        });
+      });
+    }
+
+    if (targetPlatforms.length === 0) {
+      body.innerHTML = '<p class="yb-admin__muted">No compatible platforms found for the selected posts.</p>';
+      $('yb-crossshare-confirm-btn').disabled = true;
+      modal.hidden = false;
+      return;
+    }
+
+    // Build modal content
+    var html = '';
+
+    // Target platform checkboxes
+    html += '<div class="yb-social__crossshare-targets">' +
+      '<label style="font-weight:600;font-size:13px;margin-bottom:8px;display:block">Share to:</label>' +
+      targetPlatforms.map(function (tp) {
+        var rules = PLATFORM_RULES[tp];
+        return '<label class="yb-social__crossshare-target-check">' +
+          '<input type="checkbox" name="crossshare-target" value="' + tp + '" checked> ' +
+          '<span class="yb-social__post-platform-icon yb-social__post-platform-icon--' + tp + '">' + rules.abbr + '</span> ' + rules.label +
+          '</label>';
+      }).join('') +
+      '</div>';
+
+    // Caption editor
+    if (isBulk) {
+      html += '<div class="yb-social__crossshare-bulk-info">' +
+        '<p style="font-size:13px;color:var(--yb-muted);margin:12px 0 8px">Bulk mode: each post keeps its original caption. You can modify captions individually after creation.</p>' +
+        '<div class="yb-social__crossshare-post-list">' +
+        posts.map(function (p) {
+          return '<div class="yb-social__crossshare-post-item">' +
+            (p.media && p.media[0] ? '<img src="' + p.media[0] + '" width="40" height="40" style="object-fit:cover;border-radius:6px" onerror="this.style.display=\'none\'">' : '') +
+            '<span>' + truncate(p.caption, 60) + '</span>' +
+            '</div>';
+        }).join('') +
+        '</div></div>';
+    } else {
+      var post = posts[0];
+      html += '<div class="yb-social__crossshare-caption-edit" style="margin-top:12px">' +
+        '<label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Caption:</label>' +
+        '<textarea id="yb-crossshare-caption" class="yb-social__input" rows="4" style="width:100%;font-size:13px">' + escapeHtml(post.caption || '') + '</textarea>' +
+        '<p style="font-size:11px;color:var(--yb-muted);margin-top:4px">Tip: modify the caption for the target platform. Hashtags will be preserved.</p>' +
+        '</div>';
+
+      // Preview
+      if (post.media && post.media[0]) {
+        html += '<div style="margin-top:12px">' +
+          '<img src="' + post.media[0] + '" style="max-width:200px;border-radius:8px" onerror="this.style.display=\'none\'">' +
+          '</div>';
+      }
+    }
+
+    // Status selector
+    html += '<div style="margin-top:12px">' +
+      '<label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Post status:</label>' +
+      '<select id="yb-crossshare-status" class="yb-admin__select" style="width:auto">' +
+      '<option value="draft">Draft — review before publishing</option>' +
+      '<option value="scheduled">Scheduled — set time to publish</option>' +
+      '</select></div>';
+
+    body.innerHTML = html;
+
+    // Store data for confirm handler
+    modal._postIds = postIds;
+    modal._posts = posts;
+    $('yb-crossshare-confirm-btn').disabled = false;
+    modal.hidden = false;
+  }
+
+  /**
+   * Confirm cross-share — create new posts for each target platform
+   */
+  async function confirmCrossShare() {
+    var modal = $('yb-crossshare-modal');
+    if (!modal || !modal._posts) return;
+
+    var posts = modal._posts;
+    var selectedTargets = [];
+    qsa('#yb-crossshare-modal-body input[name="crossshare-target"]:checked').forEach(function (cb) {
+      selectedTargets.push(cb.value);
+    });
+
+    if (selectedTargets.length === 0) { toast('Select at least one target platform', true); return; }
+
+    var statusEl = $('yb-crossshare-status');
+    var postStatus = statusEl ? statusEl.value : 'draft';
+    var captionEl = $('yb-crossshare-caption');
+    var customCaption = captionEl ? captionEl.value : null;
+
+    var confirmBtn = $('yb-crossshare-confirm-btn');
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Creating...'; }
+
+    var created = 0;
+    var errors = 0;
+
+    for (var i = 0; i < posts.length; i++) {
+      var post = posts[i];
+      var caption = (posts.length === 1 && customCaption !== null) ? customCaption : post.caption;
+
+      for (var j = 0; j < selectedTargets.length; j++) {
+        var target = selectedTargets[j];
+        var rules = PLATFORM_RULES[target];
+
+        // Trim caption if needed
+        if (caption.length > rules.maxCaptionLength) {
+          caption = caption.substring(0, rules.maxCaptionLength - 3) + '...';
+        }
+
+        // Trim hashtags if needed
+        var hashtags = (post.hashtags || []).slice(0, rules.maxHashtags);
+
+        var newPost = {
+          action: 'create',
+          caption: caption,
+          platforms: [target],
+          media: post.media || [],
+          mediaType: post.mediaType || 'image',
+          hashtags: hashtags,
+          status: postStatus,
+          crossSharedFrom: { postId: post.id, platform: (post.platforms || [])[0] || '' }
+        };
+
+        try {
+          var data = await api('social-posts', {
+            method: 'POST',
+            body: JSON.stringify(newPost)
+          });
+          if (data && data.id) created++;
+          else errors++;
+        } catch (e) {
+          errors++;
+        }
+      }
+    }
+
+    toast('Created ' + created + ' cross-shared post' + (created !== 1 ? 's' : '') +
+      (errors > 0 ? ' (' + errors + ' failed)' : ''));
+
+    modal.hidden = true;
+    crossShareState.selectedIds = [];
+
+    // Reload posts
+    var refreshData = await api('social-posts?action=list');
+    if (refreshData) {
+      state.allPosts = refreshData.posts || [];
+      renderCrossShare();
+    }
+  }
+
   async function importExistingPosts(platform) {
     var btn = document.querySelector('[data-action="social-import-posts"][data-platform="' + platform + '"]');
     setLoading(btn, true, 'Importing...');
@@ -4384,9 +5608,28 @@
 
     if (data && data.imported) {
       toast('Imported ' + data.imported + ' posts from ' + platform);
-      loadPosts();
+      // Reload all posts
+      var d2 = await api('social-posts?action=list');
+      if (d2) { state.allPosts = d2.posts || []; renderPosts(); }
     } else if (data && data.imported === 0) {
       toast('No new posts to import');
+    }
+  }
+
+  async function refreshExpiredMedia(platform, btn) {
+    setLoading(btn, true, 'Fixing...');
+    toast('Re-downloading ' + platform + ' images to Bunny CDN...');
+    var data = await api('social-posts?action=refresh-media', {
+      method: 'POST',
+      body: JSON.stringify({ platform: platform })
+    });
+    setLoading(btn, false);
+    if (data) {
+      toast('Fixed ' + (data.refreshed || 0) + ' of ' + (data.total || 0) + ' images');
+      if (data.refreshed > 0) {
+        var d2 = await api('social-posts?action=list');
+        if (d2) { state.allPosts = d2.posts || []; renderPosts(); }
+      }
     }
   }
 
@@ -4455,18 +5698,65 @@
     // Posts
     else if (action === 'social-filter-status') {
       state.postsFilter = btn.getAttribute('data-status');
-      qsa('#yb-social-v-posts .yb-social__filter-btn').forEach(function (b) {
+      qsa('#yb-social-v-posts .yb-social__filter-btn[data-action="social-filter-status"]').forEach(function (b) {
         b.classList.toggle('is-active', b.getAttribute('data-status') === state.postsFilter);
       });
-      loadPosts();
+      renderPosts();
     }
     else if (action === 'social-filter-platform') {
       state.postsPlatform = btn.getAttribute('data-platform') || 'all';
-      loadPosts();
+      renderPosts();
     }
     else if (action === 'social-import-posts') {
       importExistingPosts(btn.getAttribute('data-platform'));
     }
+    else if (action === 'social-refresh-media') {
+      refreshExpiredMedia(btn.getAttribute('data-platform'), btn);
+    }
+
+    // Cross-share actions
+    else if (action === 'social-crossshare-source') {
+      crossShareState.sourcePlatform = btn.getAttribute('data-platform');
+      crossShareState.selectedIds = [];
+      renderCrossShare();
+    }
+    else if (action === 'social-crossshare-target') {
+      crossShareState.targetPlatform = btn.getAttribute('data-platform') || 'all';
+      crossShareState.selectedIds = [];
+      renderCrossShare();
+    }
+    else if (action === 'social-crossshare-toggle') {
+      toggleCrossShareSelect(btn.getAttribute('data-id'));
+    }
+    else if (action === 'social-crossshare-select-all') {
+      var allChecked = btn.checked;
+      crossShareState.selectedIds = [];
+      if (allChecked) {
+        (crossShareState.posts || []).forEach(function (item) {
+          var tgt = crossShareState.targetPlatform;
+          var canSelect = tgt === 'all' ? item.compatCount > 0 :
+            (item.compat[tgt] && item.compat[tgt].compatible);
+          if (canSelect) crossShareState.selectedIds.push(item.post.id);
+        });
+      }
+      renderCrossShare();
+    }
+    else if (action === 'social-crossshare-one') {
+      openCrossShareModal([btn.getAttribute('data-id')]);
+    }
+    else if (action === 'social-crossshare-selected') {
+      if (crossShareState.selectedIds.length > 0) openCrossShareModal(crossShareState.selectedIds);
+    }
+    else if (action === 'social-crossshare-modal-close') {
+      var csm = $('yb-crossshare-modal');
+      if (csm) csm.hidden = true;
+    }
+    else if (action === 'social-crossshare-confirm') {
+      confirmCrossShare();
+    }
+
+    else if (action === 'social-play-reel') playReelFromList(btn);
+    else if (action === 'social-close-video-player') { var vp = document.getElementById('yb-social-video-player'); if (vp) vp.remove(); }
     else if (action === 'social-delete-post') deletePost(btn.getAttribute('data-id'));
     else if (action === 'social-duplicate-post') duplicatePost(btn.getAttribute('data-id'));
     else if (action === 'social-publish-now') publishNow(btn.getAttribute('data-id'));
@@ -4484,8 +5774,7 @@
     }
     else if (action === 'social-recurring-toggle-day') btn.classList.toggle('is-active');
 
-    // Bulk actions
-    else if (action === 'social-toggle-select') togglePostSelect(btn.getAttribute('data-id'));
+    // Bulk actions (social-toggle-select handled in change listener only to avoid double-toggle)
     else if (action === 'social-bulk-schedule') bulkSchedule();
     else if (action === 'social-bulk-approve') bulkApprove();
     else if (action === 'social-bulk-duplicate') bulkDuplicate();
@@ -4506,6 +5795,10 @@
 
     // Inbox
     else if (action === 'social-inbox-tab') switchInboxTab(btn.getAttribute('data-tab'));
+    else if (action === 'social-inbox-platform-filter') {
+      inboxState.platformFilter = btn.getAttribute('data-platform') || 'all';
+      renderInbox();
+    }
     else if (action === 'social-inbox-refresh') loadInbox();
     else if (action === 'social-inbox-mark-all-read') markAllRead();
     else if (action === 'social-inbox-open-comment') openCommentThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
@@ -4617,6 +5910,17 @@
       loadContentLibrary();
     }
 
+    // Video Upload & Editor
+    else if (action === 'social-video-browse') { var fi = $('yb-social-video-file'); if (fi) fi.click(); }
+    else if (action === 'social-video-edit') openVideoEditor(btn.getAttribute('data-id'));
+    else if (action === 'social-video-use') useVideoInPost(btn.getAttribute('data-id'));
+    else if (action === 'social-video-delete') deleteVideo(btn.getAttribute('data-id'));
+    else if (action === 'social-video-editor-close') closeVideoEditor();
+    else if (action === 'social-video-use-in-post') useVideoInPost();
+    else if (action === 'social-video-capture-thumb') captureCurrentFrame();
+    else if (action === 'social-video-select-thumb') selectThumbnail(btn.getAttribute('data-time'));
+    else if (action === 'social-video-aspect') setVideoAspect(btn.getAttribute('data-ratio'));
+
     // Canva Design Studio
     else if (action === 'social-canva-open') openCanvaStudio(btn.getAttribute('data-post-id') || null);
     else if (action === 'social-canva-close') closeCanvaModal();
@@ -4695,6 +5999,26 @@
       togglePostSelect(e.target.getAttribute('data-id'));
       e.stopPropagation();
     }
+    // Cross-share compat-only toggle
+    if (e.target.id === 'yb-crossshare-compat-only') {
+      crossShareState.compatOnly = e.target.checked;
+      crossShareState.selectedIds = [];
+      renderCrossShare();
+    }
+    // Cross-share individual toggle
+    if (e.target.getAttribute && e.target.getAttribute('data-action') === 'social-crossshare-toggle') {
+      toggleCrossShareSelect(e.target.getAttribute('data-id'));
+      e.stopPropagation();
+    }
+    // Trim time inputs
+    if (e.target.id === 'yb-social-trim-start-time') {
+      videoState.editorTrim.start = parseTimecode(e.target.value);
+      updateTrimDisplay();
+    }
+    if (e.target.id === 'yb-social-trim-end-time') {
+      videoState.editorTrim.end = parseTimecode(e.target.value);
+      updateTrimDisplay();
+    }
   });
 
   /* ═══ INIT ═══ */
@@ -4706,7 +6030,7 @@
       if (!user) return;
       // Pre-load posts for calendar dots
       api('social-posts?action=list').then(function (data) {
-        if (data) state.posts = data.posts || [];
+        if (data) { state.allPosts = data.posts || []; state.posts = state.allPosts; }
       });
     });
   }

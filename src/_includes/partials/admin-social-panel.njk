@@ -5,6 +5,7 @@
   <button class="yb-social__nav-btn is-active" type="button" data-action="social-nav-accounts">{{ t.social_nav_accounts or "Accounts" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-calendar">{{ t.social_nav_calendar or "Calendar" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-posts">{{ t.social_nav_posts or "Posts" }}</button>
+  <button class="yb-social__nav-btn" type="button" data-action="social-nav-crossshare">Cross-Share</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-analytics">{{ t.social_nav_analytics or "Analytics" }}</button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-inbox">{{ t.social_nav_inbox or "Inbox" }} <span class="yb-social__inbox-badge" id="yb-social-inbox-badge" hidden>0</span></button>
   <button class="yb-social__nav-btn" type="button" data-action="social-nav-hashtags">{{ t.social_nav_hashtags or "Hashtags" }}</button>
@@ -270,9 +271,12 @@
 
   {# Import existing posts from platforms #}
   <div class="yb-social__import-bar">
-    <span>Import existing posts:</span>
+    <span>Import:</span>
     <button type="button" class="yb-btn yb-btn--outline yb-btn--xs" data-action="social-import-posts" data-platform="instagram">IG</button>
     <button type="button" class="yb-btn yb-btn--outline yb-btn--xs" data-action="social-import-posts" data-platform="facebook">FB</button>
+    <span style="margin-left:8px;border-left:1px solid #E8E4E0;padding-left:8px">Fix images:</span>
+    <button type="button" class="yb-btn yb-btn--outline yb-btn--xs" data-action="social-refresh-media" data-platform="instagram">🔄 IG</button>
+    <button type="button" class="yb-btn yb-btn--outline yb-btn--xs" data-action="social-refresh-media" data-platform="facebook">🔄 FB</button>
   </div>
 
   {# Bulk actions bar — shown when posts are selected #}
@@ -295,6 +299,80 @@
 
   <div class="yb-social__posts-grid" id="yb-social-posts-grid">
     {# Post cards rendered by JS #}
+  </div>
+</div>
+
+{# ════════════════════════════════════════════════════════════════════════════ #}
+{# VIEW: Cross-Share                                                           #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+<div id="yb-social-v-crossshare" hidden>
+  <div class="yb-admin__view-head">
+    <h2>Cross-Share</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-crossshare-selected" id="yb-crossshare-share-btn" disabled>
+        Share Selected (0)
+      </button>
+    </div>
+  </div>
+
+  <p class="yb-admin__muted" style="margin:0 0 16px;font-size:13px">
+    Browse posts by source platform, see which ones are compatible with other platforms, and cross-share individually or in bulk.
+  </p>
+
+  {# Source platform tabs #}
+  <div class="yb-social__filter-bar" id="yb-crossshare-source-tabs">
+    <button class="yb-social__filter-btn is-active" type="button" data-action="social-crossshare-source" data-platform="instagram">IG</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-crossshare-source" data-platform="facebook">FB</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-crossshare-source" data-platform="tiktok">TT</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-crossshare-source" data-platform="linkedin">LI</button>
+    <button class="yb-social__filter-btn" type="button" data-action="social-crossshare-source" data-platform="youtube">YT</button>
+  </div>
+
+  {# Target platform selector #}
+  <div class="yb-social__crossshare-target" id="yb-crossshare-target">
+    <span class="yb-social__platform-filter-label">Share to:</span>
+    <button class="yb-social__platform-filter-btn is-active" type="button" data-action="social-crossshare-target" data-platform="all">All</button>
+    <button class="yb-social__platform-filter-btn" type="button" data-action="social-crossshare-target" data-platform="tiktok">TikTok</button>
+    <button class="yb-social__platform-filter-btn" type="button" data-action="social-crossshare-target" data-platform="facebook">FB</button>
+    <button class="yb-social__platform-filter-btn" type="button" data-action="social-crossshare-target" data-platform="instagram">IG</button>
+    <button class="yb-social__platform-filter-btn" type="button" data-action="social-crossshare-target" data-platform="linkedin">LI</button>
+    <button class="yb-social__platform-filter-btn" type="button" data-action="social-crossshare-target" data-platform="youtube">YT</button>
+    {# Compatibility filter #}
+    <span style="margin-left:auto">
+      <label style="font-size:12px;color:var(--yb-muted);cursor:pointer">
+        <input type="checkbox" id="yb-crossshare-compat-only" checked> Compatible only
+      </label>
+    </span>
+  </div>
+
+  {# Bulk select #}
+  <div class="yb-social__bulk-bar" id="yb-crossshare-bulk-bar" style="margin:8px 0">
+    <label class="yb-social__bulk-select-all">
+      <input type="checkbox" id="yb-crossshare-select-all" data-action="social-crossshare-select-all"> Select all compatible
+    </label>
+    <span class="yb-social__bulk-count" id="yb-crossshare-count">0 posts</span>
+  </div>
+
+  {# Post grid — rendered by JS #}
+  <div class="yb-social__crossshare-grid" id="yb-crossshare-grid">
+    <p class="yb-admin__muted">Loading...</p>
+  </div>
+</div>
+
+{# Cross-Share Modal #}
+<div class="yb-social__modal-overlay" id="yb-crossshare-modal" hidden>
+  <div class="yb-social__modal-box" style="max-width:640px">
+    <div class="yb-social__modal-header">
+      <h3 id="yb-crossshare-modal-title">Cross-Share Posts</h3>
+      <button class="yb-social__btn-sm" data-action="social-crossshare-modal-close">&times;</button>
+    </div>
+    <div class="yb-social__modal-body" id="yb-crossshare-modal-body">
+      {# Rendered by JS: target picker, caption editors, preview #}
+    </div>
+    <div class="yb-social__modal-footer" style="display:flex;gap:8px;justify-content:flex-end;padding:16px 20px;border-top:1px solid var(--yb-border)">
+      <button type="button" class="yb-btn yb-btn--outline" data-action="social-crossshare-modal-close">Cancel</button>
+      <button type="button" class="yb-btn yb-btn--primary" data-action="social-crossshare-confirm" id="yb-crossshare-confirm-btn">Create Posts</button>
+    </div>
   </div>
 </div>
 
@@ -452,6 +530,11 @@
     <button class="yb-social__filter-btn is-active" type="button" data-action="social-inbox-tab" data-tab="comments">{{ t.social_inbox_comments or "Comments" }} <span id="yb-social-inbox-comments-count" class="yb-social__inbox-count"></span></button>
     <button class="yb-social__filter-btn" type="button" data-action="social-inbox-tab" data-tab="messages">{{ t.social_inbox_messages or "Messages" }} <span id="yb-social-inbox-messages-count" class="yb-social__inbox-count"></span></button>
     <button class="yb-social__filter-btn" type="button" data-action="social-inbox-tab" data-tab="mentions">{{ t.social_inbox_mentions or "Mentions" }} <span id="yb-social-inbox-mentions-count" class="yb-social__inbox-count"></span></button>
+  </div>
+
+  {# Platform filter for inbox #}
+  <div class="yb-social__platform-filter" id="yb-social-inbox-platform-filter">
+    {# Rendered by JS #}
   </div>
 
   {# Comments List #}
@@ -664,6 +747,35 @@
     </div>
   </div>
 
+  {# Video Upload Zone #}
+  <div class="yb-social__video-upload-zone" id="yb-social-video-upload-zone">
+    <div class="yb-social__video-upload-droparea" id="yb-social-video-droparea">
+      <div class="yb-social__video-upload-icon">🎬</div>
+      <p><strong>Drag & drop video files here</strong></p>
+      <p class="yb-admin__muted">or click to browse — supports MP4, MOV, WebM up to 4K</p>
+      <input type="file" id="yb-social-video-file" accept="video/mp4,video/quicktime,video/webm,video/x-msvideo" multiple hidden>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-video-browse">Choose Files</button>
+    </div>
+    <div class="yb-social__video-upload-progress" id="yb-social-video-progress" hidden>
+      <div class="yb-social__video-upload-progress-info">
+        <span id="yb-social-video-progress-name"></span>
+        <span id="yb-social-video-progress-pct">0%</span>
+      </div>
+      <div class="yb-social__video-upload-progress-bar">
+        <div class="yb-social__video-upload-progress-fill" id="yb-social-video-progress-fill"></div>
+      </div>
+      <span class="yb-admin__muted" id="yb-social-video-progress-status">Uploading...</span>
+    </div>
+  </div>
+
+  {# Video Library Grid #}
+  <div class="yb-social__library-section">
+    <h4>Videos <span class="yb-admin__muted" id="yb-social-video-count"></span></h4>
+    <div class="yb-social__video-library-grid" id="yb-social-video-library-grid">
+      <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+    </div>
+  </div>
+
   {# Collections Row #}
   <div class="yb-social__library-section">
     <h4>{{ t.social_collections or "Collections" }}</h4>
@@ -679,6 +791,72 @@
   {# Asset Grid #}
   <div class="yb-social__library-grid" id="yb-social-library-grid">
     <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+  </div>
+</div>
+
+{# ════════════════════════════════════════════════════════════════════════════ #}
+{# MODAL: Video Editor (Trim / Thumbnail / Crop)                              #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+<div class="yb-social__video-editor-modal" id="yb-social-video-editor" hidden>
+  <div class="yb-social__video-editor-box">
+    <div class="yb-social__video-editor-header">
+      <h3>Video Editor</h3>
+      <button type="button" data-action="social-video-editor-close">&times;</button>
+    </div>
+    <div class="yb-social__video-editor-body">
+      {# Video Preview #}
+      <div class="yb-social__video-editor-preview">
+        <video id="yb-social-video-player" controls preload="metadata"></video>
+      </div>
+
+      {# Trim Controls #}
+      <div class="yb-social__video-editor-section">
+        <h4>Trim</h4>
+        <div class="yb-social__video-trim-timeline" id="yb-social-video-timeline">
+          <div class="yb-social__video-trim-track">
+            <div class="yb-social__video-trim-handle yb-social__video-trim-handle--start" id="yb-social-trim-start"></div>
+            <div class="yb-social__video-trim-selection" id="yb-social-trim-selection"></div>
+            <div class="yb-social__video-trim-handle yb-social__video-trim-handle--end" id="yb-social-trim-end"></div>
+            <div class="yb-social__video-trim-playhead" id="yb-social-trim-playhead"></div>
+          </div>
+        </div>
+        <div class="yb-social__video-trim-times">
+          <label>Start: <input type="text" id="yb-social-trim-start-time" value="00:00" class="yb-social__input" style="width:70px"></label>
+          <span id="yb-social-trim-duration">Duration: --</span>
+          <label>End: <input type="text" id="yb-social-trim-end-time" value="00:00" class="yb-social__input" style="width:70px"></label>
+        </div>
+      </div>
+
+      {# Thumbnail Selection #}
+      <div class="yb-social__video-editor-section">
+        <h4>Thumbnail</h4>
+        <div class="yb-social__video-thumbnail-row" id="yb-social-video-thumbnails"></div>
+        <button type="button" class="yb-social__btn-sm" data-action="social-video-capture-thumb">📷 Capture current frame</button>
+      </div>
+
+      {# Aspect Ratio #}
+      <div class="yb-social__video-editor-section">
+        <h4>Aspect Ratio</h4>
+        <div class="yb-social__video-aspect-btns">
+          <button type="button" class="yb-social__btn-sm is-active" data-action="social-video-aspect" data-ratio="original">Original</button>
+          <button type="button" class="yb-social__btn-sm" data-action="social-video-aspect" data-ratio="9:16">9:16 Reels</button>
+          <button type="button" class="yb-social__btn-sm" data-action="social-video-aspect" data-ratio="1:1">1:1 Feed</button>
+          <button type="button" class="yb-social__btn-sm" data-action="social-video-aspect" data-ratio="16:9">16:9 YouTube</button>
+          <button type="button" class="yb-social__btn-sm" data-action="social-video-aspect" data-ratio="4:5">4:5 Portrait</button>
+        </div>
+      </div>
+
+      {# Audio Toggle #}
+      <div class="yb-social__video-editor-section">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <input type="checkbox" id="yb-social-video-mute" checked> Keep audio
+        </label>
+      </div>
+    </div>
+    <div class="yb-social__video-editor-footer">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-video-editor-close">Cancel</button>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-video-use-in-post">Use in Post</button>
+    </div>
   </div>
 </div>
 
@@ -717,13 +895,13 @@
 </div>
 
 <div class="yb-social__composer-modal" id="yb-social-composer" hidden>
-  <div class="yb-social__composer-overlay" data-action="social-composer-close"></div>
+  <div class="yb-social__composer-overlay"></div>
   <div class="yb-social__composer-box">
 
     {# Header #}
     <div class="yb-social__composer-header">
+      <button type="button" class="yb-social__composer-back" data-action="social-composer-close">&larr; {{ t.social_back or "Back" }}</button>
       <h3 id="yb-social-composer-title">{{ t.social_composer_new or "New Post" }}</h3>
-      <button type="button" data-action="social-composer-close">&times;</button>
     </div>
 
     {# Body: Editor + Preview #}
@@ -910,7 +1088,7 @@
 
         {# AI Assistant #}
         <div class="yb-social__ai-section">
-          <button type="button" class="yb-btn yb-btn--outline" data-action="social-ai-toggle">&#129302; {{ t.social_ai_assistant or "AI Assistant" }}</button>
+          <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-ai-toggle">&#129302; {{ t.social_ai_assistant or "AI Assistant" }}</button>
           <div class="yb-social__ai-panel" id="yb-social-ai-panel" hidden>
             <div class="yb-admin__field">
               <label for="yb-social-ai-topic">{{ t.social_ai_topic or "Topic / Prompt" }}</label>
@@ -943,7 +1121,7 @@
 
         {# Per-Platform Captions #}
         <div class="yb-social__platform-captions-section">
-          <button type="button" class="yb-btn yb-btn--outline" data-action="social-platform-captions-toggle">&#128221; {{ t.social_platform_captions or "Per-Platform Captions" }}</button>
+          <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-platform-captions-toggle">&#128221; {{ t.social_platform_captions or "Per-Platform Captions" }}</button>
           <div class="yb-social__platform-captions-panel" id="yb-social-platform-captions" hidden>
             <div class="yb-social__platform-captions-head">
               <span class="yb-admin__muted">{{ t.social_platform_captions_desc or "Override the main caption for specific platforms" }}</span>
@@ -984,7 +1162,7 @@
     {# Footer #}
     <div class="yb-social__composer-footer">
       <input type="hidden" id="yb-social-post-id">
-      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-save-as-template" title="{{ t.social_save_as_template or 'Save as Template' }}">&#9734; {{ t.social_save_as_template or "Save as Template" }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-save-as-template" title="{{ t.social_save_as_template or 'Save as Template' }}">&#9734; {{ t.social_save_as_template or "Template" }}</button>
       <button type="button" class="yb-btn yb-btn--outline" data-action="social-save-draft">{{ t.social_save_draft or "Save Draft" }}</button>
       <button type="button" class="yb-btn yb-btn--primary" data-action="social-publish-post" id="yb-social-publish-btn">{{ t.social_post_now or "Post Now" }}</button>
     </div>

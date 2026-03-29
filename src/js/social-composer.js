@@ -35,11 +35,19 @@
     var modal = $('yb-social-composer');
     if (!modal) return;
     modal.hidden = false;
-    document.body.style.overflow = 'hidden';
+
+    // Hide nav and other views — composer is full-page
+    var nav = document.querySelector('.yb-social__nav');
+    if (nav) nav.style.display = 'none';
+    var views = document.querySelectorAll('[id^="yb-social-v-"]');
+    views.forEach(function (v) { if (!v.id.includes('composer')) v.style.display = 'none'; });
 
     // Reset form
     composer.postId = postId;
     composer.media = [];
+    composer.mediaType = 'image';
+    composer.videoUrl = '';
+    composer.importedPermalink = '';
     composer.platforms = [];
     composer.platformCaptions = {};
     $('yb-social-post-id').value = postId || '';
@@ -96,6 +104,11 @@
     var modal = $('yb-social-composer');
     if (modal) modal.hidden = true;
     document.body.style.overflow = '';
+    // Re-show the social panel content
+    var panel = document.querySelector('.yb-social__nav');
+    if (panel) panel.style.display = '';
+    var views = document.querySelectorAll('[id^="yb-social-v-"]');
+    views.forEach(function (v) { v.style.display = ''; });
   }
 
   async function loadPostForEdit(id) {
@@ -109,6 +122,9 @@
     $('yb-social-location').value = p.location || '';
     if ($('yb-social-pillar')) $('yb-social-pillar').value = p.contentPillar || '';
     composer.media = p.media || [];
+    composer.mediaType = p.mediaType || 'image';
+    composer.videoUrl = p.videoUrl || '';
+    composer.importedPermalink = p.importedPermalink || '';
     composer.platforms = p.platforms || [];
     composer.platformCaptions = p.platformCaptions || {};
 
@@ -203,10 +219,19 @@
     if (mediaEl) {
       if (composer.media.length > 0) {
         var url = composer.media[0];
-        if (url.match(/\.(mp4|mov|webm)$/i)) {
+        var isVideoFile = url.match(/\.(mp4|mov|webm)$/i);
+        var isVideoPost = composer.mediaType === 'video';
+        if (isVideoFile) {
           mediaEl.innerHTML = '<video src="' + url + '" style="width:100%;max-height:300px" controls></video>';
+        } else if (isVideoPost && composer.videoUrl) {
+          // Reel/video with separate video URL — show video player with thumbnail poster
+          mediaEl.innerHTML = '<video src="' + composer.videoUrl + '" poster="' + url + '" style="width:100%;max-height:300px" controls></video>';
+        } else if (isVideoPost && composer.importedPermalink) {
+          // Reel without playable URL — show thumbnail + link to view on platform
+          mediaEl.innerHTML = '<div style="position:relative"><img src="' + url + '" alt="Preview" onerror="this.outerHTML=\'<p class=yb-admin__muted style=padding:40px;text-align:center>Image expired</p>\'">' +
+            '<a href="' + composer.importedPermalink + '" target="_blank" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;padding:6px 14px;border-radius:6px;font-size:12px;text-decoration:none">▶ View on platform</a></div>';
         } else {
-          mediaEl.innerHTML = '<img src="' + url + '" alt="Preview">';
+          mediaEl.innerHTML = '<img src="' + url + '" alt="Preview" onerror="this.outerHTML=\'<p class=yb-admin__muted style=padding:40px;text-align:center>Image expired — re-upload media</p>\'">';
         }
       } else {
         mediaEl.innerHTML = '<p class="yb-admin__muted">' + t('social_no_media') + '</p>';
@@ -274,14 +299,16 @@
     }
 
     container.innerHTML = composer.media.map(function (url, i) {
-      var isVideo = url.match(/\.(mp4|mov|webm)$/i);
+      var isVideoFile = url.match(/\.(mp4|mov|webm)$/i);
+      var isVideoPost = composer.mediaType === 'video';
       var thumbUrl = (composer.videoThumbnails && composer.videoThumbnails[url]) || '';
-      return '<div class="yb-social__media-thumb' + (isVideo ? ' is-video' : '') + '" draggable="true" data-media-index="' + i + '">' +
-        (isVideo
+      return '<div class="yb-social__media-thumb' + (isVideoFile || isVideoPost ? ' is-video' : '') + '" draggable="true" data-media-index="' + i + '">' +
+        (isVideoFile
           ? '<video src="' + url + '"></video>' +
             (thumbUrl ? '<img class="yb-social__video-thumb-overlay" src="' + thumbUrl + '" alt="Thumbnail">' : '') +
             '<button class="yb-social__video-thumb-btn" data-action="social-video-thumbnail" data-index="' + i + '" title="' + t('social_select_thumbnail') + '">🖼</button>'
-          : '<img src="' + url + '" alt="">') +
+          : '<img src="' + url + '" alt="" onerror="this.outerHTML=\'<span style=font-size:20px>📝</span>\'">' +
+            (isVideoPost ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px;background:rgba(0,0,0,0.5);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#fff">▶</span>' : '')) +
         '<span class="yb-social__media-thumb-index">' + (i + 1) + '</span>' +
         '<button class="yb-social__media-thumb-remove" data-action="social-remove-media" data-index="' + i + '">&times;</button>' +
         '</div>';
@@ -430,6 +457,28 @@
     S.toast(t('social_thumb_set') || 'Thumbnail set');
   }
 
+  /* ═══ HASHTAG PLATFORM LIMITS ═══ */
+  var HASHTAG_LIMITS = {
+    instagram: 5,
+    tiktok: 5,
+    facebook: 10,
+    linkedin: 5,
+    youtube: 15,
+    pinterest: 20
+  };
+
+  function filterHashtagsForPlatforms(hashtags, platforms) {
+    if (!hashtags.length || !platforms.length) return hashtags;
+    // Find the strictest limit among selected platforms
+    var minLimit = Infinity;
+    platforms.forEach(function (p) {
+      if (HASHTAG_LIMITS[p] && HASHTAG_LIMITS[p] < minLimit) minLimit = HASHTAG_LIMITS[p];
+    });
+    if (minLimit === Infinity || hashtags.length <= minLimit) return hashtags;
+    // Keep only the first N hashtags (most relevant ones are usually first)
+    return hashtags.slice(0, minLimit);
+  }
+
   /* ═══ SAVE / PUBLISH ═══ */
   async function savePost(status) {
     var caption = ($('yb-social-caption') || {}).value || '';
@@ -441,6 +490,20 @@
     document.querySelectorAll('.yb-social__composer-platforms input:checked').forEach(function (cb) {
       composer.platforms.push(cb.value);
     });
+
+    // Auto-filter hashtags to platform limits
+    if (hashtags.length > 0 && composer.platforms.length > 0) {
+      var filtered = filterHashtagsForPlatforms(hashtags, composer.platforms);
+      if (filtered.length < hashtags.length) {
+        var minPlat = composer.platforms.reduce(function (best, p) {
+          return (HASHTAG_LIMITS[p] || 999) < (HASHTAG_LIMITS[best] || 999) ? p : best;
+        }, composer.platforms[0]);
+        S.toast('Trimmed to ' + filtered.length + ' hashtags (' + minPlat + ' limit)');
+        hashtags = filtered;
+        // Update the field so user can see the change
+        $('yb-social-hashtags').value = hashtags.join(', ');
+      }
+    }
 
     if (!caption.trim() && composer.media.length === 0) {
       S.toast('Add a caption or media', true);
@@ -509,8 +572,8 @@
     if (!modal) return;
     modal.hidden = false;
     composer.mediaSelected = [];
-    // Start in the social folder by default, or the full CDN if browsing all
-    composer.currentPath = 'yoga-bible-DK/social';
+    // Start at the root of our storage zone
+    composer.currentPath = 'yoga-bible-DK';
     loadMediaFolder(composer.currentPath);
   }
 
@@ -624,21 +687,73 @@
 
     var params = signData.upload_params;
 
+    // Show upload preview with progress
+    var previewContainer = $('yb-social-upload-preview');
+    if (!previewContainer) {
+      var drop = $('yb-social-media-drop');
+      if (drop) {
+        drop.insertAdjacentHTML('afterend', '<div class="yb-social__upload-preview" id="yb-social-upload-preview"></div>');
+        previewContainer = $('yb-social-upload-preview');
+      }
+    }
+
+    // Build preview items
+    if (previewContainer) {
+      var previewHtml = '';
+      for (var p = 0; p < files.length; p++) {
+        var f = files[p];
+        var isVid = f.type.startsWith('video/');
+        previewHtml += '<div class="yb-social__upload-item" id="yb-upload-item-' + p + '">' +
+          (isVid ? '<video src="' + URL.createObjectURL(f) + '" muted></video>'
+                 : '<img src="' + URL.createObjectURL(f) + '" alt="">') +
+          '<div class="yb-social__upload-item-bar"><div class="yb-social__upload-item-fill" id="yb-upload-fill-' + p + '" style="width:0%"></div></div>' +
+          '<span class="yb-social__upload-item-pct" id="yb-upload-pct-' + p + '">0%</span>' +
+          '</div>';
+      }
+      previewContainer.innerHTML = previewHtml;
+    }
+
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
-      S.toast('Uploading ' + file.name + '...');
 
       var fileName = Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g, '');
       var uploadUrl = params.upload_url + fileName;
 
-      await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { AccessKey: params.headers.AccessKey, 'Content-Type': file.type },
-        body: file
+      // Upload with XHR to track progress
+      await new Promise(function (resolve) {
+        var idx = i;
+        var xhr = new XMLHttpRequest();
+        xhr.open('PUT', uploadUrl, true);
+        xhr.setRequestHeader('AccessKey', params.headers.AccessKey);
+        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.upload.addEventListener('progress', function (e) {
+          if (e.lengthComputable) {
+            var pct = Math.round((e.loaded / e.total) * 100);
+            var fillEl = $('yb-upload-fill-' + idx);
+            var pctEl = $('yb-upload-pct-' + idx);
+            if (fillEl) fillEl.style.width = pct + '%';
+            if (pctEl) pctEl.textContent = pct + '%';
+          }
+        });
+        xhr.onload = function () {
+          var pctEl = $('yb-upload-pct-' + idx);
+          if (pctEl) pctEl.textContent = '✓';
+          resolve();
+        };
+        xhr.onerror = function () {
+          S.toast('Upload failed: ' + file.name, true);
+          resolve();
+        };
+        xhr.send(file);
       });
 
-      var cdnUrl = params.cdn_base + '/' + folder + '/' + fileName;
+      var cdnUrl = params.cdn_base + fileName;
       composer.media.push(cdnUrl);
+    }
+
+    // Clean up preview
+    if (previewContainer) {
+      setTimeout(function () { previewContainer.remove(); }, 1500);
     }
 
     S.toast('Uploaded ' + files.length + ' file(s)');
@@ -1207,6 +1322,7 @@
     else if (action === 'social-media-browser-close') closeMediaBrowser();
     else if (action === 'social-media-open-folder') loadMediaFolder(btn.getAttribute('data-path'));
     else if (action === 'social-media-nav') loadMediaFolder(btn.getAttribute('data-path'));
+    else if (action === 'social-media-nav-root') loadMediaFolder('yoga-bible-DK');
     else if (action === 'social-media-toggle') toggleMediaSelection(btn.getAttribute('data-url'));
     else if (action === 'social-media-confirm') confirmMediaSelection();
 
