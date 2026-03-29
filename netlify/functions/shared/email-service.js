@@ -286,13 +286,19 @@ async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, inclu
  * Send admin notification about new lead
  */
 async function sendAdminNotification(leadData) {
-  const subject = `Ny lead: ${leadData.first_name} ${leadData.last_name || ''} (${leadData.type || 'unknown'})`;
+  // Determine country for subject line
+  const country = leadData.city_country || leadData.country || '';
+  const lang = (leadData.lang || leadData.meta_lang || '').toLowerCase();
+  const isIntl = lang === 'en' || lang === 'de' || (country && !country.toLowerCase().includes('denmark') && !country.toLowerCase().includes('danmark') && !country.toLowerCase().includes(', dk'));
+  const originTag = isIntl ? 'INT' : 'DK';
+  const countryTag = country ? ` — ${country}` : '';
+  const subject = `New lead [${originTag}${countryTag}]: ${leadData.first_name} ${leadData.last_name || ''} (${leadData.type || 'unknown'})`;
 
   let html = '<div style="font-family:monospace;font-size:14px;line-height:1.6;">';
-  html += '<h3 style="color:#f75c03;">Ny lead modtaget</h3>';
+  html += '<h3 style="color:#f75c03;">New lead received</h3>';
   html += '<table style="border-collapse:collapse;">';
 
-  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'ytt_program_type', 'program', 'meta_form_id', 'meta_form_name', 'source', 'channel', 'utm_campaign', 'accommodation', 'city_country'];
+  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'ytt_program_type', 'program', 'meta_form_id', 'meta_form_name', 'source', 'channel', 'utm_campaign', 'accommodation', 'city_country', 'country', 'lang'];
   for (const field of fields) {
     if (leadData[field]) {
       const val = escapeHtml(String(leadData[field]));
@@ -309,7 +315,7 @@ async function sendAdminNotification(leadData) {
     to: CONFIG.EMAIL_ADMIN,
     subject,
     html,
-    text: `Ny lead: ${leadData.email} - ${leadData.first_name} - ${leadData.type} - ${leadData.program || ''}`
+    text: `New lead [${originTag}]: ${leadData.email} - ${leadData.first_name} - ${leadData.type} - ${leadData.program || ''}${countryTag}`
   });
 }
 
