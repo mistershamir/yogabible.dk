@@ -37,6 +37,9 @@
     // Reset form
     composer.postId = postId;
     composer.media = [];
+    composer.mediaType = 'image';
+    composer.videoUrl = '';
+    composer.importedPermalink = '';
     composer.platforms = [];
     composer.platformCaptions = {};
     $('yb-social-post-id').value = postId || '';
@@ -106,6 +109,9 @@
     $('yb-social-location').value = p.location || '';
     if ($('yb-social-pillar')) $('yb-social-pillar').value = p.contentPillar || '';
     composer.media = p.media || [];
+    composer.mediaType = p.mediaType || 'image';
+    composer.videoUrl = p.videoUrl || '';
+    composer.importedPermalink = p.importedPermalink || '';
     composer.platforms = p.platforms || [];
     composer.platformCaptions = p.platformCaptions || {};
 
@@ -200,8 +206,17 @@
     if (mediaEl) {
       if (composer.media.length > 0) {
         var url = composer.media[0];
-        if (url.match(/\.(mp4|mov|webm)$/i)) {
+        var isVideoFile = url.match(/\.(mp4|mov|webm)$/i);
+        var isVideoPost = composer.mediaType === 'video';
+        if (isVideoFile) {
           mediaEl.innerHTML = '<video src="' + url + '" style="width:100%;max-height:300px" controls></video>';
+        } else if (isVideoPost && composer.videoUrl) {
+          // Reel/video with separate video URL — show video player with thumbnail poster
+          mediaEl.innerHTML = '<video src="' + composer.videoUrl + '" poster="' + url + '" style="width:100%;max-height:300px" controls></video>';
+        } else if (isVideoPost && composer.importedPermalink) {
+          // Reel without playable URL — show thumbnail + link to view on platform
+          mediaEl.innerHTML = '<div style="position:relative"><img src="' + url + '" alt="Preview" onerror="this.outerHTML=\'<p class=yb-admin__muted style=padding:40px;text-align:center>Image expired</p>\'">' +
+            '<a href="' + composer.importedPermalink + '" target="_blank" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;padding:6px 14px;border-radius:6px;font-size:12px;text-decoration:none">▶ View on platform</a></div>';
         } else {
           mediaEl.innerHTML = '<img src="' + url + '" alt="Preview" onerror="this.outerHTML=\'<p class=yb-admin__muted style=padding:40px;text-align:center>Image expired — re-upload media</p>\'">';
         }
@@ -270,14 +285,16 @@
     }
 
     container.innerHTML = composer.media.map(function (url, i) {
-      var isVideo = url.match(/\.(mp4|mov|webm)$/i);
+      var isVideoFile = url.match(/\.(mp4|mov|webm)$/i);
+      var isVideoPost = composer.mediaType === 'video';
       var thumbUrl = (composer.videoThumbnails && composer.videoThumbnails[url]) || '';
-      return '<div class="yb-social__media-thumb' + (isVideo ? ' is-video' : '') + '" draggable="true" data-media-index="' + i + '">' +
-        (isVideo
+      return '<div class="yb-social__media-thumb' + (isVideoFile || isVideoPost ? ' is-video' : '') + '" draggable="true" data-media-index="' + i + '">' +
+        (isVideoFile
           ? '<video src="' + url + '"></video>' +
             (thumbUrl ? '<img class="yb-social__video-thumb-overlay" src="' + thumbUrl + '" alt="Thumbnail">' : '') +
             '<button class="yb-social__video-thumb-btn" data-action="social-video-thumbnail" data-index="' + i + '" title="' + t('social_select_thumbnail') + '">🖼</button>'
-          : '<img src="' + url + '" alt="">') +
+          : '<img src="' + url + '" alt="" onerror="this.outerHTML=\'<span style=font-size:20px>📝</span>\'">' +
+            (isVideoPost ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px;background:rgba(0,0,0,0.5);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#fff">▶</span>' : '')) +
         '<span class="yb-social__media-thumb-index">' + (i + 1) + '</span>' +
         '<button class="yb-social__media-thumb-remove" data-action="social-remove-media" data-index="' + i + '">&times;</button>' +
         '</div>';

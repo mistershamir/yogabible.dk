@@ -49,6 +49,7 @@ exports.handler = async (event) => {
         case 'delete': return deletePost(db, body.id);
         case 'bulk-delete': return bulkDeletePosts(db, body.ids);
         case 'bulk-update': return bulkUpdatePosts(db, body.ids, body.fields);
+        case 'refresh-media': return refreshMedia(db, body, user);
         case 'bulk-duplicate': return bulkDuplicatePosts(db, body.ids, user);
         case 'import-from-platform': return importFromPlatform(db, body, user);
         default:
@@ -359,6 +360,98 @@ async function bulkDuplicatePosts(db, ids, user) {
 }
 
 
+// ── Refresh media for imported posts with expired/missing images ──
+
+async function refreshMedia(db, body, user) {
+  const { platform } = body;
+  if (!platform || !['instagram', 'facebook'].includes(platform)) {
+    return jsonResponse(400, { ok: false, error: 'Platform must be instagram or facebook' });
+  }
+
+  // Get access token
+  const accountSnap = await db.collection('social_accounts').where('platform', '==', platform).limit(1).get();
+  if (accountSnap.empty) return jsonResponse(400, { ok: false, error: `No ${platform} account connected` });
+  const account = accountSnap.docs[0].data();
+  const accessToken = account.accessToken;
+  if (!accessToken) return jsonResponse(400, { ok: false, error: `No access token for ${platform}` });
+
+  // Get all imported posts for this platform that might have expired images
+  const postsSnap = await db.collection(COLLECTION)
+    .where('source', '==', 'imported')
+    .get();
+
+  const toRefresh = [];
+  postsSnap.forEach(doc => {
+    const data = doc.data();
+    if ((data.platforms || []).includes(platform) && data.importedPlatformId) {
+      // Check if media is missing, empty, or not on Bunny CDN
+      const hasBunnyMedia = data.media && data.media[0] && data.media[0].includes('b-cdn.net');
+      if (!hasBunnyMedia) {
+        toRefresh.push({ id: doc.id, data });
+      }
+    }
+  });
+
+  if (toRefresh.length === 0) {
+    return jsonResponse(200, { ok: true, refreshed: 0, message: 'All media already on Bunny CDN' });
+  }
+
+  // Batch fetch fresh URLs from Graph API
+  let refreshed = 0;
+  const batchSize = 50;
+  const platformIds = toRefresh.map(p => p.data.importedPlatformId);
+
+  for (let i = 0; i < platformIds.length; i += batchSize) {
+    const batch = platformIds.slice(i, i + batchSize);
+    const ids = batch.join(',');
+
+    try {
+      let apiUrl;
+      if (platform === 'instagram') {
+        apiUrl = `https://graph.facebook.com/v21.0/?ids=${ids}&fields=id,media_url,thumbnail_url,media_type&access_token=${accessToken}`;
+      } else {
+        apiUrl = `https://graph.facebook.com/v21.0/?ids=${ids}&fields=id,full_picture&access_token=${accessToken}`;
+      }
+
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+
+      for (const item of toRefresh.slice(i, i + batchSize)) {
+        const graphData = data[item.data.importedPlatformId];
+        if (!graphData) continue;
+
+        let imageUrl;
+        if (platform === 'instagram') {
+          imageUrl = graphData.media_type === 'VIDEO'
+            ? (graphData.thumbnail_url || graphData.media_url)
+            : graphData.media_url;
+        } else {
+          imageUrl = graphData.full_picture;
+        }
+
+        if (!imageUrl) continue;
+
+        // Persist to Bunny
+        const bunnyUrl = await persistImageToBunny(imageUrl, platform, item.data.importedPlatformId);
+        if (bunnyUrl && bunnyUrl.includes('b-cdn.net')) {
+          await db.collection(COLLECTION).doc(item.id).update({
+            media: [bunnyUrl],
+            originalMedia: item.data.media || [],
+            updatedAt: serverTimestamp()
+          });
+          refreshed++;
+        }
+      }
+    } catch (err) {
+      console.error(`[social-posts] Refresh batch error:`, err.message);
+    }
+  }
+
+  console.log(`[social-posts] Refreshed ${refreshed}/${toRefresh.length} ${platform} images`);
+  return jsonResponse(200, { ok: true, refreshed, total: toRefresh.length });
+}
+
+
 // ── Persist image to Bunny Storage ──────────────────────────────
 
 async function persistImageToBunny(imageUrl, platform, postId) {
@@ -446,6 +539,7 @@ async function importFromPlatform(db, body, user) {
         media: m.media_type === 'VIDEO'
           ? [m.thumbnail_url || m.media_url || '']
           : [m.media_url || ''],
+        videoUrl: m.media_type === 'VIDEO' ? (m.media_url || '') : '',
         mediaType: m.media_type === 'VIDEO' ? 'video' : 'image',
         publishedAt: m.timestamp,
         permalink: m.permalink || '',
@@ -510,6 +604,7 @@ async function importFromPlatform(db, body, user) {
         platforms: [platform],
         media: persistedMedia.length ? persistedMedia : p.media,
         originalMedia: p.media,
+        videoUrl: p.videoUrl || '',
         mediaType: p.mediaType,
         hashtags: (p.caption.match(/#\w+/g) || []),
         status: 'published',

@@ -5469,6 +5469,23 @@
     }
   }
 
+  async function refreshExpiredMedia(platform, btn) {
+    setLoading(btn, true, 'Fixing...');
+    toast('Re-downloading ' + platform + ' images to Bunny CDN...');
+    var data = await api('social-posts?action=refresh-media', {
+      method: 'POST',
+      body: JSON.stringify({ platform: platform })
+    });
+    setLoading(btn, false);
+    if (data) {
+      toast('Fixed ' + (data.refreshed || 0) + ' of ' + (data.total || 0) + ' images');
+      if (data.refreshed > 0) {
+        var d2 = await api('social-posts?action=list');
+        if (d2) { state.allPosts = d2.posts || []; renderPosts(); }
+      }
+    }
+  }
+
   /* ═══ EXPORT FOR COMPOSER ═══ */
   window._ybSocial = {
     state: state,
@@ -5545,6 +5562,9 @@
     }
     else if (action === 'social-import-posts') {
       importExistingPosts(btn.getAttribute('data-platform'));
+    }
+    else if (action === 'social-refresh-media') {
+      refreshExpiredMedia(btn.getAttribute('data-platform'), btn);
     }
 
     // Cross-share actions
