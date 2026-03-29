@@ -664,6 +664,35 @@
     </div>
   </div>
 
+  {# Video Upload Zone #}
+  <div class="yb-social__video-upload-zone" id="yb-social-video-upload-zone">
+    <div class="yb-social__video-upload-droparea" id="yb-social-video-droparea">
+      <div class="yb-social__video-upload-icon">🎬</div>
+      <p><strong>Drag & drop video files here</strong></p>
+      <p class="yb-admin__muted">or click to browse — supports MP4, MOV, WebM up to 4K</p>
+      <input type="file" id="yb-social-video-file" accept="video/mp4,video/quicktime,video/webm,video/x-msvideo" multiple hidden>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-video-browse">Choose Files</button>
+    </div>
+    <div class="yb-social__video-upload-progress" id="yb-social-video-progress" hidden>
+      <div class="yb-social__video-upload-progress-info">
+        <span id="yb-social-video-progress-name"></span>
+        <span id="yb-social-video-progress-pct">0%</span>
+      </div>
+      <div class="yb-social__video-upload-progress-bar">
+        <div class="yb-social__video-upload-progress-fill" id="yb-social-video-progress-fill"></div>
+      </div>
+      <span class="yb-admin__muted" id="yb-social-video-progress-status">Uploading...</span>
+    </div>
+  </div>
+
+  {# Video Library Grid #}
+  <div class="yb-social__library-section">
+    <h4>Videos <span class="yb-admin__muted" id="yb-social-video-count"></span></h4>
+    <div class="yb-social__video-library-grid" id="yb-social-video-library-grid">
+      <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+    </div>
+  </div>
+
   {# Collections Row #}
   <div class="yb-social__library-section">
     <h4>{{ t.social_collections or "Collections" }}</h4>
@@ -679,6 +708,72 @@
   {# Asset Grid #}
   <div class="yb-social__library-grid" id="yb-social-library-grid">
     <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>
+  </div>
+</div>
+
+{# ════════════════════════════════════════════════════════════════════════════ #}
+{# MODAL: Video Editor (Trim / Thumbnail / Crop)                              #}
+{# ════════════════════════════════════════════════════════════════════════════ #}
+<div class="yb-social__video-editor-modal" id="yb-social-video-editor" hidden>
+  <div class="yb-social__video-editor-box">
+    <div class="yb-social__video-editor-header">
+      <h3>Video Editor</h3>
+      <button type="button" data-action="social-video-editor-close">&times;</button>
+    </div>
+    <div class="yb-social__video-editor-body">
+      {# Video Preview #}
+      <div class="yb-social__video-editor-preview">
+        <video id="yb-social-video-player" controls preload="metadata"></video>
+      </div>
+
+      {# Trim Controls #}
+      <div class="yb-social__video-editor-section">
+        <h4>Trim</h4>
+        <div class="yb-social__video-trim-timeline" id="yb-social-video-timeline">
+          <div class="yb-social__video-trim-track">
+            <div class="yb-social__video-trim-handle yb-social__video-trim-handle--start" id="yb-social-trim-start"></div>
+            <div class="yb-social__video-trim-selection" id="yb-social-trim-selection"></div>
+            <div class="yb-social__video-trim-handle yb-social__video-trim-handle--end" id="yb-social-trim-end"></div>
+            <div class="yb-social__video-trim-playhead" id="yb-social-trim-playhead"></div>
+          </div>
+        </div>
+        <div class="yb-social__video-trim-times">
+          <label>Start: <input type="text" id="yb-social-trim-start-time" value="00:00" class="yb-social__input" style="width:70px"></label>
+          <span id="yb-social-trim-duration">Duration: --</span>
+          <label>End: <input type="text" id="yb-social-trim-end-time" value="00:00" class="yb-social__input" style="width:70px"></label>
+        </div>
+      </div>
+
+      {# Thumbnail Selection #}
+      <div class="yb-social__video-editor-section">
+        <h4>Thumbnail</h4>
+        <div class="yb-social__video-thumbnail-row" id="yb-social-video-thumbnails"></div>
+        <button type="button" class="yb-social__btn-sm" data-action="social-video-capture-thumb">📷 Capture current frame</button>
+      </div>
+
+      {# Aspect Ratio #}
+      <div class="yb-social__video-editor-section">
+        <h4>Aspect Ratio</h4>
+        <div class="yb-social__video-aspect-btns">
+          <button type="button" class="yb-social__btn-sm is-active" data-action="social-video-aspect" data-ratio="original">Original</button>
+          <button type="button" class="yb-social__btn-sm" data-action="social-video-aspect" data-ratio="9:16">9:16 Reels</button>
+          <button type="button" class="yb-social__btn-sm" data-action="social-video-aspect" data-ratio="1:1">1:1 Feed</button>
+          <button type="button" class="yb-social__btn-sm" data-action="social-video-aspect" data-ratio="16:9">16:9 YouTube</button>
+          <button type="button" class="yb-social__btn-sm" data-action="social-video-aspect" data-ratio="4:5">4:5 Portrait</button>
+        </div>
+      </div>
+
+      {# Audio Toggle #}
+      <div class="yb-social__video-editor-section">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <input type="checkbox" id="yb-social-video-mute" checked> Keep audio
+        </label>
+      </div>
+    </div>
+    <div class="yb-social__video-editor-footer">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-video-editor-close">Cancel</button>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-video-use-in-post">Use in Post</button>
+    </div>
   </div>
 </div>
 
