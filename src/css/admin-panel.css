@@ -7978,6 +7978,101 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 }
 
 /* ── Responsive Fixes ── */
+/* ── Cross-Share ── */
+.yb-social__crossshare-target {
+  display: flex; align-items: center; gap: 6px; margin: 8px 0; flex-wrap: wrap;
+}
+.yb-social__crossshare-grid {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.yb-social__crossshare-card {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  background: #fff; border: 1px solid #E8E4E0; border-radius: 10px;
+  transition: all 0.15s ease;
+}
+.yb-social__crossshare-card:hover { border-color: #f75c03; }
+.yb-social__crossshare-card.is-selected {
+  border-color: #f75c03; background: #fef8f4;
+}
+.yb-social__crossshare-card.is-incompatible {
+  opacity: 0.5;
+}
+.yb-social__crossshare-check {
+  flex-shrink: 0;
+}
+.yb-social__crossshare-thumb {
+  width: 64px; height: 64px; border-radius: 8px; overflow: hidden;
+  flex-shrink: 0; position: relative; background: #F5F3F0;
+  display: flex; align-items: center; justify-content: center;
+}
+.yb-social__crossshare-thumb img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.yb-social__crossshare-fallback {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; width: 100%; height: 100%;
+}
+.yb-social__crossshare-type {
+  position: absolute; bottom: 2px; left: 2px;
+  font-size: 9px; padding: 1px 5px; border-radius: 4px;
+  background: rgba(0,0,0,0.7); color: #fff; white-space: nowrap;
+}
+.yb-social__crossshare-body {
+  flex: 1; min-width: 0;
+}
+.yb-social__crossshare-caption {
+  font-size: 13px; color: #333; margin: 0 0 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.yb-social__crossshare-compat {
+  display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 4px;
+}
+.yb-social__compat-badge {
+  font-size: 10px; padding: 2px 6px; border-radius: 4px;
+  font-weight: 600; white-space: nowrap; cursor: default;
+}
+.yb-social__compat-badge--ok {
+  background: #e6f9ee; color: #1a7a3a;
+}
+.yb-social__compat-badge--warn {
+  background: #fef6e6; color: #b8860b;
+}
+.yb-social__compat-badge--no {
+  background: #fce8e8; color: #c53030;
+}
+.yb-social__crossshare-meta {
+  display: flex; gap: 10px; font-size: 11px; color: #6F6A66;
+}
+.yb-social__crossshare-single {
+  flex-shrink: 0; font-size: 11px; padding: 4px 10px;
+  background: #f75c03; color: #fff; border: none; border-radius: 6px;
+  cursor: pointer; font-weight: 600;
+}
+.yb-social__crossshare-single:hover { background: #d94f02; }
+.yb-social__crossshare-single:disabled {
+  background: #ddd; color: #999; cursor: not-allowed;
+}
+/* Cross-share modal */
+.yb-social__crossshare-targets {
+  display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0;
+}
+.yb-social__crossshare-target-check {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; cursor: pointer; padding: 6px 10px;
+  border: 1px solid #E8E4E0; border-radius: 8px;
+}
+.yb-social__crossshare-target-check:has(input:checked) {
+  border-color: #f75c03; background: #fef8f4;
+}
+.yb-social__crossshare-bulk-info .yb-social__crossshare-post-list {
+  max-height: 200px; overflow-y: auto;
+}
+.yb-social__crossshare-post-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid #f0ede9;
+  font-size: 12px; color: #333;
+}
+
 @media (max-width: 900px) {
   .yb-social__composer-body { grid-template-columns: 1fr; }
   .yb-social__composer-preview { border-left: none; border-top: 1px solid #E8E4E0; max-height: 300px; }

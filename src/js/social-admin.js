@@ -84,7 +84,7 @@
   /* ═══ VIEW MANAGEMENT ═══ */
   function showView(name) {
     state.view = name;
-    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting', 'library', 'stories'].forEach(function (v) {
+    ['accounts', 'calendar', 'posts', 'crossshare', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting', 'library', 'stories'].forEach(function (v) {
       var el = $('yb-social-v-' + v);
       if (el) el.hidden = (v !== name);
     });
@@ -100,6 +100,7 @@
     if (name === 'templates') loadTemplates();
     if (name === 'competitors') loadCompetitors();
     if (name === 'abtesting') loadAbTests();
+    if (name === 'crossshare') loadCrossShare();
     if (name === 'library') { loadContentLibrary(); loadVideoLibrary(); initVideoUploadZone(); initTrimHandles(); }
     if (name === 'stories') loadStories();
   }
@@ -4937,6 +4938,515 @@
   }
 
   /* ═══ IMPORT EXISTING POSTS FROM PLATFORMS ═══ */
+  /* ═══ CROSS-SHARE ENGINE ═══ */
+
+  // Platform compatibility rules
+  var PLATFORM_RULES = {
+    instagram: {
+      label: 'Instagram', abbr: 'IG',
+      mediaTypes: ['image', 'video', 'carousel'],
+      maxVideoDuration: 90,        // Reels: 90s (feed: 60min but reels are the main format)
+      maxImageRatio: 1.91,         // landscape max (1.91:1)
+      minImageRatio: 0.8,          // portrait min (4:5)
+      videoRatios: [0.5625, 1],    // 9:16 (reels), 1:1
+      maxCaptionLength: 2200,
+      maxHashtags: 30,
+      supportsCarousel: true,
+      requiresMedia: true
+    },
+    tiktok: {
+      label: 'TikTok', abbr: 'TT',
+      mediaTypes: ['video'],
+      maxVideoDuration: 600,       // 10 minutes
+      videoRatios: [0.5625],       // 9:16 only
+      maxCaptionLength: 4000,
+      maxHashtags: 100,
+      supportsCarousel: false,
+      requiresMedia: true,
+      videoOnly: true
+    },
+    facebook: {
+      label: 'Facebook', abbr: 'FB',
+      mediaTypes: ['image', 'video', 'carousel', 'text'],
+      maxVideoDuration: 14400,     // 4 hours
+      maxImageRatio: 4,
+      minImageRatio: 0.25,
+      maxCaptionLength: 63206,
+      maxHashtags: 100,
+      supportsCarousel: true,
+      requiresMedia: false
+    },
+    linkedin: {
+      label: 'LinkedIn', abbr: 'LI',
+      mediaTypes: ['image', 'video', 'text'],
+      maxVideoDuration: 600,       // 10 minutes
+      maxImageRatio: 3,
+      minImageRatio: 0.33,
+      maxCaptionLength: 3000,
+      maxHashtags: 30,
+      supportsCarousel: false,
+      requiresMedia: false
+    },
+    youtube: {
+      label: 'YouTube', abbr: 'YT',
+      mediaTypes: ['video'],
+      maxVideoDuration: 43200,     // 12 hours
+      videoRatios: [0.5625, 1.778],// 9:16 (shorts), 16:9
+      maxCaptionLength: 5000,
+      maxHashtags: 15,
+      supportsCarousel: false,
+      requiresMedia: true,
+      videoOnly: true
+    }
+  };
+
+  // Cross-share state
+  var crossShareState = {
+    sourcePlatform: 'instagram',
+    targetPlatform: 'all',
+    compatOnly: true,
+    selectedIds: [],
+    posts: []
+  };
+
+  /**
+   * Check if a post is compatible with a target platform
+   * Returns { compatible, warnings[], blockers[] }
+   */
+  function checkCompatibility(post, targetPlatform) {
+    var rules = PLATFORM_RULES[targetPlatform];
+    if (!rules) return { compatible: false, warnings: [], blockers: ['Unknown platform'] };
+
+    // Skip if already on that platform
+    if ((post.platforms || []).indexOf(targetPlatform) !== -1) {
+      return { compatible: false, warnings: [], blockers: ['Already posted on ' + rules.label] };
+    }
+
+    var blockers = [];
+    var warnings = [];
+    var mediaType = post.mediaType || 'image';
+    var hasMedia = post.media && post.media.length > 0 && post.media[0];
+
+    // Check: video-only platforms
+    if (rules.videoOnly && mediaType !== 'video') {
+      blockers.push(rules.label + ' requires video content');
+    }
+
+    // Check: media required
+    if (rules.requiresMedia && !hasMedia) {
+      blockers.push(rules.label + ' requires media');
+    }
+
+    // Check: carousel support
+    if (post.media && post.media.length > 1 && !rules.supportsCarousel) {
+      warnings.push(rules.label + ' doesn\'t support carousels — only first image will be used');
+    }
+
+    // Check: caption length
+    var captionLen = (post.caption || '').length;
+    if (captionLen > rules.maxCaptionLength) {
+      warnings.push('Caption exceeds ' + rules.label + ' limit (' + captionLen + '/' + rules.maxCaptionLength + ')');
+    }
+
+    // Check: hashtag count
+    var hashtagCount = (post.hashtags || []).length;
+    if (hashtagCount > rules.maxHashtags) {
+      warnings.push('Too many hashtags for ' + rules.label + ' (' + hashtagCount + '/' + rules.maxHashtags + ')');
+    }
+
+    // Check: video duration
+    if (mediaType === 'video' && post.videoDuration) {
+      if (post.videoDuration > rules.maxVideoDuration) {
+        blockers.push('Video too long for ' + rules.label + ' (max ' + formatDuration(rules.maxVideoDuration) + ')');
+      }
+    }
+
+    return {
+      compatible: blockers.length === 0,
+      warnings: warnings,
+      blockers: blockers
+    };
+  }
+
+  /**
+   * Get compatibility info for a post across all target platforms
+   */
+  function getPostCompatibility(post) {
+    var results = {};
+    var platforms = Object.keys(PLATFORM_RULES);
+    for (var i = 0; i < platforms.length; i++) {
+      var p = platforms[i];
+      results[p] = checkCompatibility(post, p);
+    }
+    return results;
+  }
+
+  /**
+   * Load and render the cross-share view
+   */
+  async function loadCrossShare() {
+    // Make sure posts are loaded
+    if (!state.allPosts || state.allPosts.length === 0) {
+      var data = await api('social-posts?action=list');
+      if (data) state.allPosts = data.posts || [];
+    }
+    crossShareState.selectedIds = [];
+    renderCrossShare();
+  }
+
+  function renderCrossShare() {
+    var grid = $('yb-crossshare-grid');
+    if (!grid) return;
+
+    var all = state.allPosts || [];
+    var src = crossShareState.sourcePlatform;
+    var tgt = crossShareState.targetPlatform;
+    var compatOnly = crossShareState.compatOnly;
+
+    // Filter to source platform posts
+    var sourcePosts = all.filter(function (p) {
+      return (p.platforms || []).indexOf(src) !== -1;
+    });
+
+    // Calculate compatibility for each post
+    var postsWithCompat = sourcePosts.map(function (p) {
+      var compat = getPostCompatibility(p);
+      // For "all" target, count how many platforms it can go to
+      var compatCount = 0;
+      var targetPlatforms = Object.keys(PLATFORM_RULES).filter(function (k) { return k !== src; });
+      targetPlatforms.forEach(function (tp) {
+        if (compat[tp].compatible) compatCount++;
+      });
+      return { post: p, compat: compat, compatCount: compatCount };
+    });
+
+    // Filter by target platform compatibility
+    if (tgt !== 'all' && compatOnly) {
+      postsWithCompat = postsWithCompat.filter(function (item) {
+        return item.compat[tgt] && item.compat[tgt].compatible;
+      });
+    } else if (tgt !== 'all') {
+      // Show all but sort compatible first
+      postsWithCompat.sort(function (a, b) {
+        var aOk = a.compat[tgt] && a.compat[tgt].compatible ? 1 : 0;
+        var bOk = b.compat[tgt] && b.compat[tgt].compatible ? 1 : 0;
+        return bOk - aOk;
+      });
+    }
+
+    crossShareState.posts = postsWithCompat;
+
+    // Update source tabs with counts
+    qsa('#yb-crossshare-source-tabs .yb-social__filter-btn').forEach(function (btn) {
+      var p = btn.getAttribute('data-platform');
+      var count = all.filter(function (post) { return (post.platforms || []).indexOf(p) !== -1; }).length;
+      var label = PLATFORM_RULES[p] ? PLATFORM_RULES[p].abbr : p;
+      btn.textContent = label + ' (' + count + ')';
+      btn.classList.toggle('is-active', p === src);
+    });
+
+    // Update target tabs — hide source platform, show compatible counts
+    qsa('#yb-crossshare-target .yb-social__platform-filter-btn').forEach(function (btn) {
+      var p = btn.getAttribute('data-platform');
+      btn.classList.toggle('is-active', p === tgt);
+      if (p === 'all' || p === src) {
+        btn.hidden = (p === src);
+        return;
+      }
+      // Count how many source posts are compatible with this target
+      var compatCount = 0;
+      sourcePosts.forEach(function (post) {
+        var c = checkCompatibility(post, p);
+        if (c.compatible) compatCount++;
+      });
+      var label = PLATFORM_RULES[p] ? PLATFORM_RULES[p].label : p;
+      btn.textContent = label + ' (' + compatCount + ')';
+    });
+
+    // Update counts
+    var countEl = $('yb-crossshare-count');
+    if (countEl) countEl.textContent = postsWithCompat.length + ' posts';
+
+    // Update share button
+    updateCrossShareBtn();
+
+    if (postsWithCompat.length === 0) {
+      grid.innerHTML = '<p class="yb-admin__muted">No ' + (compatOnly ? 'compatible ' : '') + 'posts found from ' +
+        (PLATFORM_RULES[src] ? PLATFORM_RULES[src].label : src) +
+        (tgt !== 'all' ? ' for ' + (PLATFORM_RULES[tgt] ? PLATFORM_RULES[tgt].label : tgt) : '') + '.</p>';
+      return;
+    }
+
+    grid.innerHTML = postsWithCompat.map(function (item) {
+      var p = item.post;
+      var isSelected = crossShareState.selectedIds.indexOf(p.id) !== -1;
+
+      // Thumbnail
+      var thumb = '';
+      if (p.media && p.media[0]) {
+        thumb = '<img src="' + p.media[0] + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.yb-social__crossshare-fallback\').style.display=\'flex\'">' +
+          '<span class="yb-social__crossshare-fallback" style="display:none">' +
+          (p.mediaType === 'video' ? '🎬' : '📝') + '</span>';
+      } else {
+        thumb = '<span class="yb-social__crossshare-fallback">📝</span>';
+      }
+
+      // Media type badge
+      var typeBadge = '<span class="yb-social__crossshare-type yb-social__crossshare-type--' + (p.mediaType || 'image') + '">' +
+        (p.mediaType === 'video' ? '🎬 Video' : p.media && p.media.length > 1 ? '📷 Carousel (' + p.media.length + ')' : '📷 Image') + '</span>';
+
+      // Compatibility badges for each target platform
+      var compatBadges = '';
+      var targetPlatforms = Object.keys(PLATFORM_RULES).filter(function (k) { return k !== src; });
+      if (tgt === 'all') {
+        compatBadges = targetPlatforms.map(function (tp) {
+          var c = item.compat[tp];
+          var cls = c.compatible ? (c.warnings.length ? 'warn' : 'ok') : 'no';
+          var title = c.compatible ?
+            (c.warnings.length ? c.warnings.join('; ') : 'Compatible') :
+            c.blockers.join('; ');
+          return '<span class="yb-social__compat-badge yb-social__compat-badge--' + cls + '" title="' + escapeAttr(title) + '">' +
+            PLATFORM_RULES[tp].abbr +
+            (cls === 'ok' ? ' ✓' : cls === 'warn' ? ' ⚠' : ' ✕') + '</span>';
+        }).join('');
+      } else {
+        var c = item.compat[tgt];
+        if (c) {
+          var cls = c.compatible ? (c.warnings.length ? 'warn' : 'ok') : 'no';
+          var msgs = c.compatible ? c.warnings : c.blockers;
+          compatBadges = '<span class="yb-social__compat-badge yb-social__compat-badge--' + cls + '">' +
+            (cls === 'ok' ? '✓ Compatible' : cls === 'warn' ? '⚠ ' + msgs[0] : '✕ ' + msgs[0]) + '</span>';
+        }
+      }
+
+      // Determine if this post can be selected (has at least one compatible target)
+      var canSelect = tgt === 'all' ? item.compatCount > 0 :
+        (item.compat[tgt] && item.compat[tgt].compatible);
+
+      return '<div class="yb-social__crossshare-card' + (isSelected ? ' is-selected' : '') + (canSelect ? '' : ' is-incompatible') + '">' +
+        '<label class="yb-social__crossshare-check">' +
+        '<input type="checkbox" data-action="social-crossshare-toggle" data-id="' + p.id + '"' +
+        (isSelected ? ' checked' : '') + (canSelect ? '' : ' disabled') + '>' +
+        '</label>' +
+        '<div class="yb-social__crossshare-thumb">' + thumb + typeBadge + '</div>' +
+        '<div class="yb-social__crossshare-body">' +
+        '<p class="yb-social__crossshare-caption">' + truncate(p.caption, 100) + '</p>' +
+        '<div class="yb-social__crossshare-compat">' + compatBadges + '</div>' +
+        '<div class="yb-social__crossshare-meta">' +
+        '<span>' + fmtDate(p.publishedAt || p.createdAt) + '</span>' +
+        (p.importedMetrics ? '<span>❤ ' + (p.importedMetrics.likes || 0) + '</span>' : '') +
+        '</div>' +
+        '</div>' +
+        '<button class="yb-social__btn-sm yb-social__crossshare-single" data-action="social-crossshare-one" data-id="' + p.id + '"' +
+        (canSelect ? '' : ' disabled') + '>Share →</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function escapeAttr(s) {
+    return (s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  function updateCrossShareBtn() {
+    var btn = $('yb-crossshare-share-btn');
+    if (!btn) return;
+    var count = crossShareState.selectedIds.length;
+    btn.textContent = 'Share Selected (' + count + ')';
+    btn.disabled = count === 0;
+  }
+
+  function toggleCrossShareSelect(id) {
+    var idx = crossShareState.selectedIds.indexOf(id);
+    if (idx === -1) crossShareState.selectedIds.push(id);
+    else crossShareState.selectedIds.splice(idx, 1);
+    updateCrossShareBtn();
+    // Update card visual
+    var card = document.querySelector('.yb-social__crossshare-card input[data-id="' + id + '"]');
+    if (card) card.closest('.yb-social__crossshare-card').classList.toggle('is-selected', idx === -1);
+  }
+
+  /**
+   * Open cross-share modal for one or multiple posts
+   */
+  function openCrossShareModal(postIds) {
+    var modal = $('yb-crossshare-modal');
+    var body = $('yb-crossshare-modal-body');
+    var title = $('yb-crossshare-modal-title');
+    if (!modal || !body) return;
+
+    var allPosts = state.allPosts || [];
+    var posts = postIds.map(function (id) {
+      return allPosts.find(function (p) { return p.id === id; });
+    }).filter(Boolean);
+
+    if (posts.length === 0) { toast('No posts selected', true); return; }
+
+    var src = crossShareState.sourcePlatform;
+    var tgt = crossShareState.targetPlatform;
+    var isBulk = posts.length > 1;
+
+    title.textContent = isBulk ? 'Cross-Share ' + posts.length + ' Posts' : 'Cross-Share Post';
+
+    // Determine available targets
+    var targetPlatforms = tgt !== 'all' ? [tgt] :
+      Object.keys(PLATFORM_RULES).filter(function (k) { return k !== src; });
+
+    // For bulk, find which targets ALL selected posts are compatible with
+    if (isBulk) {
+      targetPlatforms = targetPlatforms.filter(function (tp) {
+        return posts.every(function (p) {
+          return checkCompatibility(p, tp).compatible;
+        });
+      });
+    }
+
+    if (targetPlatforms.length === 0) {
+      body.innerHTML = '<p class="yb-admin__muted">No compatible platforms found for the selected posts.</p>';
+      $('yb-crossshare-confirm-btn').disabled = true;
+      modal.hidden = false;
+      return;
+    }
+
+    // Build modal content
+    var html = '';
+
+    // Target platform checkboxes
+    html += '<div class="yb-social__crossshare-targets">' +
+      '<label style="font-weight:600;font-size:13px;margin-bottom:8px;display:block">Share to:</label>' +
+      targetPlatforms.map(function (tp) {
+        var rules = PLATFORM_RULES[tp];
+        return '<label class="yb-social__crossshare-target-check">' +
+          '<input type="checkbox" name="crossshare-target" value="' + tp + '" checked> ' +
+          '<span class="yb-social__post-platform-icon yb-social__post-platform-icon--' + tp + '">' + rules.abbr + '</span> ' + rules.label +
+          '</label>';
+      }).join('') +
+      '</div>';
+
+    // Caption editor
+    if (isBulk) {
+      html += '<div class="yb-social__crossshare-bulk-info">' +
+        '<p style="font-size:13px;color:var(--yb-muted);margin:12px 0 8px">Bulk mode: each post keeps its original caption. You can modify captions individually after creation.</p>' +
+        '<div class="yb-social__crossshare-post-list">' +
+        posts.map(function (p) {
+          return '<div class="yb-social__crossshare-post-item">' +
+            (p.media && p.media[0] ? '<img src="' + p.media[0] + '" width="40" height="40" style="object-fit:cover;border-radius:6px" onerror="this.style.display=\'none\'">' : '') +
+            '<span>' + truncate(p.caption, 60) + '</span>' +
+            '</div>';
+        }).join('') +
+        '</div></div>';
+    } else {
+      var post = posts[0];
+      html += '<div class="yb-social__crossshare-caption-edit" style="margin-top:12px">' +
+        '<label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Caption:</label>' +
+        '<textarea id="yb-crossshare-caption" class="yb-social__input" rows="4" style="width:100%;font-size:13px">' + escapeHtml(post.caption || '') + '</textarea>' +
+        '<p style="font-size:11px;color:var(--yb-muted);margin-top:4px">Tip: modify the caption for the target platform. Hashtags will be preserved.</p>' +
+        '</div>';
+
+      // Preview
+      if (post.media && post.media[0]) {
+        html += '<div style="margin-top:12px">' +
+          '<img src="' + post.media[0] + '" style="max-width:200px;border-radius:8px" onerror="this.style.display=\'none\'">' +
+          '</div>';
+      }
+    }
+
+    // Status selector
+    html += '<div style="margin-top:12px">' +
+      '<label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Post status:</label>' +
+      '<select id="yb-crossshare-status" class="yb-admin__select" style="width:auto">' +
+      '<option value="draft">Draft — review before publishing</option>' +
+      '<option value="scheduled">Scheduled — set time to publish</option>' +
+      '</select></div>';
+
+    body.innerHTML = html;
+
+    // Store data for confirm handler
+    modal._postIds = postIds;
+    modal._posts = posts;
+    $('yb-crossshare-confirm-btn').disabled = false;
+    modal.hidden = false;
+  }
+
+  /**
+   * Confirm cross-share — create new posts for each target platform
+   */
+  async function confirmCrossShare() {
+    var modal = $('yb-crossshare-modal');
+    if (!modal || !modal._posts) return;
+
+    var posts = modal._posts;
+    var selectedTargets = [];
+    qsa('#yb-crossshare-modal-body input[name="crossshare-target"]:checked').forEach(function (cb) {
+      selectedTargets.push(cb.value);
+    });
+
+    if (selectedTargets.length === 0) { toast('Select at least one target platform', true); return; }
+
+    var statusEl = $('yb-crossshare-status');
+    var postStatus = statusEl ? statusEl.value : 'draft';
+    var captionEl = $('yb-crossshare-caption');
+    var customCaption = captionEl ? captionEl.value : null;
+
+    var confirmBtn = $('yb-crossshare-confirm-btn');
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Creating...'; }
+
+    var created = 0;
+    var errors = 0;
+
+    for (var i = 0; i < posts.length; i++) {
+      var post = posts[i];
+      var caption = (posts.length === 1 && customCaption !== null) ? customCaption : post.caption;
+
+      for (var j = 0; j < selectedTargets.length; j++) {
+        var target = selectedTargets[j];
+        var rules = PLATFORM_RULES[target];
+
+        // Trim caption if needed
+        if (caption.length > rules.maxCaptionLength) {
+          caption = caption.substring(0, rules.maxCaptionLength - 3) + '...';
+        }
+
+        // Trim hashtags if needed
+        var hashtags = (post.hashtags || []).slice(0, rules.maxHashtags);
+
+        var newPost = {
+          action: 'create',
+          caption: caption,
+          platforms: [target],
+          media: post.media || [],
+          mediaType: post.mediaType || 'image',
+          hashtags: hashtags,
+          status: postStatus,
+          crossSharedFrom: { postId: post.id, platform: (post.platforms || [])[0] || '' }
+        };
+
+        try {
+          var data = await api('social-posts', {
+            method: 'POST',
+            body: JSON.stringify(newPost)
+          });
+          if (data && data.id) created++;
+          else errors++;
+        } catch (e) {
+          errors++;
+        }
+      }
+    }
+
+    toast('Created ' + created + ' cross-shared post' + (created !== 1 ? 's' : '') +
+      (errors > 0 ? ' (' + errors + ' failed)' : ''));
+
+    modal.hidden = true;
+    crossShareState.selectedIds = [];
+
+    // Reload posts
+    var refreshData = await api('social-posts?action=list');
+    if (refreshData) {
+      state.allPosts = refreshData.posts || [];
+      renderCrossShare();
+    }
+  }
+
   async function importExistingPosts(platform) {
     var btn = document.querySelector('[data-action="social-import-posts"][data-platform="' + platform + '"]');
     setLoading(btn, true, 'Importing...');
@@ -5036,6 +5546,48 @@
     else if (action === 'social-import-posts') {
       importExistingPosts(btn.getAttribute('data-platform'));
     }
+
+    // Cross-share actions
+    else if (action === 'social-crossshare-source') {
+      crossShareState.sourcePlatform = btn.getAttribute('data-platform');
+      crossShareState.selectedIds = [];
+      renderCrossShare();
+    }
+    else if (action === 'social-crossshare-target') {
+      crossShareState.targetPlatform = btn.getAttribute('data-platform') || 'all';
+      crossShareState.selectedIds = [];
+      renderCrossShare();
+    }
+    else if (action === 'social-crossshare-toggle') {
+      toggleCrossShareSelect(btn.getAttribute('data-id'));
+    }
+    else if (action === 'social-crossshare-select-all') {
+      var allChecked = btn.checked;
+      crossShareState.selectedIds = [];
+      if (allChecked) {
+        (crossShareState.posts || []).forEach(function (item) {
+          var tgt = crossShareState.targetPlatform;
+          var canSelect = tgt === 'all' ? item.compatCount > 0 :
+            (item.compat[tgt] && item.compat[tgt].compatible);
+          if (canSelect) crossShareState.selectedIds.push(item.post.id);
+        });
+      }
+      renderCrossShare();
+    }
+    else if (action === 'social-crossshare-one') {
+      openCrossShareModal([btn.getAttribute('data-id')]);
+    }
+    else if (action === 'social-crossshare-selected') {
+      if (crossShareState.selectedIds.length > 0) openCrossShareModal(crossShareState.selectedIds);
+    }
+    else if (action === 'social-crossshare-modal-close') {
+      var csm = $('yb-crossshare-modal');
+      if (csm) csm.hidden = true;
+    }
+    else if (action === 'social-crossshare-confirm') {
+      confirmCrossShare();
+    }
+
     else if (action === 'social-delete-post') deletePost(btn.getAttribute('data-id'));
     else if (action === 'social-duplicate-post') duplicatePost(btn.getAttribute('data-id'));
     else if (action === 'social-publish-now') publishNow(btn.getAttribute('data-id'));
@@ -5272,6 +5824,17 @@
     // Individual post checkbox
     if (e.target.getAttribute && e.target.getAttribute('data-action') === 'social-toggle-select') {
       togglePostSelect(e.target.getAttribute('data-id'));
+      e.stopPropagation();
+    }
+    // Cross-share compat-only toggle
+    if (e.target.id === 'yb-crossshare-compat-only') {
+      crossShareState.compatOnly = e.target.checked;
+      crossShareState.selectedIds = [];
+      renderCrossShare();
+    }
+    // Cross-share individual toggle
+    if (e.target.getAttribute && e.target.getAttribute('data-action') === 'social-crossshare-toggle') {
+      toggleCrossShareSelect(e.target.getAttribute('data-id'));
       e.stopPropagation();
     }
     // Trim time inputs
