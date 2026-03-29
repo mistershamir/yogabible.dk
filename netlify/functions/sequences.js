@@ -842,10 +842,13 @@ async function handleProcess() {
             email: lead.email,
             step: enrollment.current_step,
             sequence: enrollment.sequence_name || seqId,
-            subject: hasEmailContent ? substituteVars(step.email_subject, vars) : null,
+            subject: hasEmailContent ? substituteVars(selectedSubject, vars) : null,
             channel: step.channel,
             emailSent: emailSent,
-            smsSent: smsSent
+            smsSent: smsSent,
+            lang: leadLang,
+            country: hardCountry || null,
+            origin: isDanish ? 'DK' : 'INT'
           });
 
           // Social sync: create matching social post for broadcast sequences (non-blocking)
@@ -1082,9 +1085,15 @@ async function sendProcessingDigest(sentSummary, errors) {
     var channels = [];
     if (item.emailSent) channels.push('Email');
     if (item.smsSent) channels.push('SMS');
+    var originBadge = item.origin === 'INT'
+      ? '<span style="display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:bold;background:#1877F2;color:#fff;">INT</span>'
+      : '<span style="display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:bold;background:#34A853;color:#fff;">DK</span>';
+    var countryLabel = item.country || '—';
+    var langLabel = (item.lang || 'da').toUpperCase();
     return '<tr>' +
       '<td style="padding:6px 10px;border-bottom:1px solid #eee">' + (item.lead || '—') + '</td>' +
       '<td style="padding:6px 10px;border-bottom:1px solid #eee">' + (item.email || '—') + '</td>' +
+      '<td style="padding:6px 10px;border-bottom:1px solid #eee">' + originBadge + ' ' + countryLabel + ' <span style="color:#999;font-size:11px;">(' + langLabel + ')</span></td>' +
       '<td style="padding:6px 10px;border-bottom:1px solid #eee">' + (item.sequence || '—') + '</td>' +
       '<td style="padding:6px 10px;border-bottom:1px solid #eee">Step ' + item.step + '</td>' +
       '<td style="padding:6px 10px;border-bottom:1px solid #eee">' + channels.join(' + ') + '</td>' +
@@ -1105,6 +1114,7 @@ async function sendProcessingDigest(sentSummary, errors) {
     '<tr style="background:#f5f3f0">' +
     '<th style="padding:8px 10px;text-align:left">Lead</th>' +
     '<th style="padding:8px 10px;text-align:left">Email</th>' +
+    '<th style="padding:8px 10px;text-align:left">Origin</th>' +
     '<th style="padding:8px 10px;text-align:left">Sequence</th>' +
     '<th style="padding:8px 10px;text-align:left">Step</th>' +
     '<th style="padding:8px 10px;text-align:left">Channel</th>' +
