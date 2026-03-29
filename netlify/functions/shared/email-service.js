@@ -287,11 +287,15 @@ async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, inclu
  */
 async function sendAdminNotification(leadData) {
   // Determine country for subject line
-  const country = leadData.city_country || leadData.country || '';
+  const countryField = (leadData.country || '').toUpperCase().trim();
+  const cityCountry = leadData.city_country || '';
+  const displayCountry = cityCountry || countryField || '';
   const lang = (leadData.lang || leadData.meta_lang || '').toLowerCase();
-  const isIntl = lang === 'en' || lang === 'de' || (country && !country.toLowerCase().includes('denmark') && !country.toLowerCase().includes('danmark') && !country.toLowerCase().includes(', dk'));
-  const originTag = isIntl ? 'INT' : 'DK';
-  const countryTag = country ? ` — ${country}` : '';
+  // DK detection: explicit country field, lang=da, Danish form, or city_country contains Denmark/DK
+  const isDk = countryField === 'DK' || lang === 'da' || lang === 'dk'
+    || (cityCountry && (cityCountry.toLowerCase().includes('denmark') || cityCountry.toLowerCase().includes('danmark') || /,\s*dk$/i.test(cityCountry)));
+  const originTag = isDk ? 'DK' : 'INT';
+  const countryTag = displayCountry ? ` — ${displayCountry}` : '';
   const subject = `New lead [${originTag}${countryTag}]: ${leadData.first_name} ${leadData.last_name || ''} (${leadData.type || 'unknown'})`;
 
   let html = '<div style="font-family:monospace;font-size:14px;line-height:1.6;">';
