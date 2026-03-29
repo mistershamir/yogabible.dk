@@ -532,6 +532,11 @@
     <button class="yb-social__filter-btn" type="button" data-action="social-inbox-tab" data-tab="mentions">{{ t.social_inbox_mentions or "Mentions" }} <span id="yb-social-inbox-mentions-count" class="yb-social__inbox-count"></span></button>
   </div>
 
+  {# Platform filter for inbox #}
+  <div class="yb-social__platform-filter" id="yb-social-inbox-platform-filter">
+    {# Rendered by JS #}
+  </div>
+
   {# Comments List #}
   <div id="yb-social-inbox-comments" class="yb-social__inbox-list">
     <p class="yb-admin__muted">{{ t.social_loading or "Loading..." }}</p>

@@ -1630,6 +1630,7 @@
   /* ═══ INBOX ═══ */
   var inboxState = {
     tab: 'comments',
+    platformFilter: 'all',
     comments: [],
     conversations: [],
     activeThread: null,
@@ -1641,7 +1642,7 @@
 
   async function loadInbox() {
     var results = await Promise.all([
-      api('social-inbox?action=comments&days=7'),
+      api('social-inbox?action=comments&days=30'),
       api('social-inbox?action=conversations')
     ]);
 
@@ -1673,11 +1674,37 @@
   }
 
   function renderInbox() {
+    renderInboxPlatformFilter();
     if (inboxState.tab === 'comments') {
       renderComments();
     } else {
       renderConversations();
     }
+  }
+
+  function renderInboxPlatformFilter() {
+    var pfBar = $('yb-social-inbox-platform-filter');
+    if (!pfBar) return;
+
+    // Count by platform
+    var items = inboxState.tab === 'comments' ? inboxState.comments :
+      inboxState.tab === 'messages' ? inboxState.conversations : [];
+    var platCounts = { all: items.length };
+    items.forEach(function (item) {
+      var p = item.platform;
+      platCounts[p] = (platCounts[p] || 0) + 1;
+    });
+
+    var pfs = ['all', 'instagram', 'facebook'];
+    var pfLabels = { all: 'All', instagram: 'IG', facebook: 'FB', tiktok: 'TT', linkedin: 'LI' };
+    pfBar.innerHTML = '<span class="yb-social__platform-filter-label">Platform:</span>' +
+      pfs.map(function (p) {
+        var count = platCounts[p] || 0;
+        if (p !== 'all' && count === 0) return '';
+        return '<button class="yb-social__platform-filter-btn' + (inboxState.platformFilter === p ? ' is-active' : '') +
+          '" data-action="social-inbox-platform-filter" data-platform="' + p + '">' +
+          pfLabels[p] + ' (' + count + ')</button>';
+      }).join('');
   }
 
   function renderComments() {
@@ -1699,6 +1726,9 @@
       '</div>';
 
     var filtered = inboxState.comments;
+    if (inboxState.platformFilter !== 'all') {
+      filtered = filtered.filter(function (c) { return c.platform === inboxState.platformFilter; });
+    }
     if (inboxState.sentimentFilter) {
       filtered = filtered.filter(function (c) {
         if (!c._sentiment) return false;
@@ -1747,12 +1777,17 @@
     var container = $('yb-social-inbox-messages');
     if (!container) return;
 
-    if (inboxState.conversations.length === 0) {
+    var filtered = inboxState.conversations;
+    if (inboxState.platformFilter !== 'all') {
+      filtered = filtered.filter(function (c) { return c.platform === inboxState.platformFilter; });
+    }
+
+    if (filtered.length === 0) {
       container.innerHTML = '<div class="yb-social__inbox-empty"><p>' + t('social_no_messages') + '</p></div>';
       return;
     }
 
-    container.innerHTML = inboxState.conversations.map(function (c) {
+    container.innerHTML = filtered.map(function (c) {
       return '<div class="yb-social__inbox-item' + (c.read ? '' : ' yb-social__inbox-item--unread') + '" data-action="social-inbox-open-conversation" data-id="' + c.conversationId + '" data-platform="' + c.platform + '" data-inbox-id="' + c.id + '">' +
         '<div class="yb-social__inbox-item-head">' +
           platformIcon(c.platform) +
@@ -1772,9 +1807,11 @@
   // ── Multi-Thread Panel Helpers ─────────────────────────────
   function getThreadPanelId(type, id) { return 'thread-' + type + '-' + id; }
 
-  function createThreadPanel(panelId, titleText) {
+  function createThreadPanel(panelId, titleText, meta) {
     var container = $('yb-social-inbox-threads-container');
     if (!container) return null;
+
+    meta = meta || {};
 
     // If panel already open, focus it
     var existing = document.getElementById(panelId);
@@ -1783,14 +1820,27 @@
       return existing;
     }
 
+    // Platform badge
+    var platBadge = '';
+    if (meta.platform) {
+      var platLabels = { instagram: 'IG', facebook: 'FB', tiktok: 'TT', linkedin: 'LI' };
+      platBadge = '<span class="yb-social__inbox-thread-platform yb-social__inbox-thread-platform--' + meta.platform + '">' +
+        (platLabels[meta.platform] || meta.platform) + '</span>';
+    }
+
+    // Time
+    var timeHtml = meta.time ? '<span class="yb-social__inbox-thread-time">' + meta.time + '</span>' : '';
+
     var panel = document.createElement('div');
     panel.className = 'yb-social__inbox-thread';
     panel.id = panelId;
     panel.innerHTML =
       '<div class="yb-social__inbox-thread-header">' +
-        '<button type="button" data-action="social-inbox-close-thread" data-panel-id="' + panelId + '">&times;</button>' +
+        platBadge +
         '<h4 class="yb-social__inbox-thread-title">' + escapeHtml(titleText) + '</h4>' +
+        timeHtml +
         '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__create-lead-btn" data-action="social-inbox-create-lead" data-panel-id="' + panelId + '" title="Create Lead">👤</button>' +
+        '<button type="button" data-action="social-inbox-close-thread" data-panel-id="' + panelId + '">&times;</button>' +
       '</div>' +
       '<div class="yb-social__inbox-thread-body"></div>' +
       '<div class="yb-social__inbox-reply-box">' +
@@ -1838,9 +1888,12 @@
 
     // Find the comment in state
     var comment = inboxState.comments.find(function (c) { return c.commentId === commentId; });
-    var titleText = (comment ? comment.author : 'Comment') + ' — ' + platform;
+    var titleText = comment ? comment.author : 'Comment';
 
-    var panel = createThreadPanel(panelId, titleText);
+    var panel = createThreadPanel(panelId, titleText, {
+      platform: platform,
+      time: comment ? formatTimeAgo(comment.timestamp) : ''
+    });
     if (!panel) return;
     var body = panel.querySelector('.yb-social__inbox-thread-body');
 
@@ -1895,9 +1948,12 @@
     var panelId = getThreadPanelId('conversation', conversationId);
 
     var conv = inboxState.conversations.find(function (c) { return c.conversationId === conversationId; });
-    var titleText = (conv ? conv.participants.join(', ') : 'Conversation') + ' — ' + platform;
+    var titleText = conv ? conv.participants.join(', ') : 'Conversation';
 
-    var panel = createThreadPanel(panelId, titleText);
+    var panel = createThreadPanel(panelId, titleText, {
+      platform: platform,
+      time: conv && conv.lastMessageAt ? formatTimeAgo(conv.lastMessageAt) : ''
+    });
     if (!panel) return;
     var body = panel.querySelector('.yb-social__inbox-thread-body');
 
@@ -2329,6 +2385,7 @@
 
   function switchInboxTab(tab) {
     inboxState.tab = tab;
+    inboxState.platformFilter = 'all';
     var commentsEl = $('yb-social-inbox-comments');
     var messagesEl = $('yb-social-inbox-messages');
     var mentionsEl = $('yb-social-inbox-mentions');
@@ -5646,6 +5703,10 @@
 
     // Inbox
     else if (action === 'social-inbox-tab') switchInboxTab(btn.getAttribute('data-tab'));
+    else if (action === 'social-inbox-platform-filter') {
+      inboxState.platformFilter = btn.getAttribute('data-platform') || 'all';
+      renderInbox();
+    }
     else if (action === 'social-inbox-refresh') loadInbox();
     else if (action === 'social-inbox-mark-all-read') markAllRead();
     else if (action === 'social-inbox-open-comment') openCommentThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
