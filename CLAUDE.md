@@ -789,6 +789,9 @@ Each tab has a partial in `src/_includes/partials/admin-{name}-panel.njk` and a 
 | `INSTAGRAM_VERIFY_TOKEN` | Instagram webhook verify token |
 | `BUNNY_STORAGE_API_KEY` | Bunny Storage zone password |
 | `BUNNY_CDN_HOST` | Bunny CDN hostname (`yogabible.b-cdn.net`) |
+| `BUNNY_STREAM_API_KEY` | Bunny Stream library API key (`b1fc5b41-51f8-4a24-aa48d78dfc0f-e992-415b`) |
+| `BUNNY_STREAM_LIBRARY_ID` | Bunny Stream video library ID (`627306`) |
+| `BUNNY_STREAM_CDN_HOST` | Bunny Stream CDN hostname (`vz-4f2e2677-3b6.b-cdn.net`) |
 | `AI_INTERNAL_SECRET` | AI backfill/Mux processing secret (`2f8a6b592a15b8ac92021d791fdbd0fb48ef61c96899407c2d2e50030933c576`) |
 | `LIVEKIT_API_KEY` | LiveKit API key (interactive/panel streaming) |
 | `LIVEKIT_API_SECRET` | LiveKit API secret |
@@ -1478,6 +1481,82 @@ When you create a new page, follow this order:
    {# BUNNY: yoga-bible-DK/pagename/hero.jpg — 1920x900, dark cinematic #}
    ```
 6. Build with `npx @11ty/eleventy` to verify
+
+---
+
+## Bunny Stream (Video Hosting & Transcoding)
+
+**IMPORTANT:** All social media video uploads go through Bunny Stream for automatic transcoding and optimized delivery. Raw 4K uploads are auto-transcoded to multiple resolutions (360p, 720p, 1080p). The admin panel loads the 720p proxy for editing; platform publishing uses the optimized output.
+
+### Account Details
+
+| Setting | Value |
+|---------|-------|
+| Video Library ID | `627306` |
+| API Key | Stored in `BUNNY_STREAM_API_KEY` env var |
+| CDN Hostname | `vz-4f2e2677-3b6.b-cdn.net` |
+| Pull Zone | `vz-4f2e2677-3b6` |
+| Webhook URL | `https://yogabible.dk/.netlify/functions/bunny-stream-webhook` |
+| Pricing | ~$0.005/min encoding, $0.005/GB storage, pay-as-you-go |
+
+### Architecture
+
+```
+Admin Panel → Upload (chunked TUS) → Bunny Stream API
+    ↓ automatic transcoding (~1-2 min)
+Bunny Stream → 360p / 720p / 1080p / original
+    ↓ webhook fires
+bunny-stream-webhook.js → updates Firestore social_media collection
+    ↓
+Media Library shows video with auto-thumbnail
+    ↓ user edits (trim/crop/thumbnail)
+Composer → trim timestamps sent server-side → optimized clip → publish
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `netlify/functions/social-media-upload.js` | Create video entry in Bunny Stream, return TUS upload credentials |
+| `netlify/functions/bunny-stream-webhook.js` | Handle encoding completion, update Firestore |
+| `src/js/social-admin.js` | Upload UI in media library, video editor in composer |
+
+### Upload Flow (TUS Protocol)
+
+1. Client calls `social-media-upload?action=create-video` → Netlify function creates video in Bunny Stream → returns `{ videoId, tusUploadUrl, authSignature, authExpiration }`
+2. Client uploads directly to Bunny Stream via TUS (chunked, resumable) — bypasses Netlify function timeout
+3. Bunny auto-transcodes to multiple resolutions
+4. Webhook fires → `bunny-stream-webhook.js` updates Firestore with status, thumbnail URL, HLS URL
+5. Video appears in Media Library with thumbnail + encoding status badge
+
+### Video URLs
+
+```
+Thumbnail: https://vz-4f2e2677-3b6.b-cdn.net/{videoId}/thumbnail.jpg
+HLS:       https://vz-4f2e2677-3b6.b-cdn.net/{videoId}/playlist.m3u8
+MP4 (direct): https://vz-4f2e2677-3b6.b-cdn.net/{videoId}/play_720p.mp4
+Preview:   https://vz-4f2e2677-3b6.b-cdn.net/{videoId}/preview.webp
+```
+
+### Firestore Collection
+
+```
+social_media/{videoId}:
+  videoId: string              // Bunny Stream video ID (GUID)
+  libraryId: string            // Bunny Stream library ID
+  title: string                // User-provided title
+  status: string               // "uploading" | "encoding" | "ready" | "failed"
+  uploadedBy: string           // Admin email
+  thumbnailUrl: string         // Auto-generated thumbnail
+  hlsUrl: string               // Adaptive streaming URL
+  mp4Url: string               // Direct download URL (720p)
+  duration: number             // Duration in seconds
+  width: number                // Original width
+  height: number               // Original height
+  fileSize: number             // Original file size in bytes
+  createdAt: Timestamp
+  encodedAt: Timestamp         // When transcoding completed
+```
 
 ---
 

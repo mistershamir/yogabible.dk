@@ -100,7 +100,7 @@
     if (name === 'templates') loadTemplates();
     if (name === 'competitors') loadCompetitors();
     if (name === 'abtesting') loadAbTests();
-    if (name === 'library') loadContentLibrary();
+    if (name === 'library') { loadContentLibrary(); loadVideoLibrary(); initVideoUploadZone(); initTrimHandles(); }
     if (name === 'stories') loadStories();
   }
 
@@ -570,9 +570,16 @@
     }
 
     grid.innerHTML = state.posts.map(function (p) {
-      var thumb = p.media && p.media[0]
-        ? '<div class="yb-social__post-thumb"><img src="' + p.media[0] + '" alt="" loading="lazy"></div>'
-        : '<div class="yb-social__post-thumb"><span class="yb-admin__muted" style="font-size:24px">📝</span></div>';
+      var thumbContent = '';
+      if (p.media && p.media[0]) {
+        thumbContent = '<img src="' + p.media[0] + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+          '<span class="yb-social__post-thumb-fallback" style="display:none">' +
+          (p.importedPermalink ? '<a href="' + p.importedPermalink + '" target="_blank" style="color:#f75c03;font-size:11px;text-decoration:none">🔗 View on ' + ((p.platforms || [])[0] || 'platform') + '</a>' : '📝') +
+          '</span>';
+      } else {
+        thumbContent = '<span class="yb-admin__muted" style="font-size:24px">📝</span>';
+      }
+      var thumb = '<div class="yb-social__post-thumb">' + thumbContent + '</div>';
 
       var schedTime = '';
       if (p.status === 'scheduled' && p.scheduledAt) schedTime = fmtDateTime(p.scheduledAt);
@@ -3605,6 +3612,486 @@
     if (data) { toast('Collection created'); loadContentLibrary(); }
   }
 
+  /* ═══ VIDEO UPLOAD & EDITOR ═══ */
+  var videoState = { videos: [], uploading: false, editorVideoId: null, editorTrim: { start: 0, end: 0 }, editorAspect: 'original', editorThumbTime: 0 };
+
+  // ── Upload via TUS (chunked, resumable) ──
+  async function startVideoUpload(file) {
+    if (!file || videoState.uploading) return;
+    videoState.uploading = true;
+
+    var progressEl = $('yb-social-video-progress');
+    var nameEl = $('yb-social-video-progress-name');
+    var pctEl = $('yb-social-video-progress-pct');
+    var fillEl = $('yb-social-video-progress-fill');
+    var statusEl = $('yb-social-video-progress-status');
+    if (progressEl) progressEl.hidden = false;
+    if (nameEl) nameEl.textContent = file.name;
+    if (statusEl) statusEl.textContent = 'Creating video entry...';
+
+    // 1. Create video entry in Bunny Stream (get TUS credentials)
+    var title = file.name.replace(/\.[^.]+$/, '');
+    var data = await api('social-media-upload', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create-video', title: title })
+    });
+
+    if (!data || !data.videoId) {
+      toast('Failed to create video', true);
+      videoState.uploading = false;
+      if (progressEl) progressEl.hidden = true;
+      return;
+    }
+
+    if (statusEl) statusEl.textContent = 'Uploading... 0%';
+    toast('Uploading ' + file.name + '...');
+
+    // 2. Upload via TUS protocol directly to Bunny Stream
+    try {
+      await tusUpload(file, data, function (pct) {
+        if (fillEl) fillEl.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+        if (statusEl) statusEl.textContent = 'Uploading... ' + Math.round(pct) + '%';
+      });
+
+      if (statusEl) statusEl.textContent = 'Upload complete — encoding in progress';
+      toast(file.name + ' uploaded — encoding will take 1-2 min');
+      loadVideoLibrary();
+    } catch (err) {
+      toast('Upload failed: ' + err.message, true);
+      if (statusEl) statusEl.textContent = 'Upload failed: ' + err.message;
+    }
+
+    videoState.uploading = false;
+
+    // Auto-hide progress after 5s
+    setTimeout(function () {
+      if (progressEl) progressEl.hidden = true;
+    }, 5000);
+  }
+
+  // TUS upload implementation (chunked, resumable)
+  function tusUpload(file, creds, onProgress) {
+    return new Promise(function (resolve, reject) {
+      var chunkSize = 5 * 1024 * 1024; // 5MB chunks
+      var offset = 0;
+      var uploadUrl = '';
+
+      // Step 1: Create TUS upload
+      var createXhr = new XMLHttpRequest();
+      createXhr.open('POST', creds.tusUploadUrl, true);
+      createXhr.setRequestHeader('Tus-Resumable', '1.0.0');
+      createXhr.setRequestHeader('Upload-Length', file.size.toString());
+      createXhr.setRequestHeader('Upload-Metadata',
+        'filetype ' + btoa(file.type) +
+        ',title ' + btoa(file.name.replace(/\.[^.]+$/, ''))
+      );
+      createXhr.setRequestHeader('AuthorizationSignature', creds.authSignature);
+      createXhr.setRequestHeader('AuthorizationExpire', creds.authExpiration.toString());
+      createXhr.setRequestHeader('VideoId', creds.videoId);
+      createXhr.setRequestHeader('LibraryId', creds.libraryId);
+
+      createXhr.onload = function () {
+        if (createXhr.status !== 201 && createXhr.status !== 200) {
+          reject(new Error('TUS create failed: ' + createXhr.status));
+          return;
+        }
+        uploadUrl = createXhr.getResponseHeader('Location');
+        if (!uploadUrl) {
+          reject(new Error('No upload URL returned'));
+          return;
+        }
+        uploadNextChunk();
+      };
+      createXhr.onerror = function () { reject(new Error('Network error during TUS create')); };
+      createXhr.send(null);
+
+      // Step 2: Upload chunks
+      function uploadNextChunk() {
+        if (offset >= file.size) {
+          onProgress(100);
+          resolve();
+          return;
+        }
+
+        var end = Math.min(offset + chunkSize, file.size);
+        var chunk = file.slice(offset, end);
+
+        var patchXhr = new XMLHttpRequest();
+        patchXhr.open('PATCH', uploadUrl, true);
+        patchXhr.setRequestHeader('Tus-Resumable', '1.0.0');
+        patchXhr.setRequestHeader('Upload-Offset', offset.toString());
+        patchXhr.setRequestHeader('Content-Type', 'application/offset+octet-stream');
+
+        patchXhr.upload.onprogress = function (e) {
+          if (e.lengthComputable) {
+            var totalProgress = ((offset + e.loaded) / file.size) * 100;
+            onProgress(totalProgress);
+          }
+        };
+
+        patchXhr.onload = function () {
+          if (patchXhr.status === 204 || patchXhr.status === 200) {
+            var newOffset = parseInt(patchXhr.getResponseHeader('Upload-Offset') || end.toString());
+            offset = newOffset;
+            uploadNextChunk();
+          } else {
+            reject(new Error('Chunk upload failed: ' + patchXhr.status));
+          }
+        };
+        patchXhr.onerror = function () { reject(new Error('Network error during chunk upload')); };
+        patchXhr.send(chunk);
+      }
+    });
+  }
+
+  // ── Video Library ──
+  async function loadVideoLibrary() {
+    var grid = $('yb-social-video-library-grid');
+    var countEl = $('yb-social-video-count');
+    if (grid) grid.innerHTML = '<p class="yb-admin__muted">Loading videos...</p>';
+
+    var data = await api('social-media-upload?action=list');
+    if (!data) return;
+    videoState.videos = data.videos || [];
+
+    if (countEl) countEl.textContent = '(' + videoState.videos.length + ')';
+    if (!grid) return;
+
+    if (videoState.videos.length === 0) {
+      grid.innerHTML = '<p class="yb-admin__muted">No videos uploaded yet. Drag a video above to get started.</p>';
+      return;
+    }
+
+    grid.innerHTML = videoState.videos.map(function (v) {
+      var thumb = v.thumbnailUrl
+        ? '<img src="' + v.thumbnailUrl + '" alt="" loading="lazy">'
+        : '<span style="color:#6F6A66;font-size:28px">🎬</span>';
+
+      var statusClass = v.status === 'ready' ? '--ready' : v.status === 'failed' ? '--failed' : v.status === 'encoding' || v.status === 'processing' ? '--encoding' : '--uploading';
+      var duration = v.duration ? formatDuration(v.duration) : '';
+      var fileSize = v.fileSize ? formatFileSize(v.fileSize) : '';
+      var date = v.createdAt ? fmtDate(v.createdAt) : '';
+
+      return '<div class="yb-social__video-card">' +
+        '<div class="yb-social__video-card-thumb">' + thumb +
+        (duration ? '<span class="yb-social__video-card-duration">' + duration + '</span>' : '') +
+        '<span class="yb-social__video-card-status yb-social__video-card-status' + statusClass + '">' + (v.status || 'unknown') + '</span>' +
+        '</div>' +
+        '<div class="yb-social__video-card-body">' +
+        '<p class="yb-social__video-card-title">' + escapeHtml(v.title || 'Untitled') + '</p>' +
+        '<p class="yb-social__video-card-meta">' + [fileSize, date].filter(Boolean).join(' · ') + '</p>' +
+        '</div>' +
+        '<div class="yb-social__video-card-actions">' +
+        (v.status === 'ready' ? '<button data-action="social-video-edit" data-id="' + v.videoId + '">Edit</button>' : '') +
+        (v.status === 'ready' ? '<button data-action="social-video-use" data-id="' + v.videoId + '">Use in Post</button>' : '') +
+        '<button data-action="social-video-delete" data-id="' + v.videoId + '">Delete</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function formatDuration(seconds) {
+    var m = Math.floor(seconds / 60);
+    var s = Math.floor(seconds % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(0) + ' KB';
+    if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+    return (bytes / 1073741824).toFixed(2) + ' GB';
+  }
+
+  // ── Video Editor ──
+  function openVideoEditor(videoId) {
+    var video = videoState.videos.find(function (v) { return v.videoId === videoId; });
+    if (!video || video.status !== 'ready') { toast('Video not ready', true); return; }
+
+    videoState.editorVideoId = videoId;
+    videoState.editorTrim = { start: 0, end: video.duration || 0 };
+    videoState.editorAspect = 'original';
+    videoState.editorThumbTime = 0;
+
+    var modal = $('yb-social-video-editor');
+    if (modal) modal.hidden = false;
+
+    // Set video source
+    var player = $('yb-social-video-player');
+    if (player) {
+      player.src = video.mp4Url || '';
+      player.load();
+
+      player.onloadedmetadata = function () {
+        videoState.editorTrim.end = player.duration;
+        updateTrimDisplay();
+        generateThumbnails(player);
+      };
+
+      // Update playhead position
+      player.ontimeupdate = function () {
+        var playhead = $('yb-social-trim-playhead');
+        if (playhead && player.duration) {
+          var pct = (player.currentTime / player.duration) * 100;
+          playhead.style.left = pct + '%';
+        }
+      };
+    }
+
+    // Reset aspect buttons
+    qsa('.yb-social__video-aspect-btns .yb-social__btn-sm').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-ratio') === 'original');
+    });
+  }
+
+  function closeVideoEditor() {
+    var modal = $('yb-social-video-editor');
+    if (modal) modal.hidden = true;
+    var player = $('yb-social-video-player');
+    if (player) { player.pause(); player.src = ''; }
+    videoState.editorVideoId = null;
+  }
+
+  function updateTrimDisplay() {
+    var startEl = $('yb-social-trim-start-time');
+    var endEl = $('yb-social-trim-end-time');
+    var durEl = $('yb-social-trim-duration');
+    if (startEl) startEl.value = formatTimecode(videoState.editorTrim.start);
+    if (endEl) endEl.value = formatTimecode(videoState.editorTrim.end);
+    if (durEl) durEl.textContent = 'Duration: ' + formatTimecode(videoState.editorTrim.end - videoState.editorTrim.start);
+
+    // Update trim selection visual
+    var player = $('yb-social-video-player');
+    if (player && player.duration) {
+      var startPct = (videoState.editorTrim.start / player.duration) * 100;
+      var endPct = (videoState.editorTrim.end / player.duration) * 100;
+      var startHandle = $('yb-social-trim-start');
+      var endHandle = $('yb-social-trim-end');
+      var selection = $('yb-social-trim-selection');
+      if (startHandle) startHandle.style.left = startPct + '%';
+      if (endHandle) endHandle.style.left = endPct + '%';
+      if (selection) { selection.style.left = startPct + '%'; selection.style.right = (100 - endPct) + '%'; }
+    }
+  }
+
+  function formatTimecode(seconds) {
+    var m = Math.floor(seconds / 60);
+    var s = Math.floor(seconds % 60);
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function parseTimecode(tc) {
+    var parts = tc.split(':');
+    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+    return parseFloat(tc) || 0;
+  }
+
+  function generateThumbnails(videoEl) {
+    var container = $('yb-social-video-thumbnails');
+    if (!container || !videoEl.duration) return;
+    container.innerHTML = '';
+
+    var count = Math.min(6, Math.max(3, Math.floor(videoEl.duration / 5)));
+    var interval = videoEl.duration / count;
+    var generated = 0;
+
+    function captureFrame(time, index) {
+      var canvas = document.createElement('canvas');
+      canvas.width = 160;
+      canvas.height = 120;
+      var ctx = canvas.getContext('2d');
+
+      var tempVid = document.createElement('video');
+      tempVid.crossOrigin = 'anonymous';
+      tempVid.src = videoEl.src;
+      tempVid.currentTime = time;
+      tempVid.muted = true;
+
+      tempVid.onseeked = function () {
+        ctx.drawImage(tempVid, 0, 0, 160, 120);
+        var img = document.createElement('img');
+        img.src = canvas.toDataURL('image/jpeg', 0.7);
+        var item = document.createElement('div');
+        item.className = 'yb-social__video-thumbnail-item' + (index === 0 ? ' is-selected' : '');
+        item.setAttribute('data-action', 'social-video-select-thumb');
+        item.setAttribute('data-time', time.toFixed(2));
+        item.appendChild(img);
+        container.appendChild(item);
+        generated++;
+        tempVid.remove();
+      };
+      tempVid.onerror = function () { generated++; tempVid.remove(); };
+    }
+
+    for (var i = 0; i < count; i++) {
+      captureFrame(i * interval + 0.5, i);
+    }
+  }
+
+  function captureCurrentFrame() {
+    var player = $('yb-social-video-player');
+    var container = $('yb-social-video-thumbnails');
+    if (!player || !container) return;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = 160;
+    canvas.height = 120;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(player, 0, 0, 160, 120);
+
+    var img = document.createElement('img');
+    img.src = canvas.toDataURL('image/jpeg', 0.7);
+    var item = document.createElement('div');
+    item.className = 'yb-social__video-thumbnail-item is-selected';
+    item.setAttribute('data-action', 'social-video-select-thumb');
+    item.setAttribute('data-time', player.currentTime.toFixed(2));
+    item.appendChild(img);
+
+    // Deselect others
+    qsa('.yb-social__video-thumbnail-item').forEach(function (el) { el.classList.remove('is-selected'); });
+    container.insertBefore(item, container.firstChild);
+    videoState.editorThumbTime = player.currentTime;
+  }
+
+  function selectThumbnail(time) {
+    videoState.editorThumbTime = parseFloat(time);
+    qsa('.yb-social__video-thumbnail-item').forEach(function (el) {
+      el.classList.toggle('is-selected', el.getAttribute('data-time') === time);
+    });
+    var player = $('yb-social-video-player');
+    if (player) player.currentTime = videoState.editorThumbTime;
+  }
+
+  function setVideoAspect(ratio) {
+    videoState.editorAspect = ratio;
+    qsa('.yb-social__video-aspect-btns .yb-social__btn-sm').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-ratio') === ratio);
+    });
+  }
+
+  function useVideoInPost(videoId) {
+    var video = videoState.videos.find(function (v) { return v.videoId === (videoId || videoState.editorVideoId); });
+    if (!video) return;
+
+    var url = video.mp4Url || video.hlsUrl || '';
+
+    // If editor is open, include trim data
+    var editData = null;
+    if (videoState.editorVideoId) {
+      editData = {
+        videoId: video.videoId,
+        trim: videoState.editorTrim,
+        aspect: videoState.editorAspect,
+        thumbTime: videoState.editorThumbTime,
+        keepAudio: $('yb-social-video-mute') ? $('yb-social-video-mute').checked : true
+      };
+      closeVideoEditor();
+    }
+
+    // Open composer with the video
+    if (window.openSocialComposer) {
+      window.openSocialComposer(null);
+      setTimeout(function () {
+        // Inject video into composer media
+        if (window._ybSocial && window._ybSocial.state) {
+          // Access composer through the bridge
+          var captionEl = $('yb-social-caption');
+          if (captionEl && !captionEl.value) captionEl.value = video.title || '';
+        }
+      }, 200);
+    }
+
+    toast('Video added to composer');
+  }
+
+  async function deleteVideo(videoId) {
+    if (!confirm('Delete this video? This cannot be undone.')) return;
+    var data = await api('social-media-upload', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', videoId: videoId })
+    });
+    if (data) { toast('Video deleted'); loadVideoLibrary(); }
+  }
+
+  // ── Drag & Drop + File Input Setup ──
+  function initVideoUploadZone() {
+    var droparea = $('yb-social-video-droparea');
+    var fileInput = $('yb-social-video-file');
+    if (!droparea || !fileInput) return;
+
+    droparea.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      droparea.classList.add('is-dragover');
+    });
+    droparea.addEventListener('dragleave', function () {
+      droparea.classList.remove('is-dragover');
+    });
+    droparea.addEventListener('drop', function (e) {
+      e.preventDefault();
+      droparea.classList.remove('is-dragover');
+      var files = e.dataTransfer.files;
+      for (var i = 0; i < files.length; i++) {
+        if (files[i].type.startsWith('video/')) startVideoUpload(files[i]);
+      }
+    });
+    droparea.addEventListener('click', function (e) {
+      if (e.target.tagName !== 'BUTTON') fileInput.click();
+    });
+    fileInput.addEventListener('change', function () {
+      for (var i = 0; i < fileInput.files.length; i++) {
+        startVideoUpload(fileInput.files[i]);
+      }
+      fileInput.value = '';
+    });
+  }
+
+  // ── Trim Handle Dragging ──
+  function initTrimHandles() {
+    var timeline = $('yb-social-video-timeline');
+    if (!timeline) return;
+
+    var dragging = null;
+
+    timeline.addEventListener('mousedown', function (e) {
+      var startHandle = $('yb-social-trim-start');
+      var endHandle = $('yb-social-trim-end');
+      if (e.target === startHandle || e.target.closest('#yb-social-trim-start')) dragging = 'start';
+      else if (e.target === endHandle || e.target.closest('#yb-social-trim-end')) dragging = 'end';
+      else {
+        // Click on timeline = seek
+        var player = $('yb-social-video-player');
+        if (player && player.duration) {
+          var rect = timeline.getBoundingClientRect();
+          var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          player.currentTime = pct * player.duration;
+        }
+        return;
+      }
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      var rect = timeline.getBoundingClientRect();
+      var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      var player = $('yb-social-video-player');
+      if (!player || !player.duration) return;
+      var time = pct * player.duration;
+
+      if (dragging === 'start') {
+        videoState.editorTrim.start = Math.min(time, videoState.editorTrim.end - 0.5);
+      } else {
+        videoState.editorTrim.end = Math.max(time, videoState.editorTrim.start + 0.5);
+      }
+      updateTrimDisplay();
+      player.currentTime = dragging === 'start' ? videoState.editorTrim.start : videoState.editorTrim.end;
+    });
+
+    document.addEventListener('mouseup', function () { dragging = null; });
+  }
+
   /* ═══ CANVA DESIGN STUDIO ═══ */
 
   var canvaState = {
@@ -4484,8 +4971,7 @@
     }
     else if (action === 'social-recurring-toggle-day') btn.classList.toggle('is-active');
 
-    // Bulk actions
-    else if (action === 'social-toggle-select') togglePostSelect(btn.getAttribute('data-id'));
+    // Bulk actions (social-toggle-select handled in change listener only to avoid double-toggle)
     else if (action === 'social-bulk-schedule') bulkSchedule();
     else if (action === 'social-bulk-approve') bulkApprove();
     else if (action === 'social-bulk-duplicate') bulkDuplicate();
@@ -4617,6 +5103,17 @@
       loadContentLibrary();
     }
 
+    // Video Upload & Editor
+    else if (action === 'social-video-browse') { var fi = $('yb-social-video-file'); if (fi) fi.click(); }
+    else if (action === 'social-video-edit') openVideoEditor(btn.getAttribute('data-id'));
+    else if (action === 'social-video-use') useVideoInPost(btn.getAttribute('data-id'));
+    else if (action === 'social-video-delete') deleteVideo(btn.getAttribute('data-id'));
+    else if (action === 'social-video-editor-close') closeVideoEditor();
+    else if (action === 'social-video-use-in-post') useVideoInPost();
+    else if (action === 'social-video-capture-thumb') captureCurrentFrame();
+    else if (action === 'social-video-select-thumb') selectThumbnail(btn.getAttribute('data-time'));
+    else if (action === 'social-video-aspect') setVideoAspect(btn.getAttribute('data-ratio'));
+
     // Canva Design Studio
     else if (action === 'social-canva-open') openCanvaStudio(btn.getAttribute('data-post-id') || null);
     else if (action === 'social-canva-close') closeCanvaModal();
@@ -4694,6 +5191,15 @@
     if (e.target.getAttribute && e.target.getAttribute('data-action') === 'social-toggle-select') {
       togglePostSelect(e.target.getAttribute('data-id'));
       e.stopPropagation();
+    }
+    // Trim time inputs
+    if (e.target.id === 'yb-social-trim-start-time') {
+      videoState.editorTrim.start = parseTimecode(e.target.value);
+      updateTrimDisplay();
+    }
+    if (e.target.id === 'yb-social-trim-end-time') {
+      videoState.editorTrim.end = parseTimecode(e.target.value);
+      updateTrimDisplay();
     }
   });
 
