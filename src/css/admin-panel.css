@@ -72,9 +72,9 @@
   justify-content: center;
   color: #6F6A66;
   position: fixed;
-  top: 88px;
+  top: 120px;
   left: 12px;
-  z-index: 101;
+  z-index: 10000;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
@@ -199,11 +199,11 @@
     width: 250px;
     height: 100vh;
     height: 100dvh;
-    z-index: 100;
+    z-index: 10001;
     background: #FAFAF8;
     box-shadow: 4px 0 24px rgba(0,0,0,0.12);
     transition: left 0.25s ease;
-    padding: 72px 0 24px;
+    padding: 120px 0 24px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -235,7 +235,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.3);
-    z-index: 99;
+    z-index: 9999;
   }
   .yb-admin__sidebar-overlay.is-visible {
     display: block;
