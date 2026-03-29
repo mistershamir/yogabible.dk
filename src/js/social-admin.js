@@ -1789,6 +1789,7 @@
         '" data-action="social-inbox-open-comment" data-id="' + c.commentId + '" data-platform="' + c.platform + '" data-inbox-id="' + c.id + '">' +
         '<div class="yb-social__inbox-item-head">' +
           platformIcon(c.platform) +
+          (c.isAd ? '<span class="yb-social__post-type-badge yb-social__post-type-badge--ad" title="Ad comment">Ad</span>' : '') +
           '<span class="yb-social__inbox-item-author">' + (c.author || 'Unknown') + '</span>' +
           sentimentBadge +
           '<span class="yb-social__inbox-item-time">' + formatTimeAgo(c.timestamp) + '</span>' +

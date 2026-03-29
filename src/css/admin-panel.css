@@ -6867,6 +6867,7 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 }
 .yb-social__post-type-badge--reel { background: #E1306C; color: #fff; }
 .yb-social__post-type-badge--carousel { background: #1877F2; color: #fff; }
+.yb-social__post-type-badge--ad { background: #4CAF50; color: #fff; }
 
 /* ── Video play modal in post list ── */
 .yb-social__video-play-modal {

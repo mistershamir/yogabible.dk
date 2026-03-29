@@ -185,6 +185,177 @@ async function getCommentsInbox(db, params) {
     }
   }
 
+  // ── Second pass: fetch comments from page-level posts (includes ads) ──
+  // This catches ad posts and any organic posts not tracked in social_posts
+  const seenPlatformPostIds = new Set(
+    allComments.map(c => c.platformPostId)
+  );
+
+  for (const [platform, account] of Object.entries(accounts)) {
+    if (!account.accessToken) continue;
+
+    try {
+      let pagePostIds = [];
+
+      if (platform === 'instagram' && account.igAccountId) {
+        // Fetch recent IG media (includes promoted/boosted posts)
+        const igUrl = `https://graph.facebook.com/v21.0/${account.igAccountId}/media?fields=id,caption,timestamp,media_type&limit=50&access_token=${account.accessToken}`;
+        const igRes = await fetch(igUrl);
+        const igData = await igRes.json();
+        if (igData.data) {
+          pagePostIds = igData.data
+            .filter(m => {
+              const ts = new Date(m.timestamp || 0);
+              return ts >= since && !seenPlatformPostIds.has(m.id);
+            })
+            .map(m => ({ id: m.id, caption: (m.caption || '').substring(0, 60) }));
+        }
+
+        // Also fetch ad posts with comments via the page's ads
+        if (account.pageId) {
+          try {
+            const adUrl = `https://graph.facebook.com/v21.0/${account.pageId}/ads_posts?fields=id,message,created_time,is_published&limit=30&access_token=${account.accessToken}`;
+            const adRes = await fetch(adUrl);
+            const adData = await adRes.json();
+            if (adData.data) {
+              const adPostIds = adData.data
+                .filter(p => {
+                  const ts = new Date(p.created_time || 0);
+                  return ts >= since && !seenPlatformPostIds.has(p.id);
+                })
+                .map(p => ({ id: p.id, caption: (p.message || 'Ad').substring(0, 60), isAd: true }));
+              // These are FB ad posts — fetch as facebook comments
+              for (const adPost of adPostIds) {
+                if (seenPlatformPostIds.has(adPost.id)) continue;
+                seenPlatformPostIds.add(adPost.id);
+                try {
+                  const commentsData = await getFacebookComments({ accessToken: account.accessToken }, adPost.id);
+                  if (commentsData && commentsData.success) {
+                    (commentsData.comments || []).forEach(c => {
+                      const commentId = `facebook_${c.id}`;
+                      if (allComments.find(x => x.id === commentId)) return;
+                      allComments.push({
+                        id: commentId,
+                        commentId: c.id,
+                        platform: 'facebook',
+                        postId: null,
+                        postCaption: '📢 ' + adPost.caption,
+                        platformPostId: adPost.id,
+                        text: c.message || '',
+                        author: c.from ? c.from.name : 'Unknown',
+                        authorId: c.from ? c.from.id : null,
+                        timestamp: c.created_time,
+                        replies: (c.comments ? c.comments.data : []) || [],
+                        read: readIds.has(commentId),
+                        type: 'comment',
+                        isAd: true
+                      });
+                    });
+                  }
+                } catch (e) { /* skip individual ad post errors */ }
+              }
+            }
+          } catch (e) {
+            console.warn('[social-inbox] Ad posts fetch error:', e.message);
+          }
+        }
+
+        // Fetch IG comments for page-level posts not already seen
+        for (const post of pagePostIds) {
+          if (seenPlatformPostIds.has(post.id)) continue;
+          seenPlatformPostIds.add(post.id);
+          try {
+            const commentsData = await getInstagramComments({ accessToken: account.accessToken }, post.id);
+            if (commentsData && commentsData.success && commentsData.comments.length > 0) {
+              commentsData.comments.forEach(c => {
+                const commentId = `instagram_${c.id}`;
+                if (allComments.find(x => x.id === commentId)) return;
+                allComments.push({
+                  id: commentId,
+                  commentId: c.id,
+                  platform: 'instagram',
+                  postId: null,
+                  postCaption: post.caption,
+                  platformPostId: post.id,
+                  text: c.text || '',
+                  author: c.username || 'Unknown',
+                  authorId: null,
+                  timestamp: c.timestamp,
+                  replies: (c.replies ? c.replies.data : []) || [],
+                  read: readIds.has(commentId),
+                  type: 'comment'
+                });
+              });
+            }
+          } catch (e) { /* skip individual post errors */ }
+        }
+
+      } else if (platform === 'facebook' && account.pageId) {
+        // Fetch recent FB page posts (includes organic + boosted + ads)
+        const fbUrl = `https://graph.facebook.com/v21.0/${account.pageId}/published_posts?fields=id,message,created_time&limit=50&access_token=${account.accessToken}`;
+        const fbRes = await fetch(fbUrl);
+        const fbData = await fbRes.json();
+        if (fbData.data) {
+          pagePostIds = fbData.data
+            .filter(p => {
+              const ts = new Date(p.created_time || 0);
+              return ts >= since && !seenPlatformPostIds.has(p.id);
+            })
+            .map(p => ({ id: p.id, caption: (p.message || '').substring(0, 60) }));
+        }
+
+        // Also fetch ad posts specifically
+        try {
+          const adUrl = `https://graph.facebook.com/v21.0/${account.pageId}/ads_posts?fields=id,message,created_time,is_published&limit=30&access_token=${account.accessToken}`;
+          const adRes = await fetch(adUrl);
+          const adData = await adRes.json();
+          if (adData.data) {
+            adData.data.forEach(p => {
+              const ts = new Date(p.created_time || 0);
+              if (ts >= since && !seenPlatformPostIds.has(p.id)) {
+                pagePostIds.push({ id: p.id, caption: '📢 ' + (p.message || 'Ad').substring(0, 60), isAd: true });
+              }
+            });
+          }
+        } catch (e) {
+          console.warn('[social-inbox] FB ad posts fetch error:', e.message);
+        }
+
+        for (const post of pagePostIds) {
+          if (seenPlatformPostIds.has(post.id)) continue;
+          seenPlatformPostIds.add(post.id);
+          try {
+            const commentsData = await getFacebookComments({ accessToken: account.accessToken }, post.id);
+            if (commentsData && commentsData.success && commentsData.comments.length > 0) {
+              commentsData.comments.forEach(c => {
+                const commentId = `facebook_${c.id}`;
+                if (allComments.find(x => x.id === commentId)) return;
+                allComments.push({
+                  id: commentId,
+                  commentId: c.id,
+                  platform: 'facebook',
+                  postId: null,
+                  postCaption: post.caption,
+                  platformPostId: post.id,
+                  text: c.message || '',
+                  author: c.from ? c.from.name : 'Unknown',
+                  authorId: c.from ? c.from.id : null,
+                  timestamp: c.created_time,
+                  replies: (c.comments ? c.comments.data : []) || [],
+                  read: readIds.has(commentId),
+                  type: 'comment',
+                  isAd: post.isAd || false
+                });
+              });
+            }
+          } catch (e) { /* skip individual post errors */ }
+        }
+      }
+    } catch (err) {
+      console.warn(`[social-inbox] Page-level comments error for ${platform}:`, err.message);
+    }
+  }
+
   // Sort by timestamp (newest first)
   allComments.sort((a, b) => {
     const ta = new Date(a.timestamp || 0);
