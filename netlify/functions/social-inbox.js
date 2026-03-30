@@ -81,7 +81,9 @@ async function getCommentsInbox(db, params) {
 
   // Load connected accounts
   const accounts = await loadAccounts(db);
-  if (Object.keys(accounts).length === 0) {
+  const accountPlatforms = Object.keys(accounts);
+  console.log('[social-inbox] Connected accounts:', accountPlatforms.join(', ') || 'NONE');
+  if (accountPlatforms.length === 0) {
     return jsonResponse(200, { ok: true, comments: [], message: 'No connected accounts' });
   }
 
@@ -116,6 +118,7 @@ async function getCommentsInbox(db, params) {
   });
 
   const allComments = [];
+  const _errors = [];
 
   for (const doc of postsSnap.docs) {
     const post = doc.data();
@@ -181,6 +184,7 @@ async function getCommentsInbox(db, params) {
         }
       } catch (err) {
         console.warn(`[social-inbox] Comments error for ${platform}/${doc.id}:`, err.message);
+        _errors.push({ platform, postId: doc.id, error: err.message });
       }
     }
   }
@@ -363,10 +367,17 @@ async function getCommentsInbox(db, params) {
     return tb - ta;
   });
 
+  console.log(`[social-inbox] Results: ${allComments.length} comments, ${_errors.length} errors`);
+
   return jsonResponse(200, {
     ok: true,
     comments: allComments,
-    unread: allComments.filter(c => !c.read).length
+    unread: allComments.filter(c => !c.read).length,
+    _debug: {
+      accounts: accountPlatforms,
+      postsScanned: postsSnap.size,
+      errors: _errors.slice(0, 10)
+    }
   });
 }
 

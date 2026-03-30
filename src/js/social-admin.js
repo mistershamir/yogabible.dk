@@ -1699,6 +1699,15 @@
       inboxState.comments = commentsData.comments || [];
       var countEl = $('yb-social-inbox-comments-count');
       if (countEl) countEl.textContent = commentsData.unread ? '(' + commentsData.unread + ')' : '';
+
+      // Show debug info when no comments found
+      if (inboxState.comments.length === 0 && commentsData._debug) {
+        var d = commentsData._debug;
+        console.log('[inbox debug]', 'accounts:', d.accounts, 'posts scanned:', d.postsScanned, 'errors:', d.errors);
+        if (d.errors && d.errors.length > 0) {
+          toast('Inbox: ' + d.errors.length + ' API error(s) — check console', true);
+        }
+      }
     }
 
     if (messagesData) {
