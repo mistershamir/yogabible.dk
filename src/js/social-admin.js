@@ -79,6 +79,20 @@
     return '<span class="yb-social__post-status yb-social__post-status--' + s + '">' + s + '</span>';
   }
 
+  function publishErrorLine(p) {
+    if (!p.publishResults) return '';
+    var errors = [];
+    Object.keys(p.publishResults).forEach(function (platform) {
+      if (platform.startsWith('_')) return;
+      var r = p.publishResults[platform];
+      if (r && !r.success && r.error) {
+        errors.push(platform + ': ' + r.error);
+      }
+    });
+    if (errors.length === 0) return '';
+    return '<div class="yb-social__post-error" title="' + escapeHtml(errors.join('\n')) + '">⚠️ ' + escapeHtml(errors[0].substring(0, 60)) + (errors.length > 1 ? ' (+' + (errors.length - 1) + ')' : '') + '</div>';
+  }
+
   function truncate(s, n) { return s && s.length > n ? s.substring(0, n) + '...' : (s || ''); }
 
   /* ═══ VIEW MANAGEMENT ═══ */
@@ -688,6 +702,7 @@
         '<div class="yb-social__post-meta">' +
         '<div class="yb-social__post-platforms">' + (p.platforms || []).map(platformIcon).join('') + '</div>' +
         statusBadge(p.status) +
+        publishErrorLine(p) +
         typeBadge +
         '<span>' + schedTime + '</span>' +
         '</div>' +

@@ -74,7 +74,7 @@ exports.handler = async () => {
       const postPayload = {
         caption: post.caption || '',
         hashtags: post.hashtags || [],
-        media: post.mediaUrls || [],
+        media: post.media || post.mediaUrls || [],
         mediaType: post.mediaType || 'auto',
         firstComment: post.firstComment || '',
         location: post.location || null
