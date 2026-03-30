@@ -186,6 +186,12 @@
         '<label for="yb-social-connect-pageid">' + pageIdLabel + '</label>' +
         '<input type="text" id="yb-social-connect-pageid" value="' + (defaults.pageId || '') + '">' +
         '</div>';
+      if (platform === 'instagram') {
+        extraFields += '<div class="yb-admin__field">' +
+          '<label for="yb-social-connect-fbpageid">Facebook Page ID <span style="color:var(--yb-muted)">(for ad comments)</span></label>' +
+          '<input type="text" id="yb-social-connect-fbpageid" placeholder="e.g. 878172732056415">' +
+          '</div>';
+      }
     } else if (needsOrgId) {
       extraFields = '<div class="yb-admin__field">' +
         '<label for="yb-social-connect-orgid">LinkedIn Organization ID</label>' +
@@ -289,6 +295,11 @@
     if (pageIdEl && pageIdEl.value.trim()) {
       if (platform === 'instagram') body.igAccountId = pageIdEl.value.trim();
       else body.pageId = pageIdEl.value.trim();
+    }
+    // Instagram also needs FB Page ID for ad comments
+    var fbPageIdEl = $('yb-social-connect-fbpageid');
+    if (fbPageIdEl && fbPageIdEl.value.trim()) {
+      body.pageId = fbPageIdEl.value.trim();
     }
     var orgIdEl = $('yb-social-connect-orgid');
     if (orgIdEl && orgIdEl.value.trim()) body.organizationId = orgIdEl.value.trim();
@@ -1699,12 +1710,30 @@
       inboxState.comments = commentsData.comments || [];
       var countEl = $('yb-social-inbox-comments-count');
       if (countEl) countEl.textContent = commentsData.unread ? '(' + commentsData.unread + ')' : '';
+
+      // Show debug info when no comments found
+      if (inboxState.comments.length === 0 && commentsData._debug) {
+        var d = commentsData._debug;
+        console.log('[inbox debug]', 'accounts:', d.accounts, 'posts scanned:', d.postsScanned, 'errors:', d.errors);
+        if (d.errors && d.errors.length > 0) {
+          toast('Inbox: ' + d.errors.length + ' API error(s) — check console', true);
+        }
+      }
     }
 
     if (messagesData) {
       inboxState.conversations = messagesData.conversations || [];
       var countEl = $('yb-social-inbox-messages-count');
       if (countEl) countEl.textContent = messagesData.unread ? '(' + messagesData.unread + ')' : '';
+
+      // Show debug info when no conversations found
+      if (inboxState.conversations.length === 0 && messagesData._debug) {
+        var md = messagesData._debug;
+        console.log('[inbox messages debug]', 'accounts:', md.accounts, 'errors:', md.errors);
+        if (md.errors && md.errors.length > 0) {
+          toast('Messages: ' + md.errors.length + ' API error(s) — check console', true);
+        }
+      }
     }
 
     // Update badge

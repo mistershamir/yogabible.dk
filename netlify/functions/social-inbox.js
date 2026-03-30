@@ -81,7 +81,9 @@ async function getCommentsInbox(db, params) {
 
   // Load connected accounts
   const accounts = await loadAccounts(db);
-  if (Object.keys(accounts).length === 0) {
+  const accountPlatforms = Object.keys(accounts);
+  console.log('[social-inbox] Connected accounts:', accountPlatforms.join(', ') || 'NONE');
+  if (accountPlatforms.length === 0) {
     return jsonResponse(200, { ok: true, comments: [], message: 'No connected accounts' });
   }
 
@@ -116,6 +118,7 @@ async function getCommentsInbox(db, params) {
   });
 
   const allComments = [];
+  const _errors = [];
 
   for (const doc of postsSnap.docs) {
     const post = doc.data();
@@ -181,6 +184,7 @@ async function getCommentsInbox(db, params) {
         }
       } catch (err) {
         console.warn(`[social-inbox] Comments error for ${platform}/${doc.id}:`, err.message);
+        _errors.push({ platform, postId: doc.id, error: err.message });
       }
     }
   }
@@ -202,6 +206,10 @@ async function getCommentsInbox(db, params) {
         const igUrl = `https://graph.facebook.com/v21.0/${account.igAccountId}/media?fields=id,caption,timestamp,media_type&limit=50&access_token=${account.accessToken}`;
         const igRes = await fetch(igUrl);
         const igData = await igRes.json();
+        if (igData.error) {
+          console.warn('[social-inbox] IG media API error:', igData.error.message, igData.error.code);
+          _errors.push({ platform: 'instagram', endpoint: 'media', error: igData.error.message, code: igData.error.code });
+        }
         if (igData.data) {
           pagePostIds = igData.data
             .filter(m => {
@@ -295,6 +303,10 @@ async function getCommentsInbox(db, params) {
         const fbUrl = `https://graph.facebook.com/v21.0/${account.pageId}/published_posts?fields=id,message,created_time&limit=50&access_token=${account.accessToken}`;
         const fbRes = await fetch(fbUrl);
         const fbData = await fbRes.json();
+        if (fbData.error) {
+          console.warn('[social-inbox] FB published_posts API error:', fbData.error.message, fbData.error.code);
+          _errors.push({ platform: 'facebook', endpoint: 'published_posts', error: fbData.error.message, code: fbData.error.code });
+        }
         if (fbData.data) {
           pagePostIds = fbData.data
             .filter(p => {
@@ -363,10 +375,18 @@ async function getCommentsInbox(db, params) {
     return tb - ta;
   });
 
+  console.log(`[social-inbox] Results: ${allComments.length} comments, ${_errors.length} errors`);
+
   return jsonResponse(200, {
     ok: true,
     comments: allComments,
-    unread: allComments.filter(c => !c.read).length
+    unread: allComments.filter(c => !c.read).length,
+    _debug: {
+      accounts: accountPlatforms,
+      postsScanned: postsSnap.size,
+      since: since.toISOString(),
+      errors: _errors.slice(0, 10)
+    }
   });
 }
 
@@ -389,6 +409,9 @@ async function getConversationsInbox(db) {
   });
 
   const allConversations = [];
+  const _convErrors = [];
+  const accountPlatforms = Object.keys(accounts);
+  console.log('[social-inbox] Conversations: checking platforms:', accountPlatforms.join(', '));
 
   for (const [platform, account] of Object.entries(accounts)) {
     if (!account.accessToken) continue;
@@ -406,6 +429,11 @@ async function getConversationsInbox(db) {
           accessToken: account.accessToken,
           pageId: account.pageId
         });
+      }
+
+      if (convData && !convData.success) {
+        console.warn(`[social-inbox] Conversations API error for ${platform}:`, convData.error);
+        _convErrors.push({ platform, error: convData.error });
       }
 
       if (convData && convData.success) {
@@ -431,8 +459,11 @@ async function getConversationsInbox(db) {
       }
     } catch (err) {
       console.warn(`[social-inbox] Conversations error for ${platform}:`, err.message);
+      _convErrors.push({ platform, error: err.message });
     }
   }
+
+  console.log(`[social-inbox] Conversations results: ${allConversations.length} conversations, ${_convErrors.length} errors`);
 
   // Sort by last message time
   allConversations.sort((a, b) => {
@@ -444,7 +475,11 @@ async function getConversationsInbox(db) {
   return jsonResponse(200, {
     ok: true,
     conversations: allConversations,
-    unread: allConversations.filter(c => !c.read).length
+    unread: allConversations.filter(c => !c.read).length,
+    _debug: {
+      accounts: accountPlatforms,
+      errors: _convErrors.slice(0, 10)
+    }
   });
 }
 
