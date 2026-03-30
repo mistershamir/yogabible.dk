@@ -666,19 +666,36 @@
   /* ═══ FILE UPLOAD ═══ */
   async function uploadFiles(files) {
     if (!files || files.length === 0) return;
+    S.toast('Uploading ' + files.length + ' file(s)...');
     var token = await S.getToken();
-    if (!token) return;
+    if (!token) { S.toast('Auth failed — please log in again', true); return; }
 
     // Determine upload folder based on selected platform(s)
     var now = new Date();
     var yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     var platformFolder = composer.platforms.length === 1 ? composer.platforms[0] : 'general';
     var folder = 'yoga-bible-DK/social/' + platformFolder + '/' + yearMonth;
-    var signRes = await fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(folder), {
-      headers: { Authorization: 'Bearer ' + token }
-    });
-    var signData = await signRes.json();
-    if (!signData.ok) { S.toast('Upload error', true); return; }
+    var signRes;
+    try {
+      signRes = await fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(folder), {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+    } catch (fetchErr) {
+      S.toast('Upload sign request failed: ' + fetchErr.message, true);
+      return;
+    }
+    if (!signRes.ok) {
+      S.toast('Upload sign error (' + signRes.status + ')', true);
+      return;
+    }
+    var signData;
+    try {
+      signData = await signRes.json();
+    } catch (jsonErr) {
+      S.toast('Upload sign response invalid', true);
+      return;
+    }
+    if (!signData.ok) { S.toast('Upload error: ' + (signData.error || 'unknown'), true); return; }
 
     var params = signData.upload_params;
 
