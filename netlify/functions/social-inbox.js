@@ -588,9 +588,6 @@ async function analyzeSentimentBatch(db, body) {
     items: items.slice(0, 20)
   });
 
-  // Internal call to social-ai
-  const { claudeRequest, parseJsonResponse } = require('./shared/social-ai-helpers');
-
   const prompt = `Analyze the sentiment of these social media comments/messages. For each item, return:
 - sentiment: "positive", "negative", "neutral", or "question"
 - intent: "praise", "complaint", "purchase_intent", "support_request", "spam", "question", "feedback", or "other"

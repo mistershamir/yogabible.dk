@@ -116,6 +116,11 @@ async function muxFetch(path, method, body) {
 exports.handler = async function (event) {
   console.log('[live-room-cleanup] Running zombie room check...');
 
+  if (!process.env.LIVEKIT_API_KEY || !process.env.LIVEKIT_API_SECRET || !process.env.LIVEKIT_URL) {
+    console.log('[live-room-cleanup] LiveKit not configured, skipping');
+    return jsonResponse(200, { ok: true, skipped: true, reason: 'LiveKit not configured' });
+  }
+
   try {
     // List all active rooms
     var roomsResult = await livekitApi('ListRooms', {});

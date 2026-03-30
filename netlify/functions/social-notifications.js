@@ -33,11 +33,20 @@ exports.handler = async () => {
 
   try {
     // 1. Check for failed posts in the last 2 hours
-    const failedSnap = await db.collection('social_posts')
-      .where('status', '==', 'failed')
-      .where('updatedAt', '>=', twoHoursAgo)
-      .limit(5)
-      .get();
+    let failedSnap;
+    try {
+      failedSnap = await db.collection('social_posts')
+        .where('status', '==', 'failed')
+        .where('updatedAt', '>=', twoHoursAgo)
+        .limit(5)
+        .get();
+    } catch (indexErr) {
+      console.warn('[social-notifications] Failed query needs index, using fallback:', indexErr.message);
+      failedSnap = await db.collection('social_posts')
+        .where('status', '==', 'failed')
+        .limit(10)
+        .get();
+    }
 
     failedSnap.forEach(doc => {
       const p = doc.data();
@@ -78,21 +87,39 @@ exports.handler = async () => {
 
     // 4. Check for posts scheduled in the next 2 hours (heads up)
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-    const upcomingSnap = await db.collection('social_posts')
-      .where('status', '==', 'scheduled')
-      .where('scheduledAt', '>=', now)
-      .where('scheduledAt', '<=', twoHoursFromNow)
-      .limit(5)
-      .get();
+    try {
+      const upcomingSnap = await db.collection('social_posts')
+        .where('status', '==', 'scheduled')
+        .where('scheduledAt', '>=', now)
+        .where('scheduledAt', '<=', twoHoursFromNow)
+        .limit(5)
+        .get();
 
-    if (upcomingSnap.size > 0) {
-      const titles = [];
-      upcomingSnap.forEach(doc => {
+      if (upcomingSnap.size > 0) {
+        const titles = [];
+        upcomingSnap.forEach(doc => {
+          const p = doc.data();
+          const time = p.scheduledAt?.toDate ? p.scheduledAt.toDate() : new Date(p.scheduledAt);
+          titles.push(`• ${time.getHours()}:${String(time.getMinutes()).padStart(2, '0')} — ${(p.caption || '').substring(0, 40)}...`);
+        });
+        alerts.push(`📅 *${upcomingSnap.size} posts going out soon:*\n${titles.join('\n')}`);
+      }
+    } catch (indexErr) {
+      // Composite index may not exist — fall back to single query
+      console.warn('[social-notifications] Upcoming query needs index, using fallback:', indexErr.message);
+      const scheduledSnap = await db.collection('social_posts')
+        .where('status', '==', 'scheduled')
+        .limit(20)
+        .get();
+      const upcoming = [];
+      scheduledSnap.forEach(doc => {
         const p = doc.data();
-        const time = p.scheduledAt?.toDate ? p.scheduledAt.toDate() : new Date(p.scheduledAt);
-        titles.push(`• ${time.getHours()}:${String(time.getMinutes()).padStart(2, '0')} — ${(p.caption || '').substring(0, 40)}...`);
+        const scheduledAt = p.scheduledAt?.toDate ? p.scheduledAt.toDate() : new Date(p.scheduledAt || 0);
+        if (scheduledAt >= now && scheduledAt <= twoHoursFromNow) upcoming.push(p);
       });
-      alerts.push(`📅 *${upcomingSnap.size} posts going out soon:*\n${titles.join('\n')}`);
+      if (upcoming.length > 0) {
+        alerts.push(`📅 *${upcoming.length} posts going out soon*`);
+      }
     }
 
     // Send consolidated alert if there are any

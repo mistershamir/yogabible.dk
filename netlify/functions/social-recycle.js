@@ -110,11 +110,20 @@ exports.handler = async () => {
     // ── 2. Auto-suggest top performers for recycling ─────────────
     const cutoffDate = new Date(now.getTime() - AUTO_RECYCLE_MIN_DAYS_OLD * 24 * 60 * 60 * 1000);
 
-    const publishedSnap = await db.collection(POSTS_COLLECTION)
-      .where('status', '==', 'published')
-      .where('publishedAt', '<=', cutoffDate)
-      .limit(100)
-      .get();
+    let publishedSnap;
+    try {
+      publishedSnap = await db.collection(POSTS_COLLECTION)
+        .where('status', '==', 'published')
+        .where('publishedAt', '<=', cutoffDate)
+        .limit(100)
+        .get();
+    } catch (indexErr) {
+      console.warn('[social-recycle] Compound query needs index, using fallback:', indexErr.message);
+      publishedSnap = await db.collection(POSTS_COLLECTION)
+        .where('status', '==', 'published')
+        .limit(100)
+        .get();
+    }
 
     for (const doc of publishedSnap.docs) {
       const post = doc.data();
