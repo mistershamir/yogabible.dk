@@ -109,7 +109,7 @@
     if (name === 'calendar') renderCalendar();
     if (name === 'posts') loadPosts();
     if (name === 'analytics') loadAnalytics();
-    if (name === 'inbox') loadInbox();
+    if (name === 'inbox') { if (!state.accounts || Object.keys(state.accounts).length === 0) loadAccounts(); loadInbox(); }
     if (name === 'hashtags') loadHashtags();
     if (name === 'templates') loadTemplates();
     if (name === 'competitors') loadCompetitors();
@@ -1698,23 +1698,29 @@
   };
 
   async function loadInbox() {
-    var results = await Promise.all([
-      api('social-inbox?action=comments&days=30'),
-      api('social-inbox?action=conversations')
-    ]);
+    var commentsData = null;
+    var messagesData = null;
 
-    var commentsData = results[0];
-    var messagesData = results[1];
+    try {
+      var results = await Promise.all([
+        api('social-inbox?action=comments&days=30'),
+        api('social-inbox?action=conversations')
+      ]);
+      commentsData = results[0];
+      messagesData = results[1];
+    } catch (err) {
+      console.error('[loadInbox] API error:', err);
+      toast('Inbox failed to load — ' + (err.message || 'network error'), true);
+    }
 
     if (commentsData) {
       inboxState.comments = commentsData.comments || [];
       var countEl = $('yb-social-inbox-comments-count');
       if (countEl) countEl.textContent = commentsData.unread ? '(' + commentsData.unread + ')' : '';
 
-      // Show debug info when no comments found
       if (inboxState.comments.length === 0 && commentsData._debug) {
         var d = commentsData._debug;
-        console.log('[inbox debug]', 'accounts:', d.accounts, 'posts scanned:', d.postsScanned, 'errors:', d.errors);
+        console.log('[inbox debug]', 'accounts:', d.accounts, 'posts scanned:', d.postsScanned, 'since:', d.since, 'errors:', d.errors);
         if (d.errors && d.errors.length > 0) {
           toast('Inbox: ' + d.errors.length + ' API error(s) — check console', true);
         }
@@ -1723,10 +1729,9 @@
 
     if (messagesData) {
       inboxState.conversations = messagesData.conversations || [];
-      var countEl = $('yb-social-inbox-messages-count');
-      if (countEl) countEl.textContent = messagesData.unread ? '(' + messagesData.unread + ')' : '';
+      var msgCountEl = $('yb-social-inbox-messages-count');
+      if (msgCountEl) msgCountEl.textContent = messagesData.unread ? '(' + messagesData.unread + ')' : '';
 
-      // Show debug info when no conversations found
       if (inboxState.conversations.length === 0 && messagesData._debug) {
         var md = messagesData._debug;
         console.log('[inbox messages debug]', 'accounts:', md.accounts, 'errors:', md.errors);
@@ -1744,6 +1749,7 @@
       badge.hidden = totalUnread === 0;
     }
 
+    // Always render even if API failed — shows "No comments yet" instead of "Loading..."
     renderInbox();
     startInboxPolling();
   }
@@ -1770,12 +1776,19 @@
       platCounts[p] = (platCounts[p] || 0) + 1;
     });
 
-    var pfs = ['all', 'instagram', 'facebook'];
+    // Always show all connected platforms (from state.accounts), not just those with data
+    var pfs = ['all'];
+    var connectedPlatforms = state.accounts ? Object.keys(state.accounts) : [];
+    ['instagram', 'facebook', 'tiktok', 'linkedin'].forEach(function (p) {
+      if (connectedPlatforms.indexOf(p) !== -1) pfs.push(p);
+    });
+    // Fallback: if no accounts loaded yet, show IG + FB
+    if (pfs.length === 1) { pfs.push('instagram'); pfs.push('facebook'); }
+
     var pfLabels = { all: 'All', instagram: 'IG', facebook: 'FB', tiktok: 'TT', linkedin: 'LI' };
     pfBar.innerHTML = '<span class="yb-social__platform-filter-label">Platform:</span>' +
       pfs.map(function (p) {
         var count = platCounts[p] || 0;
-        if (p !== 'all' && count === 0) return '';
         return '<button class="yb-social__platform-filter-btn' + (inboxState.platformFilter === p ? ' is-active' : '') +
           '" data-action="social-inbox-platform-filter" data-platform="' + p + '">' +
           pfLabels[p] + ' (' + count + ')</button>';
@@ -3897,6 +3910,23 @@
       if (statusEl) statusEl.textContent = 'Upload complete — encoding in progress';
       toast(file.name + ' uploaded — encoding will take 1-2 min');
       loadVideoLibrary();
+
+      // Poll for encoding completion (webhook updates Firestore, we just re-fetch)
+      var pollCount = 0;
+      var pollTimer = setInterval(async function () {
+        pollCount++;
+        await loadVideoLibrary();
+        // Check if any video is still encoding/uploading
+        var pending = videoState.videos.filter(function (v) {
+          return v.status === 'uploading' || v.status === 'encoding' || v.status === 'processing';
+        });
+        if (pending.length === 0 || pollCount >= 60) {
+          clearInterval(pollTimer);
+          if (pending.length === 0 && pollCount > 1) {
+            toast('Video encoding complete');
+          }
+        }
+      }, 5000);
     } catch (err) {
       toast('Upload failed: ' + err.message, true);
       if (statusEl) statusEl.textContent = 'Upload failed: ' + err.message;
