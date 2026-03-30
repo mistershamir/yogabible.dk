@@ -18,20 +18,6 @@
     revealEls.forEach(function (el) { revealObs.observe(el); });
   }
 
-  /* ── Vine scroll-draw ── */
-  var vines = document.querySelectorAll('.ybh-vine');
-  if (vines.length) {
-    var vineObs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) {
-          e.target.classList.add('ybh-vine--drawn');
-          vineObs.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.3 });
-    vines.forEach(function (v) { vineObs.observe(v); });
-  }
-
   /* ── Stats counter animation ── */
   var statEls = document.querySelectorAll('[data-ybh-target]');
   if (statEls.length) {
