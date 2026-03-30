@@ -3992,6 +3992,10 @@
         patchXhr.setRequestHeader('Tus-Resumable', '1.0.0');
         patchXhr.setRequestHeader('Upload-Offset', offset.toString());
         patchXhr.setRequestHeader('Content-Type', 'application/offset+octet-stream');
+        patchXhr.setRequestHeader('AuthorizationSignature', creds.authSignature);
+        patchXhr.setRequestHeader('AuthorizationExpire', creds.authExpiration.toString());
+        patchXhr.setRequestHeader('VideoId', creds.videoId);
+        patchXhr.setRequestHeader('LibraryId', creds.libraryId);
 
         patchXhr.upload.onprogress = function (e) {
           if (e.lengthComputable) {
