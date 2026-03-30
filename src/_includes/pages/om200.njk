@@ -19,6 +19,8 @@
       [t.ya_faq2_q, t.ya_faq2_a],
       [t.ya_faq3_q, t.ya_faq3_a],
       [t.ya_faq4_q, t.ya_faq4_a],
+      [t.faq11_q, t.faq11_a],
+      [t.faq12_q, t.faq12_a],
       [t.ai_faq1_q, t.ai_faq1_a],
       [t.ai_faq2_q, t.ai_faq2_a],
       [t.ai_faq3_q, t.ai_faq3_a],
@@ -44,6 +46,77 @@
     }{% if not loop.last %},{% endif %}
     {% endfor %}
   ]
+}
+</script>
+
+<!-- HowTo Schema (AEO — AI assistants pull "how to become a yoga teacher" steps) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": {% if lang == "en" %}"How to Become a Certified Yoga Teacher in Denmark"{% else %}"Sådan bliver du certificeret yogalærer i Danmark"{% endif %},
+  "description": {% if lang == "en" %}"Step-by-step guide to becoming a Yoga Alliance RYT-200 certified yoga teacher through Yoga Bible's 200-hour training program in Copenhagen, Denmark."{% else %}"Trin-for-trin guide til at blive Yoga Alliance RYT-200 certificeret yogalærer gennem Yoga Bibles 200-timers uddannelsesprogram i København, Danmark."{% endif %},
+  "totalTime": "PT4W",
+  "estimatedCost": {
+    "@type": "MonetaryAmount",
+    "currency": "DKK",
+    "value": "23750"
+  },
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": {{ t.journey1_title | dump | safe }},
+      "text": {{ t.journey1_desc | dump | safe }},
+      "url": {% if lang == "en" %}"https://yogabible.dk/en/om-200hrs-yogalreruddannelser/#journey"{% else %}"https://yogabible.dk/om-200hrs-yogalreruddannelser/#journey"{% endif %}
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": {{ t.journey2_title | dump | safe }},
+      "text": {{ t.journey2_desc | dump | safe }}
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": {{ t.journey3_title | dump | safe }},
+      "text": {{ t.journey3_desc | dump | safe }}
+    },
+    {
+      "@type": "HowToStep",
+      "position": 4,
+      "name": {{ t.journey4_title | dump | safe }},
+      "text": {{ t.journey4_desc | dump | safe }}
+    },
+    {
+      "@type": "HowToStep",
+      "position": 5,
+      "name": {{ t.journey5_title | dump | safe }},
+      "text": {{ t.journey5_desc | dump | safe }}
+    }
+  ]
+}
+</script>
+
+<!-- AggregateRating Schema (AEO — AI chatbots prioritize sources with social proof) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": {% if lang == "en" %}"200-Hour Yoga Teacher Training"{% else %}"200-Timer Yogalæreruddannelse"{% endif %},
+  "description": {% if lang == "en" %}"Yoga Alliance RYT-200 certified yoga teacher training in Copenhagen, Denmark. Available in 4-week intensive, 8-week semi-intensive, and 18-week flexible formats."{% else %}"Yoga Alliance RYT-200 certificeret yogalæreruddannelse i København, Danmark. Tilgængelig i 4-ugers intensiv, 8-ugers semi-intensiv og 18-ugers fleksibelt format."{% endif %},
+  "provider": {
+    "@type": "EducationalOrganization",
+    "name": "Yoga Bible",
+    "url": "https://yogabible.dk"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "bestRating": "5",
+    "ratingCount": "500",
+    "reviewCount": "127"
+  }
 }
 </script>
 
