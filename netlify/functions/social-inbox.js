@@ -97,11 +97,16 @@ async function getCommentsInbox(db, params) {
       .limit(50)
       .get();
   } catch (err) {
-    postsSnap = await db.collection(POSTS_COLLECTION)
-      .where('status', '==', 'published')
-      .orderBy('publishedAt', 'desc')
-      .limit(50)
-      .get();
+    console.warn('[social-inbox] Compound query failed, using simple fallback:', err.message);
+    try {
+      postsSnap = await db.collection(POSTS_COLLECTION)
+        .where('status', '==', 'published')
+        .limit(50)
+        .get();
+    } catch (err2) {
+      console.error('[social-inbox] Even simple query failed:', err2.message);
+      postsSnap = { empty: true, docs: [] };
+    }
   }
 
   if (postsSnap.empty) {

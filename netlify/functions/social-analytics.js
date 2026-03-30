@@ -251,12 +251,16 @@ async function getRecentMetrics(db, params) {
       .limit(50)
       .get();
   } catch (err) {
-    console.warn('[social-analytics] Index fallback for recent:', err.message);
-    postsSnap = await db.collection(POSTS_COLLECTION)
-      .where('status', '==', 'published')
-      .orderBy('publishedAt', 'desc')
-      .limit(50)
-      .get();
+    console.warn('[social-analytics] Compound query failed, using simple fallback:', err.message);
+    try {
+      postsSnap = await db.collection(POSTS_COLLECTION)
+        .where('status', '==', 'published')
+        .limit(50)
+        .get();
+    } catch (err2) {
+      console.error('[social-analytics] Even simple query failed:', err2.message);
+      postsSnap = { empty: true, docs: [] };
+    }
   }
 
   if (postsSnap.empty) {
