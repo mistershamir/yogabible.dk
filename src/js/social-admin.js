@@ -3946,6 +3946,16 @@
       var chunkSize = 5 * 1024 * 1024; // 5MB chunks
       var offset = 0;
       var uploadUrl = '';
+      var retries = 0;
+      var maxRetries = 3;
+
+      // Auth headers required on all TUS requests (per Bunny docs)
+      var authHeaders = {
+        'AuthorizationSignature': creds.authSignature,
+        'AuthorizationExpire': creds.authExpiration.toString(),
+        'VideoId': creds.videoId,
+        'LibraryId': creds.libraryId
+      };
 
       // Step 1: Create TUS upload
       var createXhr = new XMLHttpRequest();
@@ -3956,17 +3966,16 @@
         'filetype ' + btoa(file.type) +
         ',title ' + btoa(file.name.replace(/\.[^.]+$/, ''))
       );
-      createXhr.setRequestHeader('AuthorizationSignature', creds.authSignature);
-      createXhr.setRequestHeader('AuthorizationExpire', creds.authExpiration.toString());
-      createXhr.setRequestHeader('VideoId', creds.videoId);
-      createXhr.setRequestHeader('LibraryId', creds.libraryId);
+      Object.keys(authHeaders).forEach(function (k) { createXhr.setRequestHeader(k, authHeaders[k]); });
 
       createXhr.onload = function () {
         if (createXhr.status !== 201 && createXhr.status !== 200) {
+          console.error('[TUS] Create failed:', createXhr.status, createXhr.responseText);
           reject(new Error('TUS create failed: ' + createXhr.status));
           return;
         }
         uploadUrl = createXhr.getResponseHeader('Location');
+        console.log('[TUS] Upload URL:', uploadUrl);
         if (!uploadUrl) {
           reject(new Error('No upload URL returned'));
           return;
@@ -3976,7 +3985,7 @@
       createXhr.onerror = function () { reject(new Error('Network error during TUS create')); };
       createXhr.send(null);
 
-      // Step 2: Upload chunks
+      // Step 2: Upload chunks with retry
       function uploadNextChunk() {
         if (offset >= file.size) {
           onProgress(100);
@@ -3992,10 +4001,7 @@
         patchXhr.setRequestHeader('Tus-Resumable', '1.0.0');
         patchXhr.setRequestHeader('Upload-Offset', offset.toString());
         patchXhr.setRequestHeader('Content-Type', 'application/offset+octet-stream');
-        patchXhr.setRequestHeader('AuthorizationSignature', creds.authSignature);
-        patchXhr.setRequestHeader('AuthorizationExpire', creds.authExpiration.toString());
-        patchXhr.setRequestHeader('VideoId', creds.videoId);
-        patchXhr.setRequestHeader('LibraryId', creds.libraryId);
+        Object.keys(authHeaders).forEach(function (k) { patchXhr.setRequestHeader(k, authHeaders[k]); });
 
         patchXhr.upload.onprogress = function (e) {
           if (e.lengthComputable) {
@@ -4006,14 +4012,28 @@
 
         patchXhr.onload = function () {
           if (patchXhr.status === 204 || patchXhr.status === 200) {
+            retries = 0; // reset retries on success
             var newOffset = parseInt(patchXhr.getResponseHeader('Upload-Offset') || end.toString());
             offset = newOffset;
             uploadNextChunk();
+          } else if (retries < maxRetries) {
+            retries++;
+            console.warn('[TUS] Chunk failed (' + patchXhr.status + '), retry ' + retries + '/' + maxRetries);
+            setTimeout(uploadNextChunk, 1000 * retries); // backoff
           } else {
-            reject(new Error('Chunk upload failed: ' + patchXhr.status));
+            console.error('[TUS] Chunk failed after retries:', patchXhr.status, 'offset:', offset, 'response:', patchXhr.responseText);
+            reject(new Error('Chunk upload failed: ' + patchXhr.status + ' (after ' + maxRetries + ' retries)'));
           }
         };
-        patchXhr.onerror = function () { reject(new Error('Network error during chunk upload')); };
+        patchXhr.onerror = function () {
+          if (retries < maxRetries) {
+            retries++;
+            console.warn('[TUS] Network error, retry ' + retries + '/' + maxRetries);
+            setTimeout(uploadNextChunk, 1000 * retries);
+          } else {
+            reject(new Error('Network error during chunk upload (after ' + maxRetries + ' retries)'));
+          }
+        };
         patchXhr.send(chunk);
       }
     });

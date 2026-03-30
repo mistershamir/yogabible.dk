@@ -637,7 +637,7 @@ async function replyToFacebookComment(account, commentId, text) {
  */
 async function getInstagramConversations(account) {
   try {
-    const url = `${IG_API}/${account.igAccountId}/conversations?fields=id,participants,messages.limit(25){id,message,from,created_time}&platform=instagram&limit=50&access_token=${account.accessToken}`;
+    const url = `${IG_API}/${account.igAccountId}/conversations?fields=id,participants,messages.limit(100){id,message,from,created_time}&platform=instagram&limit=100&access_token=${account.accessToken}`;
     const res = await fetch(url);
     const data = await res.json();
 
@@ -658,7 +658,7 @@ async function getInstagramConversations(account) {
  */
 async function getFacebookConversations(account) {
   try {
-    const url = `${FB_API}/${account.pageId}/conversations?fields=id,participants,messages.limit(25){id,message,from,created_time}&limit=50&access_token=${account.accessToken}`;
+    const url = `${FB_API}/${account.pageId}/conversations?fields=id,participants,messages.limit(100){id,message,from,created_time}&limit=100&access_token=${account.accessToken}`;
     const res = await fetch(url);
     const data = await res.json();
 
