@@ -1522,6 +1522,338 @@
 }
 
 /* ═══════════════════════════════════════════
+   SECTION 2b: EDUCATION METHODS
+   (Triangle Method + Vinyasa Plus)
+   ═══════════════════════════════════════════ */
+.om2-methods {
+  background: #F5F3F0;
+  padding: clamp(40px, 7vw, 80px) clamp(16px, 4vw, 32px);
+}
+.om2-methods__inner {
+  max-width: 1140px;
+  margin: 0 auto;
+}
+.om2-methods__head {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto clamp(32px, 5vw, 48px);
+}
+.om2-methods__eyebrow {
+  color: var(--yb-brand);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 0.75rem;
+  margin-bottom: 8px;
+}
+.om2-methods__title {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #0F0F0F;
+  margin-bottom: 12px;
+}
+.om2-methods__lead {
+  color: #222;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Two-column card layout */
+.om2-methods__cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* Method cards */
+.om2-methods__card {
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 20px;
+  padding: clamp(24px, 4vw, 36px);
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.om2-methods__card:hover {
+  box-shadow: 0 16px 48px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+.om2-methods__card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: 20px 20px 0 0;
+}
+.om2-methods__card--triangle::before {
+  background: linear-gradient(90deg, #f75c03, #EA8E52, #F0A778);
+}
+.om2-methods__card--vinyasa-plus::before {
+  background: linear-gradient(90deg, #f75c03, #EA8E52);
+}
+
+/* Badge */
+.om2-methods__card-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 14px;
+  background: rgba(var(--yb-brand-rgb), 0.1);
+  color: var(--yb-brand);
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+.om2-methods__card-badge--alt {
+  background: rgba(var(--yb-brand-rgb), 0.06);
+  color: #EA8E52;
+}
+
+/* Card typography */
+.om2-methods__card-title {
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+.om2-methods__card-subtitle {
+  color: #6F6A66;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+.om2-methods__card-lead {
+  color: #222;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+/* Style cards within Triangle Method */
+.om2-methods__styles {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.om2-methods__style {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  transition: border-color 0.2s ease;
+}
+.om2-methods__style:hover {
+  border-color: rgba(var(--yb-brand-rgb), 0.3);
+}
+.om2-methods__style-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.om2-methods__style-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 4px;
+}
+.om2-methods__style-desc {
+  color: #6F6A66;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Split bars (Vinyasa Plus) */
+.om2-methods__split {
+  margin-bottom: 20px;
+}
+.om2-methods__split-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.om2-methods__split-bars {
+  display: flex;
+  gap: 6px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.om2-methods__split-bar {
+  padding: 14px 16px;
+  border-radius: 12px;
+}
+.om2-methods__split-bar--vinyasa {
+  flex: 7;
+  background: linear-gradient(135deg, rgba(var(--yb-brand-rgb), 0.1), rgba(var(--yb-brand-rgb), 0.04));
+  border: 1px solid rgba(var(--yb-brand-rgb), 0.2);
+}
+.om2-methods__split-bar--yin {
+  flex: 3;
+  background: linear-gradient(135deg, rgba(240,167,120,0.12), rgba(240,167,120,0.04));
+  border: 1px solid rgba(240,167,120,0.2);
+}
+.om2-methods__split-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 4px;
+}
+.om2-methods__split-desc {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  line-height: 1.45;
+}
+.om2-methods__split-points {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 4px;
+}
+.om2-methods__split-points li {
+  font-size: 0.78rem;
+  color: #222;
+  line-height: 1.4;
+  padding-left: 16px;
+  position: relative;
+}
+.om2-methods__split-points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--yb-brand);
+  opacity: 0.6;
+}
+
+/* Why section */
+.om2-methods__why {
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-left: 3px solid var(--yb-brand);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.om2-methods__why-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 6px;
+}
+.om2-methods__why-text {
+  font-size: 0.88rem;
+  color: #222;
+  line-height: 1.55;
+}
+
+/* Benefits list */
+.om2-methods__benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.om2-methods__benefits li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.88rem;
+  color: #222;
+  line-height: 1.5;
+}
+.om2-methods__benefits svg {
+  flex-shrink: 0;
+  color: var(--yb-brand);
+  margin-top: 2px;
+}
+
+/* Shared section (both methods include) */
+.om2-methods__shared {
+  background: #fff;
+  border: 1.5px solid rgba(var(--yb-brand-rgb), 0.2);
+  border-radius: 16px;
+  padding: clamp(20px, 3vw, 28px) clamp(20px, 4vw, 32px);
+  text-align: center;
+}
+.om2-methods__shared-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.om2-methods__shared-title svg {
+  color: var(--yb-brand);
+}
+.om2-methods__shared-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 28px;
+}
+.om2-methods__shared-list li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  color: #222;
+  line-height: 1.5;
+  text-align: left;
+}
+.om2-methods__shared-list svg {
+  flex-shrink: 0;
+  color: var(--yb-brand);
+  margin-top: 2px;
+}
+
+/* Mobile: stack cards */
+@media (max-width: 899px) {
+  .om2-methods__cards {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .om2-methods__shared-list {
+    flex-direction: column;
+    align-items: center;
+  }
+  .om2-methods__split-bars {
+    flex-direction: column;
+  }
+  .om2-methods__split-bar--vinyasa,
+  .om2-methods__split-bar--yin {
+    flex: none;
+  }
+}
+
+/* ═══════════════════════════════════════════
    SECTION: MEET THE TEACHERS
    ═══════════════════════════════════════════ */
 .om2-teachers {
@@ -1968,6 +2300,7 @@
 /* Location Gallery / Slider */
 .om2-location__gallery {
   position: relative;
+  margin-top: 20px;
 }
 .om2-location__slider {
   overflow: hidden;
@@ -2054,32 +2387,123 @@
   border-radius: 999px;
 }
 
+/* Location Video */
+.om2-location__video-wrap {
+  margin-top: 28px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #E8E4E0;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.08);
+}
+.om2-location__video-wrap video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+}
+
+/* Location Address */
+.om2-location__address {
+  margin-top: 20px;
+  text-align: center;
+  color: #6F6A66;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 /* ═══════════════════════════════════════════
    SECTION: REVIEWS CAROUSEL OVERRIDE (om200)
-   Uses shared yb-reviews from p18.css
+   Elevated style matching om200 page design
    ═══════════════════════════════════════════ */
 #om2-reviews-section {
-  background: #FFFCF9;
-  padding: clamp(32px, 6vw, 72px) 0;
+  background: #F5F3F0;
+  padding: clamp(40px, 7vw, 80px) 0;
 }
 #om2-reviews-section .yb-reviews__inner {
   max-width: 1140px;
   margin: 0 auto;
   padding: 0 clamp(16px, 4vw, 32px);
 }
-/* Ensure carousel doesn't bleed */
+
+/* Header styling */
+#om2-reviews-section .yb-reviews__kicker {
+  color: var(--yb-brand);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+}
+#om2-reviews-section .yb-reviews__title {
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #0F0F0F;
+}
+#om2-reviews-section .yb-reviews__lead {
+  max-width: 680px;
+  color: #444;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Navigation arrows */
+#om2-reviews-section .yb-reviews__nav {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid #E8E4E0;
+  background: #fff;
+  color: #0F0F0F;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.2s ease;
+}
+#om2-reviews-section .yb-reviews__nav:hover:not(:disabled) {
+  background: var(--yb-brand);
+  color: #fff;
+  border-color: var(--yb-brand);
+  box-shadow: 0 4px 14px rgba(var(--yb-brand-rgb), 0.25);
+}
+
+/* Viewport & track */
 #om2-reviews-section .yb-reviews__viewport {
   overflow-x: auto;
   overflow-y: visible;
+  padding: 8px 0;
 }
 #om2-reviews-section .yb-reviews__track {
   display: flex;
   gap: 1rem;
 }
+
+/* Card styling — orange stroke, elevated */
 #om2-reviews-section .yb-reviews__card {
   flex: 0 0 calc(100% - 1rem);
   scroll-snap-align: start;
-  min-height: 200px;
+  min-height: 220px;
+  background: #fff;
+  border: 1.5px solid var(--yb-brand);
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  transition: all 0.3s ease;
+  position: relative;
+}
+#om2-reviews-section .yb-reviews__card::before {
+  content: '\201C';
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  font-size: 3rem;
+  line-height: 1;
+  color: rgba(var(--yb-brand-rgb), 0.12);
+  font-family: Georgia, serif;
+  pointer-events: none;
+}
+#om2-reviews-section .yb-reviews__card:hover {
+  box-shadow: 0 16px 48px rgba(var(--yb-brand-rgb), 0.12);
+  transform: translateY(-4px);
 }
 @media (min-width: 600px) {
   #om2-reviews-section .yb-reviews__card {
@@ -2090,6 +2514,69 @@
   #om2-reviews-section .yb-reviews__card {
     flex: 0 0 calc(33.333% - 0.667rem);
   }
+}
+
+/* Card header */
+#om2-reviews-section .yb-reviews__card-header {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E8E4E0;
+}
+#om2-reviews-section .yb-reviews__name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+}
+#om2-reviews-section .yb-reviews__when {
+  font-size: 0.8rem;
+  color: #6F6A66;
+}
+
+/* Orange stars */
+#om2-reviews-section .yb-reviews__card-stars {
+  color: var(--yb-brand);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+}
+
+/* Review text — italic with better spacing */
+#om2-reviews-section .yb-reviews__text {
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  font-style: italic;
+}
+
+/* Footer — centered, clean */
+#om2-reviews-section .yb-reviews__footer {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #E8E4E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+#om2-reviews-section .yb-reviews__stars {
+  color: var(--yb-brand);
+  font-size: 1.1rem;
+}
+#om2-reviews-section .yb-reviews__score {
+  font-weight: 700;
+  color: #0F0F0F;
+  font-size: 0.95rem;
+}
+#om2-reviews-section .yb-reviews__link {
+  color: var(--yb-brand);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+#om2-reviews-section .yb-reviews__link:hover {
+  color: #d94f02;
+  text-decoration: underline;
 }
 
 /* Old om2-reviews dead code — kept for reference but unused */

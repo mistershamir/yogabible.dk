@@ -20,6 +20,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Nurture sequence monitoring — flip to True when sequences are live
+NURTURE_MONITORING_ENABLED = False
+
 import anthropic
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -55,7 +58,7 @@ logger = logging.getLogger('lead-agent')
 
 # ── Anthropic client ──────────────────────────────────
 client = anthropic.Anthropic()
-MODEL = os.getenv('AGENT_MODEL', 'claude-haiku-4-5-20251001')
+MODEL = os.getenv('AGENT_MODEL', 'claude-sonnet-4-6')
 
 # ── Shared scheduler reference (set in main_telegram) ──
 _scheduler = None
@@ -319,6 +322,29 @@ TOOLS = [
             },
             "required": ["appointment_id", "message"]
         }
+    },
+    # ── Communication history tools ──────────────────
+    {
+        "name": "get_lead_history",
+        "description": "Get full communication history for a lead: all emails sent (drip, campaign, custom), SMS, and sequence enrollments. Use this to understand what communications a lead has already received before deciding next steps.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "lead_id": {"type": "string", "description": "The Firestore lead document ID"}
+            },
+            "required": ["lead_id"]
+        }
+    },
+    {
+        "name": "get_lead_full_context",
+        "description": "Get complete 360° context for a lead: profile data, drip status, communication history, and sequence enrollments. Use this when you need a comprehensive overview of a lead before making recommendations.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "lead_id": {"type": "string", "description": "The Firestore lead document ID"}
+            },
+            "required": ["lead_id"]
+        }
     }
 ]
 
@@ -533,6 +559,19 @@ def execute_tool(name, input_data):
             if result and result.get('success'):
                 _instant_feedback(f'💬 SMS sent to <b>{appt.get("client_name", "client")}</b> ({phone})')
             return result or {'error': 'SMS returned no result'}
+
+        # ── Communication history tools ──────────────
+        elif name == 'get_lead_history':
+            from tools.firestore import get_lead_communication_history
+            history = get_lead_communication_history(input_data['lead_id'])
+            return {'history': history, 'count': len(history)}
+
+        elif name == 'get_lead_full_context':
+            from tools.firestore import get_lead_full_context as _get_full_context
+            context = _get_full_context(input_data['lead_id'])
+            if context:
+                return context
+            return {'error': 'Lead not found'}
 
         return {'error': f'Unknown tool: {name}'}
 
@@ -749,6 +788,10 @@ def handle_button(action, lead_id):
         return chat(f"Pause drip for lead {lead_id} — I'll call them first. Remind me tomorrow at 10:00 if I haven't updated.")
     elif action == 'ack':
         return chat(f"Lead {lead_id} looks good, let the drip continue as planned. Just acknowledge.")
+    elif action == 'called':
+        update_lead(lead_id, {'status': 'Contacted'})
+        add_lead_note(lead_id, 'Marked as contacted via Telegram reminder button')
+        return "✅ Lead marked as Contacted."
     else:
         return f"Unknown action: {action}"
 
@@ -757,20 +800,78 @@ def handle_button(action, lead_id):
 # Will be set by the Telegram bot startup to enable async notifications
 _telegram_app = None
 
+def _call_reminder_job(lead_id, lead_data):
+    """15-min callback: remind Shamir to call if lead is still New."""
+    try:
+        from tools.firestore import get_db
+        db = get_db()
+        doc = db.collection('leads').document(lead_id).get()
+        if not doc.exists:
+            return
+        current = doc.to_dict()
+        status = current.get('status', 'New')
+        if status in ('New', '', None):
+            # Still not contacted — send reminder
+            name = f"{lead_data.get('first_name', '')} {lead_data.get('last_name', '')}".strip()
+            phone = lead_data.get('phone', 'No phone')
+            program = lead_data.get('ytt_program_type') or lead_data.get('program') or lead_data.get('type', 'Unknown')
+            source = lead_data.get('source', 'Website')
+
+            msg = (f"📞 <b>Reminder: Call {name}</b>\n"
+                   f"☎️ <b>{phone}</b>\n"
+                   f"📋 {program} lead from {source}\n"
+                   f"⏰ Lead arrived 15 min ago — time to call!")
+
+            if _telegram_app and _telegram_app_loop:
+                from tools.telegram import send_notification
+                buttons = [{'text': '✅ Already called', 'data': f'called:{lead_id}'}]
+                asyncio.run_coroutine_threadsafe(
+                    send_notification(_telegram_app, msg, buttons),
+                    _telegram_app_loop
+                )
+    except Exception as e:
+        logger.error(f'Call reminder error for {lead_id}: {e}')
+
+
 def on_new_lead(lead):
     """Called when a new lead appears in Firestore. Initializes drip + notifies Telegram."""
-    if lead.get('type') == 'ytt':
-        logger.info(f'New YTT lead: {lead.get("first_name")} {lead.get("last_name")} ({lead.get("email")})')
+    lead_type = lead.get('type', 'ytt')
+    logger.info(f'New {lead_type} lead: {lead.get("first_name")} {lead.get("last_name")} ({lead.get("email")})')
+
+    # Initialize drip for YTT leads
+    if lead_type == 'ytt':
         initialize_drip_for_lead(lead['id'], lead)
 
-        # Send Telegram notification
-        if _telegram_app:
-            from tools.telegram import format_new_lead_notification, send_notification
-            msg, buttons = format_new_lead_notification(lead)
-            asyncio.run_coroutine_threadsafe(
-                send_notification(_telegram_app, msg, buttons),
-                _telegram_app_loop
-            )
+    # Check if this is a returning lead (email seen before)
+    returning = False
+    if lead.get('email'):
+        from tools.firestore import get_lead_by_email
+        existing = get_lead_by_email(lead['email'])
+        if existing and existing.get('id') != lead.get('id'):
+            returning = True
+            lead['_returning'] = True
+            lead['_previous_status'] = existing.get('status', '')
+
+    # Send Telegram notification
+    if _telegram_app:
+        from tools.telegram import format_new_lead_notification, send_notification
+        msg, buttons = format_new_lead_notification(lead)
+        asyncio.run_coroutine_threadsafe(
+            send_notification(_telegram_app, msg, buttons),
+            _telegram_app_loop
+        )
+
+    # Schedule 15-minute call reminder
+    if _scheduler and lead.get('phone'):
+        job_id = f'call_reminder_{lead["id"]}'
+        _scheduler.add_job(
+            _call_reminder_job, 'date',
+            run_date=datetime.now(timezone.utc) + timedelta(minutes=15),
+            id=job_id,
+            kwargs={'lead_id': lead['id'], 'lead_data': lead},
+            replace_existing=True
+        )
+        logger.info(f'Call reminder scheduled for {lead["id"]} in 15 min')
 
 _telegram_app_loop = None
 
@@ -888,6 +989,90 @@ def check_stale_leads():
 
     except Exception as e:
         logger.error(f'Stale lead check failed: {e}')
+
+
+# ── Sequence monitoring functions ──────────────────────
+
+def audit_unenrolled_leads():
+    """Check for YTT leads not in any sequence — alert if found."""
+    if not NURTURE_MONITORING_ENABLED:
+        return
+    try:
+        from tools.firestore import get_leads_not_in_any_sequence
+        unenrolled = get_leads_not_in_any_sequence()
+        if not unenrolled:
+            return
+
+        lines = [f"⚠️ <b>{len(unenrolled)} YTT lead{'s' if len(unenrolled) != 1 else ''} not in any sequence:</b>\n"]
+        for lead in unenrolled[:5]:
+            name = lead.get('first_name', lead.get('name', '?'))
+            program = lead.get('ytt_program_type', 'undecided')
+            lines.append(f"  • <b>{name}</b> ({program}) — {lead.get('email', '?')}")
+        if len(unenrolled) > 5:
+            lines.append(f"  ... and {len(unenrolled) - 5} more")
+        lines.append("\nReply 'enroll' to auto-assign them to sequences.")
+
+        from monitor import _send_telegram_sync
+        _send_telegram_sync('\n'.join(lines))
+        logger.info(f'Unenrolled leads alert: {len(unenrolled)} found')
+
+    except Exception as e:
+        logger.error(f'Unenrolled leads check failed: {e}')
+
+
+def audit_sequence_failures():
+    """Check for sequence send failures — alert if found."""
+    if not NURTURE_MONITORING_ENABLED:
+        return
+    try:
+        from tools.firestore import get_sequence_failures
+        failures = get_sequence_failures(hours=4)
+        if not failures:
+            return
+
+        lines = [f"❌ <b>{len(failures)} sequence email{'s' if len(failures) != 1 else ''} failed in the last 4 hours:</b>\n"]
+        for f in failures[:5]:
+            lines.append(f"  • {f.get('to', '?')} — {f.get('subject', '?')[:50]}")
+        if len(failures) > 5:
+            lines.append(f"  ... and {len(failures) - 5} more")
+
+        from monitor import _send_telegram_sync
+        _send_telegram_sync('\n'.join(lines))
+        logger.info(f'Sequence failure alert: {len(failures)} failures')
+
+    except Exception as e:
+        logger.error(f'Sequence failure check failed: {e}')
+
+
+def review_completed_leads():
+    """Daily review of leads who completed sequences without converting."""
+    if not NURTURE_MONITORING_ENABLED:
+        return
+    try:
+        from tools.firestore import get_completed_not_converted
+        completed = get_completed_not_converted(days=7)
+        if not completed:
+            return
+
+        lines = [f"📋 <b>{len(completed)} lead{'s' if len(completed) != 1 else ''} completed sequence but didn't convert:</b>\n"]
+        for item in completed[:5]:
+            lead = item['lead']
+            enrollment = item['enrollment']
+            name = lead.get('first_name', lead.get('name', '?'))
+            program = lead.get('ytt_program_type', 'undecided')
+            seq_name = enrollment.get('sequence_name', '?')
+            lines.append(f"  • <b>{name}</b> ({program}) — finished '{seq_name}'")
+
+        if len(completed) > 5:
+            lines.append(f"  ... and {len(completed) - 5} more")
+        lines.append("\nThese leads need a personalized follow-up. Reply with a name to draft a message.")
+
+        from monitor import _send_telegram_sync
+        _send_telegram_sync('\n'.join(lines))
+        logger.info(f'Completed leads review: {len(completed)} need follow-up')
+
+    except Exception as e:
+        logger.error(f'Completed leads review failed: {e}')
 
 
 # ── Appointment reminder (Telegram, 24h before) ──────
@@ -1029,6 +1214,28 @@ def main_telegram():
     scheduler.add_job(process_due_drips, 'interval', minutes=interval,
                       id='drip_check', replace_existing=True)
 
+    # Process due sequence steps alongside drips
+    def _process_sequences():
+        """Call the sequences Netlify function to process due steps."""
+        try:
+            import urllib.request
+            site_url = os.getenv('SITE_URL', 'https://yogabible.dk')
+            secret = os.getenv('AI_INTERNAL_SECRET', '')
+            url = f'{site_url}/.netlify/functions/sequences?action=process'
+            req = urllib.request.Request(url, data=b'{}', method='POST',
+                                        headers={'Content-Type': 'application/json',
+                                                 'X-Internal-Secret': secret})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                result = json.loads(resp.read())
+                processed = result.get('processed', 0)
+                if processed > 0:
+                    logger.info(f'Sequences: processed {processed} due steps')
+        except Exception as e:
+            logger.debug(f'Sequence processing skipped: {e}')
+
+    scheduler.add_job(_process_sequences, 'interval', minutes=interval,
+                      id='sequence_check', replace_existing=True)
+
     # Auto-pull from main + knowledge refresh every 5 minutes
     def _auto_update():
         # 1. Check git hook flag (local trigger)
@@ -1080,6 +1287,15 @@ def main_telegram():
                       timezone='Europe/Copenhagen',
                       id='appointment_reminders', replace_existing=True)
 
+    # ── Sequence monitoring jobs ─────────────────────────────────────────
+    scheduler.add_job(audit_unenrolled_leads, 'interval', hours=2,
+                      id='unenrolled_check', replace_existing=True)
+    scheduler.add_job(audit_sequence_failures, 'interval', hours=4,
+                      id='sequence_failure_check', replace_existing=True)
+    scheduler.add_job(review_completed_leads, 'cron', hour=10, minute=0,
+                      timezone='Europe/Copenhagen',
+                      id='completed_review', replace_existing=True)
+
     scheduler.start()
     logger.info(f'Drip scheduler started (checking every {interval} min)')
     logger.info('Auto-update checker started (git pull + knowledge refresh every 1 min)')
@@ -1087,6 +1303,7 @@ def main_telegram():
     logger.info('Stale lead checker started (every 6h)')
     logger.info('Appointment reminders scheduled (daily 18:00 CET)')
     logger.info('Daily heartbeat scheduled')
+    logger.info('Sequence monitoring jobs started (unenrolled/failures/completed review)')
 
     # Start Firestore listener for new leads
     try:

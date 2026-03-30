@@ -17,6 +17,17 @@
  *   custom_data (object) — Event-specific data (value, currency, content_name, etc.)
  */
 
+let firestoreDb = null;
+function getDb() {
+  if (!firestoreDb) {
+    try {
+      const { getFirestore } = require('./shared/firestore');
+      firestoreDb = getFirestore();
+    } catch (e) { /* Firestore not available — skip storage */ }
+  }
+  return firestoreDb;
+}
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type',
@@ -98,7 +109,7 @@ exports.handler = async function (event) {
   }
 
   // Forward to Meta Conversions API
-  const url = `https://graph.facebook.com/v21.0/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`;
+  const url = `https://graph.facebook.com/v25.0/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`;
 
   try {
     const response = await fetch(url, {
@@ -116,6 +127,32 @@ exports.handler = async function (event) {
         headers: CORS_HEADERS,
         body: JSON.stringify({ ok: false, error: result.error?.message || 'Meta API error' })
       };
+    }
+
+    // Store Purchase/Lead events in Firestore for admin dashboard
+    if (event_name === 'Purchase' || event_name === 'Lead' || event_name === 'InitiateCheckout') {
+      try {
+        const db = getDb();
+        if (db) {
+          await db.collection('ad_conversions').add({
+            conversion_action: event_name.toLowerCase(),
+            transaction_id: event_id || '',
+            value: parseFloat(custom_data.value) || 0,
+            currency: custom_data.currency || 'DKK',
+            content_name: custom_data.content_name || '',
+            content_category: custom_data.content_category || '',
+            conversion_time: new Date().toISOString(),
+            page_url: event_source_url || '',
+            hashed_email: (user_data.em && user_data.em[0]) || '',
+            client_ip: eventData.user_data.client_ip_address || '',
+            user_agent: eventData.user_data.client_user_agent || '',
+            platform: 'meta',
+            created_at: new Date().toISOString()
+          });
+        }
+      } catch (storeErr) {
+        console.warn('Meta CAPI: Firestore storage error:', storeErr.message);
+      }
     }
 
     return {

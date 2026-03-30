@@ -153,9 +153,11 @@
       }
 
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Sender…';
+      var isDa = window.location.pathname.indexOf('/en/') !== 0;
+      submitBtn.textContent = isDa ? 'Sender…' : 'Sending…';
 
       const p = new URLSearchParams();
+      p.append('lang', isDa ? 'da' : 'en');
       if (fmts.length > 1) {
         p.append('action', 'lead_schedule_multi');
         p.append('allFormats', fmts.join(','));
@@ -169,6 +171,23 @@
       p.append('accommodation', acc);
       p.append('source', 'Modal-' + (fmts.length > 1 ? 'Multi-' + fmts.join('+') : fmts[0]));
       if (city) p.append('cityCountry', city);
+
+      // Attach attribution data (UTM, referrer, channel)
+      if (typeof window.ybAttribution === 'function') {
+        var attr = window.ybAttribution();
+        if (attr.channel) p.append('channel', attr.channel);
+        if (attr.utm_source) p.append('utm_source', attr.utm_source);
+        if (attr.utm_medium) p.append('utm_medium', attr.utm_medium);
+        if (attr.utm_campaign) p.append('utm_campaign', attr.utm_campaign);
+        if (attr.gclid) p.append('gclid', attr.gclid);
+        if (attr.fbclid) p.append('fbclid', attr.fbclid);
+        if (attr.referrer) p.append('referrer', attr.referrer);
+        if (attr.landing_page) p.append('landing_page', attr.landing_page);
+      }
+
+      // Pass anonymous visitor ID for identity stitching
+      var vidMatch = document.cookie.match(/(?:^|; )yb_vid=([^;]*)/);
+      if (vidMatch) p.append('visitor_id', decodeURIComponent(vidMatch[1]));
 
       // POST to Netlify Function with query params as body
       fetch(FORM_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p.toString() })

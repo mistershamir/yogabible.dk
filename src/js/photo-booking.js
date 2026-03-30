@@ -42,6 +42,7 @@
       }
     }
 
+    modal.removeAttribute('style');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
 
@@ -175,6 +176,7 @@
         location_pref: data.location_pref,
         message: data.message,
         preferred_slots: data.preferred_slots,
+        lang: isDa ? 'da' : 'en',
         source: 'website-photo-modal',
         _hp: hpEl ? hpEl.value : '',
         formOpenedAt: openedAtEl ? openedAtEl.value : ''

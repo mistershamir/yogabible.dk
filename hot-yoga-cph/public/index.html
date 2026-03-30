@@ -6,6 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Min Profil | Hot Yoga Copenhagen</title>
   <meta name="description" content="Administrer din Hot Yoga Copenhagen konto, opdater dine oplysninger og se dit medlemskab.">
+  <meta name="robots" content="noindex, nofollow">
 
   <!-- Preconnect -->
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
@@ -101,10 +102,10 @@
     <!-- REGISTER VIEW -->
     <div id="yb-auth-register" class="yb-auth-view" hidden>
       <div class="yb-auth-modal__header">
-        <h2 class="yb-auth-modal__title" data-hyc-da>Opret konto</h2>
-        <h2 class="yb-auth-modal__title" data-hyc-en hidden>Create account</h2>
-        <p class="yb-auth-modal__subtitle" data-hyc-da>Det tager kun et minut</p>
-        <p class="yb-auth-modal__subtitle" data-hyc-en hidden>It only takes a minute</p>
+        <h2 class="yb-auth-modal__title" data-hyc-da>Opret din profil</h2>
+        <h2 class="yb-auth-modal__title" data-hyc-en hidden>Create your profile</h2>
+        <p class="yb-auth-modal__subtitle" data-hyc-da>Det tager kun et minut &mdash; ny eller eksisterende klient</p>
+        <p class="yb-auth-modal__subtitle" data-hyc-en hidden>Takes just a minute &mdash; new or existing client</p>
       </div>
 
       <form id="yb-auth-register-form" class="yb-auth-form" novalidate>
@@ -124,8 +125,10 @@
           <label for="yb-register-email" data-hyc-da>Email</label>
           <label for="yb-register-email" data-hyc-en hidden>Email</label>
           <input type="email" id="yb-register-email" required autocomplete="email" placeholder="din@email.dk">
-          <small class="yb-auth-hint" data-hyc-da>Allerede klient? Brug den samme email som du booker med</small>
-          <small class="yb-auth-hint" data-hyc-en hidden>Already a client? Use the same email you book with</small>
+          <div class="yb-auth-notice" style="margin-top:6px">
+            <p data-hyc-da>Allerede klient? Brug <strong>samme email</strong> som du booker med &mdash; vi kobler automatisk din konto.</p>
+            <p data-hyc-en hidden>Already a client? Use the <strong>same email</strong> you book with &mdash; we'll automatically link your account.</p>
+          </div>
         </div>
         <div class="yb-auth-field">
           <label for="yb-register-password" data-hyc-da>Adgangskode</label>
@@ -202,11 +205,17 @@
       <div class="yb-profile__guest-inner">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6F6A66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <h2 class="yb-profile__guest-title" data-t="not_logged_in_title">Du er ikke logget ind</h2>
-        <p class="yb-profile__guest-text" data-t="not_logged_in_text">Log ind eller opret en konto for at se din profil.</p>
+        <p class="yb-profile__guest-text" data-t="not_logged_in_text">Log ind eller opret en profil for at se dit skema, klippekort og medlemskab.</p>
+        <p class="yb-profile__guest-text" style="font-size:0.85rem;color:#3f99a5;margin-top:4px" data-hyc-da>Allerede klient? Opret profil med samme email &mdash; vi finder din konto automatisk.</p>
+        <p class="yb-profile__guest-text" style="font-size:0.85rem;color:#3f99a5;margin-top:4px" data-hyc-en hidden>Already a client? Create a profile with the same email &mdash; we'll find your account automatically.</p>
         <div class="yb-profile__guest-actions">
           <button class="yb-btn yb-btn--primary" type="button" data-yb-auth-open="login" data-t="login_btn">Log ind</button>
           <button class="yb-btn yb-btn--outline" type="button" data-yb-auth-open="register" data-t="register_btn">Opret konto</button>
         </div>
+        <a href="https://hotyogacph.dk" style="margin-top:20px;color:#3f99a5;font-size:0.85rem;text-decoration:none;display:inline-flex;align-items:center;gap:5px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          <span data-hyc-da>Tilbage til website</span><span data-hyc-en hidden>Back to website</span>
+        </a>
       </div>
     </div>
 
@@ -219,6 +228,10 @@
           <div class="yb-profile__hero-top">
             <span class="yb-profile__hero-logo">Hot Yoga Copenhagen</span>
             <div class="yb-profile__hero-actions">
+              <a href="https://hotyogacph.dk" class="yb-profile__hero-back" data-t="btn_back_to_site">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                <span data-hyc-da>Tilbage til website</span><span data-hyc-en hidden>Back to website</span>
+              </a>
               <div class="hyc-ecosystem">
                 <span class="hyc-ecosystem__dot"></span>
                 <span class="hyc-ecosystem__text">Yoga Bible ecosystem</span>
@@ -1110,9 +1123,9 @@ window.HYC_I18N = {
      ═══════════════════════════════════════════════════════════════ -->
 
 <!-- Firebase SDK (compat v10.14.1) -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js"></script>
 
 <!-- App scripts -->
 <script src="/js/firebase-auth.js"></script>

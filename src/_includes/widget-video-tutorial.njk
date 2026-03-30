@@ -26,7 +26,7 @@
   <div class="yvt-preview" id="yvt-preview">
     <button class="yvt-preview__thumb" id="yvt-thumb" type="button" aria-label="Afspil video guide">
       <img
-        src="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_496,h_280,c_fill,f_auto,q_auto/{{ videoTutorial.cloudinaryId }}.jpg"
+        src="{{ mediaBase }}/{{ videoTutorial.cloudinaryId }}.jpg"
         alt=""
         width="248"
         height="140"
@@ -54,7 +54,7 @@
         controls
         playsinline
         preload="none"
-        poster="https://res.cloudinary.com/ddcynsa30/video/upload/so_1,w_640,h_360,c_fill,f_auto,q_auto/{{ videoTutorial.cloudinaryId }}.jpg"
+        poster="{{ mediaBase }}/{{ videoTutorial.cloudinaryId }}.jpg"
       ></video>
     </div>
     <div class="yvt-player__bar">
@@ -80,7 +80,7 @@
 {% if not videoTutorial.explainer %}
 <script>
   window.__yvt = {
-    src: 'https://res.cloudinary.com/ddcynsa30/video/upload/f_auto,q_auto/{{ videoTutorial.cloudinaryId }}.mp4',
+    src: '{{ mediaBase }}/{{ videoTutorial.cloudinaryId }}.mp4',
     delay: {{ videoTutorial.delay or 3000 }}
   };
 </script>

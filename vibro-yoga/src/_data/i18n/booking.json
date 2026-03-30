@@ -1,0 +1,82 @@
+{
+  "da": {
+    "hero_eyebrow": "BOOKING",
+    "hero_title": "Book Din Session",
+    "hero_subtitle": "Vælg din oplevelse og find den tid, der passer dig.",
+
+    "widget_eyebrow": "LEDIGE TIDER",
+    "widget_title": "Tilgængelige Sessioner",
+    "widget_text": "Vælg en session herunder for at booke via vores bookingsystem.",
+
+    "steps_eyebrow": "SÅ NEMT ER DET",
+    "steps_title": "Sådan Booker Du",
+    "steps_subtitle": "Tre enkle trin fra skærm til studiet.",
+    "step1_number": "01",
+    "step1_title": "Vælg",
+    "step1_text": "Gennemse vores sessioner og find et tidspunkt, der passer dig.",
+    "step2_number": "02",
+    "step2_title": "Book",
+    "step2_text": "Bekræft din plads med det samme — ingen ventetid.",
+    "step3_number": "03",
+    "step3_title": "Mød Op",
+    "step3_text": "Kom 10 minutter før, så klarer vi resten.",
+
+    "prep_eyebrow": "FØR DIN SESSION",
+    "prep_title": "Sådan Forbereder Du Dig",
+    "prep1_title": "Ankomst",
+    "prep1_text": "Kom 10 minutter før din session starter, så du kan falde til ro.",
+    "prep2_title": "Påklædning",
+    "prep2_text": "Bær behageligt, løstsiddende tøj du kan bevæge dig frit i.",
+    "prep3_title": "Hydrering",
+    "prep3_text": "Drik rigeligt vand inden din session for optimal oplevelse.",
+    "prep4_title": "Udstyr",
+    "prep4_text": "Alt er inkluderet — måtte, håndklæde, tæppe og pude.",
+    "prep5_title": "Faciliteter",
+    "prep5_text": "Omklædningsrum og toilet er tilgængeligt i studiet.",
+
+    "cta_title": "Privat Session eller Event?",
+    "cta_text": "Book en eksklusiv oplevelse for dig selv eller din gruppe. Vi skræddersyr sessionen til jeres behov.",
+    "cta_btn": "Kontakt Os",
+    "cta_btn2": "Se Priser"
+  },
+  "en": {
+    "hero_eyebrow": "BOOKING",
+    "hero_title": "Book Your Session",
+    "hero_subtitle": "Choose your experience and find a time that works for you.",
+
+    "widget_eyebrow": "AVAILABLE TIMES",
+    "widget_title": "Available Sessions",
+    "widget_text": "Select a session below to book through our booking system.",
+
+    "steps_eyebrow": "IT'S THAT EASY",
+    "steps_title": "How It Works",
+    "steps_subtitle": "Three simple steps from screen to studio.",
+    "step1_number": "01",
+    "step1_title": "Choose",
+    "step1_text": "Browse our sessions and find a time that suits you.",
+    "step2_number": "02",
+    "step2_title": "Book",
+    "step2_text": "Confirm your spot instantly — no waiting required.",
+    "step3_number": "03",
+    "step3_title": "Show Up",
+    "step3_text": "Arrive 10 minutes early, and we'll take care of the rest.",
+
+    "prep_eyebrow": "BEFORE YOUR SESSION",
+    "prep_title": "How to Prepare",
+    "prep1_title": "Arrival",
+    "prep1_text": "Arrive 10 minutes before your session to settle in comfortably.",
+    "prep2_title": "Clothing",
+    "prep2_text": "Wear comfortable, loose-fitting clothing you can move freely in.",
+    "prep3_title": "Hydration",
+    "prep3_text": "Drink plenty of water before your session for the best experience.",
+    "prep4_title": "Equipment",
+    "prep4_text": "Everything is included — mat, towel, blanket, and pillow.",
+    "prep5_title": "Facilities",
+    "prep5_text": "Changing rooms and restrooms are available in the studio.",
+
+    "cta_title": "Private Session or Event?",
+    "cta_text": "Book an exclusive experience for yourself or your group. We tailor the session to your needs.",
+    "cta_btn": "Contact Us",
+    "cta_btn2": "See Prices"
+  }
+}

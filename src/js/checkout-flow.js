@@ -48,11 +48,36 @@
     ],
     en: [
       'Secure your spot in the program',
-      'Start booking classes immediately',
-      'Classes count toward your training hours',
+      'Access to structured preparation materials',
+      'Personal guidance from your course director',
       'Prepare body and mind — join the community early',
-      'Class access included — save on a separate membership'
+      'Flexible payment plan for the remaining balance'
     ]
+  };
+
+  // International schedule page overrides (page-based, not product-based)
+  var isInternationalSchedulePage = window.location.pathname.indexOf('/schedule/4-weeks-july-plan') !== -1 || window.location.pathname.indexOf('/skema/4-uger-juli-plan') !== -1;
+
+  var INTL_BENEFITS = {
+    en: [
+      'Secure your spot in the July cohort',
+      'We help you find accommodation in Copenhagen',
+      'Start preparing travel, flights & logistics',
+      'Access to preparation materials and community',
+      'Refundable if the course is cancelled by Yoga Bible'
+    ],
+    da: [
+      'Sikr din plads på juli-holdet',
+      'Vi hjælper dig med at finde bolig i København',
+      'Start med at forberede rejse, fly og logistik',
+      'Adgang til forberedelsesmaterialer og fællesskab',
+      'Refunderbar hvis kurset aflyses af Yoga Bible'
+    ]
+  };
+
+  var INTL_REMAINING_NOTE = {
+    da: 'Restbeløbet er 20.000 DKK og afregnes inden uddannelsesstart — enten som engangsbeløb eller i rater. Din uddannelsesleder vil kontakte dig med alle detaljer og næste skridt.',
+    en: 'The remaining balance is 20,000 DKK (~2,680 EUR) and is settled before training starts — either in full or in instalments. Your course director will be in touch with all the details and next steps.'
   };
 
   // ── State ──
@@ -86,6 +111,10 @@
   function openModal() {
     modal = $('ycf-modal');
     if (!modal) return;
+
+    // Apply language visibility to modal elements
+    modal.querySelectorAll('[data-yj-da]').forEach(function (el) { el.hidden = !isDa; });
+    modal.querySelectorAll('[data-yj-en]').forEach(function (el) { el.hidden = isDa; });
 
     scrollY = window.scrollY;
     document.documentElement.style.overflow = 'hidden';
@@ -150,13 +179,29 @@
     if (badgePrice) badgePrice.textContent = price;
 
     // Cohort / period chip
+    var cohortParts = [];
+    if (p.category === 'teacher') cohortParts.push(t('Forberedelsesfasen', 'Preparation Phase'));
+    if (p.period_da) cohortParts.push(isDa ? p.period_da : p.period_en);
+    if (p.format_da) cohortParts.push(isDa ? p.format_da : p.format_en);
+    var cohortText = cohortParts.join(' · ');
     if (badgeCohort) {
-      var cohortParts = [];
-      if (p.category === 'teacher') cohortParts.push(t('Forberedelsesfasen', 'Preparation Phase'));
-      if (p.period_da) cohortParts.push(isDa ? p.period_da : p.period_en);
-      if (p.format_da) cohortParts.push(isDa ? p.format_da : p.format_en);
-      badgeCohort.textContent = cohortParts.join(' · ');
+      badgeCohort.textContent = cohortText;
       badgeCohort.hidden = cohortParts.length === 0;
+    }
+
+    // Register step badge (compact summary)
+    var regBadge = $('ycf-register-badge');
+    var regBadgeName = $('ycf-reg-badge-name');
+    var regBadgePrice = $('ycf-reg-badge-price');
+    var regBadgeCohort = $('ycf-reg-badge-cohort');
+    if (regBadge) {
+      if (regBadgeName) regBadgeName.textContent = name;
+      if (regBadgePrice) regBadgePrice.textContent = price;
+      if (regBadgeCohort) {
+        regBadgeCohort.textContent = cohortText;
+        regBadgeCohort.hidden = cohortParts.length === 0;
+      }
+      regBadge.hidden = false;
     }
 
     // Checkout step product card
@@ -189,8 +234,8 @@
     // Prep phase benefits (teacher training only)
     var prodBenefits = $('ycf-prod-benefits');
     if (prodBenefits && p.category === 'teacher') {
-      var benefits = isDa ? PREP_BENEFITS.da : PREP_BENEFITS.en;
-      prodBenefits.innerHTML = benefits.map(function (b) {
+      var benefitSrc = isInternationalSchedulePage ? (isDa ? INTL_BENEFITS.da : INTL_BENEFITS.en) : (isDa ? PREP_BENEFITS.da : PREP_BENEFITS.en);
+      prodBenefits.innerHTML = benefitSrc.map(function (b) {
         return '<li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>' + b + '</span></li>';
       }).join('');
       prodBenefits.hidden = false;
@@ -200,7 +245,8 @@
 
     // Remaining payment note (teacher training only)
     if (prodNote && prodNoteText && p.category === 'teacher') {
-      prodNoteText.textContent = isDa ? REMAINING_NOTE.da : REMAINING_NOTE.en;
+      var noteSrc = isInternationalSchedulePage ? INTL_REMAINING_NOTE : REMAINING_NOTE;
+      prodNoteText.textContent = isDa ? noteSrc.da : noteSrc.en;
       prodNote.hidden = false;
     } else if (prodNote) {
       prodNote.hidden = true;
@@ -305,6 +351,18 @@
 
         // Track checkout opened
         if (window.CheckoutFunnel) window.CheckoutFunnel.trackCheckoutOpened();
+
+        // Notify tracking that checkout was initiated (for Meta + Google Ads conversion events)
+        var checkoutProduct = getProduct(currentProdId);
+        window.dispatchEvent(new CustomEvent('ybCheckoutInitiated', {
+          detail: {
+            prodId: currentProdId,
+            productName: checkoutProduct ? (isDa ? checkoutProduct.name_da : checkoutProduct.name_en) : '',
+            productCategory: checkoutProduct ? checkoutProduct.category : '',
+            value: checkoutProduct ? checkoutProduct.price : 0,
+            currency: 'DKK'
+          }
+        }));
 
         // Advance to checkout step
         showStep('ycf-step-checkout');
@@ -543,8 +601,19 @@
         // Track purchase
         if (window.CheckoutFunnel) window.CheckoutFunnel.trackPurchased();
 
-        // Notify apply form (or any listener) that payment succeeded
-        window.dispatchEvent(new CustomEvent('ybCheckoutSuccess', { detail: { prodId: currentProdId } }));
+        // Notify tracking + apply form that payment succeeded (includes full product + user data for conversion tracking)
+        var purchasedProduct = getProduct(currentProdId);
+        var purchaseUser = firebase.auth().currentUser;
+        window.dispatchEvent(new CustomEvent('ybCheckoutSuccess', {
+          detail: {
+            prodId: currentProdId,
+            productName: purchasedProduct ? (isDa ? purchasedProduct.name_da : purchasedProduct.name_en) : '',
+            productCategory: purchasedProduct ? purchasedProduct.category : '',
+            value: purchasedProduct ? purchasedProduct.price : 0,
+            currency: 'DKK',
+            email: purchaseUser ? purchaseUser.email : ''
+          }
+        }));
 
         // Update success step content based on product
         var prod = currentProdId ? getProduct(currentProdId) : null;

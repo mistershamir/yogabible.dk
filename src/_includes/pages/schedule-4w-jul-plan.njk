@@ -1,0 +1,516 @@
+{% set t = i18n.schedule_4w_jul_plan[lang or "en"] %}
+{% if not t %}{% set t = i18n.schedule_4w_jul_plan["en"] %}{% endif %}
+
+<style>
+  .s4wjp-explore-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:16px; }
+  @media (max-width:700px) {
+    .s4wjp-explore-grid { grid-template-columns:1fr;max-width:340px;margin:0 auto; }
+  }
+</style>
+
+<section id="schedule-4w-jul-plan">
+
+  {# ── HERO (Copenhagen, Denmark prominent) ───────────── #}
+  <div style="background:#0F0F0F;color:#fff;padding:clamp(80px,12vw,160px) 24px clamp(60px,8vw,100px);text-align:center;">
+    <div style="max-width:640px;margin:0 auto;">
+      <p style="font-size:clamp(2.5rem,8vw,4.5rem);font-weight:700;line-height:1.1;padding-bottom:0.12em;background:linear-gradient(135deg,#f75c03,#ff9966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0 0 16px;">{{ t.heroTitle }}</p>
+      <p style="font-size:clamp(1.25rem,3.5vw,1.8rem);font-weight:700;color:#fff;letter-spacing:-.015em;line-height:1.2;margin:0 0 12px;">{{ t.heroSubtitle }}</p>
+      <p style="font-size:.95rem;color:rgba(255,255,255,.4);letter-spacing:.04em;">{{ t.heroPeriod }}</p>
+      <p style="font-size:.82rem;color:rgba(255,255,255,.3);margin-top:8px;">{{ t.heroLocation }}</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
+        <button onclick="openBookingModal('consultation')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</button>
+        <button onclick="startCheckoutFunnel('100211')" style="background:#f75c03;color:#fff;border:none;padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
+      </div>
+    </div>
+  </div>
+
+  {# ── STATS BAR ──────────────────────────────────────── #}
+  <div style="background:#F5F3F0;padding:28px 24px;border-bottom:1px solid #E8E4E0;">
+    <div style="max-width:700px;margin:0 auto;">
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;">
+        <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillYA }}</span>
+        <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillPeriod }}</span>
+        <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillFocus }}</span>
+        <span style="background:#FFF0E6;color:#f75c03;padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:600;border:1px solid rgba(247,92,3,.2);">{{ t.pillIntl }}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;">
+        <div>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">4</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">{{ t.statWeeks }}</p>
+        </div>
+        <div>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">21</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">{{ t.statDays }}</p>
+        </div>
+        <div>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">200+</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">{{ t.statHours }}</p>
+        </div>
+        <div>
+          <span style="font-size:1.8rem;font-weight:700;color:#f75c03;">{{ t.statCertDate }}</span>
+          <p style="font-size:.82rem;color:#6F6A66;margin-top:4px;">{{ t.certificationLabel }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── WELCOME ────────────────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:48px 24px 0;">
+    <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:16px;">{{ t.welcomeTitle }}</h2>
+    <p style="font-size:.95rem;color:#0F0F0F;line-height:1.65;margin-bottom:16px;">{{ t.welcomeP1 }}</p>
+    <p style="font-size:.95rem;color:#0F0F0F;line-height:1.65;">{{ t.welcomeP2 }}</p>
+  </div>
+
+  {# ── VINYASA PLUS EXPLAINER ─────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:40px 24px 0;">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:12px;">{{ t.vpTitle }}</h2>
+    <p style="font-size:.92rem;color:#6F6A66;margin-bottom:16px;">{{ t.vpDesc }}</p>
+    <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
+      <li style="display:flex;align-items:flex-start;gap:10px;">
+        <span style="color:#f75c03;font-size:1.1rem;line-height:1.3;flex-shrink:0;">&#9679;</span>
+        <span style="font-size:.9rem;line-height:1.5;">{{ t.vpFlow | safe }}</span>
+      </li>
+      <li style="display:flex;align-items:flex-start;gap:10px;">
+        <span style="color:#f75c03;font-size:1.1rem;line-height:1.3;flex-shrink:0;">&#9679;</span>
+        <span style="font-size:.9rem;line-height:1.5;">{{ t.vpYin | safe }}</span>
+      </li>
+    </ul>
+    <p style="font-size:.88rem;color:#0F0F0F;margin-top:14px;font-weight:600;">{{ t.vpCert }}</p>
+  </div>
+
+  {# ── PLAN YOUR TRIP TIMELINE ────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:48px 24px 0;">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:24px;">{{ t.timelineTitle }}</h2>
+    {% set timeline = [
+      { date: t.timelineItem1Date, text: t.timelineItem1Text },
+      { date: t.timelineItem2Date, text: t.timelineItem2Text },
+      { date: t.timelineItem3Date, text: t.timelineItem3Text },
+      { date: t.timelineItem4Date, text: t.timelineItem4Text },
+      { date: t.timelineItem5Date, text: t.timelineItem5Text }
+    ] %}
+    <div style="position:relative;padding-left:40px;">
+      <div style="position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,#f75c03,#ff9966,#2ecc71);"></div>
+      {% for item in timeline %}
+      <div style="position:relative;margin-bottom:{% if loop.last %}0{% else %}28px{% endif %};">
+        <div style="position:absolute;left:-40px;top:4px;width:24px;height:24px;background:{% if loop.last %}#2ecc71{% else %}#f75c03{% endif %};border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px {% if loop.last %}#2ecc71{% else %}#f75c03{% endif %};display:flex;align-items:center;justify-content:center;">
+          {% if loop.last %}<span style="color:#fff;font-size:.7rem;">&#10003;</span>{% else %}<span style="color:#fff;font-size:.65rem;font-weight:700;">{{ loop.index }}</span>{% endif %}
+        </div>
+        <p style="font-size:.78rem;font-weight:700;color:#f75c03;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">{{ item.date }}</p>
+        <p style="font-size:.92rem;color:#0F0F0F;line-height:1.4;">{{ item.text }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── ACCOMMODATION (accordions) ───────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:48px 24px 0;">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:8px;">{{ t.accomTitle }}</h2>
+    <p style="font-size:.92rem;color:#6F6A66;margin-bottom:20px;">{{ t.accomDesc }}</p>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      {% set accomOptions = [
+        { title: t.accomOpt1Title, desc: t.accomOpt1Desc },
+        { title: t.accomOpt2Title, desc: t.accomOpt2Desc },
+        { title: t.accomOpt3Title, desc: t.accomOpt3Desc },
+        { title: t.accomOpt4Title, desc: t.accomOpt4Desc }
+      ] %}
+      {% for opt in accomOptions %}
+      <details style="background:#F5F3F0;border-radius:12px;overflow:hidden;"{% if loop.first %} open{% endif %}>
+        <summary style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;list-style:none;-webkit-appearance:none;">
+          <span style="font-weight:700;font-size:.9rem;color:#0F0F0F;">{{ opt.title }}</span>
+          <span style="color:#f75c03;background:#FFF0E6;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;flex-shrink:0;transition:transform .25s;">+</span>
+        </summary>
+        <div style="padding:0 18px 16px;">
+          <p style="font-size:.88rem;color:#6F6A66;line-height:1.6;">{{ opt.desc }}</p>
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+    <p style="font-size:.85rem;color:#6F6A66;margin-top:16px;line-height:1.5;">{{ t.accomCta }} <a href="mailto:info@yogabible.dk" style="color:#f75c03;text-decoration:underline;">info@yogabible.dk</a> · <a href="tel:+4553881209" style="color:#f75c03;text-decoration:underline;">+45 53 88 12 09</a></p>
+  </div>
+
+  {# ── LIFE IN COPENHAGEN ─────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:48px 24px 0;">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:20px;">{{ t.cphTitle }}</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      {% set cphItems = [
+        { title: t.cphItem1Title, desc: t.cphItem1Desc },
+        { title: t.cphItem2Title, desc: t.cphItem2Desc },
+        { title: t.cphItem3Title, desc: t.cphItem3Desc, address: t.cphItem3Address },
+        { title: t.cphItem4Title, desc: t.cphItem4Desc }
+      ] %}
+      {% for item in cphItems %}
+      <div style="background:#F5F3F0;border-radius:14px;padding:18px;">
+        <div style="width:32px;height:32px;background:#FFF0E6;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+          <span style="color:#f75c03;font-size:.85rem;font-weight:700;">{{ loop.index }}</span>
+        </div>
+        <p style="font-weight:700;font-size:.88rem;margin:0 0 4px;">{{ item.title }}</p>
+        <p style="font-size:.82rem;color:#6F6A66;line-height:1.5;">{{ item.desc }}</p>
+        {% if item.address %}
+        <a href="https://maps.google.com/?q=Torvegade+66,+1400+Copenhagen,+Denmark" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;font-size:.8rem;color:#f75c03;text-decoration:underline;margin-top:6px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          {{ item.address }}
+        </a>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── EXPLORE MORE (3 Video Boxes) ──────────────────── #}
+  <div style="padding:48px 24px 0;">
+    <div style="max-width:900px;margin:0 auto;">
+      <p style="font-size:.72rem;font-weight:600;letter-spacing:.08em;color:#f75c03;text-align:center;margin:0 0 24px;">{{ t.exploreEyebrow }}</p>
+      <div class="s4wjp-explore-grid">
+
+        {# Box 1 — The Program #}
+        <a href="{% if lang == 'en' %}/en/200-hours-4-weeks-intensive-programs/{% else %}/200-timers-4-ugers-intensiv-programmer/{% endif %}" target="_blank" rel="noopener" style="text-decoration:none;display:block;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:#0F0F0F;">
+          <video autoplay muted loop playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;">
+            <source src="{{ mediaBase }}/v1773250556/4_weeks_hero_compressed_a5w707.mp4" type="video/mp4">
+          </video>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,rgba(0,0,0,.1) 60%);"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;">
+            <p style="font-size:.65rem;font-weight:600;letter-spacing:.08em;color:#ff9966;margin:0 0 6px;">{{ t.exploreBox1Eyebrow }}</p>
+            <p style="font-size:1.1rem;font-weight:700;color:#fff;line-height:1.2;margin:0 0 6px;">{{ t.exploreBox1Title }}</p>
+            <p style="font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.4;margin:0 0 10px;">{{ t.exploreBox1Desc }}</p>
+            <span style="font-size:.78rem;font-weight:600;color:#f75c03;display:inline-flex;align-items:center;gap:4px;">{{ t.exploreBox1Cta }} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+          </div>
+        </a>
+
+        {# Box 2 — Copenhagen #}
+        <a href="{% if lang == 'en' %}/en/about-copenhagen/{% else %}/om-koebenhavn/{% endif %}" target="_blank" rel="noopener" style="text-decoration:none;display:block;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:#0F0F0F;">
+          <video autoplay muted loop playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;">
+            <source src="{{ "yoga-bible-DK/copenhagen/about-copenhagen-hero-loop" | cloudvid("w_800,q_auto") }}" type="video/mp4">
+          </video>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,rgba(0,0,0,.1) 60%);"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;">
+            <p style="font-size:.65rem;font-weight:600;letter-spacing:.08em;color:#ff9966;margin:0 0 6px;">{{ t.exploreBox2Eyebrow }}</p>
+            <p style="font-size:1.1rem;font-weight:700;color:#fff;line-height:1.2;margin:0 0 6px;">{{ t.exploreBox2Title }}</p>
+            <p style="font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.4;margin:0 0 10px;">{{ t.exploreBox2Desc }}</p>
+            <span style="font-size:.78rem;font-weight:600;color:#f75c03;display:inline-flex;align-items:center;gap:4px;">{{ t.exploreBox2Cta }} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+          </div>
+        </a>
+
+        {# Box 3 — Accommodation #}
+        <a href="{% if lang == 'en' %}/en/accommodation/{% else %}/overnatning/{% endif %}" target="_blank" rel="noopener" style="text-decoration:none;display:block;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:#0F0F0F;">
+          <video autoplay muted loop playsinline preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;">
+            <source src="{{ "yoga-bible-DK/accommodation/accommodation-hero-loop" | cloudvid("w_800,q_auto") }}" type="video/mp4">
+          </video>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,rgba(0,0,0,.1) 60%);"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;">
+            <p style="font-size:.65rem;font-weight:600;letter-spacing:.08em;color:#ff9966;margin:0 0 6px;">{{ t.exploreBox3Eyebrow }}</p>
+            <p style="font-size:1.1rem;font-weight:700;color:#fff;line-height:1.2;margin:0 0 6px;">{{ t.exploreBox3Title }}</p>
+            <p style="font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.4;margin:0 0 10px;">{{ t.exploreBox3Desc }}</p>
+            <span style="font-size:.78rem;font-weight:600;color:#f75c03;display:inline-flex;align-items:center;gap:4px;">{{ t.exploreBox3Cta }} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f75c03" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </div>
+
+  {# ── GETTING HERE (Travel & Visa) ──────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:40px 24px 0;">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:12px;">{{ t.travelTitle }}</h2>
+    <p style="font-size:.92rem;color:#0F0F0F;line-height:1.65;margin-bottom:12px;">{{ t.travelDesc }}</p>
+    <p style="font-size:.88rem;color:#6F6A66;line-height:1.55;">{{ t.travelVisa }}</p>
+  </div>
+
+  {# ── WHAT TO BRING ──────────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:40px 24px 0;">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:16px;">{{ t.whatToBringTitle }}</h2>
+    <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;">
+      {% set bringItems = [t.bringItem1, t.bringItem2, t.bringItem3, t.bringItem4, t.bringItem5] %}
+      {% for item in bringItems %}
+      <li style="display:flex;align-items:center;gap:10px;font-size:.9rem;">
+        <span style="color:#2ecc71;font-size:.9rem;flex-shrink:0;">&#10003;</span>
+        {{ item }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {# ── FELLOW STUDENTS ────────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:40px 24px 0;">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:12px;">{{ t.fellowTitle }}</h2>
+    <p style="font-size:.92rem;color:#0F0F0F;line-height:1.65;">{{ t.fellowDesc }}</p>
+  </div>
+
+  {# ── PREPARATION PHASE ─────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:48px 24px 0;">
+    <div style="background:#FFFCF9;border:1.5px solid #f75c03;border-radius:16px;padding:28px 24px;">
+      <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:#f75c03;font-weight:700;margin-bottom:4px;">{{ t.prepSubtitle }}</p>
+      <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:12px;">{{ t.prepTitle }}</h2>
+      <p style="font-size:.92rem;color:#6F6A66;line-height:1.55;margin-bottom:16px;">{{ t.prepDesc }}</p>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:16px;">
+        <span style="font-size:1.6rem;font-weight:700;color:#f75c03;">{{ t.prepPrice }}</span>
+        <span style="font-size:.82rem;color:#6F6A66;">{{ t.prepPriceNote }}</span>
+      </div>
+      <p style="font-size:.82rem;font-weight:700;margin-bottom:10px;">{{ t.prepIncludes }}</p>
+      <ul style="list-style:none;padding:0;margin:0 0 16px;display:flex;flex-direction:column;gap:6px;">
+        {% set prepItems = [t.prepItem1, t.prepItem2, t.prepItem3, t.prepItem4, t.prepItem5] %}
+        {% for item in prepItems %}
+        <li style="display:flex;align-items:flex-start;gap:8px;font-size:.85rem;line-height:1.4;">
+          <span style="color:#2ecc71;flex-shrink:0;">&#10003;</span>
+          {{ item }}
+        </li>
+        {% endfor %}
+      </ul>
+      <p style="font-size:.8rem;color:#6F6A66;line-height:1.5;margin-bottom:20px;">{{ t.prepRemaining }}</p>
+      <button onclick="startCheckoutFunnel('100211')" style="background:#f75c03;color:#fff;border:none;padding:13px 28px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.prepCta }}</button>
+    </div>
+  </div>
+
+  {# ── SCHEDULE SECTION HEADER ────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:48px 24px 0;">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:8px;">{{ t.scheduleTitle }}</h2>
+    <p style="font-size:.92rem;color:#6F6A66;margin-bottom:0;">{{ t.scheduleDesc }}</p>
+  </div>
+
+  {# ── HOURS BREAKDOWN ──────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:32px 24px 0;">
+    <p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#6F6A66;font-weight:700;margin-bottom:16px;">{{ t.hoursTitle }}</p>
+    {% set hoursData4jul = [
+      { pct: 13.5, hours: 27, color: "#f75c03", key: "hLabel0" },
+      { pct: 20,   hours: 40, color: "#ff9966", key: "hLabel1" },
+      { pct: 22,   hours: 44, color: "#1a1a1a", key: "hLabel2" },
+      { pct: 8,    hours: 16, color: "#3d3d3d", key: "hLabel3" },
+      { pct: 6,    hours: 12, color: "#666666", key: "hLabel4" },
+      { pct: 6,    hours: 12, color: "#6F6A66", key: "hLabel5" },
+      { pct: 7,    hours: 14, color: "#ffb380", key: "hLabel6" },
+      { pct: 5.5,  hours: 11, color: "#ffd5b8", key: "hLabel7" },
+      { pct: 10,   hours: 20, color: "#E8E4E0", key: "hLabel8" },
+      { pct: 2,    hours: 4,  color: "#F0EDEA", key: "hLabel9" }
+    ] %}
+    <div style="height:22px;border-radius:50px;overflow:hidden;display:flex;gap:2px;margin-bottom:20px;">
+      {% for h in hoursData4jul %}
+      <div style="flex:{{ h.pct }};background:{{ h.color }};" title="{{ t[h.key] }} — {{ h.hours }}h"></div>
+      {% endfor %}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;">
+      {% for h in hoursData4jul %}
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:3px;background:{{ h.color }};flex-shrink:0;{% if h.color == '#E8E4E0' or h.color == '#F0EDEA' %}border:1px solid #ccc;{% endif %}"></span>
+        <span style="font-size:.78rem;color:#0F0F0F;flex:1;">{{ t[h.key] }}</span>
+        <span style="font-size:.78rem;font-weight:700;color:#0F0F0F;">{{ h.hours }}h</span>
+      </div>
+      {% endfor %}
+    </div>
+    <p style="font-size:.72rem;color:#6F6A66;text-align:right;margin-top:10px;font-style:italic;">{{ t.hoursTotal }}</p>
+  </div>
+
+  {# ── SCHEDULE BODY ─────────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:40px 24px 0;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:24px;">
+      <button style="display:inline-flex;align-items:center;gap:6px;background:none;color:#6F6A66;border:1.5px solid #E8E4E0;padding:8px 16px;border-radius:50px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#f75c03';this.style.color='#f75c03'" onmouseleave="this.style.borderColor='#E8E4E0';this.style.color='#6F6A66'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        {{ t.calendarBtn }}
+      </button>
+    </div>
+
+    {% set months4wJul = [
+      { name_en: "July", year: "2026", weeks: [
+        { num: 1, label_en: "Introduction", range_en: "Jul 6–12", days: [
+          { dn: "6",  dd_en: "Mon", time: "09:00–15:00", topic_en: "Vinyasa Flow & Creative Sequencing — Introduction", type: "workshop" },
+          { dn: "7",  dd_en: "Tue", time: "10:00–16:00", topic_en: "Yin Yoga & Recovery — Introduction", type: "workshop" },
+          { dn: "9",  dd_en: "Thu", time: "10:00–16:00", topic_en: "Vinyasa Flow & Class Management", type: "workshop" },
+          { dn: "11", dd_en: "Sat", time: "13:00–18:00", topic_en: "Yoga Anatomy", type: "workshop" },
+          { dn: "12", dd_en: "Sun", time: "14:00–18:00", topic_en: "Yoga Philosophy 01 — Online", type: "online" }
+        ]},
+        { num: 2, range_en: "Jul 13–19", days: [
+          { dn: "13", dd_en: "Mon", time: "09:00–15:00", topic_en: "Vinyasa Flow & Creative Sequencing", type: "workshop" },
+          { dn: "14", dd_en: "Tue", time: "10:00–16:00", topic_en: "Hot Yoga & Heated Vinyasa", type: "workshop" },
+          { dn: "15", dd_en: "Wed", time: "10:00–15:00", topic_en: "Vinyasa Flow & Class Management", type: "workshop" },
+          { dn: "16", dd_en: "Thu", time: "10:00–16:00", topic_en: "Yin Yoga & Recovery", type: "workshop" },
+          { dn: "18", dd_en: "Sat", time: "13:00–18:00", topic_en: "Yoga Anatomy", type: "workshop" },
+          { dn: "19", dd_en: "Sun", time: "13:00–17:00", topic_en: "Yoga Philosophy 02 — Online", type: "online" }
+        ]},
+        { num: 3, range_en: "Jul 20–26", days: [
+          { dn: "20", dd_en: "Mon", time: "10:00–15:00", topic_en: "Vinyasa Flow & Creative Sequencing", type: "workshop" },
+          { dn: "21", dd_en: "Tue", time: "10:00–16:00", topic_en: "Hot Yoga & Heated Vinyasa", type: "workshop" },
+          { dn: "23", dd_en: "Thu", time: "10:00–16:00", topic_en: "Yin Yoga & Recovery", type: "workshop" },
+          { dn: "24", dd_en: "Fri", time: "11:00–16:00", topic_en: "Vinyasa Flow & Class Management", type: "workshop" },
+          { dn: "25", dd_en: "Sat", time: "13:00–18:00", topic_en: "Yoga Anatomy", type: "workshop" },
+          { dn: "26", dd_en: "Sun", time: "13:00–17:00", topic_en: "Yoga Philosophy 03 — Online", type: "online" }
+        ]},
+        { num: 4, label_en: "Exam & Graduation", range_en: "Jul 27 – 31", graduation: true, days: [
+          { dn: "27", dd_en: "Mon", time: "10:00–15:00", topic_en: "Vinyasa Flow & Creative Sequencing", type: "workshop" },
+          { dn: "28", dd_en: "Tue", time: "10:00–14:00", topic_en: "Business of Yoga", type: "workshop" },
+          { dn: "30", dd_en: "Thu", time: "10:00–16:00", topic_en: "Hot Yoga & Heated Vinyasa", type: "workshop" },
+          { dn: "31", dd_en: "Fri", time: "10:00–16:00", topic_en: "Vinyasa Flow & Yin Yoga — Exam + Graduation", type: "graduation" }
+        ]}
+      ]}
+    ] %}
+
+    {% for month in months4wJul %}
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:32px;{% if not loop.first %}margin-top:40px;{% endif %}">
+      <span style="font-size:3.4rem;font-weight:700;line-height:1;color:#0F0F0F;">{{ month.name_en }}</span>
+      <span style="font-size:1.1rem;color:#6F6A66;">{{ month.year }}</span>
+      <div style="flex:1;height:2px;background:linear-gradient(to right, #E8E4E0, transparent);margin-left:12px;"></div>
+    </div>
+
+    {% for week in month.weeks %}
+      {% if week.graduation %}
+      <details class="s4wjp-accordion" open style="margin-bottom:10px;">
+        <summary class="s4wjp-summary" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;list-style:none;-webkit-appearance:none;background:linear-gradient(135deg,#f0fff0,#e8f5e8);border:1.5px solid #2ecc71;border-radius:14px;transition:all .2s;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <span style="background:#2ecc71;color:#fff;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">{{ t.weekLabel }} {{ week.num }}</span>
+            <div>
+              <p style="font-weight:700;font-size:.92rem;color:#0F0F0F;">{{ week.label_en }}</p>
+              <p style="font-size:.75rem;color:#6F6A66;">{{ week.range_en }}</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:700;text-transform:uppercase;">{{ t.graduationBadge }}</span>
+            <span class="s4wjp-icon" style="background:#2ecc71;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:700;transition:transform .25s;flex-shrink:0;">+</span>
+          </div>
+        </summary>
+        <div style="padding:6px 22px 18px;background:#fff;border:1.5px solid #2ecc71;border-top:none;border-radius:0 0 14px 14px;margin-top:-1px;">
+          {% for day in week.days %}
+          <div style="display:flex;gap:16px;align-items:center;padding:12px 0;{% if not loop.last %}border-bottom:1px solid #F0EDE9;{% endif %}">
+            <div style="background:{% if day.type == 'graduation' %}#2ecc71{% elif day.type == 'exam' %}#0F0F0F{% else %}#f75c03{% endif %};color:#fff;width:46px;height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:1.1rem;font-weight:700;line-height:1;">{{ day.dn }}</span>
+              <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75;">{{ day.dd_en }}</span>
+            </div>
+            <div style="flex:1;">
+              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic_en }}</p>
+              <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ day.time }}</p>
+            </div>
+            {% if day.type == 'graduation' %}<span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.graduationLabel }}</span>{% elif day.type == 'exam' %}<span style="background:#FFF0E6;color:#f75c03;padding:3px 10px;border-radius:50px;font-size:.65rem;font-weight:600;text-transform:uppercase;">{{ t.examLabel }}</span>{% endif %}
+          </div>
+          {% endfor %}
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0 4px;color:#6F6A66;">
+            <span style="font-size:1.1rem;">→</span>
+            <span style="font-size:.85rem;font-style:italic;">Dinner & celebration with the group</span>
+          </div>
+        </div>
+      </details>
+      {% else %}
+      <details class="s4wjp-accordion" {% if week.num == 1 %}open{% endif %} style="margin-bottom:10px;">
+        <summary class="s4wjp-summary" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;list-style:none;-webkit-appearance:none;background:#fff;border:1px solid #E8E4E0;border-radius:14px;transition:all .2s;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <span style="background:#f75c03;color:#fff;font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:50px;letter-spacing:.06em;">{{ t.weekLabel }} {{ week.num }}</span>
+            <div>
+              <p style="font-weight:700;font-size:.92rem;color:#0F0F0F;">{% if week.label_en %}{{ week.label_en }}{% else %}{{ week.range_en }}{% endif %}</p>
+              <p style="font-size:.75rem;color:#6F6A66;">{{ week.days | length }} {{ t.daysLabel }}</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:.72rem;color:#6F6A66;font-weight:500;">{% for day in week.days %}{{ day.dd_en }}{% if not loop.last %} · {% endif %}{% endfor %}</span>
+            <span class="s4wjp-icon" style="background:#f75c03;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:700;transition:transform .25s;flex-shrink:0;">+</span>
+          </div>
+        </summary>
+        <div style="padding:6px 22px 18px;background:#fff;border:1px solid #E8E4E0;border-top:none;border-radius:0 0 14px 14px;margin-top:-1px;">
+          {% for day in week.days %}
+          <div style="display:flex;gap:16px;align-items:center;padding:12px 0;{% if not loop.last %}border-bottom:1px solid #F0EDE9;{% endif %}">
+            <div style="background:#f75c03;color:#fff;width:46px;height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;{% if day.type == 'online' %}box-shadow:0 0 0 2px #fff, 0 0 0 3px #f75c03;{% endif %}">
+              <span style="font-size:1.1rem;font-weight:700;line-height:1;">{{ day.dn }}</span>
+              <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75;">{{ day.dd_en }}</span>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic_en }}</p>
+              <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ day.time }}{% if day.type == 'online' %} · <span style="color:#f75c03;font-weight:600;">{{ t.onlineLabel }}</span>{% endif %}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
+    {% endfor %}
+    {% endfor %}
+
+    {# ── GRADUATION ENDPOINT ────────────────────────── #}
+    <div style="position:relative;padding-left:48px;margin-top:40px;">
+      <div style="position:absolute;left:18px;top:0;bottom:50%;width:2px;background:linear-gradient(to bottom, #E8E4E0, #2ecc71);"></div>
+      <div style="position:relative;">
+        <div style="position:absolute;left:-42px;top:4px;width:22px;height:22px;background:#2ecc71;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #2ecc71, 0 0 20px rgba(46,204,113,.25);z-index:1;display:flex;align-items:center;justify-content:center;">
+          <span style="color:#fff;font-size:.7rem;">&#10003;</span>
+        </div>
+        <div>
+          <p style="font-weight:700;font-size:1.05rem;color:#2ecc71;">{{ t.certifiedTitle }}</p>
+          <p style="font-size:.82rem;color:#6F6A66;line-height:1.5;margin-top:4px;">{{ t.certDate }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:32px;">
+      <div style="background:#f0fff0;border:1px solid #c3e6c3;border-radius:12px;padding:18px;">
+        <p style="font-weight:700;font-size:.85rem;margin-bottom:4px;">{{ t.certificationLabel }}</p>
+        <p style="font-size:.78rem;color:#6F6A66;">{{ t.certGradDate }}</p>
+      </div>
+    </div>
+
+    <blockquote style="border-left:4px solid #f75c03;padding:24px 28px;margin:40px 0 0;background:#FFFCF9;border-radius:0 14px 14px 0;">
+      <p style="font-size:1.05rem;font-weight:600;font-style:italic;line-height:1.5;color:#0F0F0F;">"{{ t.quoteText }}"</p>
+      <p style="font-size:.82rem;color:#6F6A66;margin-top:8px;">{{ t.quoteAuthor }}</p>
+    </blockquote>
+  </div>
+
+  {# ── FAQs ──────────────────────────────────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:48px 24px 0;">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:20px;">{{ t.faqTitle }}</h2>
+    {% set faqs = [
+      { q: t.faq1Q, a: t.faq1A },
+      { q: t.faq2Q, a: t.faq2A },
+      { q: t.faq3Q, a: t.faq3A },
+      { q: t.faq4Q, a: t.faq4A },
+      { q: t.faq5Q, a: t.faq5A },
+      { q: t.faq6Q, a: t.faq6A }
+    ] %}
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      {% for faq in faqs %}
+      <details style="background:#F5F3F0;border-radius:12px;overflow:hidden;">
+        <summary style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;list-style:none;-webkit-appearance:none;">
+          <span style="font-weight:700;font-size:.9rem;color:#0F0F0F;">{{ faq.q }}</span>
+          <span style="color:#f75c03;background:#FFF0E6;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;flex-shrink:0;transition:transform .25s;">+</span>
+        </summary>
+        <div style="padding:0 18px 16px;">
+          <p style="font-size:.88rem;color:#6F6A66;line-height:1.6;">{{ faq.a }}</p>
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── CONTACT / ONLINE INFO MEETING CTA ─────────────── #}
+  <div style="max-width:700px;margin:0 auto;padding:48px 24px 0;">
+    <div style="background:#FFFCF9;border:1px solid #E8E4E0;border-radius:16px;padding:28px 24px;text-align:center;">
+      <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:8px;">{{ t.contactTitle }}</h2>
+      <p style="font-size:.92rem;color:#6F6A66;line-height:1.55;margin-bottom:20px;">{{ t.contactDesc }}</p>
+      <button onclick="openBookingModal('consultation')" style="background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.contactCta }}</button>
+      <p style="font-size:.82rem;color:#6F6A66;margin-top:14px;">{{ t.contactEmail }} <a href="mailto:info@yogabible.dk" style="color:#f75c03;">info@yogabible.dk</a> · <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a></p>
+    </div>
+  </div>
+
+  {# ── DARK CTA ──────────────────────────────────────── #}
+  <div style="background:#0F0F0F;color:#fff;padding:60px 24px;text-align:center;margin-top:48px;">
+    <div style="max-width:600px;margin:0 auto;">
+      <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:12px;">{{ t.ctaSectionTitle }}</h2>
+      <p style="color:rgba(255,255,255,.68);margin-bottom:28px;line-height:1.55;">{{ t.ctaSectionDesc }}</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="openBookingModal('consultation')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</button>
+        <button onclick="startCheckoutFunnel('100211')" style="background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<script>
+(function() {
+  /* Tokenized visit tracking */
+  var params = new URLSearchParams(window.location.search);
+  var tid = params.get('tid');
+  var tok = params.get('tok');
+})();
+</script>
+
+<style>
+  .s4wjp-accordion summary::-webkit-details-marker { display: none; }
+  .s4wjp-accordion summary::marker { display: none; content: ''; }
+  .s4wjp-summary:hover { box-shadow: 0 4px 16px rgba(0,0,0,.06); transform: translateY(-1px); }
+  .s4wjp-accordion[open] .s4wjp-summary { border-radius: 14px 14px 0 0 !important; border-bottom-color: transparent !important; }
+  .s4wjp-accordion[open] .s4wjp-icon { transform: rotate(45deg); }
+  @media (max-width: 600px) {
+    #schedule-4w-jul-plan [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+  }
+</style>

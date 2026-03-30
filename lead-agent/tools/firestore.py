@@ -174,6 +174,7 @@ def get_pipeline_stats():
     stats = {
         'by_status': {},
         'by_temperature': {},
+        'by_channel': {},
         'total': 0,
         'converted_this_month': 0,
         'new_this_week': 0,
@@ -191,6 +192,10 @@ def get_pipeline_stats():
         temp = lead.get('temperature', '')
         if temp:
             stats['by_temperature'][temp] = stats['by_temperature'].get(temp, 0) + 1
+
+        channel = lead.get('channel', '')
+        if channel:
+            stats['by_channel'][channel] = stats['by_channel'].get(channel, 0) + 1
 
         created = lead.get('created_at')
         if created:
@@ -257,6 +262,80 @@ def listen_new_leads(callback):
     cutoff = datetime.now(timezone.utc)
     query = db.collection('leads').where('created_at', '>=', cutoff)
     query.on_snapshot(on_snapshot)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# COMMUNICATION HISTORY TOOLS
+# ═══════════════════════════════════════════════════════════════════
+
+def get_lead_communication_history(lead_id, limit=20):
+    """Get full communication history for a lead: emails, SMS, campaigns, drip steps."""
+    db = get_db()
+    history = []
+
+    # Email log
+    emails = (db.collection('email_log')
+              .where('lead_id', '==', lead_id)
+              .order_by('sent_at', direction=firestore.Query.DESCENDING)
+              .limit(limit)
+              .stream())
+    for doc in emails:
+        d = doc.to_dict()
+        d['type'] = 'email'
+        d['id'] = doc.id
+        history.append(d)
+
+    # SMS log (from lead document's notes or sms_campaign_log)
+    lead_doc = db.collection('leads').document(lead_id).get()
+    if lead_doc.exists:
+        lead = lead_doc.to_dict()
+        if lead.get('last_sms_campaign'):
+            sms = lead['last_sms_campaign']
+            sms['type'] = 'sms_campaign'
+            history.append(sms)
+
+    # Sort by date
+    history.sort(key=lambda x: str(x.get('sent_at', x.get('sentAt', ''))), reverse=True)
+    return history[:limit]
+
+
+def get_lead_full_context(lead_id):
+    """Get complete lead context: profile, drip status, communication history, sequence enrollments."""
+    db = get_db()
+
+    # Lead profile
+    lead_doc = db.collection('leads').document(lead_id).get()
+    if not lead_doc.exists:
+        return None
+    lead = lead_doc.to_dict()
+    lead['id'] = lead_id
+
+    # Drip status
+    drip = get_drip_status(lead_id)
+
+    # Communication history
+    comms = get_lead_communication_history(lead_id, limit=10)
+
+    # Sequence enrollments
+    enrollments = []
+    try:
+        seq_docs = (db.collection('sequence_enrollments')
+                    .where('lead_id', '==', lead_id)
+                    .stream())
+        for doc in seq_docs:
+            d = doc.to_dict()
+            d['id'] = doc.id
+            enrollments.append(d)
+    except Exception:
+        pass  # Collection may not exist yet
+
+    return {
+        'lead': lead,
+        'drip': drip,
+        'recent_communications': comms,
+        'sequences': enrollments,
+        'communication_count': len(comms)
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -437,3 +516,72 @@ def listen_new_appointments(callback):
     # Listen for appointments created from now on
     query = db.collection(APPT_COLLECTION).where('status', 'in', ['confirmed', 'pending_request'])
     query.on_snapshot(on_snapshot)
+
+
+# ── Sequence Monitoring Functions ──────────────────────────────────────────
+
+def get_leads_not_in_any_sequence():
+    """Find YTT leads with status 'New' or 'Contacted' who are NOT enrolled
+    in any active sequence. These are leads falling through the cracks."""
+    db = get_db()
+    leads = db.collection('leads') \
+        .where('type', '==', 'ytt') \
+        .stream()
+
+    unenrolled = []
+    for doc in leads:
+        lead = doc.to_dict()
+        if lead.get('converted') or lead.get('unsubscribed'):
+            continue
+        status = (lead.get('status') or '').lower()
+        if status not in ('new', 'contacted', 'no answer', ''):
+            continue
+        # Check if this lead has any active enrollment
+        enrollments = db.collection('sequence_enrollments') \
+            .where('lead_id', '==', doc.id) \
+            .where('status', 'in', ['active', 'paused']) \
+            .limit(1) \
+            .get()
+        if len(enrollments.docs) == 0:
+            lead['id'] = doc.id
+            unenrolled.append(lead)
+    return unenrolled
+
+
+def get_sequence_failures(hours=24):
+    """Find sequence step failures in the last N hours."""
+    db = get_db()
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+
+    failed_emails = db.collection('email_log') \
+        .where('source', '==', 'sequence') \
+        .where('status', '==', 'failed') \
+        .where('sent_at', '>=', cutoff) \
+        .stream()
+
+    return [{'id': doc.id, **doc.to_dict()} for doc in failed_emails]
+
+
+def get_completed_not_converted(days=7):
+    """Find leads who completed their sequence but didn't convert.
+    These need a personalized human touch — the agent drafts the message."""
+    db = get_db()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+
+    completed = db.collection('sequence_enrollments') \
+        .where('status', '==', 'completed') \
+        .where('updated_at', '>=', cutoff) \
+        .stream()
+
+    results = []
+    for doc in completed:
+        enrollment = doc.to_dict()
+        lead_doc = db.collection('leads').document(enrollment['lead_id']).get()
+        if lead_doc.exists:
+            lead = lead_doc.to_dict()
+            if not lead.get('converted') and not lead.get('unsubscribed'):
+                results.append({
+                    'enrollment': enrollment,
+                    'lead': {**lead, 'id': lead_doc.id}
+                })
+    return results

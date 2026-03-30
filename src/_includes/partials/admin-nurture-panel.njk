@@ -1,0 +1,97 @@
+{# ── Nurture Dashboard Panel ── #}
+
+{# Pipeline Overview #}
+<div class="yb-admin__view-head yb-el__toolbar">
+  <h2>Nurture Dashboard</h2>
+  <div>
+    <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="nur-refresh">&#8635; Refresh</button>
+  </div>
+</div>
+
+{# Pipeline Status #}
+<div class="yb-nur__pipeline" id="yb-nur-pipeline">
+  <h3 class="yb-nur__section-title">Pipeline Overview</h3>
+  <div class="yb-nur__pipeline-stages" id="yb-nur-stages">
+    <p class="yb-admin__empty" style="text-align:center;">Loading pipeline...</p>
+  </div>
+</div>
+
+{# Sequence Health #}
+<div class="yb-nur__health" id="yb-nur-health">
+  <div class="yb-nur__health-header">
+    <h3 class="yb-nur__section-title">Sequence Health</h3>
+    <button type="button" class="yb-btn yb-btn--primary yb-btn--xs" data-action="nur-process-now">&#9654; Process Now</button>
+  </div>
+  <div class="yb-nur__health-grid" id="yb-nur-health-grid">
+    <p class="yb-admin__empty" style="text-align:center;">Loading sequences...</p>
+  </div>
+</div>
+
+{# Quick Enrollment #}
+<div class="yb-nur__enrollment" id="yb-nur-enrollment">
+  <div class="yb-nur__enrollment-header">
+    <h3 class="yb-nur__section-title">Quick Enrollment — Leads Not in Any Sequence</h3>
+    <div>
+      <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" id="yb-nur-auto-enroll" disabled>Auto-Assign &amp; Enroll All</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-nur-enroll-selected" disabled>Enroll Selected</button>
+      <select id="yb-nur-enroll-seq" class="yb-admin__select" style="max-width:260px;">
+        <option value="">Select sequence...</option>
+      </select>
+    </div>
+  </div>
+
+  {# Program filter #}
+  <div class="yb-nur__filter-bar">
+    <select id="yb-nur-program-filter" class="yb-admin__select" style="max-width:200px;">
+      <option value="">All Programs</option>
+      <option value="4-week">4-Week Intensive</option>
+      <option value="4-week-jul">4-Week Vinyasa Plus (Jul)</option>
+      <option value="8-week">8-Week Semi-Intensive</option>
+      <option value="18-week">18-Week Flexible (Apr)</option>
+      <option value="18-week-aug">18-Week Flexible (Aug)</option>
+      <option value="300h">300h Advanced</option>
+    </select>
+    <span id="yb-nur-unenrolled-count" style="color:#6F6A66;font-size:13px;"></span>
+  </div>
+
+  {# Unenrolled leads table #}
+  <div class="yb-admin__table-wrap" style="max-height:400px;overflow-y:auto;">
+    <table class="yb-admin__table" id="yb-nur-leads-table">
+      <thead>
+        <tr>
+          <th style="width:36px;"><input type="checkbox" id="yb-nur-select-all"></th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Program</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Auto-Assign</th>
+        </tr>
+      </thead>
+      <tbody id="yb-nur-leads-tbody">
+        <tr><td colspan="7" class="yb-admin__empty">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# Recent Activity #}
+<div class="yb-nur__activity" id="yb-nur-activity">
+  <h3 class="yb-nur__section-title">Recent Sequence Activity</h3>
+  <div class="yb-admin__table-wrap" style="max-height:300px;overflow-y:auto;">
+    <table class="yb-admin__table" id="yb-nur-activity-table">
+      <thead>
+        <tr>
+          <th>Lead</th>
+          <th>Subject / Message</th>
+          <th>Channel</th>
+          <th>Sent At</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="yb-nur-activity-tbody">
+        <tr><td colspan="5" class="yb-admin__empty">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>

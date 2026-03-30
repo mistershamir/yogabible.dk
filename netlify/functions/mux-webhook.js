@@ -26,7 +26,7 @@
  */
 
 const crypto = require('crypto');
-const { getCollection, getDb, updateDoc, addDoc, deleteDoc } = require('./shared/firestore');
+const { getCollection, getDb, getDoc, updateDoc, addDoc, deleteDoc } = require('./shared/firestore');
 const { jsonResponse } = require('./shared/utils');
 
 const COLLECTION = 'live-schedule';
@@ -154,7 +154,35 @@ async function handleStreamActive(streamData) {
 
   // Fetch ALL sessions (no orderBy → no composite index needed)
   var allSessions = await getAllSessions();
-  var sessions = allSessions.filter(function (s) { return s.status === 'scheduled'; });
+
+  // Safety: first check if any session already owns this exact stream ID
+  // (e.g. created via mux-stream.js create-stream before ATEM started pushing)
+  var preMatched = null;
+  for (var p = 0; p < allSessions.length; p++) {
+    if (allSessions[p].muxLiveStreamId === liveStreamId) {
+      preMatched = allSessions[p];
+      break;
+    }
+  }
+
+  if (preMatched) {
+    // Session already has this stream ID (set by mux-stream or livekit-token) — just mark live
+    console.log('[mux-webhook] Stream', liveStreamId, 'already assigned to session',
+      preMatched.id, '— marking live');
+    var preUpdate = { status: 'live', liveStartedAt: now.toISOString() };
+    if (streamPlaybackId && !preMatched.muxPlaybackId) {
+      preUpdate.muxPlaybackId = streamPlaybackId;
+    }
+    await updateDoc(COLLECTION, preMatched.id, preUpdate);
+    await reconcileUnmatchedRecordings(liveStreamId, preMatched.id);
+    return;
+  }
+
+  // Only match to sessions that are 'scheduled' AND don't already have a recording
+  // This prevents a random ATEM stream from hijacking a session that already finished
+  var sessions = allSessions.filter(function (s) {
+    return s.status === 'scheduled' && !s.recordingPlaybackId && !s.muxLiveStreamId;
+  });
 
   // Match sessions from today (same calendar day UTC), or yesterday if stream started around midnight
   var yesterday = new Date(now.getTime() - 12 * 60 * 60 * 1000);
@@ -213,7 +241,9 @@ async function handleStreamActive(streamData) {
    2. STREAM WENT IDLE — mark session as ended
    ══════════════════════════════════════════════════════════════ */
 // Streams shorter than this are treated as test runs — session resets to 'scheduled'
-var TEST_STREAM_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+// Keep low (30s) to only catch accidental pushes — real sessions with ATEM hiccups
+// are protected by the 5-min reconnect_window on the Mux stream itself
+var TEST_STREAM_THRESHOLD_MS = 30 * 1000; // 30 seconds
 
 async function handleStreamIdle(streamData) {
   if (!streamData || !streamData.id) return;
@@ -235,22 +265,18 @@ async function handleStreamIdle(streamData) {
     }
   }
 
-  // Priority 2: if only one session is live, it's almost certainly the right one
+  // Priority 2: if only one session is live AND its muxLiveStreamId is empty
+  // (i.e. it was set live manually, not via webhook), cautiously match it.
+  // But NEVER match if the session already has a different stream ID — that means
+  // this idle event is from an orphan stream unrelated to the session.
   if (!matched && liveSessions.length === 1) {
-    matched = liveSessions[0];
-    console.log('[mux-webhook] Fallback: matched to only live session:', matched.id);
-  }
-
-  // Priority 3: match to closest live session by startDateTime (same day)
-  if (!matched && liveSessions.length > 0) {
-    var now = new Date();
-    var bounds = getDayBounds(now);
-    var todayLive = liveSessions.filter(function (s) {
-      return s.startDateTime && s.startDateTime >= bounds.start && s.startDateTime <= bounds.end;
-    });
-    if (todayLive.length === 1) {
-      matched = todayLive[0];
-      console.log('[mux-webhook] Fallback: matched to only today-live session:', matched.id);
+    var candidate = liveSessions[0];
+    if (!candidate.muxLiveStreamId) {
+      matched = candidate;
+      console.log('[mux-webhook] Fallback: matched to only live session (no stream ID):', matched.id);
+    } else {
+      console.log('[mux-webhook] Only live session', candidate.id, 'has stream ID',
+        candidate.muxLiveStreamId, 'which does not match idle stream', liveStreamId, '— skipping');
     }
   }
 
@@ -348,6 +374,22 @@ async function handleAssetReady(assetData) {
   }
 
   if (matched) {
+    // Safety: never overwrite an existing recording — save as unmatched instead
+    if (matched.recordingPlaybackId && matched.recordingPlaybackId !== recordingPlaybackId) {
+      console.log('[mux-webhook] Session', matched.id, 'already has recording',
+        matched.recordingPlaybackId, '— refusing to overwrite with', recordingPlaybackId,
+        '. Saving as unmatched.');
+      await addDoc(UNMATCHED_COLLECTION, {
+        muxLiveStreamId: liveStreamId,
+        recordingPlaybackId: recordingPlaybackId,
+        recordingAssetId: assetData.id,
+        reason: 'session_already_has_recording',
+        matchedSessionId: matched.id,
+        createdAt: new Date().toISOString()
+      });
+      return;
+    }
+
     console.log('[mux-webhook] Attaching recording to session:', matched.id,
       '(' + (matched.title_da || matched.title_en) + ')');
 
@@ -359,7 +401,15 @@ async function handleAssetReady(assetData) {
     console.log('[mux-webhook] Session', matched.id, 'now has recording', recordingPlaybackId);
 
     // Trigger AI processing (transcription + summary + quiz)
-    triggerAiProcessing(matched.id, assetData.id);
+    // Skip if already processing (retranscribe or previous webhook may have started it)
+    var aiStatus = matched.aiStatus;
+    if (aiStatus === 'processing' || aiStatus === 'transcribing' ||
+        aiStatus === 'uploading_subtitles' || aiStatus === 'generating_summary') {
+      console.log('[mux-webhook] Session', matched.id, 'already has aiStatus:', aiStatus,
+        '— skipping duplicate AI trigger');
+    } else {
+      triggerAiProcessing(matched.id, assetData.id);
+    }
   } else {
     // No match — store as unmatched recording so it gets reconciled
     // when handleStreamActive runs (events can arrive out of order)
@@ -409,9 +459,16 @@ async function reconcileUnmatchedRecordings(liveStreamId, sessionId) {
       recordingAssetId: rec.recordingAssetId || null
     });
 
-    // Trigger AI processing for reconciled recording
+    // Trigger AI processing for reconciled recording (skip if already running)
     if (rec.recordingAssetId) {
-      triggerAiProcessing(sessionId, rec.recordingAssetId);
+      var sessDoc = await getDoc(COLLECTION, sessionId);
+      var sessAiStatus = sessDoc && sessDoc.aiStatus;
+      if (sessAiStatus === 'processing' || sessAiStatus === 'transcribing' ||
+          sessAiStatus === 'uploading_subtitles' || sessAiStatus === 'generating_summary') {
+        console.log('[mux-webhook] Session', sessionId, 'already processing (aiStatus:', sessAiStatus, ') — skipping reconcile AI trigger');
+      } else {
+        triggerAiProcessing(sessionId, rec.recordingAssetId);
+      }
     }
 
     // Delete all matched unmatched records

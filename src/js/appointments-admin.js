@@ -164,7 +164,7 @@
      LOAD DATA (via API)
      ══════════════════════════════════════════ */
   function loadAppointments() {
-    apiCall('GET', { limit: 500 }).then(function (res) {
+    apiCall('GET', { limit: 10000 }).then(function (res) {
       if (res.ok) {
         appointments = res.data || [];
         apptLoaded = true;
@@ -478,7 +478,7 @@
     var heading = $('yb-appt-detail-heading');
     if (heading) heading.textContent = a.client_name + ' — ' + formatDate(a.date);
 
-    var locationLabel = a.location === 'online' ? (isDa() ? 'Online' : 'Online') : 'Yoga Bible, Torvegade 66';
+    var locationLabel = a.location === 'online' ? 'Online' : (isDa() ? 'Christianshavn, Torvegade 66, 1400 København K' : 'Christianshavn, Torvegade 66, 1400 Copenhagen');
 
     el.innerHTML = '<div class="yb-lead__detail-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;padding:20px;background:#F5F3F0;border-radius:8px;margin-bottom:16px;">' +
       '<div><span style="color:#999;font-size:12px;">' + t('appt_col_date') + '</span><br><strong>' + formatDate(a.date) + '</strong></div>' +
@@ -553,11 +553,29 @@
     html += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
 
     if (a.status === 'confirmed' || a.status === 'rescheduled') {
+      html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="appt-send-confirm-toggle">&#9993; ' + t('appt_send_confirmation') + '</button>';
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-send-reminder">&#128276; ' + t('appt_send_reminder') + '</button>';
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-complete">&#9989; ' + t('appt_mark_completed') + '</button>';
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-no-show">&#128683; ' + t('appt_mark_no_show') + '</button>';
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="appt-cancel-appt">&#10006; ' + t('appt_cancel') + '</button>';
     }
+
+    // Send confirmation panel (hidden by default, toggled by button above)
+    html += '<div id="yb-appt-confirm-panel" hidden style="width:100%;background:#F5F3F0;border-radius:10px;padding:16px;margin-top:12px;">';
+    html += '<p style="margin:0 0 10px;font-weight:700;font-size:14px;">' + t('appt_send_confirmation') + '</p>';
+    var hasPhone = !!(a.client_phone);
+    html += '<div style="display:flex;gap:10px;flex-wrap:wrap;">';
+    html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="appt-confirm-email" style="min-width:120px;">&#9993; ' + t('appt_notify_email') + '</button>';
+    html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-confirm-sms" style="min-width:120px;"' + (hasPhone ? '' : ' disabled title="' + (isDa() ? 'Intet telefonnummer' : 'No phone number') + '"') + '>&#128241; ' + t('appt_notify_sms') + '</button>';
+    html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="appt-confirm-both" style="min-width:120px;"' + (hasPhone ? '' : ' disabled') + '>&#128232; ' + t('appt_notify_both') + '</button>';
+    html += '</div>';
+    if (a.confirmation_email_sent || a.confirmation_sms_sent) {
+      html += '<p style="margin:8px 0 0;font-size:12px;color:#6F6A66;">';
+      if (a.confirmation_email_sent) html += '&#9989; ' + (isDa() ? 'Email sendt tidligere' : 'Email sent previously') + ' ';
+      if (a.confirmation_sms_sent) html += '&#9989; ' + (isDa() ? 'SMS sendt tidligere' : 'SMS sent previously');
+      html += '</p>';
+    }
+    html += '</div>';
 
     html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-download-ics">&#128197; ' + (isDa() ? 'Download .ics' : 'Download .ics') + '</button>';
     html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="appt-delete">&#128465; ' + t('appt_delete') + '</button>';
@@ -574,7 +592,16 @@
   function handleDetailAction(action, el) {
     if (!currentAppt || !currentApptId) return;
 
-    if (action === 'appt-send-reminder') {
+    if (action === 'appt-send-confirm-toggle') {
+      var panel = document.getElementById('yb-appt-confirm-panel');
+      if (panel) panel.hidden = !panel.hidden;
+    } else if (action === 'appt-confirm-email') {
+      sendConfirmation(true, false);
+    } else if (action === 'appt-confirm-sms') {
+      sendConfirmation(false, true);
+    } else if (action === 'appt-confirm-both') {
+      sendConfirmation(true, true);
+    } else if (action === 'appt-send-reminder') {
       sendManualReminder();
     } else if (action === 'appt-complete') {
       updateStatus('completed');
@@ -753,7 +780,7 @@
             '<div style="background:#F5F3F0;padding:16px;border-radius:8px;margin:16px 0;">' +
             '<p style="margin:4px 0;"><strong>' + (currentAppt.type_name_da || currentAppt.type) + '</strong></p>' +
             '<p style="margin:4px 0;">&#128197; ' + currentAppt.date + ' kl. ' + currentAppt.time + '</p>' +
-            '<p style="margin:4px 0;">&#128205; ' + (currentAppt.location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66') + '</p></div>',
+            '<p style="margin:4px 0;">&#128205; ' + (currentAppt.location === 'online' ? 'Online' : 'Christianshavn, Torvegade 66, 1400 København K') + '</p></div>',
           mode: 'custom'
         })
       });
@@ -763,6 +790,43 @@
       apiCall('PUT', null, { id: currentApptId, reminder_sent: true });
     }).catch(function (err) {
       toast('Error: ' + err.message, true);
+    });
+  }
+
+  function sendConfirmation(sendEmail, sendSms) {
+    if (!currentAppt || !currentApptId) return;
+
+    // Disable buttons while sending
+    var panel = document.getElementById('yb-appt-confirm-panel');
+    var btns = panel ? panel.querySelectorAll('button') : [];
+    btns.forEach(function (b) { b.disabled = true; });
+
+    apiCall('POST', null, {
+      action: 'notify',
+      id: currentApptId,
+      email: !!sendEmail,
+      sms: !!sendSms
+    }).then(function (data) {
+      if (data.ok) {
+        var parts = [];
+        if (data.results.email === 'sent') parts.push(isDa() ? 'Email sendt' : 'Email sent');
+        if (data.results.email === 'failed') parts.push(isDa() ? 'Email fejlede' : 'Email failed');
+        if (data.results.sms === 'sent') parts.push(isDa() ? 'SMS sendt' : 'SMS sent');
+        if (data.results.sms === 'failed') parts.push(isDa() ? 'SMS fejlede' : 'SMS failed');
+        if (data.results.sms === 'skipped') parts.push(isDa() ? 'SMS sprunget over (intet tlf.)' : 'SMS skipped (no phone)');
+        toast(parts.join(', ') || t('appt_confirmation_sent'));
+
+        // Update local state
+        if (data.results.email === 'sent') currentAppt.confirmation_email_sent = true;
+        if (data.results.sms === 'sent') currentAppt.confirmation_sms_sent = true;
+        renderActions(); // re-render to show "sent previously" labels
+      } else {
+        toast('Error: ' + (data.error || 'Unknown'), true);
+      }
+    }).catch(function (err) {
+      toast('Error: ' + err.message, true);
+    }).finally(function () {
+      btns.forEach(function (b) { b.disabled = false; });
     });
   }
 
@@ -777,7 +841,7 @@
     var endH = String(Math.floor(endMin / 60)).padStart(2, '0');
     var endM = String(endMin % 60).padStart(2, '0');
     var endTime = endH + endM + '00';
-    var loc = a.location === 'online' ? 'Online' : 'Yoga Bible, Torvegade 66, 1400 Copenhagen K';
+    var loc = a.location === 'online' ? 'Online' : 'Yoga Bible, Christianshavn, Torvegade 66, 1400 København K';
 
     var ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//YogaBible//Appt//DA\r\nBEGIN:VEVENT\r\n' +
       'DTSTART;TZID=Europe/Copenhagen:' + dateClean + 'T' + timeClean + '\r\n' +
@@ -901,7 +965,17 @@
 
     apiCall('POST', null, formData).then(function (data) {
       if (data.ok) {
-        toast(t('appt_created'));
+        var msg = t('appt_created');
+        // Show notification status if any were requested
+        if (data.notify) {
+          var parts = [];
+          if (data.notify.email === 'sent') parts.push(isDa() ? 'Email sendt' : 'Email sent');
+          if (data.notify.email === 'failed') parts.push(isDa() ? 'Email fejlede' : 'Email failed');
+          if (data.notify.sms === 'sent') parts.push(isDa() ? 'SMS sendt' : 'SMS sent');
+          if (data.notify.sms === 'failed') parts.push(isDa() ? 'SMS fejlede' : 'SMS failed');
+          if (parts.length) msg += ' (' + parts.join(', ') + ')';
+        }
+        toast(msg);
         closeNewModal();
         loadAppointments();
       } else {
@@ -953,6 +1027,122 @@
     if (modal) modal.hidden = true;
     var form = $('yb-appt-new-form');
     if (form) form.reset();
+    // Also clear contact search
+    var searchEl = $('yb-appt-f-contact-search');
+    if (searchEl) searchEl.value = '';
+    var dropdown = $('yb-appt-contact-results');
+    if (dropdown) dropdown.hidden = true;
+  }
+
+  /* ══════════════════════════════════════════
+     CONTACT SEARCH (autocomplete)
+     ══════════════════════════════════════════ */
+  var _contactSearchTimer = null;
+  var _contactActiveIdx = -1;
+
+  function initContactSearch() {
+    var input = $('yb-appt-f-contact-search');
+    var dropdown = $('yb-appt-contact-results');
+    if (!input || !dropdown) return;
+
+    input.addEventListener('input', function () {
+      clearTimeout(_contactSearchTimer);
+      var q = input.value.trim();
+      if (q.length < 2) { dropdown.hidden = true; return; }
+      _contactSearchTimer = setTimeout(function () { searchContacts(q); }, 300);
+    });
+
+    input.addEventListener('keydown', function (e) {
+      if (dropdown.hidden) return;
+      var items = dropdown.querySelectorAll('.yb-appt__contact-item');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        _contactActiveIdx = Math.min(_contactActiveIdx + 1, items.length - 1);
+        updateActiveItem(items);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        _contactActiveIdx = Math.max(_contactActiveIdx - 1, 0);
+        updateActiveItem(items);
+      } else if (e.key === 'Enter' && _contactActiveIdx >= 0) {
+        e.preventDefault();
+        items[_contactActiveIdx].click();
+      } else if (e.key === 'Escape') {
+        dropdown.hidden = true;
+      }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function (e) {
+      if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.hidden = true;
+      }
+    });
+  }
+
+  function updateActiveItem(items) {
+    items.forEach(function (el, i) {
+      el.classList.toggle('is-active', i === _contactActiveIdx);
+    });
+    if (items[_contactActiveIdx]) {
+      items[_contactActiveIdx].scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function searchContacts(query) {
+    var dropdown = $('yb-appt-contact-results');
+    apiCall('GET', { action: 'search-contacts', q: query }).then(function (res) {
+      if (!res.ok || !res.contacts || res.contacts.length === 0) {
+        dropdown.innerHTML = '<div class="yb-appt__contact-empty">Ingen kontakter fundet</div>';
+        dropdown.hidden = false;
+        _contactActiveIdx = -1;
+        return;
+      }
+
+      var html = res.contacts.map(function (c, i) {
+        var sourceLabel = c.source === 'lead' ? 'Lead' : c.source === 'application' ? 'Ansøger' : c.source === 'user' ? 'Bruger' : 'Karriere';
+        var badgeClass = 'yb-appt__contact-badge--' + c.source;
+        var extra = c.type ? ' · ' + c.type : '';
+        return '<div class="yb-appt__contact-item" data-idx="' + i + '">' +
+          '<div>' +
+            '<div class="yb-appt__contact-name">' + escapeHtml(c.name || '(no name)') + '</div>' +
+            '<div class="yb-appt__contact-email">' + escapeHtml(c.email) + (c.phone ? ' · ' + escapeHtml(c.phone) : '') + '</div>' +
+          '</div>' +
+          '<span class="yb-appt__contact-badge ' + badgeClass + '">' + sourceLabel + extra + '</span>' +
+        '</div>';
+      }).join('');
+
+      dropdown.innerHTML = html;
+      dropdown.hidden = false;
+      _contactActiveIdx = -1;
+
+      // Bind click handlers
+      dropdown.querySelectorAll('.yb-appt__contact-item').forEach(function (el) {
+        el.addEventListener('click', function () {
+          var idx = parseInt(el.getAttribute('data-idx'));
+          selectContact(res.contacts[idx]);
+        });
+      });
+    });
+  }
+
+  function selectContact(contact) {
+    var nameEl = $('yb-appt-f-name');
+    var emailEl = $('yb-appt-f-email');
+    var phoneEl = $('yb-appt-f-phone');
+    var searchEl = $('yb-appt-f-contact-search');
+    var dropdown = $('yb-appt-contact-results');
+
+    if (nameEl) nameEl.value = contact.name || '';
+    if (emailEl) emailEl.value = contact.email || '';
+    if (phoneEl) phoneEl.value = contact.phone || '';
+    if (searchEl) searchEl.value = contact.name || contact.email || '';
+    if (dropdown) dropdown.hidden = true;
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
   }
 
   /* ══════════════════════════════════════════
@@ -978,7 +1168,9 @@
           client_phone: ($('yb-appt-f-phone').value || ''),
           location: $('yb-appt-f-location').value,
           notes: ($('yb-appt-f-notes').value || ''),
-          status: 'confirmed'
+          status: 'confirmed',
+          notify_email: $('yb-appt-f-notify-email') ? $('yb-appt-f-notify-email').checked : false,
+          notify_sms: $('yb-appt-f-notify-sms') ? $('yb-appt-f-notify-sms').checked : false
         });
       });
     }
@@ -1097,6 +1289,31 @@
   }
 
   /* ══════════════════════════════════════════
+     BOOKING LINKS COPY
+     ══════════════════════════════════════════ */
+  function initBookingLinksCopy() {
+    document.querySelectorAll('[data-copy-booking]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var type = btn.getAttribute('data-copy-booking');
+        var url = 'https://yogabible.dk/?booking=' + type;
+        var origText = btn.innerHTML;
+        navigator.clipboard.writeText(url).then(function () {
+          btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>' + (T.appt_copied || 'Copied!');
+          setTimeout(function () { btn.innerHTML = origText; }, 2000);
+        }).catch(function () {
+          // Fallback
+          var ta = document.createElement('textarea');
+          ta.value = url; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+          document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+          document.body.removeChild(ta);
+          btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>' + (T.appt_copied || 'Copied!');
+          setTimeout(function () { btn.innerHTML = origText; }, 2000);
+        });
+      });
+    });
+  }
+
+  /* ══════════════════════════════════════════
      INIT
      ══════════════════════════════════════════ */
   function init() {
@@ -1123,6 +1340,8 @@
               });
             });
             initEventListeners();
+            initContactSearch();
+            initBookingLinksCopy();
           }
         });
       }

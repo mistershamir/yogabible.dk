@@ -856,6 +856,19 @@
     params.set('consent', fd.get('consent') ? 'true' : 'false');
     params.set('source', source);
 
+    // Attach attribution data (UTM, referrer, channel)
+    if (typeof window.ybAttribution === 'function') {
+      var attr = window.ybAttribution();
+      if (attr.channel) params.set('channel', attr.channel);
+      if (attr.utm_source) params.set('utm_source', attr.utm_source);
+      if (attr.utm_medium) params.set('utm_medium', attr.utm_medium);
+      if (attr.utm_campaign) params.set('utm_campaign', attr.utm_campaign);
+      if (attr.gclid) params.set('gclid', attr.gclid);
+      if (attr.fbclid) params.set('fbclid', attr.fbclid);
+      if (attr.referrer) params.set('referrer', attr.referrer);
+      if (attr.landing_page) params.set('landing_page', attr.landing_page);
+    }
+
     setLoading(true);
     try{
       await fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params.toString() });

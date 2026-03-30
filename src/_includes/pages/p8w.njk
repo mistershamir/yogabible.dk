@@ -37,6 +37,11 @@
      1. HERO — Primary Cinematic with Breathing Glow
      ═══════════════════════════════════════ -->
 <section class="yb-hero">
+  <div class="yb-hero__bg">
+    <video autoplay muted loop playsinline preload="metadata">
+      <source src="{{ mediaBase }}/v1773250613/8_weeks_hero_compressed_zy0yup.mp4" type="video/mp4">
+    </video>
+  </div>
   <div class="yb-hero__glow"></div>
 
   <div class="yb-hero__content">
@@ -50,7 +55,7 @@
       <button onclick="openYBScheduleModal('8w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
     <p class="yb-hero__read-more">
-      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" class="yb-hero__read-more-link">{{ t.hero_cta_more }}</a>
+      <a href="{{ lp }}/om-200hrs-yogalaereruddannelser" class="yb-hero__read-more-link">{{ t.hero_cta_more }}</a>
     </p>
     <div class="yb-hero__trust">
       <span>{{ t.hero_trust1 }}</span>
@@ -130,7 +135,7 @@
     <p class="p18-cert-closing">{{ t.cert_closing }}</p>
 
     <div class="p18-cert-cta">
-      <a href="{{ lp }}/om-200hrs-yogalreruddannelser" target="_blank" rel="noopener" class="btn btn--primary btn--large">{{ t.cert_cta_text }}</a>
+      <a href="{{ lp }}/om-200hrs-yogalaereruddannelser" target="_blank" rel="noopener" class="btn btn--primary btn--large">{{ t.cert_cta_text }}</a>
     </div>
   </div>
 </section>
@@ -146,36 +151,50 @@
 
     <div class="p4w-certval__grid">
 
-      <!-- Left: Content -->
+      <!-- Left: Content with Feature Card -->
       <div class="p4w-certval__content">
 
-        <h3 class="p4w-certval__heading">{{ t.certval_learn_title }}</h3>
-        <ul class="p4w-certval__list">
-          {% for i in [1, 2, 3, 4, 5] %}
-          <li>
-            <span class="p4w-certval__check" aria-hidden="true">&#x2713;</span>
-            <span>{{ t["certval_learn" + i] }}</span>
-          </li>
-          {% endfor %}
-        </ul>
+        <!-- What You Learn Card -->
+        <div class="p4w-certval__card">
+          <div class="p4w-certval__card-header">
+            <h3 class="p4w-certval__card-title">{{ t.certval_learn_title }}</h3>
+          </div>
+          <ul class="p4w-certval__list">
+            {% for i in [1, 2, 3, 4, 5] %}
+            <li>
+              <svg class="p4w-certval__check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>{{ t["certval_learn" + i] }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
 
-        <h3 class="p4w-certval__heading">{{ t.certval_upgrade_title }}</h3>
-        <p class="p4w-certval__text">{{ t.certval_upgrade_text | safe }}</p>
+        <!-- Additional sections -->
+        <div class="p4w-certval__section">
+          <h3 class="p4w-certval__heading">{{ t.certval_upgrade_title }}</h3>
+          <p class="p4w-certval__text">{{ t.certval_upgrade_text | safe }}</p>
+        </div>
 
-        <h3 class="p4w-certval__heading">{{ t.certval_exam_title }}</h3>
-        <p class="p4w-certval__text">{{ t.certval_exam_text }}</p>
+        <div class="p4w-certval__section">
+          <h3 class="p4w-certval__heading">{{ t.certval_exam_title }}</h3>
+          <p class="p4w-certval__text">{{ t.certval_exam_text }}</p>
+        </div>
 
       </div>
 
-      <!-- Right: Certificate image -->
+      <!-- Right: Certificate image (featured) -->
       <div class="p4w-certval__media">
-        <div class="p4w-certval__image-placeholder">
-          {# CLOUDINARY: yoga-bible-DK/programs/p8w/yoga-alliance-ryt200-certificate-sample — 1200x800 #}
-          <img
-            src="{{ "yoga-bible-DK/programs/p8w/yoga-alliance-ryt200-certificate-sample" | cloudimg('w_600,q_auto,f_auto') }}"
-            alt="{{ t.certval_image_alt }}"
-            loading="lazy"
-          >
+        <div class="p4w-certval__image-container">
+          <div class="p4w-certval__image-wrapper">
+            {# CLOUDINARY: Sample_Certificate_jzjtfx — optimized for display #}
+            <img
+              src="{{ mediaBase }}/v1771966816/Sample_Certificate_jzjtfx.png"
+              alt="{{ t.certval_image_alt }}"
+              loading="lazy"
+            >
+          </div>
         </div>
       </div>
 
@@ -239,22 +258,22 @@
       <div class="p18-cph__viewport">
         <div class="p18-cph__track" id="cph-track">
           <figure class="p18-cph__slide">
-            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-torvegade.jpg" alt="Yoga Bible {% if lang == 'en' %}studio in Christianshavn{% else %}studie i Christianshavn{% endif %}" loading="lazy">
+            <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-torvegade.jpg" alt="Yoga Bible {% if lang == 'en' %}studio in Christianshavn{% else %}studie i Christianshavn{% endif %}" loading="lazy">
           </figure>
           <figure class="p18-cph__slide">
-            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/christianshavn-location.jpg" alt="Christianshavn {% if lang == 'en' %}canal with colourful houses{% else %}kanal med farverige huse{% endif %}" loading="lazy">
+            <img src="{{ mediaBase }}/yoga-bible-DK/copenhagen/christianshavn-location.jpg" alt="Christianshavn {% if lang == 'en' %}canal with colourful houses{% else %}kanal med farverige huse{% endif %}" loading="lazy">
           </figure>
           <figure class="p18-cph__slide">
-            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/metro-station-02.jpeg" alt="Christianshavn Metro — {% if lang == 'en' %}2 min from the studio{% else %}2 min fra studiet{% endif %}" loading="lazy">
+            <img src="{{ mediaBase }}/yoga-bible-DK/copenhagen/metro-station-02.jpeg" alt="Christianshavn Metro — {% if lang == 'en' %}2 min from the studio{% else %}2 min fra studiet{% endif %}" loading="lazy">
           </figure>
           <figure class="p18-cph__slide">
-            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-hot-yoga-01.jpg" alt="Hot Yoga {% if lang == 'en' %}studio in Copenhagen{% else %}studio i København{% endif %}" loading="lazy">
+            <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-hot-yoga-01.jpg" alt="Hot Yoga {% if lang == 'en' %}studio in Copenhagen{% else %}studio i København{% endif %}" loading="lazy">
           </figure>
           <figure class="p18-cph__slide">
-            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-training-space.jpg" alt="{% if lang == 'en' %}Training room with daylight and plants{% else %}Træningsrum med dagslys og planter{% endif %}" loading="lazy">
+            <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-training-space.jpg" alt="{% if lang == 'en' %}Training room with daylight and plants{% else %}Træningsrum med dagslys og planter{% endif %}" loading="lazy">
           </figure>
           <figure class="p18-cph__slide">
-            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/metro-station-01.jpeg" alt="{% if lang == 'en' %}Copenhagen by night near the studio{% else %}København by night nær studiet{% endif %}" loading="lazy">
+            <img src="{{ mediaBase }}/yoga-bible-DK/copenhagen/metro-station-01.jpeg" alt="{% if lang == 'en' %}Copenhagen by night near the studio{% else %}København by night nær studiet{% endif %}" loading="lazy">
           </figure>
         </div>
       </div>
@@ -289,7 +308,7 @@
         </ul>
       </div>
       <div class="p18-cph__studio-img">
-        <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-torvegade.jpg" alt="Yoga Bible {% if lang == 'en' %}studio, Torvegade 66, Christianshavn{% else %}studie, Torvegade 66, Christianshavn{% endif %}" loading="lazy">
+        <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-torvegade.jpg" alt="Yoga Bible {% if lang == 'en' %}studio, Torvegade 66, Christianshavn{% else %}studie, Torvegade 66, Christianshavn{% endif %}" loading="lazy">
       </div>
     </div>
 
@@ -335,7 +354,7 @@
 
       <p class="yb-visit__note">{{ t.visit_note | safe }}</p>
 
-      <button class="yb-btn yb-btn--cta" type="button" data-open="visit-modal">
+      <button class="yb-btn yb-btn--cta" type="button" data-open-booking="info-session">
         {{ t.visit_cta_text }}
       </button>
     </div>
@@ -345,25 +364,25 @@
         <div class="yb-visit__viewport">
           <div class="yb-visit__track" id="visit-track">
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-hot-yoga-01.jpg" alt="{% if lang == 'en' %}Yoga room with warm wooden floor{% else %}Yogasal med varmt trægulv{% endif %}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-hot-yoga-01.jpg" alt="{% if lang == 'en' %}Yoga room with warm wooden floor{% else %}Yogasal med varmt trægulv{% endif %}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-training-space.jpg" alt="{% if lang == 'en' %}Bright yoga room and props{% else %}Lyst yogarum og rekvisitter{% endif %}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-training-space.jpg" alt="{% if lang == 'en' %}Bright yoga room and props{% else %}Lyst yogarum og rekvisitter{% endif %}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-torvegade.jpg" alt="{% if lang == 'en' %}Reception and lounge area{% else %}Reception og loungeområde{% endif %}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-torvegade.jpg" alt="{% if lang == 'en' %}Reception and lounge area{% else %}Reception og loungeområde{% endif %}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/studio/studio-shower.jpg" alt="{% if lang == 'en' %}Showers & facilities{% else %}Brus & faciliteter{% endif %}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/studio/studio-shower.jpg" alt="{% if lang == 'en' %}Showers & facilities{% else %}Brus & faciliteter{% endif %}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/christianshavn-location.jpg" alt="{% if lang == 'en' %}Central location in Christianshavn{% else %}Central placering i Christianshavn{% endif %}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/copenhagen/christianshavn-location.jpg" alt="{% if lang == 'en' %}Central location in Christianshavn{% else %}Central placering i Christianshavn{% endif %}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/metro-station-02.jpeg" alt="{% if lang == 'en' %}Metro near the studio{% else %}Metro ved studiet{% endif %}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/copenhagen/metro-station-02.jpeg" alt="{% if lang == 'en' %}Metro near the studio{% else %}Metro ved studiet{% endif %}" loading="lazy">
             </figure>
             <figure class="yb-visit__slide">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/copenhagen/metro-station-01.jpeg" alt="{% if lang == 'en' %}Metro near the studio{% else %}Metro ved studiet{% endif %}" loading="lazy">
+              <img src="{{ mediaBase }}/yoga-bible-DK/copenhagen/metro-station-01.jpeg" alt="{% if lang == 'en' %}Metro near the studio{% else %}Metro ved studiet{% endif %}" loading="lazy">
             </figure>
           </div>
         </div>
@@ -378,31 +397,7 @@
   </div>
 </section>
 
-<!-- Calendly Visit Modal -->
-<section class="yb-modal-visit" id="visit-modal" aria-hidden="true">
-  <div class="yb-modal-visit__overlay" data-close></div>
-
-  <div class="yb-modal-visit__box" role="dialog" aria-modal="true" aria-label="{{ t.visit_modal_title }}">
-    <button class="yb-modal-visit__close" type="button" data-close aria-label="{% if lang == 'en' %}Close{% else %}Luk{% endif %}">&#215;</button>
-
-    <div class="yb-modal-visit__header">
-      <h3 class="yb-modal-visit__title">{{ t.visit_modal_title }}</h3>
-      <p class="yb-modal-visit__subtitle">{{ t.visit_modal_subtitle }}</p>
-    </div>
-
-    <div class="yb-modal-visit__booking" style="text-align:center;padding:32px 16px;">
-      <p style="font-size:18px;margin-bottom:20px;">{{ t.visit_modal_subtitle }}</p>
-      <button class="yb-btn yb-btn--primary" data-open-booking="info-session" data-close style="font-size:16px;padding:14px 32px;">
-        &#127963; {% if lang == 'en' %}Book Free Info Session{% else %}Book et gratis infomøde{% endif %}
-      </button>
-      <div style="margin-top:16px;">
-        <button class="yb-btn yb-btn--outline" data-open-booking="consultation" data-close style="font-size:14px;padding:10px 24px;">
-          &#128187; {% if lang == 'en' %}Online Consultation{% else %}Online konsultation{% endif %}
-        </button>
-      </div>
-    </div>
-  </div>
-</section>
+{# Visit modal removed — CTA now opens booking modal directly #}
 
 <!-- ═══════════════════════════════════════
      8. REVIEWS — Google Reviews Carousel
@@ -590,8 +585,8 @@
       <div class="p18-rooms__card">
         <div class="p18-rooms__gallery">
           <div class="p18-rooms__gallery-track" data-room-track>
-            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/w_800,c_fill,q_auto,f_auto/yoga-bible-DK/accommodation/yoga-student-accommodation-copenhagen-hero" alt="{% if lang == 'en' %}Private studio apartment in Christianshavn{% else %}Privat studio apartment i Christianshavn{% endif %}" loading="lazy">
-            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/w_800,c_fill,q_auto,f_auto/yoga-bible-DK/accommodation/single-studio-apartment-overview" alt="{% if lang == 'en' %}Studio apartment with kitchenette{% else %}Studio apartment med tekøkken{% endif %}" loading="lazy">
+            <img src="{{ mediaBase }}/yoga-bible-DK/accommodation/yoga-student-accommodation-copenhagen-hero" alt="{% if lang == 'en' %}Private studio apartment in Christianshavn{% else %}Privat studio apartment i Christianshavn{% endif %}" loading="lazy">
+            <img src="{{ mediaBase }}/yoga-bible-DK/accommodation/single-studio-apartment-overview" alt="{% if lang == 'en' %}Studio apartment with kitchenette{% else %}Studio apartment med tekøkken{% endif %}" loading="lazy">
           </div>
           <div class="p18-rooms__gallery-nav">
             <button class="p18-rooms__gallery-arrow" type="button" aria-label="{% if lang == 'en' %}Previous{% else %}Forrige{% endif %}" data-dir="-1">&#10094;</button>
@@ -609,8 +604,8 @@
       <div class="p18-rooms__card">
         <div class="p18-rooms__gallery">
           <div class="p18-rooms__gallery-track" data-room-track>
-            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/w_800,c_fill,q_auto,f_auto/yoga-bible-DK/accommodation/shared-apartment-bedroom-copenhagen" alt="{% if lang == 'en' %}Private room in shared apartment{% else %}Privat værelse i delt lejlighed{% endif %}" loading="lazy">
-            <img src="https://res.cloudinary.com/ddcynsa30/image/upload/w_800,c_fill,q_auto,f_auto/yoga-bible-DK/accommodation/shared-apartment-common-area" alt="{% if lang == 'en' %}Shared kitchen and living area{% else %}Fælles køkken og opholdsrum{% endif %}" loading="lazy">
+            <img src="{{ mediaBase }}/yoga-bible-DK/accommodation/shared-apartment-bedroom-copenhagen" alt="{% if lang == 'en' %}Private room in shared apartment{% else %}Privat værelse i delt lejlighed{% endif %}" loading="lazy">
+            <img src="{{ mediaBase }}/yoga-bible-DK/accommodation/shared-apartment-common-area" alt="{% if lang == 'en' %}Shared kitchen and living area{% else %}Fælles køkken og opholdsrum{% endif %}" loading="lazy">
           </div>
           <div class="p18-rooms__gallery-nav">
             <button class="p18-rooms__gallery-arrow" type="button" aria-label="{% if lang == 'en' %}Previous{% else %}Forrige{% endif %}" data-dir="-1">&#10094;</button>
@@ -761,7 +756,7 @@
       <article class="yb-more-card">
         <figure class="yb-more-card__image">
           <img id="ybCourseImg"
-               src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/inversions-course.jpg"
+               src="{{ mediaBase }}/yoga-bible-DK/courses/inversions-course.jpg"
                alt="Inversions {% if lang == 'en' %}course{% else %}kursus{% endif %}"
                loading="lazy">
           <span class="yb-more-card__badge yb-more-card__badge--soft">{{ t.courses_badge }}</span>
@@ -787,7 +782,7 @@
       <article class="yb-more-card">
         <figure class="yb-more-card__image">
           <img id="ybProgramImg"
-               src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/programs/ytt-200h-education.png"
+               src="{{ mediaBase }}/yoga-bible-DK/programs/ytt-200h-education.png"
                alt=""
                loading="lazy">
           <span id="ybProgramBadge" class="yb-more-card__badge yb-more-card__badge--primary">{{ t.programs_badge_flex }}</span>
@@ -1095,21 +1090,21 @@
   /* ── yb-more: Course pills ── */
   var COURSE_DATA = {
     inv: {
-      image: 'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/inversions-course.jpg',
+      image: '{{ mediaBase }}/yoga-bible-DK/courses/inversions-course.jpg',
       blurb: isEN ? 'Learn to work safely with handstands, forearm balances, and headstands – technique, strength, and courage.' : 'Lær at arbejde sikkert med håndstande, underarmsbalancer og hovedstande – teknik, styrke og mod.',
       href: (isEN ? '/en' : '') + '/inversions',
       label: isEN ? 'Learn more about Inversions' : 'Læs mere om Inversions',
       alt: isEN ? 'Inversions course' : 'Inversions kursus'
     },
     spl: {
-      image: 'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/splits-course.jpg',
+      image: '{{ mediaBase }}/yoga-bible-DK/courses/splits-course.jpg',
       blurb: isEN ? 'Flexibility with structure – hip openers, hamstrings, and technique for front & middle splits without forcing the body.' : 'Smidighed med system – hofteåbnere, baglår og teknik til front & middle splits uden at presse kroppen.',
       href: (isEN ? '/en' : '') + '/splits',
       label: isEN ? 'Learn more about Splits' : 'Læs mere om Splits',
       alt: isEN ? 'Splits course' : 'Splits kursus'
     },
     bb: {
-      image: 'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/courses/backbend-training-pro.jpg',
+      image: '{{ mediaBase }}/yoga-bible-DK/courses/backbend-training-pro.jpg',
       blurb: isEN ? 'Healthy backbends with focus on breath, stability, and gradual mobility in the thoracic spine and hips.' : 'Sunde bagoverbøjninger med fokus på åndedræt, stabilitet og gradvis mobilitet i brystryg og hofter.',
       href: (isEN ? '/en' : '') + '/backbends',
       label: isEN ? 'Learn more about Backbends' : 'Læs mere om Backbends',

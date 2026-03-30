@@ -15,6 +15,7 @@
  */
 
 const { mbFetch, jsonResponse, corsHeaders } = require('./shared/mb-api');
+const { createMilestonePost } = require('./shared/social-sync');
 
 exports.handler = async function(event) {
   if (event.httpMethod === 'OPTIONS') {
@@ -123,6 +124,17 @@ exports.handler = async function(event) {
         authenticationUrl: data.AuthenticationUrls[0],
         transactionIds: data.TransactionIds || [],
         message: 'Card requires additional authentication'
+      });
+    }
+
+    // Social proof: milestone post for Prep Phase purchases (non-blocking)
+    var PREP_PHASE_IDS = [100078, 100121, 100211, 100209, 100210, 100212];
+    var purchasedItem = body.items && body.items[0];
+    if (purchasedItem && PREP_PHASE_IDS.indexOf(purchasedItem.id) >= 0) {
+      createMilestonePost('prep_phase_purchased', {
+        productId: purchasedItem.id
+      }).catch(function (err) {
+        console.warn('[mb-checkout] Social milestone error (non-blocking):', err.message);
       });
     }
 

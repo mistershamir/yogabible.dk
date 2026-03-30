@@ -4,14 +4,12 @@
 {% set mailto_ask = "mailto:info@yogabible.dk?subject=Sp%C3%B8rgsm%C3%A5l%20til%20yoga%20fotosession&body=Hej%20Yoga%20Bible%0A%0AJeg%20har%20et%20sp%C3%B8rgsm%C3%A5l%20om%20yoga%20fotosession:%0A%0A" %}
 
 {# ── Models data array for loop ── #}
-{# imgBase = cloudinary folder for each model. Images: {key}-portrait, {key}-1, {key}-2, {key}-3
-   OR override with img_p / img_1 / img_2 / img_3 for custom Cloudinary public IDs #}
+{# imgBase = yoga-bible-DK/yogaphotography/Models/{Folder}/
+   Default images: {Name}.jpg (portrait), {Name} 1.jpg, {Name} 2.jpg, {Name} 3.jpg
+   Override with img_p / img_1 / img_2 / img_3 for custom paths (Cloudinary or Bunny) #}
 {% set models = [
-  { key: "anna",      folder: "Anna",      variation: "a",
-    img_p: "DSC_6049_qx8dow",
-    img_1: "DSC_6430_mwuxlj",
-    img_2: "Inversion_Course_Kursus_K%C3%B8benhavn_l%C3%A6re_fi9ik3",
-    img_3: "DSC_6263_u780xe" },
+  { key: "beth",      folder: "Beth",      variation: "b" },
+  { key: "anna",      folder: "Anna",      variation: "a" },
   { key: "sita",      folder: "Sita",      variation: "b" },
   { key: "kerti",     folder: "Kerti",     variation: "c" },
   { key: "eva",       folder: "Eva",       variation: "c" },
@@ -52,10 +50,49 @@
 }
 </script>
 
+<!-- Service Schema (AEO — structured data for AI search + rich results) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": {% if lang == "en" %}"Professional Yoga Photography"{% else %}"Professionel Yoga Fotografering"{% endif %},
+  "description": {% if lang == "en" %}"Professional yoga photography session in Copenhagen. Up to 60 minutes, 12-20 high-resolution edited photos. Guided posing for yoga teachers, studios and brands."{% else %}"Professionel yogafotografering i København. Op til 60 minutter, 12-20 redigerede billeder i høj opløsning. Guidet posering til yogalærere, studier og brands."{% endif %},
+  "serviceType": "Photography",
+  "provider": {
+    "@type": "LocalBusiness",
+    "name": "Yoga Bible",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Torvegade 66",
+      "addressLocality": "København K",
+      "postalCode": "1400",
+      "addressCountry": "DK"
+    },
+    "telephone": "+4553881209",
+    "url": "https://yogabible.dk"
+  },
+  "areaServed": {
+    "@type": "City",
+    "name": "Copenhagen"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "2950",
+    "priceCurrency": "DKK",
+    "description": {% if lang == "en" %}"Up to 60 min session, 12-20 edited photos in high resolution"{% else %}"Op til 60 min session, 12-20 redigerede billeder i høj opløsning"{% endif %},
+    "availability": "https://schema.org/InStock"
+  },
+  "url": "https://yogabible.dk{% if lang == 'en' %}/en{% endif %}/yogaphotography/"
+}
+</script>
+
 <!-- ═══════════════════════════════════════════════════════
      Hero
      ═══════════════════════════════════════════════════════ -->
-<section class="yb-hero">
+<section class="yb-hero yphoto-hero--video">
+  <video class="yphoto-hero__video" autoplay muted loop playsinline preload="none" poster="{{ 'yoga-bible-DK/yogaphotography/quote-hero.jpg' | cloudimg('w_1400') }}">
+    <source src="{{ 'yoga-bible-DK/yogaphotography/hero-video.mp4' | cloudvid }}" type="video/mp4" />
+  </video>
   <div class="yb-hero__glow"></div>
   <div class="yb-hero__content">
     <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
@@ -109,6 +146,8 @@
           class="yphoto-session__img"
           src="{{ 'yoga-bible-DK/yogaphotography/session-hero' | cloudimg('w_1200,c_fill,g_auto') }}"
           alt="{{ t.session_img_alt }}"
+          width="600"
+          height="800"
           loading="lazy"
           decoding="async"
         />
@@ -153,7 +192,7 @@
         {# CTA row #}
         <div class="yphoto-session__ctas">
           <button class="yb-btn yb-btn--primary" data-open-photo-booking>{{ t.session_cta_book }}</button>
-          <a class="yb-btn yb-btn--outline" href="{{ mailto_ask }}">{{ t.session_cta_ask }}</a>
+          <a class="yb-btn yb-btn--outline-light" href="{{ mailto_ask }}">{{ t.session_cta_ask }}</a>
         </div>
         <p class="yphoto-session__note">{{ t.session_note }}</p>
       </div>
@@ -224,7 +263,7 @@
         </div>
 
         <div class="yphoto-prepfaq__card-foot yphoto-prepfaq__card-foot--split">
-          <a class="yb-btn yb-btn--ghost" href="{{ mailto_ask }}">{{ t.faq_cta_ask }}</a>
+          <a class="yb-btn yb-btn--outline-light" href="{{ mailto_ask }}">{{ t.faq_cta_ask }}</a>
           <button class="yb-btn yb-btn--primary" data-open-photo-booking>{{ t.faq_cta_book }}</button>
         </div>
       </div>
@@ -244,6 +283,8 @@
       class="yphoto-quote__img"
       src="{{ 'yoga-bible-DK/yogaphotography/quote-hero' | cloudimg('w_1400,c_fill,g_auto') }}"
       alt="Yoga Photography — Yoga Bible"
+      width="1159"
+      height="2048"
       loading="lazy"
       decoding="async"
     />
@@ -335,8 +376,8 @@
 <section class="yphoto-model yphoto-model--{{ m.variation }}" aria-label="{{ mname }}">
   <div class="yphoto-model__inner yphoto-reveal">
     <div class="yphoto-model__intro">
-      {# Portrait — use override or default path, no forced crop #}
-      {% set portrait_src = m.img_p if m.img_p else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-portrait') %}
+      {# Portrait — use override or default path: Models/{Folder}/{Name}.jpg #}
+      {% set portrait_src = m.img_p if m.img_p else ('yoga-bible-DK/yogaphotography/Models/' + m.folder + '/' + m.folder + '.jpg') %}
       <div class="yphoto-model__portrait">
         <img
           src="{{ portrait_src | cloudimg('w_520,c_scale') }}"
@@ -356,10 +397,10 @@
         {% endif %}
       </div>
     </div>
-    {# Gallery — use overrides or default paths, no forced crop #}
-    {% set g1 = m.img_1 if m.img_1 else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-1') %}
-    {% set g2 = m.img_2 if m.img_2 else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-2') %}
-    {% set g3 = m.img_3 if m.img_3 else ('yoga-bible-DK/yogaphotography/models/' + m.folder + '/' + mk + '-3') %}
+    {# Gallery — use overrides or default: Models/{Folder}/{Name} 1.jpg etc #}
+    {% set g1 = m.img_1 if m.img_1 else ('yoga-bible-DK/yogaphotography/Models/' + m.folder + '/' + m.folder + '%201.jpg') %}
+    {% set g2 = m.img_2 if m.img_2 else ('yoga-bible-DK/yogaphotography/Models/' + m.folder + '/' + m.folder + '%202.jpg') %}
+    {% set g3 = m.img_3 if m.img_3 else ('yoga-bible-DK/yogaphotography/Models/' + m.folder + '/' + m.folder + '%203.jpg') %}
     <div class="yphoto-model__gallery">
       <div class="yphoto-model__photo yphoto-model__photo--1">
         <img src="{{ g1 | cloudimg('w_800,c_scale') }}" alt="{{ mname }} — Yoga Photography" loading="lazy" decoding="async" />
@@ -403,5 +444,19 @@
     });
   }, { threshold: 0.15 });
   els.forEach(function(el){ io.observe(el); });
+})();
+
+/* Auto-detect photo orientation — adds is-portrait / is-landscape / is-square */
+(function(){
+  document.querySelectorAll('.yphoto-model__photo img').forEach(function(img){
+    function classify(){
+      if (!img.naturalWidth || !img.naturalHeight) return;
+      var r = img.naturalWidth / img.naturalHeight;
+      var cl = r < 0.85 ? 'is-portrait' : r > 1.15 ? 'is-landscape' : 'is-square';
+      img.parentElement.classList.add(cl);
+    }
+    if (img.complete && img.naturalWidth) classify();
+    else img.addEventListener('load', classify);
+  });
 })();
 </script>

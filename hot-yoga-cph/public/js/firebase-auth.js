@@ -438,6 +438,23 @@
                   return auth.signInWithEmailAndPassword(email, password)
                     .then(function() { closeAuthModal(); });
                 }
+                // Account exists in Firebase — wrong password. Auto-send reset email.
+                if (data.hasFirebaseAccount) {
+                  fetch('/.netlify/functions/send-password-reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, lang: detectLocale() })
+                  }).catch(function() {});
+                  if (errorEl) {
+                    var isDaLoc = detectLocale() === 'da';
+                    errorEl.innerHTML = isDaLoc
+                      ? 'Forkert adgangskode. Vi har sendt en email til <strong>' + email + '</strong> s\u00e5 du kan nulstille din adgangskode. Tjek din indbakke (og spam).'
+                      : 'Incorrect password. We\u2019ve sent an email to <strong>' + email + '</strong> to reset your password. Check your inbox (and spam).';
+                    errorEl.style.color = '';
+                    errorEl.hidden = false;
+                  }
+                  return;
+                }
                 showErrorWithReset(errorEl);
               })
               .catch(function() {
@@ -747,28 +764,24 @@
   }
 
   // ============================================
-  // AUTH BRIDGE (postMessage from parent iframe)
+  // AUTH BRIDGE (postMessage + hash token)
   // ============================================
   // When the profile page is embedded in an iframe on the Framer site,
-  // login-cta.js sends a Firebase ID token via postMessage.
+  // login-cta.js passes a Firebase ID token in two ways:
+  // 1. URL hash: profile.hotyogacph.dk/#auth=<idToken> (most reliable)
+  // 2. postMessage: { type: 'hyc-auth-bridge', idToken } (backup)
   // We exchange it for a custom token via a Netlify function and sign in.
 
-  window.addEventListener('message', function (event) {
-    var data = event.data;
-    if (!data || data.type !== 'hyc-auth-bridge' || !data.idToken) return;
-
-    // If already logged in, notify parent and skip
+  function exchangeTokenAndSignIn(idToken) {
     if (auth.currentUser) {
-      if (window.parent !== window) {
-        window.parent.postMessage({ type: 'hyc-profile-authenticated' }, '*');
-      }
+      notifyParentAuthenticated();
       return;
     }
 
     fetch('/.netlify/functions/auth-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: data.idToken })
+      body: JSON.stringify({ idToken: idToken })
     })
       .then(function (res) { return res.json(); })
       .then(function (result) {
@@ -777,14 +790,43 @@
         }
       })
       .then(function () {
-        // Tell parent iframe that auth succeeded — hides the loader
-        if (window.parent !== window) {
-          window.parent.postMessage({ type: 'hyc-profile-authenticated' }, '*');
-        }
+        notifyParentAuthenticated();
       })
       .catch(function (err) {
         console.warn('Auth bridge sign-in failed:', err);
       });
+  }
+
+  function notifyParentAuthenticated() {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'hyc-profile-authenticated' }, '*');
+    }
+    // Also post to top in case of nested Framer iframes
+    try {
+      if (window.top !== window && window.top !== window.parent) {
+        window.top.postMessage({ type: 'hyc-profile-authenticated' }, '*');
+      }
+    } catch (e) {}
+  }
+
+  // Method 1: Check URL hash for auth token (set by login-cta.js)
+  (function checkHashAuth() {
+    var hash = window.location.hash;
+    if (hash && hash.indexOf('#auth=') === 0) {
+      var token = decodeURIComponent(hash.substring(6));
+      // Clear the hash so the token isn't visible/bookmarkable
+      try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
+      if (token) {
+        exchangeTokenAndSignIn(token);
+      }
+    }
+  })();
+
+  // Method 2: postMessage from parent iframe (backup)
+  window.addEventListener('message', function (event) {
+    var data = event.data;
+    if (!data || data.type !== 'hyc-auth-bridge' || !data.idToken) return;
+    exchangeTokenAndSignIn(data.idToken);
   });
 
   console.log('Firebase Auth initialized');

@@ -1,0 +1,510 @@
+#!/usr/bin/env node
+/**
+ * Audit & Fix Sequences — Standalone Script
+ *
+ * Reads live Firestore, reports all sequence data, then fixes:
+ *   1. Exit conditions → approved 6 statuses
+ *   2. Channel mismatches → sms→email/both when email content exists
+ *
+ * Usage:
+ *   node scripts/audit-and-fix-sequences.js              # Audit only (no changes)
+ *   node scripts/audit-and-fix-sequences.js --fix         # Audit + apply fixes
+ *   node scripts/audit-and-fix-sequences.js --fix-urls    # Audit + fix English email URLs only
+ *
+ * Requires firebase-service-account.json in project root or lead-agent/ dir.
+ */
+
+const path = require('path');
+const admin = require('firebase-admin');
+
+// ── Firebase setup ──────────────────────────────────────────────────────────
+let serviceAccount;
+try {
+  serviceAccount = require(path.join(__dirname, '..', 'firebase-service-account.json'));
+} catch (_) {
+  try {
+    serviceAccount = require(path.join(__dirname, '..', 'lead-agent', 'firebase-service-account.json'));
+  } catch (__) {
+    if (process.env.FIREBASE_PROJECT_ID) {
+      serviceAccount = {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+      };
+    } else {
+      console.error('No Firebase credentials found. Place firebase-service-account.json in project root or lead-agent/ dir.');
+      process.exit(1);
+    }
+  }
+}
+
+if (!admin.apps.length) {
+  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+}
+
+const db = admin.firestore();
+
+// ── Constants ───────────────────────────────────────────────────────────────
+
+var CORRECT_EXIT_CONDITIONS = [
+  'Converted',
+  'Existing Applicant',
+  'Unsubscribed',
+  'Lost',
+  'Closed',
+  'Archived'
+];
+
+var REFUND_TERMS = [
+  'fuld refusion',
+  'fully refundable',
+  'refund',
+  'refusion',
+  'money back',
+  'pengene tilbage'
+];
+
+// ── SMS overrides (clean versions — no refund language) ─────────────────────
+
+var SMS_FIXES = {
+  // Onboarding step 5 (index 4)
+  'Un1xmmriIpUyy2Kui97N': {
+    stepIndex: 4,
+    sms_message: 'Hi {{first_name}}, har du fundet det format der passer dig? Husk vores Forberedelsesfase (3.750 kr) \u2014 bel\u00F8bet tr\u00E6kkes fra den fulde pris. /Shamir'
+  },
+  // July step 4 (index 3)
+  'Yoq6RCVqTYlF10OPmkSw': {
+    stepIndex: 3,
+    sms_message: 'Hi {{first_name}}, just a heads up \u2014 July spots are filling up. The Preparation Phase (3,750 DKK) secures your place \u2014 the amount is deducted from the full price. Any questions? /Shamir, Yoga Bible'
+  }
+};
+
+// Quick Follow-up English content
+var QUICK_FOLLOWUP_EN = {
+  email_subject_en: 'Did you get everything, {{first_name}}?',
+  email_body_en: '<p>Hi {{first_name}},</p><p>It\u2019s Shamir from Yoga Bible. Just wanted to make sure you received the schedule and information we sent?</p><p>If you have any questions about the education, just reply here \u2014 or call me directly at +45 53 88 12 09.</p>'
+};
+
+// ── English URL fix: schedule path mapping ──────────────────────────────────
+
+var SCHEDULE_MAP = {
+  '/skema/4-uger/': '/en/schedule/4-weeks/',
+  '/skema/4-uger-juli/': '/en/schedule/4-weeks-july/',
+  '/skema/8-uger/': '/en/schedule/8-weeks/',
+  '/skema/18-uger/': '/en/schedule/18-weeks/',
+  '/skema/18-uger-august/': '/en/schedule/18-weeks-august/',
+  '/tidsplan/4-uger/': '/en/schedule/4-weeks/',
+  '/tidsplan/4-uger-juli/': '/en/schedule/4-weeks-july/',
+  '/tidsplan/8-uger/': '/en/schedule/8-weeks/',
+  '/tidsplan/18-uger/': '/en/schedule/18-weeks/',
+  '/tidsplan/18-uger-august/': '/en/schedule/18-weeks-august/'
+};
+
+var URL_SKIP_PREFIXES = ['/assets/', '/images/', '/.netlify/', '/admin/', '/api/'];
+
+function fixUrlsInHtml(html) {
+  var changes = [];
+  var result = html.replace(
+    /https?:\/\/(www\.)?yogabible\.dk(\/[^"'\s<>]*)/g,
+    function (fullMatch, www, path) {
+      if (path.indexOf('/en/') === 0) return fullMatch;
+      for (var i = 0; i < URL_SKIP_PREFIXES.length; i++) {
+        if (path.indexOf(URL_SKIP_PREFIXES[i]) === 0) return fullMatch;
+      }
+      var pathOnly = path.split('?')[0];
+      var query = path.indexOf('?') !== -1 ? path.substring(path.indexOf('?')) : '';
+      for (var schedDa in SCHEDULE_MAP) {
+        if (pathOnly === schedDa || pathOnly === schedDa.replace(/\/$/, '')) {
+          var newPath = SCHEDULE_MAP[schedDa] + query;
+          var newUrl = 'https://yogabible.dk' + newPath;
+          changes.push({ original: fullMatch, fixed: newUrl, type: 'schedule_path_mapped' });
+          return newUrl;
+        }
+      }
+      var fixedUrl = 'https://yogabible.dk/en' + path;
+      changes.push({ original: fullMatch, fixed: fixedUrl, type: 'en_prefix_added' });
+      return fixedUrl;
+    }
+  );
+  return { html: result, changes: changes };
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+function stripHtml(html) {
+  return (html || '').replace(/<[^>]+>/g, '');
+}
+
+function truncate(str, len) {
+  if (!str) return null;
+  return str.length > len ? str.substring(0, len) + '...' : str;
+}
+
+// ── Main ────────────────────────────────────────────────────────────────────
+
+async function main() {
+  var doFix = process.argv.includes('--fix');
+
+  console.log('');
+  console.log('╔═══════════════════════════════════════════════════════════════╗');
+  console.log('║          Firestore Sequence Audit & Fix                      ║');
+  console.log('║' + (doFix ? '                  🟢 FIX MODE — WILL WRITE                    ' : '                  🔵 AUDIT ONLY — READ ONLY                    ') + '║');
+  console.log('╚═══════════════════════════════════════════════════════════════╝');
+  console.log('');
+
+  // ── Load all sequences ──────────────────────────────────────────────────
+  var seqSnap = await db.collection('sequences').get();
+  console.log('Found ' + seqSnap.size + ' sequences in Firestore.\n');
+
+  // ── Load all enrollments ────────────────────────────────────────────────
+  var enrollSnap = await db.collection('sequence_enrollments').get();
+  var enrollmentsBySeq = {};
+  var totalEnrollments = 0;
+
+  enrollSnap.forEach(function (doc) {
+    var d = doc.data();
+    var sid = d.sequence_id;
+    if (!sid) return;
+    totalEnrollments++;
+    if (!enrollmentsBySeq[sid]) {
+      enrollmentsBySeq[sid] = { total: 0, active: 0, paused: 0, completed: 0, exited: 0, at_step_1: 0, at_step_2_plus: 0 };
+    }
+    enrollmentsBySeq[sid].total++;
+    var status = d.status || 'active';
+    if (enrollmentsBySeq[sid][status] !== undefined) enrollmentsBySeq[sid][status]++;
+    var step = d.current_step || 1;
+    if (step <= 1) enrollmentsBySeq[sid].at_step_1++;
+    else enrollmentsBySeq[sid].at_step_2_plus++;
+  });
+
+  console.log('Total enrollments across all sequences: ' + totalEnrollments + '\n');
+
+  // ── Audit + Fix each sequence ───────────────────────────────────────────
+  var refundMatches = [];
+  var exitConditionFixes = [];
+  var channelFixes = [];
+
+  for (var i = 0; i < seqSnap.docs.length; i++) {
+    var doc = seqSnap.docs[i];
+    var data = doc.data();
+    var docRef = doc.ref;
+    var stats = enrollmentsBySeq[doc.id] || { total: 0, active: 0, paused: 0, completed: 0, exited: 0, at_step_1: 0, at_step_2_plus: 0 };
+
+    console.log('━'.repeat(70));
+    console.log('📋 ' + (data.name || doc.id));
+    console.log('   ID: ' + doc.id);
+    console.log('   Active: ' + (data.active === true));
+    console.log('   Trigger: ' + JSON.stringify(data.trigger || {}));
+    console.log('   Exit conditions: ' + JSON.stringify(data.exit_conditions || []));
+    console.log('   enrollment_closes: ' + (data.enrollment_closes || 'NOT SET'));
+    console.log('   Enrollments: ' + stats.total + ' (active: ' + stats.active + ', completed: ' + stats.completed + ', exited: ' + stats.exited + ', at_step_1: ' + stats.at_step_1 + ', step_2+: ' + stats.at_step_2_plus + ')');
+
+    var steps = data.steps || [];
+    var needsUpdate = false;
+    var updateData = {};
+
+    // ── Check exit conditions ─────────────────────────────────────────
+    var currentExit = data.exit_conditions || [];
+    var exitMatch = currentExit.length === CORRECT_EXIT_CONDITIONS.length &&
+      CORRECT_EXIT_CONDITIONS.every(function (c) { return currentExit.includes(c); });
+
+    if (!exitMatch) {
+      var removed = currentExit.filter(function (c) { return !CORRECT_EXIT_CONDITIONS.includes(c); });
+      var added = CORRECT_EXIT_CONDITIONS.filter(function (c) { return !currentExit.includes(c); });
+      console.log('   ⚠️  EXIT CONDITIONS MISMATCH');
+      if (removed.length) console.log('       Removing: ' + JSON.stringify(removed));
+      if (added.length) console.log('       Adding: ' + JSON.stringify(added));
+      exitConditionFixes.push({ name: data.name || doc.id, previous: currentExit, removed: removed, added: added });
+
+      if (doFix) {
+        updateData.exit_conditions = CORRECT_EXIT_CONDITIONS;
+        needsUpdate = true;
+      }
+    } else {
+      console.log('   ✅ Exit conditions correct');
+    }
+
+    // ── Check steps ───────────────────────────────────────────────────
+    console.log('   Steps (' + steps.length + '):');
+    var stepsChanged = false;
+
+    for (var s = 0; s < steps.length; s++) {
+      var step = steps[s];
+      var channel = step.channel || 'email';
+      var daSubject = step.email_subject || '';
+      var daBody = step.email_body || '';
+      var enSubject = step.email_subject_en || '';
+      var enBody = step.email_body_en || '';
+      var smsMsg = step.sms_message || '';
+      var hasEmailBody = !!(daBody || enBody);
+      var hasSms = !!smsMsg;
+
+      // Channel status
+      var channelStatus = '✅';
+      var channelNote = '';
+      if (hasEmailBody && channel === 'sms') {
+        channelStatus = '❌';
+        var newChannel = hasSms ? 'both' : 'email';
+        channelNote = ' → FIX to "' + newChannel + '"';
+        channelFixes.push({
+          sequence: data.name || doc.id,
+          step_index: s,
+          previous: channel,
+          new_channel: newChannel,
+          da_subject: daSubject || '(none)'
+        });
+        if (doFix) {
+          steps[s].channel = newChannel;
+          stepsChanged = true;
+        }
+      }
+
+      // Content status
+      var daStatus = daBody ? '✅' : '❌ EMPTY';
+      var enStatus = enBody ? '✅' : '❌ MISSING';
+
+      console.log('     Step ' + (s + 1) + ' (idx ' + s + '):');
+      console.log('       Channel: ' + channel + ' ' + channelStatus + channelNote);
+      console.log('       Delay: ' + (step.delay_minutes || 0) + ' min (' + Math.round((step.delay_minutes || 0) / 60 / 24 * 10) / 10 + ' days)');
+      console.log('       DA subject: ' + (daSubject || '(empty)'));
+      console.log('       DA body: ' + daStatus + (daBody ? ' — ' + truncate(stripHtml(daBody), 60) : ''));
+      console.log('       EN subject: ' + (enSubject || '(empty)'));
+      console.log('       EN body: ' + enStatus + (enBody ? ' — ' + truncate(stripHtml(enBody), 60) : ''));
+      if (hasSms) console.log('       SMS: ' + truncate(smsMsg, 60));
+
+      // Refund scan
+      var textsToScan = [daBody, enBody, daSubject, enSubject, smsMsg];
+      var fieldNames = ['email_body', 'email_body_en', 'email_subject', 'email_subject_en', 'sms_message'];
+      for (var t = 0; t < textsToScan.length; t++) {
+        var text = textsToScan[t].toLowerCase();
+        for (var r = 0; r < REFUND_TERMS.length; r++) {
+          if (text.includes(REFUND_TERMS[r])) {
+            console.log('       🚨 REFUND LANGUAGE: "' + REFUND_TERMS[r] + '" in ' + fieldNames[t]);
+            refundMatches.push({
+              sequence: data.name || doc.id,
+              step: s,
+              term: REFUND_TERMS[r],
+              field: fieldNames[t]
+            });
+          }
+        }
+      }
+    }
+
+    if (stepsChanged) {
+      updateData.steps = steps;
+      needsUpdate = true;
+    }
+
+    // ── Write fixes ───────────────────────────────────────────────────
+    if (needsUpdate && doFix) {
+      updateData.updated_at = new Date().toISOString();
+      await docRef.update(updateData);
+      console.log('   💾 FIXED in Firestore');
+    }
+
+    console.log('');
+  }
+
+  // ── Fix SMS messages + Quick Follow-up English (--fix only) ─────────────
+  var smsFixes = [];
+  var qfFix = null;
+
+  if (doFix) {
+    // SMS overrides
+    for (var seqId in SMS_FIXES) {
+      var fix = SMS_FIXES[seqId];
+      var smsDocRef = db.collection('sequences').doc(seqId);
+      var smsDocSnap = await smsDocRef.get();
+      if (smsDocSnap.exists) {
+        var smsData = smsDocSnap.data();
+        var smsSteps = smsData.steps || [];
+        if (smsSteps.length > fix.stepIndex) {
+          var oldSms = smsSteps[fix.stepIndex].sms_message || '';
+          smsSteps[fix.stepIndex].sms_message = fix.sms_message;
+          await smsDocRef.update({ steps: smsSteps, updated_at: new Date().toISOString() });
+          smsFixes.push({ id: seqId, name: smsData.name, step: fix.stepIndex, old: oldSms, new: fix.sms_message });
+          console.log('💾 SMS fix: ' + smsData.name + ' step ' + fix.stepIndex);
+        }
+      }
+    }
+
+    // Quick Follow-up English
+    var qfSnap = await db.collection('sequences')
+      .where('name', '==', 'YTT Quick Follow-up').limit(1).get();
+    if (!qfSnap.empty) {
+      var qfDoc = qfSnap.docs[0];
+      var qfData = qfDoc.data();
+      var qfSteps = qfData.steps || [];
+      if (qfSteps.length > 0) {
+        var oldEnSub = qfSteps[0].email_subject_en || '';
+        var oldEnBody = qfSteps[0].email_body_en || '';
+        qfSteps[0].email_subject_en = QUICK_FOLLOWUP_EN.email_subject_en;
+        qfSteps[0].email_body_en = QUICK_FOLLOWUP_EN.email_body_en;
+        await qfDoc.ref.update({ steps: qfSteps, updated_at: new Date().toISOString() });
+        qfFix = { id: qfDoc.id, old_subject: oldEnSub || '(empty)', old_body: oldEnBody ? 'had content' : '(empty)', new_subject: QUICK_FOLLOWUP_EN.email_subject_en };
+        console.log('💾 Quick Follow-up EN: added/updated English content');
+      }
+    }
+    console.log('');
+  }
+
+  // ── Fix English email URLs (--fix-urls or --fix) ───────────────────────
+  var urlFixes = [];
+  var doFixUrls = process.argv.includes('--fix-urls') || doFix;
+
+  if (doFixUrls) {
+    console.log('Scanning English email URLs...');
+    // Re-load sequences to pick up any earlier fixes
+    var urlSeqSnap = await db.collection('sequences').get();
+    for (var u = 0; u < urlSeqSnap.docs.length; u++) {
+      var urlDoc = urlSeqSnap.docs[u];
+      var urlData = urlDoc.data();
+      var urlSteps = urlData.steps || [];
+      var urlSeqChanged = false;
+      var urlSeqName = urlData.name || urlDoc.id;
+
+      for (var us = 0; us < urlSteps.length; us++) {
+        if (!urlSteps[us].email_body_en) continue;
+        var urlResult = fixUrlsInHtml(urlSteps[us].email_body_en);
+        if (urlResult.changes.length > 0) {
+          urlSteps[us].email_body_en = urlResult.html;
+          urlSeqChanged = true;
+          urlFixes.push({
+            sequence: urlSeqName,
+            step_index: us,
+            urls_fixed: urlResult.changes.length,
+            details: urlResult.changes
+          });
+        }
+        // Also check email_subject_en
+        if (urlSteps[us].email_subject_en) {
+          var subjResult = fixUrlsInHtml(urlSteps[us].email_subject_en);
+          if (subjResult.changes.length > 0) {
+            urlSteps[us].email_subject_en = subjResult.html;
+            urlSeqChanged = true;
+            urlFixes.push({
+              sequence: urlSeqName,
+              step_index: us,
+              field: 'email_subject_en',
+              urls_fixed: subjResult.changes.length,
+              details: subjResult.changes
+            });
+          }
+        }
+      }
+
+      if (urlSeqChanged) {
+        await urlDoc.ref.update({ steps: urlSteps, updated_at: new Date().toISOString() });
+        console.log('💾 URL fix: ' + urlSeqName);
+      }
+    }
+    console.log('');
+  }
+
+  // ── Summary ─────────────────────────────────────────────────────────────
+  console.log('═'.repeat(70));
+  console.log('');
+  console.log('AUDIT SUMMARY');
+  console.log('═'.repeat(70));
+  console.log('');
+  console.log('Total sequences: ' + seqSnap.size);
+  console.log('Total enrollments: ' + totalEnrollments);
+  console.log('');
+
+  // Refund
+  if (refundMatches.length === 0) {
+    console.log('✅ Refund language: ZERO matches across all content');
+  } else {
+    console.log('🚨 Refund language: ' + refundMatches.length + ' matches found!');
+    refundMatches.forEach(function (m) {
+      console.log('   - ' + m.sequence + ' step ' + m.step + ': "' + m.term + '" in ' + m.field);
+    });
+  }
+  console.log('');
+
+  // Exit conditions
+  if (exitConditionFixes.length === 0) {
+    console.log('✅ Exit conditions: All sequences have correct 6 statuses');
+  } else {
+    console.log((doFix ? '💾 ' : '⚠️  ') + 'Exit conditions: ' + exitConditionFixes.length + ' sequences ' + (doFix ? 'FIXED' : 'need fixing'));
+    exitConditionFixes.forEach(function (f) {
+      console.log('   - ' + f.name + ': removed ' + JSON.stringify(f.removed) + ', added ' + JSON.stringify(f.added));
+    });
+  }
+  console.log('');
+
+  // Channel fixes
+  if (channelFixes.length === 0) {
+    console.log('✅ Channel fields: All steps with email content have correct channel');
+  } else {
+    console.log((doFix ? '💾 ' : '⚠️  ') + 'Channel mismatches: ' + channelFixes.length + ' steps ' + (doFix ? 'FIXED' : 'need fixing'));
+    channelFixes.forEach(function (f) {
+      console.log('   - ' + f.sequence + ' step ' + f.step_index + ': ' + f.previous + ' → ' + f.new_channel + ' (subject: ' + f.da_subject + ')');
+    });
+  }
+  console.log('');
+
+  // SMS fixes
+  if (doFix && smsFixes.length > 0) {
+    console.log('💾 SMS messages cleaned: ' + smsFixes.length);
+    smsFixes.forEach(function (f) {
+      console.log('   - ' + f.name + ' step ' + f.step + ': ' + (f.old === f.new ? '(no change)' : 'UPDATED'));
+    });
+    console.log('');
+  }
+
+  // Quick Follow-up
+  if (doFix && qfFix) {
+    console.log('💾 Quick Follow-up EN: ' + qfFix.new_subject);
+    console.log('   Previous EN subject: ' + qfFix.old_subject);
+    console.log('');
+  }
+
+  // URL fixes
+  if (doFixUrls) {
+    if (urlFixes.length === 0) {
+      console.log('✅ English URLs: All yogabible.dk URLs in email_body_en already have /en/ prefix');
+    } else {
+      var totalUrls = urlFixes.reduce(function (sum, f) { return sum + f.urls_fixed; }, 0);
+      console.log('💾 English URL fixes: ' + totalUrls + ' URLs fixed across ' + urlFixes.length + ' steps');
+      urlFixes.forEach(function (f) {
+        console.log('   ' + f.sequence + ' step ' + f.step_index + ':');
+        f.details.forEach(function (d) {
+          console.log('     ' + d.original);
+          console.log('     → ' + d.fixed + ' (' + d.type + ')');
+        });
+      });
+    }
+    console.log('');
+  }
+
+  // Enrollment counts
+  console.log('ENROLLMENT COUNTS');
+  console.log('─'.repeat(40));
+  for (var j = 0; j < seqSnap.docs.length; j++) {
+    var seqDoc = seqSnap.docs[j];
+    var seqData = seqDoc.data();
+    var seqStats = enrollmentsBySeq[seqDoc.id] || { total: 0, active: 0, completed: 0, exited: 0, at_step_1: 0, at_step_2_plus: 0 };
+    console.log('  ' + (seqData.name || seqDoc.id));
+    console.log('    Total: ' + seqStats.total + ' | Active: ' + seqStats.active + ' | Completed: ' + seqStats.completed + ' | Exited: ' + seqStats.exited);
+    console.log('    At step 1: ' + seqStats.at_step_1 + ' | At step 2+: ' + seqStats.at_step_2_plus);
+  }
+
+  console.log('');
+  if (!doFix && (exitConditionFixes.length > 0 || channelFixes.length > 0)) {
+    console.log('Run with --fix to apply ALL changes (incl. URLs):');
+    console.log('  node scripts/audit-and-fix-sequences.js --fix');
+    console.log('');
+    console.log('Or fix only English URLs:');
+    console.log('  node scripts/audit-and-fix-sequences.js --fix-urls');
+    console.log('');
+  }
+
+  process.exit(0);
+}
+
+main().catch(function (err) {
+  console.error('Fatal error:', err);
+  process.exit(1);
+});

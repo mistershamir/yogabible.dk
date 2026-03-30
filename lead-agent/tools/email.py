@@ -29,6 +29,9 @@ ORANGE = '#f75c03'
 MEETING_LINK = 'https://yogabible.dk/?booking=1'
 ACCOMMODATION_LINK = 'https://yogabible.dk/accommodation'
 
+# CDN base URL for media assets (Bunny CDN)
+CDN_BASE = os.getenv('CDN_BASE_URL', 'https://yogabible.b-cdn.net')
+
 SCHEDULE_LINKS = {
     '18-week': 'https://yogabible.dk/ytt-skema/?program=18w-mar-jun-2026',
     '4-week': 'https://yogabible.dk/ytt-skema/?program=4w-apr-2026',
@@ -36,9 +39,9 @@ SCHEDULE_LINKS = {
 }
 
 SCHEDULE_PDFS = {
-    '18-week': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280099/18w-mar-jun-2026.pdf_izgiuz',
-    '4-week': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280041/4w-apr-2026.pdf_x9iwdf',
-    '8-week': 'https://res.cloudinary.com/ddcynsa30/image/upload/v1771280072/8w-may-jun-2026.pdf_k7i62j',
+    '18-week': CDN_BASE + '/v1771280099/18w-mar-jun-2026.pdf_izgiuz',
+    '4-week': CDN_BASE + '/v1771280041/4w-apr-2026.pdf_x9iwdf',
+    '8-week': CDN_BASE + '/v1771280072/8w-may-jun-2026.pdf_k7i62j',
 }
 
 PROGRAM_LABELS = {
@@ -380,7 +383,7 @@ def _build_18w_welcome(lead):
     )
     body += _preparation_phase_html(program_page)
     body += f'<p style="margin-top:20px;"><a href="{program_page}" style="color:#f75c03;">Læs mere om 18-ugers programmet</a>'
-    body += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>'
+    body += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>'
     body += _booking_cta_html() + _question_prompt_html()
     body += _english_note_html() + _signature_html()
     body += f'<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;"><span style="color:#999;font-size:11px;">Ønsker du ikke at modtage flere e-mails? Svar "afmeld" på denne e-mail.</span></div>'
@@ -443,7 +446,7 @@ def _build_4w_welcome(lead):
     )
     body += _preparation_phase_html(program_page)
     body += f'<p style="margin-top:20px;"><a href="{program_page}" style="color:#f75c03;">Læs mere om 4-ugers programmet</a>'
-    body += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>'
+    body += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>'
     body += _booking_cta_html() + _question_prompt_html()
     body += _english_note_html() + _signature_html()
     body += f'<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;"><span style="color:#999;font-size:11px;">Ønsker du ikke at modtage flere e-mails? Svar "afmeld" på denne e-mail.</span></div>'
@@ -489,7 +492,7 @@ def _build_8w_welcome(lead):
     body += _pricing_section_html('23.750', '3.750', '20.000', 'fleksibel ratebetaling')
     body += _preparation_phase_html(program_page)
     body += f'<p style="margin-top:20px;"><a href="{program_page}" style="color:#f75c03;">Læs mere om 8-ugers programmet</a>'
-    body += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalreruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>'
+    body += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>'
     body += _booking_cta_html() + _question_prompt_html()
     body += _english_note_html() + _signature_html()
     body += f'<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;"><span style="color:#999;font-size:11px;">Ønsker du ikke at modtage flere e-mails? Svar "afmeld" på denne e-mail.</span></div>'

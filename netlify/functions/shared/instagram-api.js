@@ -5,8 +5,8 @@
 
 const crypto = require('crypto');
 
-const IG_API_BASE = 'https://graph.instagram.com/v21.0';
-const FB_API_BASE = 'https://graph.facebook.com/v21.0';
+const IG_API_BASE = 'https://graph.instagram.com/v25.0';
+const FB_API_BASE = 'https://graph.facebook.com/v25.0';
 
 // ---------------------------------------------------------------------------
 // Rate limiter — simple in-memory sliding window (per warm container)

@@ -20,7 +20,16 @@
       [t.ya_faq3_q, t.ya_faq3_a],
       [t.ya_faq4_q, t.ya_faq4_a],
       [t.faq11_q, t.faq11_a],
-      [t.faq12_q, t.faq12_a]
+      [t.faq12_q, t.faq12_a],
+      [t.ai_faq1_q, t.ai_faq1_a],
+      [t.ai_faq2_q, t.ai_faq2_a],
+      [t.ai_faq3_q, t.ai_faq3_a],
+      [t.ai_faq4_q, t.ai_faq4_a],
+      [t.ai_faq5_q, t.ai_faq5_a],
+      [t.ai_faq6_q, t.ai_faq6_a],
+      [t.ai_faq7_q, t.ai_faq7_a],
+      [t.ai_faq8_q, t.ai_faq8_a],
+      [t.ai_faq9_q, t.ai_faq9_a]
     ] -%}
 {
   "@context": "https://schema.org",
@@ -148,7 +157,7 @@
     {# CONTENT (Left on desktop, second on mobile) #}
     <div class="om2-hero__content">
       <p class="om2-hero__eyebrow">{{ t.hero_tagline }}</p>
-      <h1 class="om2-hero__title">{{ t.hero_title }}</h1>
+      <h2 class="om2-hero__title">{{ t.hero_title }}</h2>
       <p class="om2-hero__lead">{{ t.hero_subtitle }}</p>
       <p class="om2-hero__subtext">{{ t.hero_subtext }}</p>
       <div class="om2-hero__divider"></div>
@@ -279,6 +288,131 @@
 </section>
 
 {# ═══════════════════════════════════════════════════════════
+   SECTION 2b: EDUCATION METHODS — Triangle Method + Vinyasa Plus
+   ═══════════════════════════════════════════════════════════ #}
+<section class="om2-methods" id="om2-methods" aria-labelledby="om2-methods-title">
+  <div class="om2-methods__inner">
+    <header class="om2-methods__head">
+      <p class="om2-methods__eyebrow">{{ t.methods_eyebrow }}</p>
+      <h2 class="om2-methods__title" id="om2-methods-title">{{ t.methods_title }}</h2>
+      <p class="om2-methods__lead">{{ t.methods_lead | safe }}</p>
+    </header>
+
+    <div class="om2-methods__cards">
+
+      {# ── THE TRIANGLE METHOD ── #}
+      <article class="om2-methods__card om2-methods__card--triangle">
+        <div class="om2-methods__card-badge">{{ t.tri_badge }}</div>
+        <h3 class="om2-methods__card-title">{{ t.tri_title }}</h3>
+        <p class="om2-methods__card-subtitle">{{ t.tri_subtitle }}</p>
+        <p class="om2-methods__card-lead">{{ t.tri_lead }}</p>
+
+        {# Animated Triangle Visual #}
+        {% include "components/triangle-method-animation.njk" %}
+
+        <div class="om2-methods__styles">
+          <div class="om2-methods__style">
+            <span class="om2-methods__style-icon">🧘</span>
+            <div>
+              <h4 class="om2-methods__style-name">{{ t.tri_hatha_title }}</h4>
+              <p class="om2-methods__style-desc">{{ t.tri_hatha_desc }}</p>
+            </div>
+          </div>
+          <div class="om2-methods__style">
+            <span class="om2-methods__style-icon">🌊</span>
+            <div>
+              <h4 class="om2-methods__style-name">{{ t.tri_vinyasa_title }}</h4>
+              <p class="om2-methods__style-desc">{{ t.tri_vinyasa_desc }}</p>
+            </div>
+          </div>
+          <div class="om2-methods__style">
+            <span class="om2-methods__style-icon">🌙</span>
+            <div>
+              <h4 class="om2-methods__style-name">{{ t.tri_yin_title }}</h4>
+              <p class="om2-methods__style-desc">{{ t.tri_yin_desc }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="om2-methods__why">
+          <h4 class="om2-methods__why-title">{{ t.tri_why_title }}</h4>
+          <p class="om2-methods__why-text">{{ t.tri_why_text | safe }}</p>
+        </div>
+
+        <ul class="om2-methods__benefits">
+          {% for i in range(1, 4) %}
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>{{ t["tri_benefit" + (i | string)] | safe }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </article>
+
+      {# ── VINYASA PLUS ── #}
+      <article class="om2-methods__card om2-methods__card--vinyasa-plus">
+        <div class="om2-methods__card-badge om2-methods__card-badge--alt">{{ t.vp_badge }}</div>
+        <h3 class="om2-methods__card-title">{{ t.vp_title }}</h3>
+        <p class="om2-methods__card-subtitle">{{ t.vp_subtitle }}</p>
+        <p class="om2-methods__card-lead">{{ t.vp_lead }}</p>
+
+        {# Animated Vinyasa Plus Visual #}
+        {% include "components/vinyasa-plus-animation.njk" %}
+
+        <div class="om2-methods__split">
+          <h4 class="om2-methods__split-title">{{ t.vp_split_title }}</h4>
+          <div class="om2-methods__split-bars">
+            <div class="om2-methods__split-bar om2-methods__split-bar--vinyasa">
+              <span class="om2-methods__split-label">{{ t.vp_split_vinyasa }}</span>
+              <p class="om2-methods__split-desc">{{ t.vp_split_vinyasa_desc }}</p>
+              <ul class="om2-methods__split-points">
+                {% for i in range(1, 6) %}
+                <li>{{ t["vp_split_vinyasa_point" + (i | string)] }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            <div class="om2-methods__split-bar om2-methods__split-bar--yin">
+              <span class="om2-methods__split-label">{{ t.vp_split_yin }}</span>
+              <p class="om2-methods__split-desc">{{ t.vp_split_yin_desc }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="om2-methods__why">
+          <h4 class="om2-methods__why-title">{{ t.vp_why_title }}</h4>
+          <p class="om2-methods__why-text">{{ t.vp_why_text | safe }}</p>
+        </div>
+
+        <ul class="om2-methods__benefits">
+          {% for i in range(1, 4) %}
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>{{ t["vp_benefit" + (i | string)] | safe }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </article>
+    </div>
+
+    {# SHARED: Both methods include #}
+    <div class="om2-methods__shared">
+      <h3 class="om2-methods__shared-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        {{ t.methods_shared_title }}
+      </h3>
+      <ul class="om2-methods__shared-list">
+        {% for i in range(1, 4) %}
+        <li>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>{{ t["methods_shared" + (i | string)] | safe }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</section>
+
+{# ═══════════════════════════════════════════════════════════
    SECTION 3: MEET THE TEACHERS
    ═══════════════════════════════════════════════════════════ #}
 <section class="om2-teachers" id="om2-teachers" aria-labelledby="om2-teachers-title">
@@ -334,7 +468,7 @@
     <div class="om2-cred__media">
       <div class="om2-cred__image">
         <img
-          src="https://res.cloudinary.com/ddcynsa30/image/upload/v1771966816/Sample_Certificate_jzjtfx.png"
+          src="{{ mediaBase }}/v1771966816/Sample_Certificate_jzjtfx.png"
           alt="Yoga Alliance RYS 200 Certificate Sample"
           loading="lazy"
           decoding="async"
@@ -592,11 +726,11 @@
 
         {# Video preview — moved into left column #}
         <figure class="om2-online__media om2-online__media--inline">
-          <div class="om2-online__video-card" data-om2-online-video data-src="https://res.cloudinary.com/ddcynsa30/video/upload/w_1280,q_auto,f_auto/yoga-bible-DK/courses/workshop-previews.mp4">
+          <div class="om2-online__video-card" data-om2-online-video data-src="{{ mediaBase }}/yoga-bible-DK/courses/workshop-previews.mp4">
             <video
               class="om2-online__thumb-video"
               muted playsinline preload="metadata"
-              src="https://res.cloudinary.com/ddcynsa30/video/upload/w_1280,q_auto,f_auto/yoga-bible-DK/courses/workshop-previews.mp4#t=3">
+              src="{{ mediaBase }}/yoga-bible-DK/courses/workshop-previews.mp4#t=3">
             </video>
             <div class="om2-online__video-overlay"></div>
             <span class="om2-online__video-label">{{ t.online_video_label }}</span>
@@ -658,67 +792,76 @@
    ═══════════════════════════════════════════════════════════ #}
 <section class="om2-location" id="om2-location" aria-labelledby="om2-location-title">
   <div class="om2-location__inner">
-    <div class="om2-location__grid">
 
-      {# TOP: Header + features #}
-      <div class="om2-location__header">
-        <p class="om2-location__eyebrow">{{ t.location_eyebrow }}</p>
-        <h2 id="om2-location-title" class="om2-location__title">{{ t.location_title }}</h2>
-        <p class="om2-location__lead">{{ t.location_lead | safe }}</p>
+    {# TOP: Header + features #}
+    <div class="om2-location__header">
+      <p class="om2-location__eyebrow">{{ t.location_eyebrow }}</p>
+      <h2 id="om2-location-title" class="om2-location__title">{{ t.location_title }}</h2>
+      <p class="om2-location__lead">{{ t.location_lead | safe }}</p>
+    </div>
+
+    <div class="om2-location__features">
+      {% set loc_icons = [
+        '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
+        '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+        '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+        '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+      ] %}
+      {% for i in range(1, 5) %}
+      <div class="om2-location__feature">
+        <div class="om2-location__feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">{{ loc_icons[i - 1] | safe }}</svg>
+        </div>
+        <div>
+          <h3 class="om2-location__feature-title">{{ t["location_feature" + (i | string) + "_title"] }}</h3>
+          <p class="om2-location__feature-desc">{{ t["location_feature" + (i | string) + "_desc"] }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# MEDIA: Christianshavn neighbourhood video loop #}
+    <div class="om2-location__video-wrap">
+      <video autoplay muted loop playsinline preload="metadata"
+        poster="{{ "yoga-bible-DK/accommodation/christianshavn-copenhagen-neighbourhood.jpg" | cloudvid("w_1280,c_fill,so_0,q_60") }}">
+        <source src="{{ "yoga-bible-DK/accommodation/christianshavn-copenhagen-neighbourhood" | cloudvid("w_1280,q_auto") }}" type="video/mp4">
+      </video>
+    </div>
+
+    {# GALLERY: Studio photos carousel #}
+    <div class="om2-location__gallery" aria-label="{{ t.location_gallery_label }}">
+      <div class="om2-location__slider" data-om2-loc-slider>
+        <div class="om2-location__slider-track" data-om2-loc-track>
+          {% set studio_imgs = [
+            "{{ mediaBase }}/v1772736516/Studio_Pictures-8_maazde.jpg",
+            "{{ mediaBase }}/v1772736512/Studio_Pictures-1_usfq4w.jpg",
+            "{{ mediaBase }}/v1772736515/Studio_Pictures-5_daelan.jpg",
+            "{{ mediaBase }}/v1772736509/Studio_Pictures-9_yhwn7h.jpg",
+            "{{ mediaBase }}/v1772736511/Studio_Pictures-4_tnsrfh.jpg",
+            "{{ mediaBase }}/v1772736508/Studio_Pictures-7_v4to94.jpg"
+          ] %}
+          {% set studio_alts = ["Yoga studio main room", "Studio entrance", "Practice space", "Hot room", "Studio interior", "Changing area"] %}
+          {% for img in studio_imgs %}
+          <div class="om2-location__slide">
+            <img src="{{ img }}" alt="{{ studio_alts[loop.index0] }}" loading="lazy" decoding="async">
+          </div>
+          {% endfor %}
+        </div>
       </div>
 
-      <div class="om2-location__features">
-        {% set loc_icons = [
-          '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
-          '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
-          '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
-          '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
-        ] %}
-        {% for i in range(1, 5) %}
-        <div class="om2-location__feature">
-          <div class="om2-location__feature-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">{{ loc_icons[i - 1] | safe }}</svg>
-          </div>
-          <div>
-            <h3 class="om2-location__feature-title">{{ t["location_feature" + (i | string) + "_title"] }}</h3>
-            <p class="om2-location__feature-desc">{{ t["location_feature" + (i | string) + "_desc"] }}</p>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-
-      {# BOTTOM: Image gallery slider #}
-      <div class="om2-location__gallery" aria-label="{{ t.location_gallery_label }}">
-        <div class="om2-location__slider" data-om2-loc-slider>
-          <div class="om2-location__slider-track" data-om2-loc-track>
-            {# PLACEHOLDER SLIDES — Replace with actual studio photos: 1200×675px (16:9) #}
-            {% for i in range(1, 5) %}
-            <div class="om2-location__slide">
-              <div class="om2-location__img-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21 15 16 10 5 21"/>
-                </svg>
-                <span>{{ t.location_img_placeholder }} {{ i }}</span>
-                <span class="om2-location__dim-label">{{ t.location_img_dimensions }}</span>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="om2-location__slider-nav">
-          <button class="om2-location__slider-btn" type="button" aria-label="{{ t.location_prev }}" data-om2-loc-prev>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <div class="om2-location__slider-dots" data-om2-loc-dots></div>
-          <button class="om2-location__slider-btn" type="button" aria-label="{{ t.location_next }}" data-om2-loc-next>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-        </div>
+      <div class="om2-location__slider-nav">
+        <button class="om2-location__slider-btn" type="button" aria-label="{{ t.location_prev }}" data-om2-loc-prev>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="om2-location__slider-dots" data-om2-loc-dots></div>
+        <button class="om2-location__slider-btn" type="button" aria-label="{{ t.location_next }}" data-om2-loc-next>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
       </div>
     </div>
+
+    {# ADDRESS #}
+    <p class="om2-location__address">{{ t.location_address }}</p>
   </div>
 </section>
 
@@ -935,22 +1078,22 @@
         <figure class="om2-ya__badge-card">
           <div class="om2-ya__hero-badge">
             <div class="om2-ya__tile om2-ya__tile--dark om2-ya__tile--hero" data-label="Yoga Alliance">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/ya-logo-white.webp"
+              <img src="{{ mediaBase }}/yoga-bible-DK/brand/ya-logo-white.webp"
                    alt="Yoga Alliance logo" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
           </div>
           <div class="om2-ya__badge-grid" role="list">
             <div class="om2-ya__tile" role="listitem" data-label="E-RYT 500">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/eryt500.png" alt="E-RYT 500 badge" loading="lazy" decoding="async"
+              <img src="{{ mediaBase }}/yoga-bible-DK/brand/eryt500.png" alt="E-RYT 500 badge" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
             <div class="om2-ya__tile" role="listitem" data-label="RYS 200">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/rys200.png" alt="RYS 200 badge" loading="lazy" decoding="async"
+              <img src="{{ mediaBase }}/yoga-bible-DK/brand/rys200.png" alt="RYS 200 badge" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
             <div class="om2-ya__tile" role="listitem" data-label="YACEP">
-              <img src="https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/brand/yacep.png" alt="YACEP badge" loading="lazy" decoding="async"
+              <img src="{{ mediaBase }}/yoga-bible-DK/brand/yacep.png" alt="YACEP badge" loading="lazy" decoding="async"
                    onerror="this.style.display='none';this.closest('.om2-ya__tile').classList.add('om2-ya__tile--fallback');">
             </div>
           </div>

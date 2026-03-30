@@ -14,6 +14,7 @@
 
   var playerSection = document.getElementById('yb-live-player-section');
   var offlineSection = document.getElementById('yb-live-offline');
+  var reconnectingSection = document.getElementById('yb-live-reconnecting');
   var checkingOverlay = document.getElementById('yb-live-checking');
   var badge = document.getElementById('yb-live-badge');
   var retryBtn = document.getElementById('yb-live-retry');
@@ -45,11 +46,14 @@
   var btnLeave = document.getElementById('yb-live-btn-leave');
 
   var pollTimer = null;
+  var isCheckingStream = false; // guard against overlapping poll fetches
   var elapsedTimer = null;
   var liveStartTime = null;
   var sessionLiveStartTime = null;  // Server-side start time for persistent timer
   var POLL_INTERVAL = 15000;
+  var FAST_POLL_INTERVAL = 5000; // faster polling when reconnecting
   var isStreamLive = false;
+  var isReconnecting = false; // teacher disconnected but session still live
   var livekitRoom = null;
   var currentRoomName = null;
 
@@ -65,6 +69,8 @@
   var unreadChat = 0;
   var currentSession = null;
   var participantTiles = {}; // identity → tile element
+  var recBadge = document.getElementById('yb-live-rec');
+  var recBadgeInteractive = document.getElementById('yb-live-rec-interactive');
 
   // i18n
   var isDa = (container.dataset.lang || 'da') === 'da';
@@ -129,6 +135,48 @@
     if (elapsedTimeEl) elapsedTimeEl.textContent = '00:00';
   }
 
+  function showRecording(session, mode) {
+    // Show REC badge only when egress recording is actually active
+    var isRecording = session && session.muxLiveStreamId;
+    var el = mode === 'interactive' ? recBadgeInteractive : recBadge;
+    if (el) {
+      if (isRecording) {
+        el.classList.add('yb-live-rec--visible');
+      } else {
+        el.classList.remove('yb-live-rec--visible');
+      }
+    }
+  }
+
+  function hideRecording() {
+    if (recBadge) recBadge.classList.remove('yb-live-rec--visible');
+    if (recBadgeInteractive) recBadgeInteractive.classList.remove('yb-live-rec--visible');
+  }
+
+  function detectOrientation(videoEl, tile) {
+    // When video metadata loads, check if portrait and adjust tile
+    function check() {
+      var w = videoEl.videoWidth;
+      var h = videoEl.videoHeight;
+      if (w && h) {
+        if (h > w) {
+          tile.classList.add('yb-live-tile--portrait');
+        } else {
+          tile.classList.remove('yb-live-tile--portrait');
+        }
+      }
+    }
+    // Remove previous listeners if reattaching (prevents accumulation on camera toggle)
+    if (videoEl._orientCheck) {
+      videoEl.removeEventListener('loadedmetadata', videoEl._orientCheck);
+      videoEl.removeEventListener('resize', videoEl._orientCheck);
+    }
+    videoEl._orientCheck = check;
+    videoEl.addEventListener('loadedmetadata', check);
+    videoEl.addEventListener('resize', check); // fires when resolution changes (orientation flip)
+    check(); // in case already loaded
+  }
+
   function esc(s) {
     var d = document.createElement('div');
     d.textContent = s || '';
@@ -172,7 +220,12 @@
     })
     .catch(function (err) {
       console.error('[live] LiveKit connection error:', err);
-      showOffline();
+      if (isReconnecting) {
+        // Stay in reconnecting state — keep polling, don't show "not live"
+        console.log('[live] Connection failed during reconnecting — will retry on next poll');
+      } else {
+        showOffline();
+      }
     });
   }
 
@@ -200,7 +253,8 @@
       cleanupMount();
       livekitRoom = null;
       currentRoomName = null;
-      showOffline();
+      // Don't show offline immediately — check if session is still live (teacher may reconnect)
+      showReconnecting();
     });
 
     room.on(LivekitClient.RoomEvent.Reconnecting, function () {
@@ -331,8 +385,9 @@
     joinSection.style.display = 'none';
     interactiveSection.classList.remove('yb-live-interactive--active');
 
-    // Show badge
+    // Show badge + recording indicator
     badge.classList.add('yb-live-badge--visible');
+    showRecording(session, 'player');
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
 
     if (pollTimer) {
@@ -389,6 +444,7 @@
     joinSection.style.display = 'block';
     interactiveSection.classList.remove('yb-live-interactive--active');
     badge.classList.add('yb-live-badge--visible');
+    showRecording(session, 'interactive');
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
 
     if (pollTimer) {
@@ -446,6 +502,7 @@
     // Track subscribed — remote participant's track
     room.on(LivekitClient.RoomEvent.TrackSubscribed, function (track, publication, participant) {
       console.log('[live-i] Track subscribed:', track.kind, participant.identity);
+      if (isEgressParticipant(participant)) return;
       ensureParticipantTile(participant);
       attachTrackToTile(track, participant);
     });
@@ -481,6 +538,7 @@
     // Participant connected/disconnected
     room.on(LivekitClient.RoomEvent.ParticipantConnected, function (participant) {
       console.log('[live-i] Participant connected:', participant.identity);
+      if (isEgressParticipant(participant)) return;
       ensureParticipantTile(participant);
       updateParticipantCount();
       addChatSystemMessage(getParticipantName(participant) + (isDa ? ' deltager' : ' joined'));
@@ -498,7 +556,9 @@
       try {
         var msg = JSON.parse(new TextDecoder().decode(payload));
         handleDataMessage(msg, participant);
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[live-i] DataReceived error:', e);
+      }
     });
 
     room.on(LivekitClient.RoomEvent.Disconnected, function () {
@@ -522,6 +582,7 @@
 
       // Create tiles for existing participants
       room.remoteParticipants.forEach(function (participant) {
+        if (isEgressParticipant(participant)) return;
         ensureParticipantTile(participant);
         participant.trackPublications.forEach(function (pub) {
           if (pub.track && pub.isSubscribed) {
@@ -537,6 +598,15 @@
   }
 
   // ── Participant tile management ──
+
+  /**
+   * Filter out LiveKit egress bots (recording participants) from the grid.
+   * These are server-side participants used for recording, not real people.
+   */
+  function isEgressParticipant(participant) {
+    var id = participant.identity || '';
+    return id.indexOf('EG_') !== -1 || id.indexOf('egress') === 0;
+  }
 
   function getParticipantName(participant) {
     if (!participant) return 'Unknown';
@@ -601,10 +671,10 @@
       var videoEl = localVideoTrack.attach();
       videoEl.style.width = '100%';
       videoEl.style.height = '100%';
-      videoEl.style.objectFit = 'cover';
       videoEl.muted = true;
       tile.insertBefore(videoEl, tile.firstChild);
       tile.classList.remove('yb-live-tile--no-video');
+      detectOrientation(videoEl, tile);
     }
 
     participantTiles[localParticipant.identity] = tile;
@@ -643,9 +713,9 @@
       var el = track.attach();
       el.style.width = '100%';
       el.style.height = '100%';
-      el.style.objectFit = 'cover';
       tile.insertBefore(el, tile.firstChild);
       tile.classList.remove('yb-live-tile--no-video');
+      detectOrientation(el, tile);
     } else if (track.kind === 'audio') {
       var audioEl = track.attach();
       audioEl.id = 'yb-live-audio-' + participant.identity;
@@ -731,8 +801,9 @@
       cameraEnabled = false;
       var localTile = participantTiles[livekitRoom.localParticipant.identity];
       if (localTile) {
+        // Remove old video element entirely (track is stopped)
         var vid = localTile.querySelector('video');
-        if (vid) vid.style.display = 'none';
+        if (vid) vid.remove();
         localTile.classList.add('yb-live-tile--no-video');
       }
     } else {
@@ -742,20 +813,19 @@
         // Attach the new video track to the local tile
         var localTile = participantTiles[livekitRoom.localParticipant.identity];
         if (localTile) {
-          var existingVid = localTile.querySelector('video');
-          if (!existingVid) {
-            // LiveKit creates the track — find it and attach
-            var camPub = livekitRoom.localParticipant.getTrackPublication(LivekitClient.Track.Source.Camera);
-            if (camPub && camPub.track) {
-              var videoEl = camPub.track.attach();
-              videoEl.style.width = '100%';
-              videoEl.style.height = '100%';
-              videoEl.style.objectFit = 'cover';
-              videoEl.muted = true;
-              localTile.insertBefore(videoEl, localTile.firstChild);
-            }
-          } else {
-            existingVid.style.display = '';
+          // Always remove old video first — it's attached to a dead track
+          var oldVid = localTile.querySelector('video');
+          if (oldVid) oldVid.remove();
+
+          // Find the newly published camera track and attach it
+          var camPub = livekitRoom.localParticipant.getTrackPublication(LivekitClient.Track.Source.Camera);
+          if (camPub && camPub.track) {
+            var videoEl = camPub.track.attach();
+            videoEl.style.width = '100%';
+            videoEl.style.height = '100%';
+            videoEl.muted = true;
+            localTile.insertBefore(videoEl, localTile.firstChild);
+            detectOrientation(videoEl, localTile);
           }
           localTile.classList.remove('yb-live-tile--no-video');
         }
@@ -865,7 +935,24 @@
   function sendDataMessage(msg) {
     if (!livekitRoom || !isJoined) return;
     var data = new TextEncoder().encode(JSON.stringify(msg));
-    livekitRoom.localParticipant.publishData(data, { reliable: true });
+    try {
+      livekitRoom.localParticipant.publishData(data, { reliable: true });
+    } catch (err) {
+      console.warn('[live-i] Failed to send data message:', err);
+      // Revert hand raise state if send failed
+      if (msg.type === 'hand') {
+        handRaised = !handRaised;
+        updateControlStates();
+        var localTile = livekitRoom ? participantTiles[livekitRoom.localParticipant.identity] : null;
+        if (localTile) {
+          var handEl = localTile.querySelector('.yb-live-tile__hand');
+          if (handEl) {
+            if (handRaised) handEl.classList.add('yb-live-tile__hand--visible');
+            else handEl.classList.remove('yb-live-tile__hand--visible');
+          }
+        }
+      }
+    }
   }
 
   function sendChat() {
@@ -894,6 +981,26 @@
         if (handEl) {
           if (msg.raised) handEl.classList.add('yb-live-tile__hand--visible');
           else handEl.classList.remove('yb-live-tile__hand--visible');
+        }
+        // Add/remove orange stroke for raised hand
+        if (msg.raised) {
+          tile.classList.add('yb-live-tile--hand-raised');
+        } else {
+          tile.classList.remove('yb-live-tile--hand-raised');
+        }
+      }
+    } else if (msg.type === 'lower-hand') {
+      // Teacher dismissed our raised hand
+      if (handRaised) {
+        handRaised = false;
+        updateControlStates();
+        if (livekitRoom) {
+          var localTile = participantTiles[livekitRoom.localParticipant.identity];
+          if (localTile) {
+            var handEl = localTile.querySelector('.yb-live-tile__hand');
+            if (handEl) handEl.classList.remove('yb-live-tile__hand--visible');
+            localTile.classList.remove('yb-live-tile--hand-raised');
+          }
         }
       }
     }
@@ -1003,6 +1110,7 @@
 
   function showLive() {
     isStreamLive = true;
+    hideReconnecting();
     playerSection.style.display = 'block';
     offlineSection.style.display = 'none';
     joinSection.style.display = 'none';
@@ -1015,14 +1123,45 @@
     }
   }
 
+  function showReconnecting() {
+    // Show "teacher reconnecting" state with fast polling
+    isStreamLive = false;
+    isReconnecting = true;
+    playerSection.style.display = 'none';
+    offlineSection.style.display = 'none';
+    if (reconnectingSection) reconnectingSection.style.display = 'block';
+    joinSection.style.display = 'none';
+    interactiveSection.classList.remove('yb-live-interactive--active');
+    if (meetSection) { meetSection.style.display = 'none'; if (meetIframe) meetIframe.src = ''; }
+    badge.classList.remove('yb-live-badge--visible');
+    hideRecording();
+    checkingOverlay.classList.add('yb-live-player__checking--hidden');
+    if (viewerCountEl) viewerCountEl.style.display = 'none';
+    cleanupMount();
+
+    // Start fast polling (every 5s instead of 15s)
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    pollTimer = setInterval(checkStream, FAST_POLL_INTERVAL);
+    checkStream(); // immediate check
+  }
+
+  function hideReconnecting() {
+    isReconnecting = false;
+    if (reconnectingSection) reconnectingSection.style.display = 'none';
+    // Restore normal polling speed
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+
   function showOffline() {
     isStreamLive = false;
+    hideReconnecting();
     playerSection.style.display = 'none';
     offlineSection.style.display = 'block';
     joinSection.style.display = 'none';
     interactiveSection.classList.remove('yb-live-interactive--active');
     if (meetSection) { meetSection.style.display = 'none'; if (meetIframe) meetIframe.src = ''; }
     badge.classList.remove('yb-live-badge--visible');
+    hideRecording();
     checkingOverlay.classList.add('yb-live-player__checking--hidden');
     if (viewerCountEl) viewerCountEl.style.display = 'none';
     cleanupMount();
@@ -1082,10 +1221,12 @@
 
   function checkStream() {
     if (isJoined) return; // Don't poll while in interactive session
+    if (isCheckingStream) return; // prevent overlapping poll fetches
 
     // If we're already connected via LiveKit and streaming, don't disrupt
     if (livekitRoom && isStreamLive && !isJoined) {
       // Still fetch schedule for sidebar, but don't touch player
+      isCheckingStream = true;
       var opts2 = { headers: {} };
       getAuthToken().then(function (token) {
         if (token) opts2.headers['Authorization'] = 'Bearer ' + token;
@@ -1114,10 +1255,12 @@
           }
         }
       })
-      .catch(function () {});
+      .catch(function () {})
+      .finally(function () { isCheckingStream = false; });
       return;
     }
 
+    isCheckingStream = true;
     var opts = { headers: {} };
 
     getAuthToken().then(function (token) {
@@ -1169,6 +1312,7 @@
         }
 
         // Normal viewer mode
+        showRecording(liveSession, 'player');
         connectToRoom(liveSession.livekitRoom);
         renderSchedule(data.items);
         return;
@@ -1187,6 +1331,7 @@
         if (muxLive.liveStartedAt) {
           sessionLiveStartTime = new Date(muxLive.liveStartedAt).getTime();
         }
+        showRecording(muxLive, 'player');
         showMuxPlayer(muxLive.muxPlaybackId);
       } else {
         showOffline();
@@ -1196,7 +1341,8 @@
     })
     .catch(function () {
       showOffline();
-    });
+    })
+    .finally(function () { isCheckingStream = false; });
   }
 
   function startPolling() {

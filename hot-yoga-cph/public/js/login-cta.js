@@ -22,7 +22,7 @@
   var BRAND_RGBA12 = 'rgba(63,153,165,.12)';
   var API_BASE     = 'https://profile.hotyogacph.dk/.netlify/functions';
   var PROFILE_URL  = 'https://profile.hotyogacph.dk';
-  var FIREBASE_VER = '10.14.1';
+  var FIREBASE_VER = '12.10.0';
   var FIREBASE_CDN = 'https://www.gstatic.com/firebasejs/' + FIREBASE_VER;
 
   // Firebase config — placeholders replaced at Netlify build time
@@ -272,10 +272,51 @@
 
   function resolveMbClient(user) {
     if (typeof firebase === 'undefined' || !firebase.firestore) return;
-    firebase.firestore().collection('users').doc(user.uid).get()
+    var userRef = firebase.firestore().collection('users').doc(user.uid);
+    userRef.get()
       .then(function (doc) {
         if (doc.exists && doc.data().mindbodyClientId) {
           mbClientId = doc.data().mindbodyClientId;
+          return;
+        }
+        // No Firestore profile or no mindbodyClientId — look up MB client by email and link
+        linkMindbodyClient(user, userRef, doc.exists);
+      })
+      .catch(function () {});
+  }
+
+  function linkMindbodyClient(user, userRef, profileExists) {
+    fetch(API_BASE + '/mb-client?email=' + encodeURIComponent(user.email))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data.found || !data.client || !data.client.id) return;
+        var clientId = String(data.client.id);
+        mbClientId = clientId;
+
+        if (profileExists) {
+          // Profile exists but missing MB link — update it
+          userRef.update({
+            mindbodyClientId: clientId,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }).catch(function () {});
+        } else {
+          // No profile at all (migrated user) — create one
+          var displayName = user.displayName || user.email.split('@')[0];
+          var nameParts = displayName.split(' ');
+          userRef.set({
+            uid: user.uid,
+            email: user.email,
+            firstName: nameParts[0] || '',
+            lastName: nameParts.slice(1).join(' ') || '',
+            displayName: displayName,
+            phone: '',
+            role: 'member',
+            mindbodyClientId: clientId,
+            source: 'login-cta',
+            sourceSite: 'hotyogacph.dk',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true }).catch(function () {});
         }
       })
       .catch(function () {});
@@ -612,7 +653,22 @@
                   });
                   return;
                 }
-                // Not in MB or already has Firebase account — show error
+                // Account exists in Firebase — wrong password. Auto-send reset email.
+                if (data.hasFirebaseAccount) {
+                  var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
+                  fetch(apiBase + '/send-password-reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
+                  }).catch(function() {});
+                  errorEl.innerHTML = t(
+                    'Forkert adgangskode. Vi har sendt en email til <strong>' + email + '</strong> s\u00e5 du kan nulstille din adgangskode. Tjek din indbakke (og spam).',
+                    'Incorrect password. We\u2019ve sent an email to <strong>' + email + '</strong> to reset your password. Check your inbox (and spam).'
+                  );
+                  errorEl.classList.add('is-visible');
+                  return;
+                }
+                // Not in MB — show generic error
                 errorEl.innerHTML = t(
                   'Vi kunne ikke finde en konto med disse oplysninger. Allerede klient hos os? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Opret profil</a> med samme email som du booker med. Har du allerede en konto her? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Nulstil adgangskode \u2192</a>',
                   'We couldn\'t find an account with these details. Already a client? <a href="#" onclick="return false" id="hyc-err-register" style="color:inherit;font-weight:700;text-decoration:underline">Create a profile</a> with the same email you book with. Already have one here? <a href="#" onclick="return false" id="hyc-err-forgot" style="color:inherit;font-weight:700;text-decoration:underline">Reset password \u2192</a>'
@@ -887,65 +943,95 @@
   function renderProfileIframe(contentEl) {
     if (!currentUser) return;
 
-    var html = '';
-    html += '<div class="hyc-ua__iframe-wrap">';
-    html += '<div class="hyc-ua__iframe-loader" id="hyc-ua-iframe-loader">';
-    html += '<div class="hyc-ua__spinner"></div>';
-    html += '<span id="hyc-ua-iframe-loader-text">' + t('Henter din profil\u2026', 'Loading your profile\u2026') + '</span>';
-    html += '</div>';
-    html += '<iframe class="hyc-ua__iframe" id="hyc-ua-iframe" src="' + PROFILE_URL + '/" allow="payment" title="' + t('Min profil', 'My profile') + '"></iframe>';
-    html += '</div>';
+    // Get a fresh token FIRST, then load the iframe with it as a hash param.
+    // This is more reliable than postMessage across Framer's nested iframes
+    // because the profile page can read the token from its own URL on load.
+    currentUser.getIdToken(true).then(function (idToken) {
+      var profileSrc = PROFILE_URL + '/#auth=' + encodeURIComponent(idToken);
 
-    contentEl.innerHTML = html;
+      var html = '';
+      html += '<div class="hyc-ua__iframe-wrap">';
+      html += '<div class="hyc-ua__iframe-loader" id="hyc-ua-iframe-loader">';
+      html += '<div class="hyc-ua__spinner"></div>';
+      html += '<span id="hyc-ua-iframe-loader-text">' + t('Henter din profil\u2026', 'Loading your profile\u2026') + '</span>';
+      html += '</div>';
+      html += '<iframe class="hyc-ua__iframe" id="hyc-ua-iframe" src="' + profileSrc + '" allow="payment" title="' + t('Min profil', 'My profile') + '"></iframe>';
+      html += '</div>';
 
-    var iframe = $t('hyc-ua-iframe');
-    var loader = $t('hyc-ua-iframe-loader');
-    var loaderText = $t('hyc-ua-iframe-loader-text');
+      contentEl.innerHTML = html;
 
-    if (iframe) {
-      var authConfirmed = false;
+      var iframe = $t('hyc-ua-iframe');
+      var loader = $t('hyc-ua-iframe-loader');
+      var loaderText = $t('hyc-ua-iframe-loader-text');
 
-      // Listen for auth-ready confirmation from profile page
-      var onProfileMsg = function (e) {
-        if (e.data && e.data.type === 'hyc-profile-authenticated') {
-          authConfirmed = true;
+      if (iframe) {
+        var authConfirmed = false;
+
+        // Listen for auth-ready confirmation from profile page
+        var onProfileMsg = function (e) {
+          if (e.data && e.data.type === 'hyc-profile-authenticated') {
+            authConfirmed = true;
+            if (loader) loader.classList.add('is-hidden');
+            window.removeEventListener('message', onProfileMsg);
+          }
+        };
+        window.addEventListener('message', onProfileMsg);
+        // Also listen on parent window (message may bubble up from nested iframe)
+        try {
+          if (window.top !== window) {
+            window.top.addEventListener('message', onProfileMsg);
+          }
+        } catch (e) {}
+
+        // Also send via postMessage as a backup (profile page JS may load after hash is consumed)
+        iframe.addEventListener('load', function () {
+          sendAuthToIframe(iframe);
+          setTimeout(function () { sendAuthToIframe(iframe); }, 800);
+          setTimeout(function () { sendAuthToIframe(iframe); }, 2000);
+        });
+
+        // After 4s, hide loader regardless (profile page may not send confirmation)
+        setTimeout(function () {
           if (loader) loader.classList.add('is-hidden');
-          window.removeEventListener('message', onProfileMsg);
-        }
-      };
-      window.addEventListener('message', onProfileMsg);
+        }, 4000);
 
-      // Send auth token multiple times (profile page JS may not be ready on first attempt)
-      iframe.addEventListener('load', function () {
-        sendAuthToIframe(iframe);
-        setTimeout(function () { sendAuthToIframe(iframe); }, 800);
-        setTimeout(function () { sendAuthToIframe(iframe); }, 2000);
-      });
-
-      // After 4s, hide loader regardless (profile page may not send confirmation)
-      setTimeout(function () {
-        if (loader) loader.classList.add('is-hidden');
-      }, 4000);
-
-      // After 7s, if still no auth confirmation, show a fallback link
-      setTimeout(function () {
-        if (!authConfirmed && loaderText) {
-          loaderText.innerHTML =
-            '<a href="' + PROFILE_URL + '/" target="_blank" rel="noopener" style="color:' + BRAND + ';text-decoration:underline">' +
-            t('\u00c5bn profil i ny fane', 'Open profile in new tab') + '</a>';
-        }
-      }, 7000);
-    }
+        // After 7s, if still no auth confirmation, show a fallback link
+        setTimeout(function () {
+          if (!authConfirmed && loaderText) {
+            loaderText.innerHTML =
+              '<a href="' + PROFILE_URL + '/" target="_blank" rel="noopener" style="color:' + BRAND + ';text-decoration:underline">' +
+              t('\u00c5bn profil i ny fane', 'Open profile in new tab') + '</a>';
+          }
+        }, 7000);
+      }
+    }).catch(function (err) {
+      console.warn('Could not get token for profile iframe:', err);
+      // Fallback: load without token, will show logged-out state
+      contentEl.innerHTML =
+        '<div style="text-align:center;padding:40px">' +
+        '<a href="' + PROFILE_URL + '/" target="_blank" rel="noopener" style="color:' + BRAND + ';text-decoration:underline;font-size:16px">' +
+        t('\u00c5bn profil i ny fane', 'Open profile in new tab') + '</a></div>';
+    });
   }
 
   function sendAuthToIframe(iframe) {
     if (!currentUser || !iframe || !iframe.contentWindow) return;
 
     currentUser.getIdToken().then(function (idToken) {
-      iframe.contentWindow.postMessage(
-        { type: 'hyc-auth-bridge', idToken: idToken },
-        PROFILE_URL
-      );
+      // Try posting with specific origin first, then wildcard as fallback
+      try {
+        iframe.contentWindow.postMessage(
+          { type: 'hyc-auth-bridge', idToken: idToken },
+          PROFILE_URL
+        );
+      } catch (e) {}
+      // Wildcard fallback (Framer iframe nesting can cause origin mismatches)
+      try {
+        iframe.contentWindow.postMessage(
+          { type: 'hyc-auth-bridge', idToken: idToken },
+          '*'
+        );
+      } catch (e) {}
     }).catch(function (err) {
       console.warn('Could not send auth to profile iframe:', err);
     });
@@ -1100,12 +1186,81 @@
 
 
   // ═══════════════════════════════════════════════════════════════════
-  // CROSS-IFRAME AUTH SYNC (polling)
+  // CROSS-IFRAME AUTH SYNC (via shared auth-sync.html bridge)
   // ═══════════════════════════════════════════════════════════════════
-  // login-cta and checkout-embed run in separate Framer iframes with
-  // separate Firebase instances.  We poll the shared auth token in
-  // localStorage every 2 s so that a login in one iframe is picked up
-  // by the other.
+  // login-cta and checkout-embed run in separate Framer srcdoc iframes
+  // with null origin — localStorage is sandboxed per iframe.
+  // We load a hidden iframe from profile.hotyogacph.dk/auth-sync.html
+  // which has real localStorage and relays auth events between siblings.
+
+  var _syncFrame = null;
+  var _syncReady = false;
+  var _syncQueue = [];
+
+  function initAuthSyncBridge() {
+    try {
+      var f = document.createElement('iframe');
+      f.src = 'https://profile.hotyogacph.dk/auth-sync.html';
+      f.style.cssText = 'display:none;width:0;height:0;border:0';
+      f.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(f);
+      _syncFrame = f;
+      f.addEventListener('load', function () {
+        _syncReady = true;
+        // Flush queued messages
+        for (var i = 0; i < _syncQueue.length; i++) {
+          try { f.contentWindow.postMessage(_syncQueue[i], '*'); } catch (x) {}
+        }
+        _syncQueue = [];
+        // Ask bridge if anyone is already logged in
+        try { f.contentWindow.postMessage({ type: 'hyc-auth-sync', action: 'query' }, '*'); } catch (x) {}
+      });
+    } catch (e) { /* iframe blocked */ }
+  }
+
+  function sendToSyncBridge(msg) {
+    if (_syncReady && _syncFrame && _syncFrame.contentWindow) {
+      try { _syncFrame.contentWindow.postMessage(msg, '*'); } catch (e) {}
+    } else {
+      _syncQueue.push(msg);
+    }
+  }
+
+  function broadcastAuthChange(user) {
+    if (!user) {
+      sendToSyncBridge({ type: 'hyc-auth-sync', action: 'logout' });
+      return;
+    }
+    user.getIdToken().then(function (token) {
+      sendToSyncBridge({ type: 'hyc-auth-sync', action: 'login', idToken: token });
+    }).catch(function () {});
+  }
+
+  function listenForAuthSync() {
+    window.addEventListener('message', function (e) {
+      try {
+        if (!e.data || e.data.type !== 'hyc-auth-sync') return;
+        if (!firebaseReady) return;
+
+        if (e.data.action === 'login' && e.data.idToken && !currentUser && !_restoring) {
+          _restoring = true;
+          fetch(API_BASE + '/auth-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: e.data.idToken })
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.customToken) return firebase.auth().signInWithCustomToken(data.customToken);
+              _restoring = false;
+            })
+            .catch(function () { _restoring = false; });
+        } else if (e.data.action === 'logout' && currentUser) {
+          firebase.auth().signOut();
+        }
+      } catch (x) {}
+    });
+  }
 
   function startAuthPolling() {
     setInterval(function () {
@@ -1114,11 +1269,9 @@
       var hasToken = s && s.getItem(SESSION_KEY);
 
       if (hasToken && !currentUser && !_restoring) {
-        // Another iframe logged in — restore session from shared token
         _restoring = true;
         restoreSession();
       } else if (!hasToken && currentUser) {
-        // Another iframe logged out — sign out here too
         firebase.auth().signOut();
       }
     }, 2000);
@@ -1154,11 +1307,17 @@
       } catch (e) { /* auth() threw */ }
 
       try {
+        // Set up cross-iframe auth sync via hidden bridge iframe
+        initAuthSyncBridge();
+        listenForAuthSync();
+
         firebase.auth().onAuthStateChanged(function (user) {
           currentUser = user;
           if (user) {
             _restoring = false;
             persistAuthToken(user);
+            broadcastAuthChange(user);
+            broadcastAuthStateToFramer(user);
             resolveMbClient(user);
             renderLoggedIn(user);
             // If auth modal is open, close it — user just logged in
@@ -1171,7 +1330,9 @@
             // but always render the logged-out state so the button is never invisible
             if (!_restoring) {
               clearAuthToken();
+              broadcastAuthChange(null);
             }
+            broadcastAuthStateToFramer(null);
             renderLoggedOut();
             // Close user area modal if open
             if (modalMode === 'user-area') {
@@ -1185,7 +1346,7 @@
           restoreSession();
         }
 
-        // Start polling for auth changes from other iframes
+        // Start polling for auth changes from other iframes (fallback)
         startAuthPolling();
       } catch (e) {
         console.warn('[login-cta] Firebase auth error:', e.message);
@@ -1212,35 +1373,83 @@
 
 
   // ═══════════════════════════════════════════════════════════════════
+  // FRAMER NATIVE BUTTON BRIDGE (postMessage)
+  // ═══════════════════════════════════════════════════════════════════
+  // When using a native Framer button instead of the HTML-rendered CTA,
+  // the Framer button sends { type: 'hyc-open-auth' } and this script
+  // responds by opening the appropriate modal. Auth state changes are
+  // broadcast back via { type: 'hyc-auth-state', loggedIn, displayName }
+  // so the Framer button can update its label.
+
+  function broadcastAuthStateToFramer(user) {
+    var msg = {
+      type: 'hyc-auth-state',
+      loggedIn: !!user,
+      displayName: user ? (user.displayName || user.email || '') : ''
+    };
+    // Post to parent (if we're in an iframe)
+    try { if (window.parent !== window) window.parent.postMessage(msg, '*'); } catch (e) {}
+    // Post to top (in case of nested iframes)
+    try { if (window.top !== window) window.top.postMessage(msg, '*'); } catch (e) {}
+    // Also post on own window (for same-frame listeners)
+    try { window.postMessage(msg, '*'); } catch (e) {}
+  }
+
+  function listenForFramerButton() {
+    // Listen on both the iframe's own window and try the parent
+    function handleMessage(e) {
+      try {
+        if (e.data && e.data.type === 'hyc-open-auth') {
+          if (currentUser) {
+            openModal('user-area');
+          } else {
+            openModal('auth-login');
+          }
+        }
+        // Framer button requesting current auth state on load
+        if (e.data && e.data.type === 'hyc-auth-state-request') {
+          broadcastAuthStateToFramer(currentUser);
+        }
+      } catch (ex) {}
+    }
+    window.addEventListener('message', handleMessage);
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
   // BOOT
   // ═══════════════════════════════════════════════════════════════════
 
   function boot() {
     injectCSS();
-    container = document.getElementById('hyc-login-cta');
-    if (!container) return;
-    container.className = 'hyc-cta';
 
-    // If we have a stored session token, show loading spinner instead
-    // of "Log ind" to avoid a logged-out → logged-in flash
-    var s = _parentStorage();
-    var hasStoredToken = s && s.getItem(SESSION_KEY);
-    if (hasStoredToken) {
-      container.innerHTML = '<span class="hyc-ua__loading" style="padding:6px 12px">' + ICON.spinner + '</span>';
-      notifyFramerHeight();
-    } else {
-      renderLoggedOut();
+    // Listen for postMessage from native Framer button
+    listenForFramerButton();
+
+    container = document.getElementById('hyc-login-cta');
+    if (container) {
+      container.className = 'hyc-cta';
+
+      // If we have a stored session token, show loading spinner instead
+      // of "Log ind" to avoid a logged-out → logged-in flash
+      var s = _parentStorage();
+      var hasStoredToken = s && s.getItem(SESSION_KEY);
+      if (hasStoredToken) {
+        container.innerHTML = '<span class="hyc-ua__loading" style="padding:6px 12px">' + ICON.spinner + '</span>';
+        notifyFramerHeight();
+      } else {
+        renderLoggedOut();
+      }
+
+      // Keep posting height to Framer every 500ms for 8 seconds.
+      if (_heightInterval) clearInterval(_heightInterval);
+      _heightInterval = setInterval(_sendHeight, 500);
+      setTimeout(function () { clearInterval(_heightInterval); }, 8000);
     }
 
+    // Always init auth — even without a visible container the modal
+    // still needs Firebase for the Framer-button bridge to work.
     initAuth();
-
-    // Keep posting height to Framer every 500ms for 8 seconds.
-    // Framer's ResizeObserver can report height:0 before our content
-    // renders, and once Framer collapses the iframe to 0px it won't
-    // recover unless it receives a new embedHeight message.
-    if (_heightInterval) clearInterval(_heightInterval);
-    _heightInterval = setInterval(_sendHeight, 500);
-    setTimeout(function () { clearInterval(_heightInterval); }, 8000);
   }
 
   if (document.readyState === 'loading') {

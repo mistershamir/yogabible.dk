@@ -76,7 +76,7 @@
         <svg class="yb-link__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
 
-      <a href="{{ lp }}/sammenlign-yogalreruddannelser" class="yb-link__item yb-link__item--subtle" data-yb-link="compare-trainings">
+      <a href="{{ lp }}/sammenlign-yogalaereruddannelser" class="yb-link__item yb-link__item--subtle" data-yb-link="compare-trainings">
         <span class="yb-link__item-text">
           <span class="yb-link__item-title">{{ t.training_compare }}</span>
         </span>
@@ -122,27 +122,27 @@
     {# ── Book Appointment ── #}
     <div class="yb-link__section yb-link__fade" id="booking">
       <p class="yb-link__section-label">{{ t.section_booking }}</p>
-      <button class="yb-link__item yb-link__item--booking" data-open-booking="info-session" data-yb-link="booking-studio">
+      <a class="yb-link__item yb-link__item--booking" href="{{ lp }}/link?booking=info-session" data-open-booking="info-session" data-yb-link="booking-studio">
         <span class="yb-link__item-text">
           <span class="yb-link__item-title">{{ t.booking_studio }}</span>
           <span class="yb-link__item-sub">{{ t.booking_studio_sub }}</span>
         </span>
         <svg class="yb-link__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <button class="yb-link__item yb-link__item--booking" data-open-booking="consultation" data-yb-link="booking-consultation">
+      </a>
+      <a class="yb-link__item yb-link__item--booking" href="{{ lp }}/link?booking=consultation" data-open-booking="consultation" data-yb-link="booking-consultation">
         <span class="yb-link__item-text">
           <span class="yb-link__item-title">{{ t.booking_consultation }}</span>
           <span class="yb-link__item-sub">{{ t.booking_consultation_sub }}</span>
         </span>
         <svg class="yb-link__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <button class="yb-link__item yb-link__item--booking" data-open-booking="intro-class" data-yb-link="booking-trial">
+      </a>
+      <a class="yb-link__item yb-link__item--booking" href="{{ lp }}/link?booking=intro-class" data-open-booking="intro-class" data-yb-link="booking-trial">
         <span class="yb-link__item-text">
           <span class="yb-link__item-title">{{ t.booking_trial }}</span>
           <span class="yb-link__item-sub">{{ t.booking_trial_sub }}</span>
         </span>
         <svg class="yb-link__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
+      </a>
     </div>
 
     {# ── SoundCloud Embed ── #}

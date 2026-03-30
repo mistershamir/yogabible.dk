@@ -10,12 +10,15 @@
 (function () {
   'use strict';
 
+  /* ═══ Media base URL (Bunny CDN) ═══ */
+  var MEDIA_BASE = document.documentElement.getAttribute('data-media-base') || 'https://yogabible.b-cdn.net';
+
   /* ═══ 1. HERO CAROUSEL ═══ */
   var IMAGES = [
-    'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/programs/ytt-200h.webp',
-    'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/programs/ytt-kbh.jpg',
-    'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/programs/ytt-kbh.jpg',
-    'https://res.cloudinary.com/ddcynsa30/image/upload/f_auto,q_auto/yoga-bible-DK/programs/ytt-kbh.jpg'
+    MEDIA_BASE + '/yoga-bible-DK/programs/ytt-200h.webp',
+    MEDIA_BASE + '/yoga-bible-DK/programs/ytt-kbh.jpg',
+    MEDIA_BASE + '/yoga-bible-DK/programs/ytt-kbh.jpg',
+    MEDIA_BASE + '/yoga-bible-DK/programs/ytt-kbh.jpg'
   ];
 
   var viewport = document.querySelector('[data-om2-viewport]');

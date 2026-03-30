@@ -1,5 +1,5 @@
 {
-  "_readme": "Media asset map for Cloudinary. Upload files to Cloudinary using the folder paths below, then use in templates: {{ media.homepage.hero | cloudimg }} or {% cldimg media.homepage.hero, 'Alt text', 'w_800,c_fill', '800', '600' %}. Set a value to null until the asset is uploaded.",
+  "_readme": "Media asset map. Paths are Bunny CDN paths (yoga-bible-DK/...). The cloudimg filter and cldimg shortcode serve from local src/assets/images/ when the file exists, falling back to Bunny CDN (yogabible.b-cdn.net). To add a new image: 1) Upload to Bunny Storage, 2) Add the path here.",
 
   "brand": {
     "logo": "yoga-bible-DK/brand/yoga-bible-logo-orange",
@@ -155,6 +155,18 @@
     "harborSwim": "yoga-bible-DK/copenhagen/copenhagen-harbor-bath-swimming",
     "malmo": "yoga-bible-DK/copenhagen/oresund-bridge-malmo-sweden-daytrip",
     "parks": "yoga-bible-DK/copenhagen/copenhagen-kings-garden-green-park"
+  },
+
+  "historie": {
+    "colorfulHouses": "yoga-bible-DK/yoga-bible-historie/colorful-houses",
+    "studioEntrance": "yoga-bible-DK/yoga-bible-historie/studio-entrance",
+    "nyhavn": "yoga-bible-DK/yoga-bible-historie/nyhavn",
+    "cafeScene": "yoga-bible-DK/yoga-bible-historie/cafe-scene",
+    "hotYogaCph": "yoga-bible-DK/yoga-bible-historie/hot-yoga-cph",
+    "namasteOnline": "yoga-bible-DK/yoga-bible-historie/namaste-online",
+    "vibroYoga": "yoga-bible-DK/yoga-bible-historie/vibro-yoga",
+    "certificate": "yoga-bible-DK/yoga-bible-historie/certificate",
+    "testimonial": "yoga-bible-DK/yoga-bible-historie/testimonial"
   },
 
   "careers": {

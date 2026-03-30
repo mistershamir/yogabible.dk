@@ -13,7 +13,11 @@
     </div>
   </div>
 
-  {# Pipeline Stats (clickable) #}
+  {# Pipeline Stats (collapsible on mobile) #}
+  <button type="button" class="yb-lead__stats-toggle" id="yb-lead-stats-toggle" aria-expanded="false">
+    <span id="yb-lead-stats-summary" class="yb-lead__stats-summary"></span>
+    <svg class="yb-lead__stats-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
   <div class="yb-lead__stats-grid" id="yb-lead-stats"></div>
 
   {# Search + Compact Filters Row #}
@@ -39,6 +43,16 @@
         <option value="Contact page">Contact page</option>
         <option value="Careers page">Careers page</option>
         <option value="Manual entry">Manual entry</option>
+      </optgroup>
+      <optgroup label="Ad Channel">
+        <option value="ch:Google Ads">Google Ads</option>
+        <option value="ch:Meta Ads">Meta Ads</option>
+        <option value="ch:Google Organic">Google Organic (SEO)</option>
+        <option value="ch:AI Referral">AI Referral</option>
+        <option value="ch:Social">Social Media</option>
+        <option value="ch:Direct">Direct</option>
+        <option value="ch:Email">Email</option>
+        <option value="ch:Referral">Referral</option>
       </optgroup>
     </select>
     <select id="yb-lead-priority-filter" class="yb-admin__select yb-lead__filter">
@@ -95,6 +109,7 @@
           <th>{{ t.leads_contact }}</th>
           <th>{{ t.leads_col_type }}</th>
           <th class="yb-lead__th-program">{{ t.leads_col_program }}</th>
+          <th class="yb-lead__th-channel">{{ t.leads_channel }}</th>
           <th class="yb-lead__th-source">{{ t.leads_source }}</th>
           <th><button class="yb-lead__sort-btn" data-sort="status">{{ t.leads_col_status }} <span class="yb-lead__sort-icon"></span></button></th>
           <th class="yb-lead__th-followup">{{ t.leads_followup }}</th>
@@ -233,6 +248,26 @@
       <div class="yb-admin__field">
         <label for="yb-lead-edit-city">{{ t.leads_city }}</label>
         <input type="text" id="yb-lead-edit-city" class="yb-admin__select" placeholder="City / Country">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-lead-edit-channel">{{ t.leads_channel }}</label>
+        <select id="yb-lead-edit-channel" class="yb-admin__select">
+          <option value="">--</option>
+          <option value="Google Ads">Google Ads</option>
+          <option value="Meta Ads">Meta Ads</option>
+          <option value="Instagram Ads">Instagram Ads</option>
+          <option value="Google Organic">Google Organic</option>
+          <option value="Bing Organic">Bing Organic</option>
+          <option value="AI Referral (ChatGPT)">AI Referral (ChatGPT)</option>
+          <option value="AI Referral (Perplexity)">AI Referral (Perplexity)</option>
+          <option value="AI Referral (Gemini)">AI Referral (Gemini)</option>
+          <option value="Social (Facebook)">Social (Facebook)</option>
+          <option value="Social (Instagram)">Social (Instagram)</option>
+          <option value="Social (TikTok)">Social (TikTok)</option>
+          <option value="Email">Email</option>
+          <option value="SMS">SMS</option>
+          <option value="Direct">Direct</option>
+        </select>
       </div>
       <div class="yb-admin__field">
         <label for="yb-lead-edit-source">{{ t.leads_source }}</label>

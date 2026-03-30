@@ -73,8 +73,20 @@ async function processUnsubscribe(email) {
       updated++;
     }
 
+    // Also flag email_list_contacts with this email across all lists
+    const contactSnap = await db.collection('email_list_contacts')
+      .where('email', '==', email)
+      .get();
+
+    for (const contactDoc of contactSnap.docs) {
+      batch.update(contactDoc.ref, {
+        status: 'unsubscribed',
+        unsubscribed_at: new Date()
+      });
+    }
+
     await batch.commit();
-    console.log(`[unsubscribe] Updated ${updated} leads for ${email}`);
+    console.log(`[unsubscribe] Updated ${updated} leads + ${contactSnap.size} list contacts for ${email}`);
     return { success: true, updated };
   } catch (err) {
     console.error('[unsubscribe] Error:', err);
