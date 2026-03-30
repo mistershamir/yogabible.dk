@@ -1153,6 +1153,8 @@
         d._id = doc.id;
         funnelDocs.push(d);
       });
+    }).catch(function () {
+      // lead_funnel collection might not exist yet or permissions missing — that's OK
     });
 
     // Fetch ad_conversions collection
@@ -1351,7 +1353,14 @@
       }
     }).catch(function (err) {
       console.error('Conversion analytics error:', err);
-      if (funnelEl) funnelEl.innerHTML = '<p class="yb-admin__empty" style="color:#dc2626">' + t('error_load') + '</p>';
+      var errMsg = '<p class="yb-admin__empty" style="color:#dc2626">' + t('error_load') + '</p>';
+      if (funnelEl) funnelEl.innerHTML = errMsg;
+      if (productsEl) productsEl.innerHTML = errMsg;
+      if (sourcesEl) sourcesEl.innerHTML = errMsg;
+      if (recentEl) recentEl.innerHTML = errMsg;
+      [purchasesEl, revenueEl, leadsEl, rateEl].forEach(function (el) {
+        if (el) el.textContent = '—';
+      });
     });
   }
 
