@@ -6303,12 +6303,13 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   flex-shrink: 0; background: #FAFAF8;
 }
 .yb-social__inbox-thread-header button[data-action="social-inbox-close-thread"] {
-  background: #F5F3F0; border: 1px solid #E8E4E0; font-size: 1.2rem; color: #6F6A66;
+  background: #0F0F0F; border: none; font-size: 1.3rem; color: #fff;
   cursor: pointer; font-family: inherit; padding: 4px 10px; border-radius: 6px;
-  line-height: 1; flex-shrink: 0; order: 10;
+  line-height: 1; flex-shrink: 0; order: 10; min-width: 32px; min-height: 28px;
+  display: flex; align-items: center; justify-content: center;
 }
 .yb-social__inbox-thread-header button[data-action="social-inbox-close-thread"]:hover {
-  background: #E8E4E0; color: #0F0F0F;
+  background: #f75c03; color: #fff;
 }
 .yb-social__inbox-thread-header button {
   background: none; border: none; font-size: 0.8rem; color: #f75c03;

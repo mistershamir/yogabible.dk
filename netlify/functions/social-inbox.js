@@ -75,7 +75,7 @@ exports.handler = async (event) => {
 // ── Comments Inbox: fetch comments from all published posts ─────
 
 async function getCommentsInbox(db, params) {
-  const days = parseInt(params.days) || 7;
+  const days = parseInt(params.days) || 30;
   const since = new Date();
   since.setDate(since.getDate() - days);
 
@@ -125,6 +125,29 @@ async function getCommentsInbox(db, params) {
   const allComments = [];
   const _errors = [];
 
+  // Build set of own account identifiers to filter out own comments/captions
+  const ownUsernames = new Set();
+  const ownAccountIds = new Set();
+  for (const [platform, acct] of Object.entries(accounts)) {
+    if (acct.username) ownUsernames.add(acct.username.toLowerCase());
+    if (acct.igAccountId) ownAccountIds.add(acct.igAccountId);
+    if (acct.pageId) ownAccountIds.add(acct.pageId);
+  }
+  // Common variations
+  ownUsernames.add('yoga_bible');
+  ownUsernames.add('yogabible');
+
+  function isOwnComment(c) {
+    const username = (c.username || '').toLowerCase();
+    if (username && ownUsernames.has(username)) return true;
+    if (c.from) {
+      if (c.from.id && ownAccountIds.has(c.from.id)) return true;
+      const fromName = (c.from.name || '').toLowerCase();
+      if (fromName === 'yoga bible') return true;
+    }
+    return false;
+  }
+
   for (const doc of postsSnap.docs) {
     const post = doc.data();
     const publishResults = post.publishResults || {};
@@ -169,6 +192,7 @@ async function getCommentsInbox(db, params) {
 
         if (commentsData && commentsData.success) {
           (commentsData.comments || []).forEach(c => {
+            if (isOwnComment(c)) return; // Skip own account comments/captions
             const commentId = `${platform}_${c.id}`;
             allComments.push({
               id: commentId,
@@ -245,6 +269,7 @@ async function getCommentsInbox(db, params) {
                   const commentsData = await getFacebookComments({ accessToken: account.accessToken }, adPost.id);
                   if (commentsData && commentsData.success) {
                     (commentsData.comments || []).forEach(c => {
+                      if (isOwnComment(c)) return;
                       const commentId = `facebook_${c.id}`;
                       if (allComments.find(x => x.id === commentId)) return;
                       allComments.push({
@@ -281,6 +306,7 @@ async function getCommentsInbox(db, params) {
             const commentsData = await getInstagramComments({ accessToken: account.accessToken }, post.id);
             if (commentsData && commentsData.success && commentsData.comments.length > 0) {
               commentsData.comments.forEach(c => {
+                if (isOwnComment(c)) return;
                 const commentId = `instagram_${c.id}`;
                 if (allComments.find(x => x.id === commentId)) return;
                 allComments.push({
@@ -345,6 +371,7 @@ async function getCommentsInbox(db, params) {
             const commentsData = await getFacebookComments({ accessToken: account.accessToken }, post.id);
             if (commentsData && commentsData.success && commentsData.comments.length > 0) {
               commentsData.comments.forEach(c => {
+                if (isOwnComment(c)) return;
                 const commentId = `facebook_${c.id}`;
                 if (allComments.find(x => x.id === commentId)) return;
                 allComments.push({
