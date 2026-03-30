@@ -736,27 +736,53 @@
           }
         });
         xhr.onload = function () {
-          var pctEl = $('yb-upload-pct-' + idx);
-          if (pctEl) pctEl.textContent = '✓';
+          if (xhr.status >= 200 && xhr.status < 300) {
+            var pctEl = $('yb-upload-pct-' + idx);
+            if (pctEl) pctEl.textContent = '✓';
+          } else {
+            S.toast('Upload failed (' + xhr.status + '): ' + file.name, true);
+            var pctEl2 = $('yb-upload-pct-' + idx);
+            if (pctEl2) pctEl2.textContent = '✗';
+            // Mark this file as failed so we skip adding its URL
+            file._uploadFailed = true;
+          }
           resolve();
         };
         xhr.onerror = function () {
           S.toast('Upload failed: ' + file.name, true);
+          var pctEl3 = $('yb-upload-pct-' + idx);
+          if (pctEl3) pctEl3.textContent = '✗';
+          file._uploadFailed = true;
           resolve();
         };
         xhr.send(file);
       });
 
-      var cdnUrl = params.cdn_base + fileName;
-      composer.media.push(cdnUrl);
+      // Only add to media list if upload actually succeeded
+      if (!file._uploadFailed) {
+        var cdnUrl = params.cdn_base + fileName;
+        composer.media.push(cdnUrl);
+      }
     }
 
-    // Clean up preview
+    // Count successful uploads
+    var successCount = 0;
+    var failCount = 0;
+    for (var j = 0; j < files.length; j++) {
+      if (files[j]._uploadFailed) failCount++;
+      else successCount++;
+    }
+
+    // Clean up progress preview after a delay
     if (previewContainer) {
-      setTimeout(function () { previewContainer.remove(); }, 1500);
+      setTimeout(function () { previewContainer.remove(); }, failCount > 0 ? 4000 : 1500);
     }
 
-    S.toast('Uploaded ' + files.length + ' file(s)');
+    if (successCount > 0) {
+      S.toast('Uploaded ' + successCount + ' file(s)' + (failCount > 0 ? ', ' + failCount + ' failed' : ''));
+    } else if (failCount > 0) {
+      S.toast('All ' + failCount + ' upload(s) failed — check Bunny CDN connection', true);
+    }
     renderMediaPreview();
     updatePreview();
   }

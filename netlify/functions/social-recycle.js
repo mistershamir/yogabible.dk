@@ -77,7 +77,7 @@ exports.handler = async () => {
       const newPost = {
         caption: post.caption || '',
         platforms: post.platforms || ['instagram', 'facebook'],
-        mediaUrls: post.mediaUrls || [],
+        media: post.media || post.mediaUrls || [],
         hashtags: post.hashtags || [],
         status: 'scheduled',
         scheduledAt: scheduledAt,
