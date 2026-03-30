@@ -1,7 +1,8 @@
 {
   "da": {
     "hero_flag": "Professionel Yogaskole · København",
-    "hero_title": "Hvor din praksis<br>bliver til dit kald",
+    "hero_title": "Yogalæreruddannelse<br>i København",
+    "hero_subtitle_poetic": "Hvor din praksis bliver til dit kald",
     "hero_lead": "Bliv certificeret yogalærer på 4, 8 eller 18 uger — med Yoga Alliance-godkendelse, fleksible formater og et fællesskab der bærer dig hele vejen.",
     "hero_cta1": "Ansøg Nu",
     "hero_cta2": "Se Uddannelserne",
@@ -149,7 +150,8 @@
   },
   "en": {
     "hero_flag": "Professional Yoga School · Copenhagen",
-    "hero_title": "Where your practice<br>becomes your calling",
+    "hero_title": "Yoga Teacher Training<br>in Copenhagen",
+    "hero_subtitle_poetic": "Where your practice becomes your calling",
     "hero_lead": "Become a certified yoga teacher in 4, 8, or 18 weeks — Yoga Alliance accredited, flexible formats, and a community that carries you all the way.",
     "hero_cta1": "Apply Now",
     "hero_cta2": "Explore Programs",
