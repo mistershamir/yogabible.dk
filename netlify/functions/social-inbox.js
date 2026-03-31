@@ -109,10 +109,6 @@ async function getCommentsInbox(db, params) {
     }
   }
 
-  if (postsSnap.empty) {
-    return jsonResponse(200, { ok: true, comments: [] });
-  }
-
   // Load read status from Firestore
   const readSnap = await db.collection(INBOX_COLLECTION)
     .where('type', '==', 'comment')
