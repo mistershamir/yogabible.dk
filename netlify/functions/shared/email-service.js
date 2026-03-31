@@ -291,18 +291,28 @@ async function sendAdminNotification(leadData) {
   const cityCountry = leadData.city_country || '';
   const displayCountry = cityCountry || countryField || '';
   const lang = (leadData.lang || leadData.meta_lang || '').toLowerCase();
-  // DK detection: explicit country field, lang=da, Danish form, or city_country contains Denmark/DK
-  const isDk = countryField === 'DK' || lang === 'da' || lang === 'dk'
+  const phone = String(leadData.phone || '').replace(/\s+/g, '');
+  // DK detection: explicit country field, lang=da, Danish form, Danish phone (+45 or 8-digit), .dk email, or city_country contains Denmark/DK
+  const hasDkPhone = phone.startsWith('+45') || phone.startsWith('0045') || (/^\d{8}$/.test(phone));
+  const hasDkEmail = !!(leadData.email && leadData.email.toLowerCase().endsWith('.dk'));
+  const isDk = countryField === 'DK' || lang === 'da' || lang === 'dk' || hasDkPhone || hasDkEmail
     || (cityCountry && (cityCountry.toLowerCase().includes('denmark') || cityCountry.toLowerCase().includes('danmark') || /,\s*dk$/i.test(cityCountry)));
   const originTag = isDk ? 'DK' : 'INT';
   const countryTag = displayCountry ? ` — ${displayCountry}` : '';
-  const subject = `New lead [${originTag}${countryTag}]: ${leadData.first_name} ${leadData.last_name || ''} (${leadData.type || 'unknown'})`;
+
+  // Detect applicants vs leads
+  const isApplicant = leadData.type === 'education' || (leadData.source && leadData.source.toLowerCase().includes('ans\u00f8gning'))
+    || (leadData.notes && leadData.notes.includes('APPLICATION'));
+  const label = isApplicant ? 'New applicant' : 'New lead';
+  const cohort = leadData.program || leadData.ytt_program_type || '';
+  const cohortTag = cohort ? ` · ${cohort}` : '';
+  const subject = `${label} [${originTag}${countryTag}]: ${leadData.first_name} ${leadData.last_name || ''} (${leadData.type || 'unknown'})${cohortTag}`;
 
   let html = '<div style="font-family:monospace;font-size:14px;line-height:1.6;">';
-  html += '<h3 style="color:#f75c03;">New lead received</h3>';
+  html += `<h3 style="color:#f75c03;">${label} received</h3>`;
   html += '<table style="border-collapse:collapse;">';
 
-  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'ytt_program_type', 'program', 'meta_form_id', 'meta_form_name', 'source', 'channel', 'utm_campaign', 'accommodation', 'city_country', 'country', 'lang'];
+  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'ytt_program_type', 'program', 'meta_form_id', 'meta_form_name', 'source', 'channel', 'utm_campaign', 'accommodation', 'city_country', 'country', 'lang', 'notes'];
   for (const field of fields) {
     if (leadData[field]) {
       const val = escapeHtml(String(leadData[field]));
@@ -319,7 +329,7 @@ async function sendAdminNotification(leadData) {
     to: CONFIG.EMAIL_ADMIN,
     subject,
     html,
-    text: `New lead [${originTag}]: ${leadData.email} - ${leadData.first_name} - ${leadData.type} - ${leadData.program || ''}${countryTag}`
+    text: `${label} [${originTag}]: ${leadData.email} - ${leadData.first_name} - ${leadData.type} - ${cohort}${countryTag}`
   });
 }
 
