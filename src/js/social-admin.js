@@ -3940,102 +3940,51 @@
     }, 5000);
   }
 
-  // TUS upload implementation (chunked, resumable)
+  // TUS upload using official tus-js-client library (loaded from CDN)
   function tusUpload(file, creds, onProgress) {
     return new Promise(function (resolve, reject) {
-      var chunkSize = 5 * 1024 * 1024; // 5MB chunks
-      var offset = 0;
-      var uploadUrl = '';
-      var retries = 0;
-      var maxRetries = 3;
+      if (typeof tus === 'undefined') {
+        reject(new Error('TUS library not loaded'));
+        return;
+      }
 
-      // Auth headers required on all TUS requests (per Bunny docs)
-      var authHeaders = {
-        'AuthorizationSignature': creds.authSignature,
-        'AuthorizationExpire': creds.authExpiration.toString(),
-        'VideoId': creds.videoId,
-        'LibraryId': creds.libraryId
-      };
-
-      // Step 1: Create TUS upload
-      var createXhr = new XMLHttpRequest();
-      createXhr.open('POST', creds.tusUploadUrl, true);
-      createXhr.setRequestHeader('Tus-Resumable', '1.0.0');
-      createXhr.setRequestHeader('Upload-Length', file.size.toString());
-      createXhr.setRequestHeader('Upload-Metadata',
-        'filetype ' + btoa(file.type) +
-        ',title ' + btoa(file.name.replace(/\.[^.]+$/, ''))
-      );
-      Object.keys(authHeaders).forEach(function (k) { createXhr.setRequestHeader(k, authHeaders[k]); });
-
-      createXhr.onload = function () {
-        if (createXhr.status !== 201 && createXhr.status !== 200) {
-          console.error('[TUS] Create failed:', createXhr.status, createXhr.responseText);
-          reject(new Error('TUS create failed: ' + createXhr.status));
-          return;
-        }
-        uploadUrl = createXhr.getResponseHeader('Location');
-        console.log('[TUS] Upload URL:', uploadUrl);
-        if (!uploadUrl) {
-          reject(new Error('No upload URL returned'));
-          return;
-        }
-        uploadNextChunk();
-      };
-      createXhr.onerror = function () { reject(new Error('Network error during TUS create')); };
-      createXhr.send(null);
-
-      // Step 2: Upload chunks with retry
-      function uploadNextChunk() {
-        if (offset >= file.size) {
+      var upload = new tus.Upload(file, {
+        endpoint: creds.tusUploadUrl,
+        retryDelays: [0, 1000, 3000, 5000],
+        chunkSize: 5 * 1024 * 1024,
+        headers: {
+          AuthorizationSignature: creds.authSignature,
+          AuthorizationExpire: creds.authExpiration.toString(),
+          VideoId: creds.videoId,
+          LibraryId: creds.libraryId
+        },
+        metadata: {
+          filetype: file.type,
+          title: file.name.replace(/\.[^.]+$/, '')
+        },
+        onError: function (error) {
+          console.error('[TUS] Upload error:', error);
+          reject(new Error('Upload failed: ' + (error.message || error)));
+        },
+        onProgress: function (bytesUploaded, bytesTotal) {
+          var pct = (bytesUploaded / bytesTotal) * 100;
+          onProgress(pct);
+        },
+        onSuccess: function () {
+          console.log('[TUS] Upload complete:', upload.url);
           onProgress(100);
           resolve();
-          return;
         }
+      });
 
-        var end = Math.min(offset + chunkSize, file.size);
-        var chunk = file.slice(offset, end);
-
-        var patchXhr = new XMLHttpRequest();
-        patchXhr.open('PATCH', uploadUrl, true);
-        patchXhr.setRequestHeader('Tus-Resumable', '1.0.0');
-        patchXhr.setRequestHeader('Upload-Offset', offset.toString());
-        patchXhr.setRequestHeader('Content-Type', 'application/offset+octet-stream');
-        Object.keys(authHeaders).forEach(function (k) { patchXhr.setRequestHeader(k, authHeaders[k]); });
-
-        patchXhr.upload.onprogress = function (e) {
-          if (e.lengthComputable) {
-            var totalProgress = ((offset + e.loaded) / file.size) * 100;
-            onProgress(totalProgress);
-          }
-        };
-
-        patchXhr.onload = function () {
-          if (patchXhr.status === 204 || patchXhr.status === 200) {
-            retries = 0; // reset retries on success
-            var newOffset = parseInt(patchXhr.getResponseHeader('Upload-Offset') || end.toString());
-            offset = newOffset;
-            uploadNextChunk();
-          } else if (retries < maxRetries) {
-            retries++;
-            console.warn('[TUS] Chunk failed (' + patchXhr.status + '), retry ' + retries + '/' + maxRetries);
-            setTimeout(uploadNextChunk, 1000 * retries); // backoff
-          } else {
-            console.error('[TUS] Chunk failed after retries:', patchXhr.status, 'offset:', offset, 'response:', patchXhr.responseText);
-            reject(new Error('Chunk upload failed: ' + patchXhr.status + ' (after ' + maxRetries + ' retries)'));
-          }
-        };
-        patchXhr.onerror = function () {
-          if (retries < maxRetries) {
-            retries++;
-            console.warn('[TUS] Network error, retry ' + retries + '/' + maxRetries);
-            setTimeout(uploadNextChunk, 1000 * retries);
-          } else {
-            reject(new Error('Network error during chunk upload (after ' + maxRetries + ' retries)'));
-          }
-        };
-        patchXhr.send(chunk);
-      }
+      // Check for previous uploads to resume
+      upload.findPreviousUploads().then(function (previousUploads) {
+        if (previousUploads.length > 0) {
+          console.log('[TUS] Resuming previous upload');
+          upload.resumeFromPreviousUpload(previousUploads[0]);
+        }
+        upload.start();
+      });
     });
   }
 
