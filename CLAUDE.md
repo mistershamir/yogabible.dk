@@ -1523,11 +1523,13 @@ Composer → trim timestamps sent server-side → optimized clip → publish
 
 ### Upload Flow (TUS Protocol)
 
-1. Client calls `social-media-upload?action=create-video` → Netlify function creates video in Bunny Stream → returns `{ videoId, tusUploadUrl, authSignature, authExpiration }`
-2. Client uploads directly to Bunny Stream via TUS (chunked, resumable) — bypasses Netlify function timeout
+**IMPORTANT:** Video uploads use the official `tus-js-client` library (v4.2.3, loaded from `cdn.jsdelivr.net`). A previous custom XHR-based TUS implementation failed with 405 errors because Bunny's TUS endpoint requires precise protocol handling that the official library manages correctly (CORS, chunk retries, resume support). Do NOT replace the tus-js-client with custom XHR code.
+
+1. Client calls `social-media-upload?action=create-video` → Netlify function creates video in Bunny Stream → returns `{ videoId, tusUploadUrl, authSignature, authExpiration, libraryId }`
+2. Client creates a `tus.Upload` instance with auth headers (`AuthorizationSignature`, `AuthorizationExpire`, `VideoId`, `LibraryId`) and uploads directly to Bunny Stream — bypasses Netlify function timeout
 3. Bunny auto-transcodes to multiple resolutions
 4. Webhook fires → `bunny-stream-webhook.js` updates Firestore with status, thumbnail URL, HLS URL
-5. Video appears in Media Library with thumbnail + encoding status badge
+5. Client polls `loadVideoLibrary()` every 5 seconds until status changes from `uploading`/`encoding` to `ready`
 
 ### Video URLs
 

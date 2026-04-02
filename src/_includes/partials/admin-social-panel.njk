@@ -1160,11 +1160,32 @@
 
     <div class="yb-social__media-modal-header">
       <h3>{{ t.social_media_library or "Media Library" }}</h3>
+      <div class="yb-social__media-modal-tabs">
+        <button type="button" class="is-active" data-action="social-media-tab" data-tab="storage">Storage</button>
+        <button type="button" data-action="social-media-tab" data-tab="videos">Videos</button>
+      </div>
       <button type="button" data-action="social-media-browser-close">&times;</button>
     </div>
 
-    <div class="yb-social__media-modal-nav" id="yb-social-media-breadcrumb">
-      <button type="button" data-action="social-media-nav-root">social</button>
+    {# Storage tab toolbar #}
+    <div class="yb-social__media-modal-toolbar" id="yb-social-media-toolbar">
+      <div class="yb-social__media-modal-nav" id="yb-social-media-breadcrumb"></div>
+      <div class="yb-social__media-modal-actions">
+        <select id="yb-social-media-filter" data-action="social-media-filter-change">
+          <option value="all">All files</option>
+          <option value="image">Images</option>
+          <option value="video">Videos</option>
+        </select>
+        <label class="yb-btn yb-btn--outline yb-btn--sm yb-social__media-upload-btn">
+          ↑ Upload here
+          <input type="file" id="yb-social-media-upload-input" multiple accept="image/*,video/*" hidden>
+        </label>
+      </div>
+    </div>
+
+    {# Videos tab toolbar #}
+    <div class="yb-social__media-modal-toolbar" id="yb-social-media-videos-toolbar" hidden>
+      <span style="font-size:12px;color:#6F6A66;padding:0 8px;">Bunny Stream — transcoded videos ready for publishing</span>
     </div>
 
     <div class="yb-social__media-modal-grid" id="yb-social-media-grid">

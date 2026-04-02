@@ -562,19 +562,51 @@
   }
 
   /* ═══ MEDIA BROWSER ═══ */
+  var mediaBrowser = {
+    tab: 'storage',       // 'storage' | 'videos'
+    filter: 'all',        // 'all' | 'image' | 'video'
+    streamVideos: null     // cached Bunny Stream video list
+  };
+
   function openMediaBrowser() {
     var modal = $('yb-social-media-browser');
     if (!modal) return;
     modal.hidden = false;
     composer.mediaSelected = [];
-    // Start at the root of our storage zone
+    mediaBrowser.tab = 'storage';
+    mediaBrowser.filter = 'all';
+    switchMediaTab('storage');
     composer.currentPath = 'yoga-bible-DK';
     loadMediaFolder(composer.currentPath);
+    // Wire upload input
+    var uploadInput = $('yb-social-media-upload-input');
+    if (uploadInput) {
+      uploadInput.onchange = function () {
+        if (uploadInput.files.length > 0) uploadFromBrowser(uploadInput.files);
+        uploadInput.value = '';
+      };
+    }
   }
 
   function closeMediaBrowser() {
     var modal = $('yb-social-media-browser');
     if (modal) modal.hidden = true;
+  }
+
+  function switchMediaTab(tab) {
+    mediaBrowser.tab = tab;
+    document.querySelectorAll('.yb-social__media-modal-tabs button').forEach(function (btn) {
+      btn.classList.toggle('is-active', btn.getAttribute('data-tab') === tab);
+    });
+    var storageToolbar = $('yb-social-media-toolbar');
+    var videosToolbar = $('yb-social-media-videos-toolbar');
+    if (storageToolbar) storageToolbar.hidden = (tab !== 'storage');
+    if (videosToolbar) videosToolbar.hidden = (tab !== 'videos');
+    if (tab === 'storage') {
+      loadMediaFolder(composer.currentPath || 'yoga-bible-DK');
+    } else {
+      loadStreamVideos();
+    }
   }
 
   async function loadMediaFolder(path) {
@@ -590,8 +622,9 @@
       var html = '';
       parts.forEach(function (part, i) {
         var subPath = parts.slice(0, i + 1).join('/');
-        if (i > 0) html += '<span>/</span>';
-        html += '<button data-action="social-media-nav" data-path="' + subPath + '">' + part + '</button>';
+        if (i > 0) html += '<span style="margin:0 2px;color:#ccc;">/</span>';
+        var isLast = i === parts.length - 1;
+        html += '<button data-action="social-media-nav" data-path="' + subPath + '" style="' + (isLast ? 'color:#0F0F0F;' : '') + '">' + part + '</button>';
       });
       breadcrumb.innerHTML = html;
     }
@@ -599,41 +632,135 @@
     var token = await S.getToken();
     if (!token) return;
 
-    // Load folders
-    var foldersRes = await fetch('/.netlify/functions/bunny-browser?action=folders&path=' + encodeURIComponent(path), {
-      headers: { Authorization: 'Bearer ' + token }
-    });
-    var foldersData = await foldersRes.json();
+    try {
+      var results = await Promise.all([
+        fetch('/.netlify/functions/bunny-browser?action=folders&path=' + encodeURIComponent(path), {
+          headers: { Authorization: 'Bearer ' + token }
+        }).then(function (r) { return r.json(); }),
+        fetch('/.netlify/functions/bunny-browser?action=resources&path=' + encodeURIComponent(path), {
+          headers: { Authorization: 'Bearer ' + token }
+        }).then(function (r) { return r.json(); })
+      ]);
+    } catch (err) {
+      grid.innerHTML = '<p class="yb-admin__muted">Error loading folder: ' + err.message + '</p>';
+      return;
+    }
 
-    // Load files
-    var filesRes = await fetch('/.netlify/functions/bunny-browser?action=resources&path=' + encodeURIComponent(path), {
-      headers: { Authorization: 'Bearer ' + token }
-    });
-    var filesData = await filesRes.json();
-
+    var foldersData = results[0];
+    var filesData = results[1];
+    var filterType = mediaBrowser.filter;
     var html = '';
+    var folderIcon = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
 
     // Folders
     (foldersData.folders || []).forEach(function (f) {
       html += '<div class="yb-social__media-folder" data-action="social-media-open-folder" data-path="' + f.path + '">' +
-        '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' +
-        '<span>' + f.name + '</span></div>';
+        folderIcon + '<span>' + f.name + '</span></div>';
     });
 
     // Files (images/videos)
     (filesData.resources || []).forEach(function (r) {
-      var url = r.secure_url || ('https://yogabible.b-cdn.net/' + path + '/' + r.public_id);
+      if (filterType !== 'all' && r.resource_type !== filterType) return;
+      var url = r.secure_url || ('https://yogabible.b-cdn.net/' + path + '/' + r.display_name);
       var isSelected = composer.mediaSelected.indexOf(url) >= 0;
-      if (r.resource_type === 'image' || r.resource_type === 'video') {
+      if (r.resource_type === 'image') {
         html += '<div class="yb-social__media-item' + (isSelected ? ' is-selected' : '') + '" data-action="social-media-toggle" data-url="' + url + '">' +
           '<img src="' + url + '?width=200" alt="" loading="lazy">' +
+          '<span class="yb-social__media-item-label">' + (r.display_name || '') + '</span>' +
+          '</div>';
+      } else if (r.resource_type === 'video') {
+        // Video thumbnail: use first frame or poster
+        html += '<div class="yb-social__media-item' + (isSelected ? ' is-selected' : '') + '" data-action="social-media-toggle" data-url="' + url + '">' +
+          '<video src="' + url + '" muted preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video>' +
+          '<span class="yb-social__media-item-badge yb-social__media-item-badge--video">MP4</span>' +
+          '<span class="yb-social__media-item-label">' + (r.display_name || '') + '</span>' +
           '</div>';
       }
     });
 
-    if (!html) html = '<p class="yb-admin__muted">No media files here. Upload some first.</p>';
+    if (!html) html = '<p class="yb-admin__muted">No files in this folder.</p>';
     grid.innerHTML = html;
     updateMediaSelectedCount();
+  }
+
+  // Load Bunny Stream transcoded videos
+  async function loadStreamVideos() {
+    var grid = $('yb-social-media-grid');
+    if (!grid) return;
+    grid.innerHTML = '<p class="yb-admin__muted">Loading videos...</p>';
+
+    var token = await S.getToken();
+    if (!token) return;
+
+    try {
+      var res = await fetch('/.netlify/functions/social-media-upload?action=list', {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      var data = await res.json();
+      mediaBrowser.streamVideos = data.videos || [];
+    } catch (err) {
+      grid.innerHTML = '<p class="yb-admin__muted">Error loading videos.</p>';
+      return;
+    }
+
+    var html = '';
+    var CDN = 'https://vz-4f2e2677-3b6.b-cdn.net';
+
+    mediaBrowser.streamVideos.forEach(function (v) {
+      if (v.status !== 'ready') return;
+      var thumbUrl = v.thumbnailUrl || (CDN + '/' + v.videoId + '/thumbnail.jpg');
+      var videoUrl = v.mp4Url || (CDN + '/' + v.videoId + '/play_720p.mp4');
+      var isSelected = composer.mediaSelected.indexOf(videoUrl) >= 0;
+      html += '<div class="yb-social__media-item' + (isSelected ? ' is-selected' : '') + '" data-action="social-media-toggle" data-url="' + videoUrl + '">' +
+        '<img src="' + thumbUrl + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;">' +
+        '<span class="yb-social__media-item-badge yb-social__media-item-badge--stream">Stream</span>' +
+        '<span class="yb-social__media-item-label">' + (v.title || 'Untitled') + '</span>' +
+        '</div>';
+    });
+
+    if (!html) html = '<p class="yb-admin__muted">No transcoded videos ready. Upload videos in the Library tab.</p>';
+    grid.innerHTML = html;
+    updateMediaSelectedCount();
+  }
+
+  // Upload files directly from the browser to current folder
+  async function uploadFromBrowser(files) {
+    if (!files || files.length === 0) return;
+    var folder = composer.currentPath;
+    S.toast('Uploading ' + files.length + ' file(s) to ' + folder + '...');
+
+    var token = await S.getToken();
+    if (!token) { S.toast('Auth failed', true); return; }
+
+    // Get upload credentials
+    var signRes = await fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(folder), {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    var signData = await signRes.json();
+    if (!signData.ok) { S.toast('Upload sign error', true); return; }
+
+    var params = signData.upload_params;
+    var success = 0;
+
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      var ts = Date.now();
+      var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      var fileName = ts + '-' + safeName;
+
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('PUT', params.upload_url + fileName, false);
+        xhr.setRequestHeader('AccessKey', params.headers.AccessKey);
+        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+        xhr.send(file);
+        if (xhr.status >= 200 && xhr.status < 300) success++;
+      } catch (e) { /* skip */ }
+    }
+
+    S.toast(success + '/' + files.length + ' uploaded');
+    // Reload current folder to show new files
+    loadMediaFolder(composer.currentPath);
   }
 
   function toggleMediaSelection(url) {
@@ -643,7 +770,6 @@
     } else {
       composer.mediaSelected.push(url);
     }
-    // Toggle class on item
     document.querySelectorAll('.yb-social__media-item').forEach(function (el) {
       el.classList.toggle('is-selected', composer.mediaSelected.indexOf(el.getAttribute('data-url')) >= 0);
     });
@@ -1060,6 +1186,11 @@
     else if (action === 'social-media-nav-root') loadMediaFolder('yoga-bible-DK');
     else if (action === 'social-media-toggle') toggleMediaSelection(btn.getAttribute('data-url'));
     else if (action === 'social-media-confirm') confirmMediaSelection();
+    else if (action === 'social-media-tab') switchMediaTab(btn.getAttribute('data-tab'));
+    else if (action === 'social-media-filter-change') {
+      mediaBrowser.filter = btn.value || 'all';
+      loadMediaFolder(composer.currentPath);
+    }
 
     // AI
     // Hashtag auto-suggest
@@ -1182,6 +1313,10 @@
 
   document.addEventListener('change', function (e) {
     if (e.target.id === 'yb-social-utm-source') buildUtmUrl();
+    if (e.target.id === 'yb-social-media-filter') {
+      mediaBrowser.filter = e.target.value || 'all';
+      loadMediaFolder(composer.currentPath);
+    }
   });
 
   function buildUtmUrl() {
