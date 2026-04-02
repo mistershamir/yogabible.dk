@@ -636,10 +636,10 @@
       var results = await Promise.all([
         fetch('/.netlify/functions/bunny-browser?action=folders&path=' + encodeURIComponent(path), {
           headers: { Authorization: 'Bearer ' + token }
-        }).then(function (r) { return r.json(); }),
+        }).then(function (r) { return r.json(); }).catch(function (e) { return { ok: false, folders: [], error: e.message }; }),
         fetch('/.netlify/functions/bunny-browser?action=resources&path=' + encodeURIComponent(path), {
           headers: { Authorization: 'Bearer ' + token }
-        }).then(function (r) { return r.json(); })
+        }).then(function (r) { return r.json(); }).catch(function (e) { return { ok: false, resources: [], error: e.message }; })
       ]);
     } catch (err) {
       grid.innerHTML = '<p class="yb-admin__muted">Error loading folder: ' + err.message + '</p>';
@@ -648,6 +648,9 @@
 
     var foldersData = results[0];
     var filesData = results[1];
+
+    // Debug: log API responses
+    console.log('[MediaBrowser] Path:', path, 'Folders:', foldersData, 'Files:', filesData);
     var filterType = mediaBrowser.filter;
     var html = '';
     var folderIcon = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
@@ -706,19 +709,23 @@
     var html = '';
     var CDN = 'https://vz-4f2e2677-3b6.b-cdn.net';
 
+    console.log('[MediaBrowser] Stream videos:', mediaBrowser.streamVideos);
+
     mediaBrowser.streamVideos.forEach(function (v) {
-      if (v.status !== 'ready') return;
       var thumbUrl = v.thumbnailUrl || (CDN + '/' + v.videoId + '/thumbnail.jpg');
       var videoUrl = v.mp4Url || (CDN + '/' + v.videoId + '/play_720p.mp4');
       var isSelected = composer.mediaSelected.indexOf(videoUrl) >= 0;
-      html += '<div class="yb-social__media-item' + (isSelected ? ' is-selected' : '') + '" data-action="social-media-toggle" data-url="' + videoUrl + '">' +
-        '<img src="' + thumbUrl + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;">' +
-        '<span class="yb-social__media-item-badge yb-social__media-item-badge--stream">Stream</span>' +
+      var statusBadge = v.status === 'ready' ? 'Ready' : (v.status || 'unknown');
+      var badgeClass = v.status === 'ready' ? 'yb-social__media-item-badge--stream' : 'yb-social__media-item-badge--video';
+      html += '<div class="yb-social__media-item' + (isSelected ? ' is-selected' : '') + (v.status !== 'ready' ? ' style="opacity:0.5;"' : '') + '" ' +
+        (v.status === 'ready' ? 'data-action="social-media-toggle" data-url="' + videoUrl + '"' : '') + '>' +
+        '<img src="' + thumbUrl + '" alt="" loading="lazy" onerror="this.style.display=\'none\'" style="width:100%;height:100%;object-fit:cover;">' +
+        '<span class="yb-social__media-item-badge ' + badgeClass + '">' + statusBadge + '</span>' +
         '<span class="yb-social__media-item-label">' + (v.title || 'Untitled') + '</span>' +
         '</div>';
     });
 
-    if (!html) html = '<p class="yb-admin__muted">No transcoded videos ready. Upload videos in the Library tab.</p>';
+    if (!html) html = '<p class="yb-admin__muted">No videos found. Upload videos in the Library tab first.</p>';
     grid.innerHTML = html;
     updateMediaSelectedCount();
   }
