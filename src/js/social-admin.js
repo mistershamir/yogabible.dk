@@ -158,7 +158,7 @@
     var needsOrgId = platform === 'linkedin';
     var needsChannelId = platform === 'youtube';
     var needsBoardId = platform === 'pinterest';
-    var needsRefreshToken = platform === 'youtube';
+    var needsRefreshToken = platform === 'youtube' || platform === 'tiktok';
     var pageIdLabel = platform === 'facebook' ? 'Facebook Page ID' : platform === 'instagram' ? 'Instagram Business Account ID' : '';
     var hasOAuth = OAUTH_PLATFORMS.indexOf(platform) !== -1;
 
@@ -173,7 +173,7 @@
         '<label for="yb-social-connect-orgid">LinkedIn Organization ID</label>' +
         '<input type="text" id="yb-social-connect-orgid" placeholder="e.g. 12345678">' +
         '</div>';
-    } else if (needsChannelId) {
+    } else if (needsRefreshToken && needsChannelId) {
       extraFields = '<div class="yb-admin__field">' +
         '<label for="yb-social-connect-refreshtoken">Refresh Token</label>' +
         '<input type="text" id="yb-social-connect-refreshtoken" placeholder="Required for token refresh">' +
@@ -181,6 +181,11 @@
         '<div class="yb-admin__field">' +
         '<label for="yb-social-connect-channelid">Channel ID <span style="color:var(--yb-muted)">(optional)</span></label>' +
         '<input type="text" id="yb-social-connect-channelid" placeholder="e.g. UCxxxxxxxx">' +
+        '</div>';
+    } else if (needsRefreshToken) {
+      extraFields = '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-refreshtoken">Refresh Token</label>' +
+        '<input type="text" id="yb-social-connect-refreshtoken" placeholder="Required for auto-refresh (lasts 1 year)">' +
         '</div>';
     } else if (needsBoardId) {
       extraFields = '<div class="yb-admin__field">' +
