@@ -1109,7 +1109,11 @@
       }
     }).catch(function (err) {
       console.error('Analytics error:', err);
-      toast(t('error_load'), true);
+      if (statCourses) statCourses.textContent = '0';
+      if (statEnrollments) statEnrollments.textContent = '0';
+      if (statStudents) statStudents.textContent = '0';
+      if (statProgress) statProgress.textContent = '0%';
+      if (tableEl) tableEl.innerHTML = '<p class="yb-admin__empty">' + t('no_courses') + '</p>';
     });
   }
 
