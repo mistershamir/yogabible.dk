@@ -2,6 +2,13 @@
 {% set lp = "/en" if lang == "en" else "" %}
 
 
+<!-- FLOATING CART BAR -->
+<div class="yb-float-bar" id="p8w-float-bar">
+  <button class="yb-float-bar__btn" id="p8w-float-btn" data-checkout-product="100209">
+    {{ t.float_cta }} <span class="yb-float-bar__price">— {{ t.float_price }}</span>
+  </button>
+</div>
+
 <!-- FAQPage Schema (AEO — featured snippets for AI search) -->
 <script type="application/ld+json">
 {%- set _faqs = [
@@ -1217,5 +1224,31 @@
     });
     setProgram('18w');
   }
+})();
+</script>
+
+<!-- Floating bar logic -->
+<script>
+(function(){
+  var bar = document.getElementById('p8w-float-bar');
+  var btn = document.getElementById('p8w-float-btn');
+  if (!bar || !btn) return;
+
+  var hero = document.querySelector('.yb-hero');
+  var shown = false;
+  function checkScroll() {
+    if (!hero) return;
+    var past = window.scrollY > hero.offsetHeight * 0.7;
+    if (past && !shown) { bar.classList.add('yb-float-bar--visible'); shown = true; }
+    else if (!past && shown) { bar.classList.remove('yb-float-bar--visible'); shown = false; }
+  }
+  window.addEventListener('scroll', checkScroll, { passive: true });
+  checkScroll();
+
+  btn.addEventListener('click', function() {
+    var prodId = btn.getAttribute('data-checkout-product');
+    if (window.openCheckoutFlow) window.openCheckoutFlow(prodId);
+    else if (window.startCheckoutFunnel) window.startCheckoutFunnel(prodId);
+  });
 })();
 </script>
