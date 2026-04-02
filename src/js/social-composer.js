@@ -519,7 +519,7 @@
       videoThumbnails: composer.videoThumbnails || {},
       contentPillar: ($('yb-social-pillar') || {}).value || '',
       platformCaptions: composer.platformCaptions || {},
-      status: status
+      status: status === 'published' ? 'pending' : status
     };
 
     // Handle scheduling
@@ -777,21 +777,20 @@
 
     for (var i = 0; i < total; i++) {
       var file = files[i];
-      S.toast('Uploading ' + (i + 1) + '/' + total + ': ' + file.name + '...');
-
-      // Netlify function body size limit is ~6MB for base64
-      if (file.size > 4.5 * 1024 * 1024) {
-        S.toast(file.name + ' too large (max 4.5 MB). Use Videos tab for large videos.', true);
+      // For large files (>4MB), use Videos tab TUS upload
+      if (file.size > 4 * 1024 * 1024) {
+        S.toast(file.name + ' is too large for Storage upload (' + Math.round(file.size/1024/1024) + ' MB). Use Videos tab for large files.', true);
         continue;
       }
 
+      S.toast('Uploading ' + (i + 1) + '/' + total + ': ' + file.name + '...');
       var ts = Date.now();
       var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       var fileName = ts + '-' + safeName;
 
       try {
-        // Read file as base64 for reliable binary transfer to Netlify function
-        var base64 = await readFileAsBase64(file);
+        // Read file as ArrayBuffer and send as raw binary
+        var arrayBuffer = await file.arrayBuffer();
         var uploadRes = await fetch(
           '/.netlify/functions/bunny-browser?action=upload&folder=' + encodeURIComponent(folder) +
           '&fileName=' + encodeURIComponent(fileName) +
@@ -800,14 +799,16 @@
             method: 'POST',
             headers: {
               Authorization: 'Bearer ' + token,
-              'Content-Type': 'application/base64'
+              'Content-Type': 'application/octet-stream'
             },
-            body: base64
+            body: arrayBuffer
           }
         );
         var result = await uploadRes.json();
+        console.log('[MediaBrowser] Upload result:', result);
         if (result.ok) {
           success++;
+          S.toast('Uploaded ' + file.name);
         } else {
           console.error('[MediaBrowser] Upload failed:', result.error);
           S.toast('Failed: ' + (result.error || 'unknown'), true);
@@ -818,21 +819,8 @@
       }
     }
 
-    S.toast(success + '/' + total + ' uploaded successfully');
+    if (success > 0) S.toast(success + '/' + total + ' uploaded');
     loadMediaFolder(composer.currentPath);
-  }
-
-  function readFileAsBase64(file) {
-    return new Promise(function (resolve, reject) {
-      var reader = new FileReader();
-      reader.onload = function () {
-        // result is "data:mime;base64,XXXX" — strip the prefix
-        var b64 = reader.result.split(',')[1];
-        resolve(b64);
-      };
-      reader.onerror = function () { reject(new Error('Failed to read file')); };
-      reader.readAsDataURL(file);
-    });
   }
 
   // Upload video to Bunny Stream via TUS (for large video files)

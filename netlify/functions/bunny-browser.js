@@ -250,22 +250,16 @@ exports.handler = async (event) => {
     case 'sign_upload':
       return signUpload(folder);
     case 'upload': {
-      // Proxy upload: client sends file as base64 string in POST body
+      // Proxy upload: client sends binary file in POST body
       if (event.httpMethod !== 'POST') return jsonResponse(405, { ok: false, error: 'POST required for upload' });
       const fileName = params.fileName;
       const contentType = params.contentType || 'application/octet-stream';
       if (!fileName) return jsonResponse(400, { ok: false, error: 'Missing fileName param' });
       if (!event.body) return jsonResponse(400, { ok: false, error: 'Empty body' });
-      // Client sends raw base64 string; Netlify may also base64-encode it
-      let bodyBuffer;
-      if (event.isBase64Encoded) {
-        // Netlify already decoded the transport encoding — body is our base64 string
-        bodyBuffer = Buffer.from(event.body, 'base64');
-      } else {
-        // Body is the raw base64 string from client
-        bodyBuffer = Buffer.from(event.body, 'base64');
-      }
-      console.log(`[bunny-browser] upload: ${fileName} to ${folder}, size=${bodyBuffer.length}, isBase64=${event.isBase64Encoded}`);
+      // Netlify always base64-encodes binary request bodies
+      const bodyBuffer = Buffer.from(event.body, event.isBase64Encoded ? 'base64' : 'utf8');
+      console.log(`[bunny-browser] upload: ${fileName} to ${folder}, bodySize=${bodyBuffer.length}, isBase64=${event.isBase64Encoded}, rawLen=${event.body.length}`);
+      if (bodyBuffer.length === 0) return jsonResponse(400, { ok: false, error: 'Empty file body after decode' });
       return proxyUpload(folder, fileName, bodyBuffer, contentType);
     }
     case 'init-social-folders':
