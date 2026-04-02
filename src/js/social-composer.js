@@ -583,12 +583,20 @@
     switchMediaTab('storage');
     composer.currentPath = 'yoga-bible-DK';
     loadMediaFolder(composer.currentPath);
-    // Wire upload input
+    // Wire storage upload input
     var uploadInput = $('yb-social-media-upload-input');
     if (uploadInput) {
       uploadInput.onchange = function () {
         if (uploadInput.files.length > 0) uploadFromBrowser(uploadInput.files);
         uploadInput.value = '';
+      };
+    }
+    // Wire video upload input (Bunny Stream via TUS)
+    var videoUploadInput = $('yb-social-media-video-upload-input');
+    if (videoUploadInput) {
+      videoUploadInput.onchange = function () {
+        if (videoUploadInput.files.length > 0) uploadVideoToStream(videoUploadInput.files[0]);
+        videoUploadInput.value = '';
       };
     }
   }
@@ -735,58 +743,127 @@
     updateMediaSelectedCount();
   }
 
-  // Upload files directly from the browser to current folder
+  // Upload files via Netlify proxy (avoids CORS issues with direct Bunny PUT)
   async function uploadFromBrowser(files) {
     if (!files || files.length === 0) return;
     var folder = composer.currentPath;
-    S.toast('Uploading ' + files.length + ' file(s) to ' + folder + '...');
-
     var token = await S.getToken();
     if (!token) { S.toast('Auth failed', true); return; }
 
-    // Get upload credentials
-    try {
-      var signRes = await fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(folder), {
-        headers: { Authorization: 'Bearer ' + token }
-      });
-      var signData = await signRes.json();
-      if (!signData.ok) { S.toast('Upload sign error: ' + (signData.error || 'unknown'), true); return; }
-    } catch (e) {
-      S.toast('Upload sign failed: ' + e.message, true);
-      return;
-    }
-
-    var params = signData.upload_params;
     var success = 0;
+    var total = files.length;
 
-    for (var i = 0; i < files.length; i++) {
+    for (var i = 0; i < total; i++) {
       var file = files[i];
+      S.toast('Uploading ' + (i + 1) + '/' + total + ': ' + file.name + '...');
+
+      // Netlify function body size limit is ~6MB for base64.
+      // For files > 4.5MB, warn and skip (use Library tab TUS upload for large videos)
+      if (file.size > 4.5 * 1024 * 1024) {
+        S.toast(file.name + ' too large (max 4.5 MB). Use Library tab for large videos.', true);
+        continue;
+      }
+
       var ts = Date.now();
       var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       var fileName = ts + '-' + safeName;
 
       try {
-        var uploadRes = await fetch(params.upload_url + fileName, {
-          method: 'PUT',
-          headers: {
-            'AccessKey': params.headers.AccessKey,
-            'Content-Type': file.type || 'application/octet-stream'
-          },
-          body: file
-        });
-        if (uploadRes.ok) {
+        var uploadRes = await fetch(
+          '/.netlify/functions/bunny-browser?action=upload&folder=' + encodeURIComponent(folder) +
+          '&fileName=' + encodeURIComponent(fileName) +
+          '&contentType=' + encodeURIComponent(file.type || 'application/octet-stream'),
+          {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token },
+            body: file
+          }
+        );
+        var result = await uploadRes.json();
+        if (result.ok) {
           success++;
-          S.toast('Uploaded ' + (i + 1) + '/' + files.length + '...');
         } else {
-          console.error('[MediaBrowser] Upload failed:', uploadRes.status, await uploadRes.text());
+          console.error('[MediaBrowser] Upload failed:', result.error);
+          S.toast('Failed: ' + (result.error || 'unknown'), true);
         }
       } catch (e) {
         console.error('[MediaBrowser] Upload error:', e.message);
+        S.toast('Upload error: ' + e.message, true);
       }
     }
 
-    S.toast(success + '/' + files.length + ' uploaded successfully');
+    S.toast(success + '/' + total + ' uploaded successfully');
     loadMediaFolder(composer.currentPath);
+  }
+
+  // Upload video to Bunny Stream via TUS (for large video files)
+  async function uploadVideoToStream(file) {
+    if (!file) return;
+    S.toast('Creating video entry...');
+
+    var token = await S.getToken();
+    if (!token) { S.toast('Auth failed', true); return; }
+
+    // 1. Create video entry in Bunny Stream
+    try {
+      var createRes = await fetch('/.netlify/functions/social-media-upload', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'create-video', title: file.name.replace(/\.[^.]+$/, '') })
+      });
+      var creds = await createRes.json();
+      if (!creds.ok) {
+        S.toast('Failed to create video: ' + (creds.error || 'unknown'), true);
+        return;
+      }
+    } catch (e) {
+      S.toast('Create video error: ' + e.message, true);
+      return;
+    }
+
+    // 2. Upload via TUS
+    if (typeof tus === 'undefined') {
+      S.toast('TUS library not loaded. Refresh page.', true);
+      return;
+    }
+
+    S.toast('Uploading video via TUS...');
+    var grid = $('yb-social-media-grid');
+    if (grid) grid.innerHTML = '<p class="yb-admin__muted">Uploading: 0%...</p>';
+
+    var upload = new tus.Upload(file, {
+      endpoint: creds.tusUploadUrl,
+      retryDelays: [0, 1000, 3000, 5000],
+      chunkSize: 5 * 1024 * 1024,
+      headers: {
+        AuthorizationSignature: creds.authSignature,
+        AuthorizationExpire: creds.authExpiration.toString(),
+        VideoId: creds.videoId,
+        LibraryId: creds.libraryId
+      },
+      metadata: { filetype: file.type, title: file.name.replace(/\.[^.]+$/, '') },
+      onError: function (error) {
+        S.toast('Upload failed: ' + (error.message || error), true);
+        loadStreamVideos();
+      },
+      onProgress: function (bytesUploaded, bytesTotal) {
+        var pct = Math.round((bytesUploaded / bytesTotal) * 100);
+        if (grid) grid.innerHTML = '<p class="yb-admin__muted">Uploading: ' + pct + '%...</p>';
+      },
+      onSuccess: function () {
+        S.toast('Video uploaded! Transcoding in progress...');
+        // Poll until video is ready
+        setTimeout(function () { loadStreamVideos(); }, 3000);
+      }
+    });
+
+    upload.findPreviousUploads().then(function (prev) {
+      if (prev.length > 0) upload.resumeFromPreviousUpload(prev[0]);
+      upload.start();
+    });
   }
 
   function toggleMediaSelection(url) {
