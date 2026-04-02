@@ -42,8 +42,14 @@ async function publishPost(db, postId, platformFilter) {
 
   const post = postDoc.data();
 
+  // Block re-publishing unless there are platform failures to retry
   if (post.status === 'published' && !platformFilter) {
-    return { ok: false, error: 'Post is already published', statusCode: 400 };
+    const prevResults = post.publishResults || {};
+    const hasFailure = Object.values(prevResults).some(r => !r.success);
+    if (!hasFailure && Object.keys(prevResults).length > 0) {
+      return { ok: false, error: 'Post is already published to all platforms', statusCode: 400 };
+    }
+    console.log('[social-publish] Re-publishing for', postId);
   }
 
   // Determine which platforms to publish to
