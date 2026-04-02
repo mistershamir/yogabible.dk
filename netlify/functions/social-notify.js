@@ -124,6 +124,49 @@ exports.handler = async () => {
       }
     }
 
+    // ── 4. Negative sentiment / urgent inbox alerts ───────────────
+    const sentimentSnap = await db.collection('social_sentiment_alerts')
+      .where('notified', '==', false)
+      .limit(10)
+      .get();
+
+    if (!sentimentSnap.empty) {
+      const allAlerts = [];
+      const alertDocIds = [];
+
+      sentimentSnap.forEach(doc => {
+        alertDocIds.push(doc.id);
+        const data = doc.data();
+        (data.alerts || []).forEach(a => allAlerts.push(a));
+      });
+
+      if (allAlerts.length > 0) {
+        let msg = '🚨 *Social: Inbox alerts*\n\n';
+
+        allAlerts.forEach(a => {
+          const icon = a.sentiment === 'negative' ? '😡' :
+            a.intent === 'purchase_intent' ? '💰' :
+            a.urgency === 'high' ? '⚡' : '⚠️';
+          const text = (a.text || '').substring(0, 80).replace(/[*_`\[]/g, '');
+          msg += `${icon} *${a.author}* (${a.platform}): "${text}"\n`;
+          msg += `   → ${a.suggested_action || 'Review needed'}\n\n`;
+        });
+
+        msg += '👉 Open /admin/ → Social → Inbox';
+
+        await sendTelegram(msg);
+
+        // Mark alerts as notified
+        for (const docId of alertDocIds) {
+          await db.collection('social_sentiment_alerts').doc(docId).update({
+            notified: true,
+            notifiedAt: serverTimestamp()
+          });
+        }
+        sent++;
+      }
+    }
+
     return jsonResponse(200, { ok: true, sent });
   } catch (err) {
     console.error('[social-notify] Error:', err);

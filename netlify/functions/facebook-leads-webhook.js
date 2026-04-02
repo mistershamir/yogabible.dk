@@ -353,13 +353,14 @@ const FORM_ID_MAP = {
 // Form ID → Language override — bulletproof, doesn't rely on Meta passing hidden fields
 // Meta tracking parameters sometimes don't arrive in field_data, so we map form_id directly.
 const FORM_LANG_MAP = {
-  '827004866473769':  'en',     // july-vinyasa-plus-en
-  '25716246641411656':'en',     // july-vinyasa-plus-no  (Norwegian leads get EN emails)
-  '4318151781759438': 'en',     // july-vinyasa-plus-se  (Swedish leads get EN emails)
-  '2450631555377690': 'de',     // july-vinyasa-plus-de  (German/Austrian leads get DE emails)
-  '1668412377638315': 'en',     // july-vinyasa-plus-fi  (Finnish leads get EN emails)
-  '960877763097239':  'en',     // july-vinyasa-plus-nl  (Dutch leads get EN emails)
-  '1344364364192542': 'da'      // july-vinyasa-plus-dk  (Danish leads get DA emails)
+  '827004866473769':  'en',     // july-vinyasa-plus-en (UK)
+  '25716246641411656':'en',     // july-vinyasa-plus-no
+  '4318151781759438': 'en',     // july-vinyasa-plus-se
+  '2450631555377690': 'de',     // july-vinyasa-plus-de
+  '1668412377638315': 'en',     // july-vinyasa-plus-fi
+  '960877763097239':  'en',     // july-vinyasa-plus-nl
+  '1344364364192542': 'da',     // july-vinyasa-plus-dk
+  '961808297026346':  'da'      // general dk form (multi-program, asks which course)
 };
 
 // ─── Program Answer → Type Map ───────────────────────────────────────────────

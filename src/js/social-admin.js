@@ -12,6 +12,7 @@
     accounts: {},
     posts: [],
     postsFilter: 'all',
+    postsPlatform: 'all',
     calMonth: new Date().getMonth(),
     calYear: new Date().getFullYear(),
     hashtagSets: [],
@@ -78,12 +79,26 @@
     return '<span class="yb-social__post-status yb-social__post-status--' + s + '">' + s + '</span>';
   }
 
+  function publishErrorLine(p) {
+    if (!p.publishResults) return '';
+    var errors = [];
+    Object.keys(p.publishResults).forEach(function (platform) {
+      if (platform.startsWith('_')) return;
+      var r = p.publishResults[platform];
+      if (r && !r.success && r.error) {
+        errors.push(platform + ': ' + r.error);
+      }
+    });
+    if (errors.length === 0) return '';
+    return '<div class="yb-social__post-error" title="' + escapeHtml(errors.join('\n')) + '">⚠️ ' + escapeHtml(errors[0].substring(0, 60)) + (errors.length > 1 ? ' (+' + (errors.length - 1) + ')' : '') + '</div>';
+  }
+
   function truncate(s, n) { return s && s.length > n ? s.substring(0, n) + '...' : (s || ''); }
 
   /* ═══ VIEW MANAGEMENT ═══ */
   function showView(name) {
     state.view = name;
-    ['accounts', 'calendar', 'posts', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting'].forEach(function (v) {
+    ['accounts', 'calendar', 'posts', 'crossshare', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting', 'library', 'stories'].forEach(function (v) {
       var el = $('yb-social-v-' + v);
       if (el) el.hidden = (v !== name);
     });
@@ -94,11 +109,14 @@
     if (name === 'calendar') renderCalendar();
     if (name === 'posts') loadPosts();
     if (name === 'analytics') loadAnalytics();
-    if (name === 'inbox') loadInbox();
+    if (name === 'inbox') { if (!state.accounts || Object.keys(state.accounts).length === 0) loadAccounts(); loadInbox(); }
     if (name === 'hashtags') loadHashtags();
     if (name === 'templates') loadTemplates();
     if (name === 'competitors') loadCompetitors();
     if (name === 'abtesting') loadAbTests();
+    if (name === 'crossshare') loadCrossShare();
+    if (name === 'library') { loadContentLibrary(); loadVideoLibrary(); initVideoUploadZone(); initTrimHandles(); }
+    if (name === 'stories') loadStories();
   }
 
   /* ═══ ACCOUNTS ═══ */
@@ -224,6 +242,12 @@
         '<label for="yb-social-connect-pageid">' + pageIdLabel + '</label>' +
         '<input type="text" id="yb-social-connect-pageid" value="' + (defaults.pageId || '') + '">' +
         '</div>';
+      if (platform === 'instagram') {
+        extraFields += '<div class="yb-admin__field">' +
+          '<label for="yb-social-connect-fbpageid">Facebook Page ID <span style="color:var(--yb-muted)">(for ad comments)</span></label>' +
+          '<input type="text" id="yb-social-connect-fbpageid" placeholder="e.g. 878172732056415">' +
+          '</div>';
+      }
     } else if (needsOrgId) {
       extraFields = '<div class="yb-admin__field">' +
         '<label for="yb-social-connect-orgid">LinkedIn Organization ID</label>' +
@@ -332,6 +356,11 @@
     if (pageIdEl && pageIdEl.value.trim()) {
       if (platform === 'instagram') body.igAccountId = pageIdEl.value.trim();
       else body.pageId = pageIdEl.value.trim();
+    }
+    // Instagram also needs FB Page ID for ad comments
+    var fbPageIdEl = $('yb-social-connect-fbpageid');
+    if (fbPageIdEl && fbPageIdEl.value.trim()) {
+      body.pageId = fbPageIdEl.value.trim();
     }
     var orgIdEl = $('yb-social-connect-orgid');
     if (orgIdEl && orgIdEl.value.trim()) body.organizationId = orgIdEl.value.trim();
@@ -547,7 +576,7 @@
   }
 
   function getPostsForDate(dateStr) {
-    return state.posts.filter(function (p) {
+    return (state.allPosts || state.posts).filter(function (p) {
       var d = p.scheduledAt || p.publishedAt || p.createdAt;
       if (!d) return false;
       var dt = d._seconds ? new Date(d._seconds * 1000) : new Date(d);
@@ -591,15 +620,58 @@
   }
 
   /* ═══ POSTS LIST ═══ */
+  // Track whether auto-import has run this session
+  var _autoImportDone = false;
+
   async function loadPosts() {
-    var url = 'social-posts?action=list';
-    if (state.postsFilter !== 'all') url += '&status=' + state.postsFilter;
-    var data = await api(url);
+    var grid = $('yb-social-posts-grid');
+    if (grid) grid.innerHTML = '<p class="yb-admin__muted">Loading...</p>';
+
+    // Always fetch ALL posts — filtering happens client-side
+    var data = await api('social-posts?action=list');
     if (!data) return;
-    state.posts = data.posts || [];
+    state.allPosts = data.posts || [];
     renderPosts();
-    // Also refresh calendar if loaded
     if ($('yb-social-cal-grid')) renderCalendar();
+
+    // Auto-import from connected platforms (once per session)
+    if (!_autoImportDone) {
+      _autoImportDone = true;
+      autoImportFromPlatforms();
+    }
+  }
+
+  async function autoImportFromPlatforms() {
+    // Ensure accounts are loaded
+    if (!state.accounts || Object.keys(state.accounts).length === 0) {
+      var acctData = await api('social-accounts?action=list');
+      if (acctData) {
+        state.accounts = {};
+        (acctData.accounts || []).forEach(function (a) { state.accounts[a.platform] = a; });
+      }
+    }
+    var platforms = ['instagram', 'facebook'];
+    var imported = 0;
+    for (var i = 0; i < platforms.length; i++) {
+      var p = platforms[i];
+      if (!state.accounts[p]) continue;
+      try {
+        var data = await api('social-posts?action=import-from-platform', {
+          method: 'POST',
+          body: JSON.stringify({ platform: p })
+        });
+        if (data && data.imported > 0) imported += data.imported;
+      } catch (e) { /* silent */ }
+    }
+    if (imported > 0) {
+      toast('Auto-imported ' + imported + ' new posts');
+      // Reload to show new posts
+      var data2 = await api('social-posts?action=list');
+      if (data2) {
+        state.allPosts = data2.posts || [];
+        renderPosts();
+      }
+    }
   }
 
   function renderPosts() {
@@ -607,17 +679,97 @@
     var countEl = $('yb-social-posts-count');
     if (!grid) return;
 
-    if (countEl) countEl.textContent = state.posts.length + ' ' + t('social_posts_title').toLowerCase();
+    var all = state.allPosts || [];
 
-    if (state.posts.length === 0) {
+    // ── Count by status ──
+    var statusCounts = { all: all.length };
+    all.forEach(function (p) {
+      statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+    });
+
+    // Update status filter button counts
+    qsa('#yb-social-v-posts .yb-social__filter-btn[data-action="social-filter-status"]').forEach(function (btn) {
+      var s = btn.getAttribute('data-status');
+      var count = statusCounts[s] || 0;
+      var label = btn.textContent.replace(/\s*\(\d+\)$/, '');
+      btn.textContent = label + ' (' + count + ')';
+    });
+
+    // ── Count by platform ──
+    var platCounts = { all: all.length };
+    all.forEach(function (p) {
+      (p.platforms || []).forEach(function (pl) {
+        platCounts[pl] = (platCounts[pl] || 0) + 1;
+      });
+    });
+
+    // Render platform filter bar with counts
+    var pfBar = $('yb-social-platform-filter');
+    if (pfBar) {
+      var pfs = ['all', 'instagram', 'facebook', 'tiktok', 'linkedin', 'youtube', 'pinterest'];
+      var pfLabels = { all: 'All', instagram: 'IG', facebook: 'FB', tiktok: 'TT', linkedin: 'LI', youtube: 'YT', pinterest: 'PIN' };
+      pfBar.innerHTML = '<span class="yb-social__platform-filter-label">Platform:</span>' +
+        pfs.map(function (p) {
+          var count = platCounts[p] || 0;
+          if (p !== 'all' && count === 0) return '';
+          return '<button class="yb-social__platform-filter-btn' + (state.postsPlatform === p ? ' is-active' : '') + '" data-action="social-filter-platform" data-platform="' + p + '">' + pfLabels[p] + ' (' + count + ')</button>';
+        }).join('');
+    }
+
+    // ── Client-side filtering ──
+    var filtered = all;
+    if (state.postsFilter !== 'all') {
+      filtered = filtered.filter(function (p) { return p.status === state.postsFilter; });
+    }
+    if (state.postsPlatform !== 'all') {
+      filtered = filtered.filter(function (p) {
+        return (p.platforms || []).indexOf(state.postsPlatform) !== -1;
+      });
+    }
+
+    state.posts = filtered;
+
+    if (countEl) countEl.textContent = filtered.length + ' ' + t('social_posts_title').toLowerCase();
+
+    if (filtered.length === 0) {
       grid.innerHTML = '<p class="yb-admin__muted">' + t('social_no_posts') + '</p>';
       return;
     }
 
-    grid.innerHTML = state.posts.map(function (p) {
-      var thumb = p.media && p.media[0]
-        ? '<div class="yb-social__post-thumb"><img src="' + p.media[0] + '" alt="" loading="lazy"></div>'
-        : '<div class="yb-social__post-thumb"><span class="yb-admin__muted" style="font-size:24px">📝</span></div>';
+    grid.innerHTML = filtered.map(function (p) {
+      var isVideo = p.mediaType === 'video' || p.mediaType === 'reels';
+      var isCarousel = p.media && p.media.length > 1;
+      var thumbContent = '';
+      if (p.media && p.media[0]) {
+        var thumbSrc = p.media[0];
+        // For video files, try to get a thumbnail instead of using the video URL as img src
+        var isVideoFile = /\.(mp4|mov|webm|avi)(\?|$)/i.test(thumbSrc);
+        if (isVideoFile) {
+          // Bunny Stream URLs: .../play_720p.mp4 → .../thumbnail.jpg
+          var bsMatch = thumbSrc.match(/^(https:\/\/vz-[^/]+\.b-cdn\.net\/[^/]+)\//);
+          if (bsMatch) {
+            thumbSrc = bsMatch[1] + '/thumbnail.jpg';
+          } else if (p.videoThumbnails && p.videoThumbnails[p.media[0]]) {
+            thumbSrc = p.videoThumbnails[p.media[0]];
+          }
+        }
+        thumbContent = '<img src="' + thumbSrc + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+          '<span class="yb-social__post-thumb-fallback" style="display:none">' +
+          (p.importedPermalink ? '<a href="' + p.importedPermalink + '" target="_blank" style="color:#f75c03;font-size:11px;text-decoration:none">🔗 View on ' + ((p.platforms || [])[0] || 'platform') + '</a>' : '📝') +
+          '</span>';
+        // Add play button for video/reel posts
+        if (isVideo && (p.videoUrl || p.importedPermalink)) {
+          thumbContent += '<button class="yb-social__post-play-btn" data-action="social-play-reel" data-id="' + p.id + '" data-video="' + (p.videoUrl || '') + '" data-permalink="' + (p.importedPermalink || '') + '" title="Play">▶</button>';
+        }
+      } else {
+        thumbContent = '<span class="yb-admin__muted" style="font-size:24px">📝</span>';
+      }
+      var thumb = '<div class="yb-social__post-thumb" style="position:relative">' + thumbContent + '</div>';
+
+      // Type badge: Reel or Carousel
+      var typeBadge = '';
+      if (isVideo) typeBadge = '<span class="yb-social__post-type-badge yb-social__post-type-badge--reel">Reel</span>';
+      else if (isCarousel) typeBadge = '<span class="yb-social__post-type-badge yb-social__post-type-badge--carousel">Carousel</span>';
 
       var schedTime = '';
       if (p.status === 'scheduled' && p.scheduledAt) schedTime = fmtDateTime(p.scheduledAt);
@@ -634,7 +786,8 @@
         '<div class="yb-social__post-meta">' +
         '<div class="yb-social__post-platforms">' + (p.platforms || []).map(platformIcon).join('') + '</div>' +
         statusBadge(p.status) +
-        (p.autoGenerated ? '<span class="yb-social__auto-badge">🤖 ' + t('social_auto_generated') + '</span>' : '') +
+        publishErrorLine(p) +
+        typeBadge +
         '<span>' + schedTime + '</span>' +
         '</div>' +
         '<div class="yb-social__post-actions">' +
@@ -644,9 +797,31 @@
         (p.status === 'pending_review' ? '<button data-action="social-approve-post" data-id="' + p.id + '" class="yb-social__approve-btn">' + t('social_approve') + '</button>' : '') +
         (p.status === 'draft' || p.status === 'approved' || p.status === 'scheduled' ? '<button data-action="social-publish-now" data-id="' + p.id + '">' + t('social_publish_now') + '</button>' : '') +
         (p.status === 'published' ? '<button data-action="social-recycle-post" data-id="' + p.id + '">' + t('social_recycle') + '</button>' : '') +
+        (p.status === 'published' ? '<button data-action="social-recurring-schedule" data-id="' + p.id + '">Recurring</button>' : '') +
+        '<button data-action="social-preview-link" data-id="' + p.id + '">Share</button>' +
         '<button data-action="social-delete-post" data-id="' + p.id + '">' + t('social_delete') + '</button>' +
         '</div></div></div>';
     }).join('');
+  }
+
+  // ── Play reel from post list ─────────────────────────────
+  function playReelFromList(btn) {
+    var videoUrl = btn.getAttribute('data-video');
+    var permalink = btn.getAttribute('data-permalink');
+    if (videoUrl) {
+      var html = '<div class="yb-social__video-play-modal" id="yb-social-video-player">' +
+        '<div class="yb-social__video-play-box">' +
+        '<button class="yb-social__video-play-close" data-action="social-close-video-player">&times;</button>' +
+        '<video src="' + videoUrl + '" controls autoplay style="width:100%;max-height:85vh"></video>' +
+        '</div></div>';
+      document.body.insertAdjacentHTML('beforeend', html);
+      // Close on backdrop click
+      document.getElementById('yb-social-video-player').addEventListener('click', function (e) {
+        if (e.target === this) this.remove();
+      });
+    } else if (permalink) {
+      window.open(permalink, '_blank');
+    }
   }
 
   async function deletePost(id) {
@@ -738,6 +913,193 @@
         method: 'POST', body: JSON.stringify({ id: id, status: 'recycled' })
       });
       toast(t('social_recycled') || 'Recycled — re-posting in ' + days + ' days');
+      loadPosts();
+    }
+  }
+
+  // ── Preview Share Links ──────────────────────────────────
+  async function generatePreviewLink(id) {
+    var data = await api('social-preview', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'generate-link', postId: id })
+    });
+    if (!data || !data.previewUrl) return;
+
+    // Show share modal
+    var html = '<div class="yb-social__modal-overlay" id="yb-social-preview-modal">' +
+      '<div class="yb-social__modal-box">' +
+        '<div class="yb-social__modal-header">' +
+          '<h3>Share Preview Link</h3>' +
+          '<button class="yb-social__btn-sm" data-action="social-close-preview-modal">&times;</button>' +
+        '</div>' +
+        '<div class="yb-social__modal-body">' +
+          '<p style="margin-bottom:12px;font-size:13px;color:#6F6A66">Share this link to preview and approve the post from any device — no login required.</p>' +
+          '<div class="yb-social__preview-link-box">' +
+            '<input type="text" id="yb-social-preview-url" value="' + data.previewUrl + '" readonly class="yb-social__input" style="font-size:12px">' +
+            '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-copy-preview-link">Copy</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  // ── Recurring Post Scheduler ────────────────────────────
+  function openRecurringScheduler(id) {
+    var post = state.posts.find(function (p) { return p.id === id; });
+    if (!post) return;
+
+    var html = '<div class="yb-social__modal-overlay" id="yb-social-recurring-modal">' +
+      '<div class="yb-social__modal-box">' +
+        '<div class="yb-social__modal-header">' +
+          '<h3>Recurring Schedule</h3>' +
+          '<button class="yb-social__btn-sm" data-action="social-close-recurring-modal">&times;</button>' +
+        '</div>' +
+        '<div class="yb-social__modal-body">' +
+          '<p style="margin-bottom:12px;font-size:13px;color:#6F6A66">' +
+            'Set this post to automatically re-publish on a recurring schedule.' +
+          '</p>' +
+          '<div class="yb-social__recurring-caption" style="margin-bottom:16px;padding:10px;background:#f5f3f0;border-radius:8px;font-size:13px">' +
+            '"' + ((post.caption || '').substring(0, 80)) + (post.caption && post.caption.length > 80 ? '...' : '') + '"' +
+          '</div>' +
+          // Pattern type
+          '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Frequency</label>' +
+          '<select id="yb-recurring-pattern" class="yb-social__input" style="margin-bottom:12px">' +
+            '<option value="weekly">Weekly</option>' +
+            '<option value="biweekly">Every 2 weeks</option>' +
+            '<option value="monthly">Monthly</option>' +
+            '<option value="custom">Custom interval (days)</option>' +
+          '</select>' +
+          // Custom interval
+          '<div id="yb-recurring-custom-row" style="display:none;margin-bottom:12px">' +
+            '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px">Repeat every (days)</label>' +
+            '<input type="number" id="yb-recurring-custom-days" class="yb-social__input" value="14" min="1" max="365">' +
+          '</div>' +
+          // Day of week (for weekly/biweekly)
+          '<div id="yb-recurring-day-row" style="margin-bottom:12px">' +
+            '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Day</label>' +
+            '<div class="yb-social__recurring-days">' +
+              ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(function (d, i) {
+                return '<button class="yb-social__recurring-day-btn" data-action="social-recurring-toggle-day" data-day="' + (i + 1) + '">' + d + '</button>';
+              }).join('') +
+            '</div>' +
+          '</div>' +
+          // Time
+          '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px">Time</label>' +
+          '<input type="time" id="yb-recurring-time" class="yb-social__input" value="09:00" style="margin-bottom:12px">' +
+          // Max occurrences
+          '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px">Max occurrences (0 = unlimited)</label>' +
+          '<input type="number" id="yb-recurring-max" class="yb-social__input" value="0" min="0" max="52" style="margin-bottom:12px">' +
+        '</div>' +
+        '<div class="yb-social__modal-footer">' +
+          '<button class="yb-social__btn-sm" data-action="social-close-recurring-modal">Cancel</button>' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-save-recurring" data-id="' + id + '">Start Recurring</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    // Pattern change handler
+    var patternEl = document.getElementById('yb-recurring-pattern');
+    if (patternEl) {
+      patternEl.addEventListener('change', function () {
+        var isCustom = patternEl.value === 'custom';
+        var isMonthly = patternEl.value === 'monthly';
+        document.getElementById('yb-recurring-custom-row').style.display = isCustom ? '' : 'none';
+        document.getElementById('yb-recurring-day-row').style.display = isMonthly || isCustom ? 'none' : '';
+      });
+    }
+  }
+
+  async function saveRecurringSchedule(id) {
+    var post = state.posts.find(function (p) { return p.id === id; });
+    if (!post) return;
+
+    var pattern = ($('yb-recurring-pattern') || {}).value || 'weekly';
+    var time = ($('yb-recurring-time') || {}).value || '09:00';
+    var maxOccurrences = parseInt(($('yb-recurring-max') || {}).value) || 0;
+
+    // Get selected days
+    var selectedDays = [];
+    qsa('.yb-social__recurring-day-btn.is-active').forEach(function (btn) {
+      selectedDays.push(parseInt(btn.getAttribute('data-day')));
+    });
+
+    // Calculate interval days
+    var intervalDays;
+    if (pattern === 'weekly') intervalDays = 7;
+    else if (pattern === 'biweekly') intervalDays = 14;
+    else if (pattern === 'monthly') intervalDays = 30;
+    else intervalDays = parseInt(($('yb-recurring-custom-days') || {}).value) || 14;
+
+    if (!selectedDays.length && (pattern === 'weekly' || pattern === 'biweekly')) {
+      // Default to same day as today
+      selectedDays = [new Date().getDay() || 7]; // 1=Mon...7=Sun
+    }
+
+    // Calculate first scheduled date
+    var timeParts = time.split(':');
+    var nextDate = new Date();
+    nextDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+
+    // Find next matching day
+    if (selectedDays.length && (pattern === 'weekly' || pattern === 'biweekly')) {
+      var today = nextDate.getDay() || 7;
+      var daysUntil = Infinity;
+      selectedDays.forEach(function (d) {
+        var diff = d - today;
+        if (diff <= 0) diff += 7;
+        if (diff < daysUntil) daysUntil = diff;
+      });
+      nextDate.setDate(nextDate.getDate() + daysUntil);
+    } else {
+      nextDate.setDate(nextDate.getDate() + intervalDays);
+    }
+
+    var recycleConfig = {
+      intervalDays: intervalDays,
+      originalPostId: id,
+      active: true,
+      pattern: pattern,
+      days: selectedDays,
+      time: time,
+      maxOccurrences: maxOccurrences,
+      recycleCount: 0
+    };
+
+    // Create first scheduled copy
+    var newPost = {
+      caption: post.caption,
+      platforms: post.platforms,
+      media: post.media,
+      hashtags: post.hashtags,
+      hashtagSet: post.hashtagSet,
+      firstComment: post.firstComment,
+      location: post.location,
+      altTexts: post.altTexts,
+      mediaType: post.mediaType || 'auto',
+      platformCaptions: post.platformCaptions || {},
+      contentPillar: post.contentPillar || null,
+      status: 'scheduled',
+      scheduledAt: nextDate.toISOString(),
+      recycledFrom: id,
+      recycleConfig: recycleConfig
+    };
+
+    var data = await api('social-posts', {
+      method: 'POST',
+      body: JSON.stringify(Object.assign({ action: 'create' }, newPost))
+    });
+
+    if (data) {
+      // Mark original as recycled
+      await api('social-posts', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'update', id: id, status: 'recycled', recycleConfig: recycleConfig })
+      });
+      toast('Recurring schedule set — first post on ' + nextDate.toLocaleDateString());
+      var modal = document.getElementById('yb-social-recurring-modal');
+      if (modal) modal.remove();
       loadPosts();
     }
   }
@@ -975,30 +1337,70 @@
         '</div>';
     }
 
-    // Hour heatmap — show every 2 hours to save space
-    html += '<div class="yb-social__heatmap">';
-    html += '<div class="yb-social__heatmap-label">By Hour</div>';
-    html += '<div class="yb-social__heatmap-row">';
+    // Full 7×24 engagement heatmap grid
+    var dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    // Build combined data from byHour and byDay
+    // The API gives us byHour (24) and byDay (7) separately
+    // We'll show both as a combined visual: hours across top, days down left
+    // Use the product of normalized values as intensity
     var maxHourEng = Math.max.apply(null, data.byHour.map(function (h) { return h.avgEngagement; })) || 1;
-    data.byHour.forEach(function (h) {
-      var intensity = maxHourEng > 0 ? Math.round((h.avgEngagement / maxHourEng) * 100) : 0;
-      var opacity = Math.max(0.08, intensity / 100);
-      html += '<div class="yb-social__heatmap-cell" title="' + h.label + '\nAvg engagement: ' + h.avgEngagement + '\nPosts: ' + h.posts + '" style="background:rgba(247,92,3,' + opacity + ')">' +
-        '<span>' + h.hour + '</span></div>';
-    });
+    var maxDayEng = Math.max.apply(null, data.byDay.map(function (d) { return d.avgEngagement; })) || 1;
+
+    html += '<div class="yb-social__heatmap-grid">';
+
+    // Header row — hours (show every 2 hours)
+    html += '<div class="yb-social__heatmap-grid-row">';
+    html += '<div class="yb-social__heatmap-grid-label"></div>';
+    for (var h = 0; h < 24; h++) {
+      if (h % 2 === 0) {
+        html += '<div class="yb-social__heatmap-grid-header">' + (h < 10 ? '0' : '') + h + '</div>';
+      }
+    }
     html += '</div>';
 
-    // Day heatmap
-    html += '<div class="yb-social__heatmap-label" style="margin-top:12px">By Day</div>';
-    html += '<div class="yb-social__heatmap-row yb-social__heatmap-row--days">';
-    var maxDayEng = Math.max.apply(null, data.byDay.map(function (d) { return d.avgEngagement; })) || 1;
-    data.byDay.forEach(function (d) {
-      var intensity = maxDayEng > 0 ? Math.round((d.avgEngagement / maxDayEng) * 100) : 0;
-      var opacity = Math.max(0.08, intensity / 100);
-      html += '<div class="yb-social__heatmap-cell yb-social__heatmap-cell--day" title="' + d.label + '\nAvg engagement: ' + d.avgEngagement + '\nPosts: ' + d.posts + '" style="background:rgba(247,92,3,' + opacity + ')">' +
-        '<span>' + d.label.substring(0, 3) + '</span></div>';
-    });
-    html += '</div></div>';
+    // Day rows
+    for (var d = 0; d < 7; d++) {
+      html += '<div class="yb-social__heatmap-grid-row">';
+      html += '<div class="yb-social__heatmap-grid-label">' + dayNames[d] + '</div>';
+
+      var dayScore = data.byDay[d] ? data.byDay[d].avgEngagement / maxDayEng : 0;
+
+      for (var hh = 0; hh < 24; hh++) {
+        if (hh % 2 !== 0) continue; // Show every 2 hours to keep cells readable
+
+        var hourScore = data.byHour[hh] ? data.byHour[hh].avgEngagement / maxHourEng : 0;
+        // Next hour too
+        var hourScore2 = data.byHour[hh + 1] ? data.byHour[hh + 1].avgEngagement / maxHourEng : 0;
+        var avgHourScore = (hourScore + hourScore2) / 2;
+
+        // Combined intensity: product of day and hour scores
+        var intensity = dayScore * avgHourScore;
+        // Also add base from each dimension so cells aren't all zero when one dimension is sparse
+        var adjustedIntensity = intensity * 0.6 + dayScore * 0.2 + avgHourScore * 0.2;
+        var opacity = Math.max(0.05, Math.min(1, adjustedIntensity));
+
+        var hourEng = data.byHour[hh] ? data.byHour[hh].avgEngagement : 0;
+        var dayEng = data.byDay[d] ? data.byDay[d].avgEngagement : 0;
+
+        // Color: low = light cream, medium = light orange, high = brand orange
+        var r, g, b;
+        if (adjustedIntensity > 0.6) { r = 247; g = 92; b = 3; }
+        else if (adjustedIntensity > 0.3) { r = 255; g = 153; b = 102; }
+        else { r = 247; g = 92; b = 3; }
+
+        html += '<div class="yb-social__heatmap-grid-cell" title="' + dayNames[d] + ' ' + (hh < 10 ? '0' : '') + hh + ':00\nDay avg: ' + dayEng + '\nHour avg: ' + hourEng + '" style="background:rgba(' + r + ',' + g + ',' + b + ',' + opacity.toFixed(2) + ')"></div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // Legend
+    html += '<div class="yb-social__heatmap-legend">' +
+      '<span class="yb-social__heatmap-legend-label">Low</span>' +
+      '<div class="yb-social__heatmap-legend-bar"></div>' +
+      '<span class="yb-social__heatmap-legend-label">High</span>' +
+      '</div>';
 
     container.innerHTML = html;
   }
@@ -1358,31 +1760,58 @@
   /* ═══ INBOX ═══ */
   var inboxState = {
     tab: 'comments',
+    platformFilter: 'all',
     comments: [],
     conversations: [],
     activeThread: null,
-    pollTimer: null
+    openThreads: [],
+    pollTimer: null,
+    sentimentFilter: '',
+    sentimentAnalyzed: false
   };
 
   async function loadInbox() {
-    var results = await Promise.all([
-      api('social-inbox?action=comments&days=7'),
-      api('social-inbox?action=conversations')
-    ]);
+    var commentsData = null;
+    var messagesData = null;
 
-    var commentsData = results[0];
-    var messagesData = results[1];
+    try {
+      var results = await Promise.all([
+        api('social-inbox?action=comments&days=30'),
+        api('social-inbox?action=conversations')
+      ]);
+      commentsData = results[0];
+      messagesData = results[1];
+    } catch (err) {
+      console.error('[loadInbox] API error:', err);
+      toast('Inbox failed to load — ' + (err.message || 'network error'), true);
+    }
 
     if (commentsData) {
       inboxState.comments = commentsData.comments || [];
       var countEl = $('yb-social-inbox-comments-count');
       if (countEl) countEl.textContent = commentsData.unread ? '(' + commentsData.unread + ')' : '';
+
+      if (inboxState.comments.length === 0 && commentsData._debug) {
+        var d = commentsData._debug;
+        console.log('[inbox debug]', 'accounts:', d.accounts, 'posts scanned:', d.postsScanned, 'since:', d.since, 'errors:', d.errors);
+        if (d.errors && d.errors.length > 0) {
+          toast('Inbox: ' + d.errors.length + ' API error(s) — check console', true);
+        }
+      }
     }
 
     if (messagesData) {
       inboxState.conversations = messagesData.conversations || [];
-      var countEl = $('yb-social-inbox-messages-count');
-      if (countEl) countEl.textContent = messagesData.unread ? '(' + messagesData.unread + ')' : '';
+      var msgCountEl = $('yb-social-inbox-messages-count');
+      if (msgCountEl) msgCountEl.textContent = messagesData.unread ? '(' + messagesData.unread + ')' : '';
+
+      if (inboxState.conversations.length === 0 && messagesData._debug) {
+        var md = messagesData._debug;
+        console.log('[inbox messages debug]', 'accounts:', md.accounts, 'errors:', md.errors);
+        if (md.errors && md.errors.length > 0) {
+          toast('Messages: ' + md.errors.length + ' API error(s) — check console', true);
+        }
+      }
     }
 
     // Update badge
@@ -1393,16 +1822,50 @@
       badge.hidden = totalUnread === 0;
     }
 
+    // Always render even if API failed — shows "No comments yet" instead of "Loading..."
     renderInbox();
     startInboxPolling();
   }
 
   function renderInbox() {
+    renderInboxPlatformFilter();
     if (inboxState.tab === 'comments') {
       renderComments();
     } else {
       renderConversations();
     }
+  }
+
+  function renderInboxPlatformFilter() {
+    var pfBar = $('yb-social-inbox-platform-filter');
+    if (!pfBar) return;
+
+    // Count by platform
+    var items = inboxState.tab === 'comments' ? inboxState.comments :
+      inboxState.tab === 'messages' ? inboxState.conversations : [];
+    var platCounts = { all: items.length };
+    items.forEach(function (item) {
+      var p = item.platform;
+      platCounts[p] = (platCounts[p] || 0) + 1;
+    });
+
+    // Always show all connected platforms (from state.accounts), not just those with data
+    var pfs = ['all'];
+    var connectedPlatforms = state.accounts ? Object.keys(state.accounts) : [];
+    ['instagram', 'facebook', 'tiktok', 'linkedin'].forEach(function (p) {
+      if (connectedPlatforms.indexOf(p) !== -1) pfs.push(p);
+    });
+    // Fallback: if no accounts loaded yet, show IG + FB
+    if (pfs.length === 1) { pfs.push('instagram'); pfs.push('facebook'); }
+
+    var pfLabels = { all: 'All', instagram: 'IG', facebook: 'FB', tiktok: 'TT', linkedin: 'LI' };
+    pfBar.innerHTML = '<span class="yb-social__platform-filter-label">Platform:</span>' +
+      pfs.map(function (p) {
+        var count = platCounts[p] || 0;
+        return '<button class="yb-social__platform-filter-btn' + (inboxState.platformFilter === p ? ' is-active' : '') +
+          '" data-action="social-inbox-platform-filter" data-platform="' + p + '">' +
+          pfLabels[p] + ' (' + count + ')</button>';
+      }).join('');
   }
 
   function renderComments() {
@@ -1414,31 +1877,79 @@
       return;
     }
 
-    container.innerHTML = inboxState.comments.map(function (c) {
-      return '<div class="yb-social__inbox-item' + (c.read ? '' : ' yb-social__inbox-item--unread') + '" data-action="social-inbox-open-comment" data-id="' + c.commentId + '" data-platform="' + c.platform + '" data-inbox-id="' + c.id + '">' +
+    // Render sentiment filter bar
+    var filterHtml = '<div class="yb-social__inbox-sentiment-bar">' +
+      '<button class="yb-social__filter-btn yb-btn--sm' + (!inboxState.sentimentFilter ? ' is-active' : '') + '" data-action="social-inbox-sentiment-filter" data-filter="">All</button>' +
+      '<button class="yb-social__filter-btn yb-btn--sm' + (inboxState.sentimentFilter === 'negative' ? ' is-active' : '') + '" data-action="social-inbox-sentiment-filter" data-filter="negative">😡 Negative</button>' +
+      '<button class="yb-social__filter-btn yb-btn--sm' + (inboxState.sentimentFilter === 'question' ? ' is-active' : '') + '" data-action="social-inbox-sentiment-filter" data-filter="question">❓ Questions</button>' +
+      '<button class="yb-social__filter-btn yb-btn--sm' + (inboxState.sentimentFilter === 'purchase_intent' ? ' is-active' : '') + '" data-action="social-inbox-sentiment-filter" data-filter="purchase_intent">💰 Purchase Intent</button>' +
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-inbox-analyze-sentiment" style="margin-left:auto">🤖 Analyze All</button>' +
+      '</div>';
+
+    var filtered = inboxState.comments;
+    if (inboxState.platformFilter !== 'all') {
+      filtered = filtered.filter(function (c) { return c.platform === inboxState.platformFilter; });
+    }
+    if (inboxState.sentimentFilter) {
+      filtered = filtered.filter(function (c) {
+        if (!c._sentiment) return false;
+        if (inboxState.sentimentFilter === 'purchase_intent') return c._sentiment.intent === 'purchase_intent';
+        return c._sentiment.sentiment === inboxState.sentimentFilter;
+      });
+    }
+
+    var itemsHtml = filtered.map(function (c) {
+      var sentimentBadge = '';
+      if (c._sentiment) {
+        var s = c._sentiment;
+        var icons = { positive: '😊', negative: '😡', neutral: '😐', question: '❓' };
+        var intentIcons = { purchase_intent: '💰', complaint: '🚨', spam: '🚫', support_request: '🛟' };
+        sentimentBadge = '<span class="yb-social__sentiment-badge yb-social__sentiment-badge--' + s.sentiment + '">' +
+          (icons[s.sentiment] || '') + '</span>';
+        if (intentIcons[s.intent]) {
+          sentimentBadge += '<span class="yb-social__sentiment-badge yb-social__sentiment-badge--intent">' + intentIcons[s.intent] + '</span>';
+        }
+        if (s.urgency === 'high') {
+          sentimentBadge += '<span class="yb-social__sentiment-badge yb-social__sentiment-badge--urgent">⚡</span>';
+        }
+      }
+
+      return '<div class="yb-social__inbox-item' + (c.read ? '' : ' yb-social__inbox-item--unread') +
+        (c._sentiment && c._sentiment.urgency === 'high' ? ' yb-social__inbox-item--urgent' : '') +
+        '" data-action="social-inbox-open-comment" data-id="' + c.commentId + '" data-platform="' + c.platform + '" data-inbox-id="' + c.id + '">' +
         '<div class="yb-social__inbox-item-head">' +
           platformIcon(c.platform) +
+          (c.isAd ? '<span class="yb-social__post-type-badge yb-social__post-type-badge--ad" title="Ad comment">Ad</span>' : '') +
           '<span class="yb-social__inbox-item-author">' + (c.author || 'Unknown') + '</span>' +
+          sentimentBadge +
           '<span class="yb-social__inbox-item-time">' + formatTimeAgo(c.timestamp) + '</span>' +
           (!c.read ? '<span class="yb-social__inbox-unread-dot"></span>' : '') +
         '</div>' +
         '<p class="yb-social__inbox-item-text">' + escapeHtml(c.text || '') + '</p>' +
+        (c._sentiment && c._sentiment.summary ? '<p class="yb-social__inbox-item-ai-summary">' + escapeHtml(c._sentiment.summary) + '</p>' : '') +
         '<p class="yb-social__inbox-item-context">On: ' + escapeHtml(c.postCaption || '') + '</p>' +
         (c.replies && c.replies.length > 0 ? '<span class="yb-social__inbox-item-replies">' + c.replies.length + ' ' + (c.replies.length === 1 ? 'reply' : 'replies') + '</span>' : '') +
       '</div>';
     }).join('');
+
+    container.innerHTML = filterHtml + itemsHtml;
   }
 
   function renderConversations() {
     var container = $('yb-social-inbox-messages');
     if (!container) return;
 
-    if (inboxState.conversations.length === 0) {
+    var filtered = inboxState.conversations;
+    if (inboxState.platformFilter !== 'all') {
+      filtered = filtered.filter(function (c) { return c.platform === inboxState.platformFilter; });
+    }
+
+    if (filtered.length === 0) {
       container.innerHTML = '<div class="yb-social__inbox-empty"><p>' + t('social_no_messages') + '</p></div>';
       return;
     }
 
-    container.innerHTML = inboxState.conversations.map(function (c) {
+    container.innerHTML = filtered.map(function (c) {
       return '<div class="yb-social__inbox-item' + (c.read ? '' : ' yb-social__inbox-item--unread') + '" data-action="social-inbox-open-conversation" data-id="' + c.conversationId + '" data-platform="' + c.platform + '" data-inbox-id="' + c.id + '">' +
         '<div class="yb-social__inbox-item-head">' +
           platformIcon(c.platform) +
@@ -1455,19 +1966,105 @@
     }).join('');
   }
 
+  // ── Multi-Thread Panel Helpers ─────────────────────────────
+  function getThreadPanelId(type, id) { return 'thread-' + type + '-' + id; }
+
+  function createThreadPanel(panelId, titleText, meta) {
+    var container = $('yb-social-inbox-threads-container');
+    if (!container) return null;
+
+    meta = meta || {};
+
+    // If panel already open, focus it
+    var existing = document.getElementById(panelId);
+    if (existing) {
+      existing.querySelector('.yb-social__inbox-thread-body').scrollTop = existing.querySelector('.yb-social__inbox-thread-body').scrollHeight;
+      return existing;
+    }
+
+    // Platform badge
+    var platBadge = '';
+    if (meta.platform) {
+      var platLabels = { instagram: 'IG', facebook: 'FB', tiktok: 'TT', linkedin: 'LI' };
+      platBadge = '<span class="yb-social__inbox-thread-platform yb-social__inbox-thread-platform--' + meta.platform + '">' +
+        (platLabels[meta.platform] || meta.platform) + '</span>';
+    }
+
+    // Time
+    var timeHtml = meta.time ? '<span class="yb-social__inbox-thread-time">' + meta.time + '</span>' : '';
+
+    var panel = document.createElement('div');
+    panel.className = 'yb-social__inbox-thread';
+    panel.id = panelId;
+    panel.innerHTML =
+      '<div class="yb-social__inbox-thread-header">' +
+        platBadge +
+        '<h4 class="yb-social__inbox-thread-title">' + escapeHtml(titleText) + '</h4>' +
+        timeHtml +
+        '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__create-lead-btn" data-action="social-inbox-create-lead" data-panel-id="' + panelId + '" title="Create Lead">👤</button>' +
+        '<button type="button" data-action="social-inbox-close-thread" data-panel-id="' + panelId + '">&times;</button>' +
+      '</div>' +
+      '<div class="yb-social__inbox-thread-body"></div>' +
+      '<div class="yb-social__inbox-reply-box">' +
+        '<div class="yb-social__inbox-ai-suggestions" hidden></div>' +
+        '<div class="yb-social__saved-replies-dropdown" hidden></div>' +
+        '<textarea class="yb-social__inbox-reply-input" rows="2" placeholder="Type your reply..."></textarea>' +
+        '<div class="yb-social__inbox-reply-actions">' +
+          '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-saved-replies-toggle" data-panel-id="' + panelId + '">&#128172;</button>' +
+          '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-auto-reply-suggest" data-panel-id="' + panelId + '">&#9889; Quick AI</button>' +
+          '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-social__ai-reply-btn" data-action="social-ai-draft-reply" data-panel-id="' + panelId + '">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> AI Reply</button>' +
+          '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-save-reply-template" data-panel-id="' + panelId + '">&#9734;</button>' +
+          '<button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-inbox-send-reply" data-panel-id="' + panelId + '">Send</button>' +
+        '</div>' +
+      '</div>';
+
+    container.appendChild(panel);
+    return panel;
+  }
+
+  function getActiveThreadForPanel(panelId) {
+    return inboxState.openThreads.find(function (t) { return t.panelId === panelId; });
+  }
+
+  function getActiveThread() {
+    return inboxState.activeThread;
+  }
+
+  function setActiveThread(panelId) {
+    inboxState.activeThread = getActiveThreadForPanel(panelId) || null;
+  }
+
+  function getReplyElForPanel(panelId) {
+    var panel = document.getElementById(panelId);
+    return panel ? panel.querySelector('.yb-social__inbox-reply-input') : null;
+  }
+
+  function getSuggestionsElForPanel(panelId) {
+    var panel = document.getElementById(panelId);
+    return panel ? panel.querySelector('.yb-social__inbox-ai-suggestions') : null;
+  }
+
   async function openCommentThread(commentId, platform, inboxId) {
-    var thread = $('yb-social-inbox-thread');
-    var body = $('yb-social-inbox-thread-body');
-    var title = $('yb-social-inbox-thread-title');
-    if (!thread || !body) return;
+    var panelId = getThreadPanelId('comment', commentId);
 
     // Find the comment in state
     var comment = inboxState.comments.find(function (c) { return c.commentId === commentId; });
+    var titleText = comment ? comment.author : 'Comment';
 
-    thread.hidden = false;
-    inboxState.activeThread = { type: 'comment', id: commentId, platform: platform, inboxId: inboxId };
+    var panel = createThreadPanel(panelId, titleText, {
+      platform: platform,
+      time: comment ? formatTimeAgo(comment.timestamp) : ''
+    });
+    if (!panel) return;
+    var body = panel.querySelector('.yb-social__inbox-thread-body');
 
-    if (title) title.textContent = (comment ? comment.author : 'Comment') + ' — ' + platform;
+    var threadData = { type: 'comment', id: commentId, platform: platform, inboxId: inboxId, panelId: panelId };
+    // Add to openThreads if not already there
+    if (!inboxState.openThreads.find(function (t) { return t.panelId === panelId; })) {
+      inboxState.openThreads.push(threadData);
+    }
+    inboxState.activeThread = threadData;
 
     // Show the original comment + replies
     var html = '';
@@ -1477,7 +2074,6 @@
         '<p>' + escapeHtml(comment.text) + '</p>' +
       '</div>';
 
-      // Show existing replies
       (comment.replies || []).forEach(function (r) {
         var isOwn = r.username === 'yogabible' || (r.from && r.from.name === 'Yoga Bible');
         html += '<div class="yb-social__inbox-msg' + (isOwn ? ' yb-social__inbox-msg--own' : ' yb-social__inbox-msg--them') + '">' +
@@ -1488,8 +2084,6 @@
     }
 
     body.innerHTML = html || '<p class="yb-admin__muted">Loading thread...</p>';
-
-    // Mark as read
     markInboxRead([inboxId]);
 
     // Fetch full thread from API
@@ -1503,7 +2097,6 @@
           '<p>' + escapeHtml(r.text || r.message || '') + '</p>' +
         '</div>';
       });
-      // Replace replies section (keep original comment)
       if (comment) {
         body.innerHTML = '<div class="yb-social__inbox-msg yb-social__inbox-msg--them">' +
           '<div class="yb-social__inbox-msg-head"><strong>' + escapeHtml(comment.author) + '</strong> <span>' + formatTimeAgo(comment.timestamp) + '</span></div>' +
@@ -1514,24 +2107,30 @@
   }
 
   async function openConversationThread(conversationId, platform, inboxId) {
-    var thread = $('yb-social-inbox-thread');
-    var body = $('yb-social-inbox-thread-body');
-    var title = $('yb-social-inbox-thread-title');
-    if (!thread || !body) return;
+    var panelId = getThreadPanelId('conversation', conversationId);
 
     var conv = inboxState.conversations.find(function (c) { return c.conversationId === conversationId; });
+    var titleText = conv ? conv.participants.join(', ') : 'Conversation';
 
-    thread.hidden = false;
-    inboxState.activeThread = { type: 'conversation', id: conversationId, platform: platform, inboxId: inboxId };
+    var panel = createThreadPanel(panelId, titleText, {
+      platform: platform,
+      time: conv && conv.lastMessageAt ? formatTimeAgo(conv.lastMessageAt) : ''
+    });
+    if (!panel) return;
+    var body = panel.querySelector('.yb-social__inbox-thread-body');
 
-    if (title) title.textContent = (conv ? conv.participants.join(', ') : 'Conversation') + ' — ' + platform;
+    var threadData = { type: 'conversation', id: conversationId, platform: platform, inboxId: inboxId, panelId: panelId };
+    if (!inboxState.openThreads.find(function (t) { return t.panelId === panelId; })) {
+      inboxState.openThreads.push(threadData);
+    }
+    inboxState.activeThread = threadData;
+
     body.innerHTML = '<p class="yb-admin__muted">Loading messages...</p>';
-
     markInboxRead([inboxId]);
 
     var data = await api('social-inbox?action=thread&id=' + conversationId + '&platform=' + platform + '&type=conversation');
     if (data && data.thread) {
-      var msgs = data.thread.reverse(); // oldest first
+      var msgs = data.thread.reverse();
       body.innerHTML = msgs.map(function (m) {
         var isOwn = (m.from && (m.from.name === 'Yoga Bible' || m.from.id === '878172732056415'));
         return '<div class="yb-social__inbox-msg' + (isOwn ? ' yb-social__inbox-msg--own' : ' yb-social__inbox-msg--them') + '">' +
@@ -1539,30 +2138,43 @@
           '<p>' + escapeHtml(m.message || '') + '</p>' +
         '</div>';
       }).join('') || '<p class="yb-admin__muted">No messages</p>';
-
-      // Scroll to bottom
       body.scrollTop = body.scrollHeight;
     }
   }
 
-  function closeThread() {
-    var thread = $('yb-social-inbox-thread');
-    if (thread) thread.hidden = true;
-    inboxState.activeThread = null;
+  function closeThread(panelId) {
+    if (!panelId) {
+      // Legacy fallback — close all
+      var container = $('yb-social-inbox-threads-container');
+      if (container) container.innerHTML = '';
+      inboxState.openThreads = [];
+      inboxState.activeThread = null;
+      return;
+    }
+    var panel = document.getElementById(panelId);
+    if (panel) panel.remove();
+    inboxState.openThreads = inboxState.openThreads.filter(function (t) { return t.panelId !== panelId; });
+    if (inboxState.activeThread && inboxState.activeThread.panelId === panelId) {
+      inboxState.activeThread = inboxState.openThreads.length > 0 ? inboxState.openThreads[inboxState.openThreads.length - 1] : null;
+    }
   }
 
-  async function sendReply() {
-    var replyEl = $('yb-social-inbox-reply');
-    if (!replyEl || !replyEl.value.trim() || !inboxState.activeThread) return;
+  async function sendReply(panelId) {
+    // Find thread data for this panel
+    var threadInfo = panelId ? getActiveThreadForPanel(panelId) : inboxState.activeThread;
+    if (!threadInfo) return;
+    var pid = threadInfo.panelId || panelId;
+
+    var replyEl = getReplyElForPanel(pid);
+    if (!replyEl || !replyEl.value.trim()) return;
 
     var text = replyEl.value.trim();
-    var thread = inboxState.activeThread;
     var body = {};
 
-    if (thread.type === 'comment') {
-      body = { action: 'reply-comment', commentId: thread.id, text: text, platform: thread.platform };
+    if (threadInfo.type === 'comment') {
+      body = { action: 'reply-comment', commentId: threadInfo.id, text: text, platform: threadInfo.platform };
     } else {
-      body = { action: 'reply-message', conversationId: thread.id, text: text, platform: thread.platform };
+      body = { action: 'reply-message', conversationId: threadInfo.id, text: text, platform: threadInfo.platform };
     }
 
     toast('Sending...');
@@ -1572,8 +2184,8 @@
       replyEl.value = '';
       toast('Reply sent');
 
-      // Add reply to thread UI
-      var threadBody = $('yb-social-inbox-thread-body');
+      var panel = document.getElementById(pid);
+      var threadBody = panel ? panel.querySelector('.yb-social__inbox-thread-body') : null;
       if (threadBody) {
         var msgHtml = '<div class="yb-social__inbox-msg yb-social__inbox-msg--own">' +
           '<div class="yb-social__inbox-msg-head"><strong>Yoga Bible</strong> <span>Just now</span></div>' +
@@ -1630,11 +2242,11 @@
   }
 
   // ── AI Draft Reply ──────────────────────────────────────────
-  async function aiDraftReply() {
-    if (!inboxState.activeThread) { toast('Open a thread first', true); return; }
-    var thread = inboxState.activeThread;
+  async function aiDraftReply(panelId) {
+    var thread = panelId ? getActiveThreadForPanel(panelId) : inboxState.activeThread;
+    if (!thread) { toast('Open a thread first', true); return; }
+    var pid = thread.panelId || panelId;
 
-    // Find the original comment/message text
     var commentText = '';
     var contextText = '';
     if (thread.type === 'comment') {
@@ -1647,7 +2259,7 @@
 
     if (!commentText) { toast('No message to reply to', true); return; }
 
-    var sugEl = $('yb-social-ai-reply-suggestions');
+    var sugEl = getSuggestionsElForPanel(pid);
     if (sugEl) { sugEl.hidden = false; sugEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_generating') + '</p>'; }
 
     var data = await api('social-ai', {
@@ -1665,8 +2277,8 @@
       return;
     }
 
-    // Store globally for use
     state.aiReplyOptions = data.replies;
+    state.aiReplyPanelId = pid;
 
     if (sugEl) {
       sugEl.innerHTML = '<div class="yb-social__ai-reply-label">' + t('social_ai_suggestions') + '</div>' +
@@ -1675,18 +2287,19 @@
             '<p>' + escapeHtml(r.text) + '</p>' +
             '<div class="yb-social__ai-reply-opt-meta">' +
             '<span class="yb-social__ai-reply-style">' + r.style + '</span>' +
-            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-use-reply" data-index="' + i + '">' + t('social_ai_use') + '</button>' +
+            '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-use-reply" data-index="' + i + '" data-panel-id="' + pid + '">' + t('social_ai_use') + '</button>' +
             '</div></div>';
         }).join('') +
         (data.sentiment ? '<p class="yb-admin__muted" style="margin-top:8px">Sentiment: ' + data.sentiment + (data.suggestPrivate ? ' — suggest moving to DM' : '') + '</p>' : '');
     }
   }
 
-  function useAiReply(index) {
+  function useAiReply(index, panelId) {
     if (!state.aiReplyOptions || !state.aiReplyOptions[index]) return;
-    var replyEl = $('yb-social-inbox-reply');
+    var pid = panelId || state.aiReplyPanelId;
+    var replyEl = pid ? getReplyElForPanel(pid) : null;
     if (replyEl) replyEl.value = state.aiReplyOptions[index].text;
-    var sugEl = $('yb-social-ai-reply-suggestions');
+    var sugEl = pid ? getSuggestionsElForPanel(pid) : null;
     if (sugEl) sugEl.hidden = true;
   }
 
@@ -1696,30 +2309,102 @@
     var thread = inboxState.activeThread;
     var name = '';
     var source = thread.platform + '_' + thread.type;
+    var messageText = '';
 
     if (thread.type === 'comment') {
       var c = inboxState.comments.find(function (x) { return x.commentId === thread.id; });
-      if (c) name = c.author || '';
+      if (c) { name = c.author || ''; messageText = c.text || ''; }
     } else {
       var conv = inboxState.conversations.find(function (x) { return x.conversationId === thread.id; });
       if (conv && conv.participants) name = conv.participants[0] || '';
+      if (conv) messageText = conv.lastMessage || '';
     }
 
-    var nameInput = prompt(t('social_create_lead_name') || 'Lead name:', name);
-    if (!nameInput) return;
+    // Auto-detect YTT interest from message content
+    var detectedInterest = detectYTTInterest(messageText);
 
-    var emailInput = prompt(t('social_create_lead_email') || 'Email (optional):', '');
+    // Build and show lead creation modal
+    var existing = document.getElementById('yb-social-lead-modal');
+    if (existing) existing.remove();
+
+    var html = '<div class="yb-social__connect-modal" id="yb-social-lead-modal">' +
+      '<div class="yb-social__connect-overlay" data-action="social-lead-modal-close"></div>' +
+      '<div class="yb-social__connect-box">' +
+      '<h3>👤 ' + (t('social_create_lead') || 'Create Lead') + '</h3>' +
+      '<p style="color:var(--yb-muted);font-size:.85rem;margin-bottom:1rem;">' +
+        'From ' + thread.platform + ' ' + thread.type +
+        (detectedInterest ? ' · Detected interest: <strong style="color:var(--yb-brand)">' + detectedInterest + '</strong>' : '') +
+      '</p>' +
+      '<div class="yb-admin__field">' +
+        '<label for="yb-social-lead-name">' + (t('social_create_lead_name') || 'Name') + '</label>' +
+        '<input type="text" id="yb-social-lead-name" value="' + (name || '').replace(/"/g, '&quot;') + '">' +
+      '</div>' +
+      '<div class="yb-admin__field">' +
+        '<label for="yb-social-lead-email">' + (t('social_create_lead_email') || 'Email') + '</label>' +
+        '<input type="email" id="yb-social-lead-email" placeholder="email@example.com">' +
+      '</div>' +
+      '<div class="yb-admin__field">' +
+        '<label for="yb-social-lead-phone">' + (t('social_lead_phone') || 'Phone') + '</label>' +
+        '<input type="tel" id="yb-social-lead-phone" placeholder="+45...">' +
+      '</div>' +
+      '<div class="yb-admin__field">' +
+        '<label for="yb-social-lead-program">' + (t('social_lead_program') || 'Program interest') + '</label>' +
+        '<select id="yb-social-lead-program">' +
+          '<option value="">' + (t('social_lead_undecided') || 'Undecided') + '</option>' +
+          '<option value="4-week"' + (detectedInterest === '4-week' ? ' selected' : '') + '>4-Week Intensive</option>' +
+          '<option value="8-week"' + (detectedInterest === '8-week' ? ' selected' : '') + '>8-Week Semi-Intensive</option>' +
+          '<option value="18-week"' + (detectedInterest === '18-week' ? ' selected' : '') + '>18-Week Flexible</option>' +
+          '<option value="4-week-jul"' + (detectedInterest === '4-week-jul' ? ' selected' : '') + '>4-Week Vinyasa Plus (July)</option>' +
+          '<option value="300h"' + (detectedInterest === '300h' ? ' selected' : '') + '>300h Advanced</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="yb-admin__field">' +
+        '<label for="yb-social-lead-notes">' + (t('social_lead_notes') || 'Notes') + '</label>' +
+        '<textarea id="yb-social-lead-notes" rows="2">' +
+          'From ' + thread.platform + ' ' + thread.type + (messageText ? ': "' + messageText.substring(0, 200) + '"' : '') +
+        '</textarea>' +
+      '</div>' +
+      '<div class="yb-social__connect-actions">' +
+        '<button class="yb-btn yb-btn--outline" data-action="social-lead-modal-close">Cancel</button>' +
+        '<button class="yb-btn yb-btn--primary" data-action="social-lead-modal-save">Create Lead</button>' +
+      '</div></div></div>';
+
+    document.body.insertAdjacentHTML('beforeend', html);
+    var nameEl = document.getElementById('yb-social-lead-name');
+    if (nameEl) setTimeout(function () { nameEl.focus(); }, 100);
+  }
+
+  function detectYTTInterest(text) {
+    if (!text) return '';
+    var lower = text.toLowerCase();
+    if (/4.?week.*jul|july|vinyasa plus|sommer/i.test(lower)) return '4-week-jul';
+    if (/4.?week|4.?uge|intensiv/i.test(lower)) return '4-week';
+    if (/8.?week|8.?uge|semi/i.test(lower)) return '8-week';
+    if (/18.?week|18.?uge|flex/i.test(lower)) return '18-week';
+    if (/300|advanced|videre/i.test(lower)) return '300h';
+    if (/ytt|yoga.*teacher|uddannelse|training/i.test(lower)) return '';
+    return '';
+  }
+
+  async function saveLeadFromModal() {
+    var nameVal = (document.getElementById('yb-social-lead-name') || {}).value || '';
+    if (!nameVal.trim()) { toast('Enter a name', true); return; }
 
     var leadData = {
-      first_name: nameInput.split(' ')[0] || nameInput,
-      last_name: nameInput.split(' ').slice(1).join(' ') || '',
-      email: emailInput || '',
-      source: source,
+      first_name: nameVal.split(' ')[0] || nameVal,
+      last_name: nameVal.split(' ').slice(1).join(' ') || '',
+      email: (document.getElementById('yb-social-lead-email') || {}).value || '',
+      phone: (document.getElementById('yb-social-lead-phone') || {}).value || '',
+      source: inboxState.activeThread ? inboxState.activeThread.platform + '_' + inboxState.activeThread.type : 'social',
       status: 'new',
-      notes: 'Created from social media ' + thread.type + ' on ' + thread.platform
+      ytt_program_type: (document.getElementById('yb-social-lead-program') || {}).value || '',
+      notes: (document.getElementById('yb-social-lead-notes') || {}).value || ''
     };
 
     toast('Creating lead...');
+    var modal = document.getElementById('yb-social-lead-modal');
+    if (modal) modal.remove();
+
     var data = await api('lead', {
       method: 'POST',
       body: JSON.stringify(leadData)
@@ -1749,7 +2434,7 @@
       return { date: p.scheduledAt, caption: p.caption };
     });
 
-    if (genBtn) genBtn.disabled = true;
+    setLoading(genBtn, true, 'Generating...');
     if (resultsEl) { resultsEl.hidden = false; resultsEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_generating') + '</p>'; }
 
     var data = await api('social-ai', {
@@ -1757,7 +2442,7 @@
       body: JSON.stringify({ action: 'content-plan', days: days, themes: themes, goals: goals, existingPosts: existingPosts })
     });
 
-    if (genBtn) genBtn.disabled = false;
+    setLoading(genBtn, false);
 
     if (!data || !data.plan) {
       if (resultsEl) resultsEl.innerHTML = '<p class="yb-admin__muted">Could not generate plan.</p>';
@@ -1807,8 +2492,10 @@
   async function aiGetInsights() {
     var panel = $('yb-social-ai-insights-panel');
     var bodyEl = $('yb-social-ai-insights-body');
+    var insBtn = document.querySelector('[data-action="social-ai-insights"]');
     if (!panel) return;
 
+    setLoading(insBtn, true, 'Analyzing...');
     panel.hidden = false;
     if (bodyEl) bodyEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_analyzing') + '</p>';
 
@@ -1825,6 +2512,8 @@
       method: 'POST',
       body: JSON.stringify({ action: 'analytics-insight', metrics: metrics, period: metrics.period + ' days' })
     });
+
+    setLoading(insBtn, false);
 
     if (!data || !data.summary) {
       if (bodyEl) bodyEl.innerHTML = '<p class="yb-admin__muted">Could not generate insights.</p>';
@@ -1858,6 +2547,7 @@
 
   function switchInboxTab(tab) {
     inboxState.tab = tab;
+    inboxState.platformFilter = 'all';
     var commentsEl = $('yb-social-inbox-comments');
     var messagesEl = $('yb-social-inbox-messages');
     var mentionsEl = $('yb-social-inbox-mentions');
@@ -1872,6 +2562,63 @@
       loadMentions();
     } else {
       renderInbox();
+    }
+  }
+
+  // ── Sentiment Analysis ──────────────────────────────────────────
+
+  function filterInboxBySentiment(filter) {
+    inboxState.sentimentFilter = filter || '';
+    renderComments();
+  }
+
+  async function analyzeInboxSentiment() {
+    if (inboxState.comments.length === 0) { toast('No comments to analyze', true); return; }
+
+    toast('Analyzing sentiment...');
+    var items = inboxState.comments.slice(0, 20).map(function (c) {
+      return {
+        id: c.id,
+        text: c.text || '',
+        author: c.author || 'Unknown',
+        platform: c.platform
+      };
+    });
+
+    var data = await api('social-inbox', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'analyze-sentiment', items: items })
+    });
+
+    if (data && data.results) {
+      data.results.forEach(function (r) {
+        if (r.index !== undefined && inboxState.comments[r.index]) {
+          inboxState.comments[r.index]._sentiment = r;
+        }
+      });
+      inboxState.sentimentAnalyzed = true;
+      renderComments();
+      toast('Analyzed ' + data.results.length + ' comments' + (data.alertCount ? ' — ' + data.alertCount + ' alerts sent to Telegram' : ''));
+    }
+  }
+
+  // ── Smart Queue (bulk) ──────────────────────────────────────────
+
+  async function smartScheduleSelected() {
+    if (state.selectedPosts.length === 0) { toast('Select posts first', true); return; }
+
+    toast('Smart scheduling ' + state.selectedPosts.length + ' posts...');
+    var data = await api('social-smart-queue', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'auto-schedule', postIds: state.selectedPosts })
+    });
+
+    if (data) {
+      var msg = 'Scheduled ' + (data.scheduled || []).length + ' posts';
+      if (data.errors && data.errors.length > 0) msg += ' (' + data.errors.length + ' errors)';
+      toast(msg);
+      state.selectedPosts = [];
+      loadPosts();
     }
   }
 
@@ -2502,6 +3249,14 @@
     return String(n);
   }
 
+  async function addCompetitorDirect(handle, platform, name) {
+    var data = await api('social-competitors', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'add', platform: platform || 'instagram', handle: handle, name: name || handle })
+    });
+    if (data) loadCompetitors();
+  }
+
   async function addCompetitor() {
     var platform = ($('yb-social-comp-platform') || {}).value;
     var handle = ($('yb-social-comp-handle') || {}).value || '';
@@ -2537,6 +3292,163 @@
     toast('Refreshing...');
     await api('social-competitors', { method: 'POST', body: JSON.stringify({ action: 'refresh' }) });
     loadCompetitors();
+  }
+
+  async function aiSuggestCompetitors() {
+    // Show options modal first
+    var existing = document.getElementById('yb-social-ai-competitor-modal');
+    if (existing) existing.remove();
+
+    var html = '<div class="yb-social__connect-modal" id="yb-social-ai-competitor-modal">' +
+      '<div class="yb-social__connect-overlay" data-action="social-ai-competitor-close"></div>' +
+      '<div class="yb-social__connect-box" style="max-width:560px;max-height:85vh;overflow-y:auto">' +
+      '<h3 style="margin:0 0 14px;font-size:16px">AI Competitor Finder</h3>' +
+      '<div class="yb-social__ai-comp-options">' +
+      '<div><label>Business Category</label>' +
+      '<div class="yb-social__ai-comp-chips" id="yb-ai-comp-cats">' +
+      ['Yoga Teacher Training', 'Yoga Studios', 'Yoga Classes', 'Yoga Courses', 'Wellness & Retreats', 'Fitness Studios', 'Online Yoga'].map(function (c) {
+        return '<button class="yb-social__ai-comp-chip" data-action="social-ai-comp-cat">' + c + '</button>';
+      }).join('') + '</div></div>' +
+      '<div><label>Platform</label>' +
+      '<select id="yb-ai-comp-platform"><option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="tiktok">TikTok</option><option value="linkedin">LinkedIn</option><option value="youtube">YouTube</option></select></div>' +
+      '<div><label>Location</label>' +
+      '<input type="text" id="yb-ai-comp-location" placeholder="e.g. Copenhagen, Denmark" value="Copenhagen, Denmark"></div>' +
+      '<div><label>Scope</label>' +
+      '<div class="yb-social__ai-comp-chips" id="yb-ai-comp-scope">' +
+      ['Local', 'National', 'International'].map(function (s) {
+        return '<button class="yb-social__ai-comp-chip' + (s === 'Local' ? ' is-active' : '') + '" data-action="social-ai-comp-scope">' + s + '</button>';
+      }).join('') + '</div></div></div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">' +
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-ai-competitor-close">Cancel</button>' +
+      '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-ai-competitor-search" id="yb-ai-comp-search-btn">Find Competitors</button>' +
+      '</div><div id="yb-ai-comp-results"></div></div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  async function aiCompetitorSearch() {
+    var catEls = qsa('#yb-ai-comp-cats .is-active');
+    var categories = [];
+    catEls.forEach(function (el) { categories.push(el.textContent); });
+    var scopeEl = document.querySelector('#yb-ai-comp-scope .is-active');
+    var scope = scopeEl ? scopeEl.textContent.toLowerCase() : 'local';
+    var platform = ($('yb-ai-comp-platform') || {}).value || 'instagram';
+    var location = ($('yb-ai-comp-location') || {}).value || 'Copenhagen, Denmark';
+
+    var btn = $('yb-ai-comp-search-btn');
+    setLoading(btn, true, 'Searching...');
+
+    var resultsEl = $('yb-ai-comp-results');
+    if (resultsEl) resultsEl.innerHTML = '<p class="yb-admin__muted" style="text-align:center;padding:16px">Analyzing competitors with AI...</p>';
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'suggest-competitors',
+        platform: platform,
+        categories: categories.length ? categories : ['Yoga Teacher Training', 'Yoga Studios'],
+        location: location,
+        scope: scope,
+        currentCompetitors: state.competitors
+      })
+    });
+
+    setLoading(btn, false);
+
+    if (!data || !data.suggestions) {
+      if (resultsEl) resultsEl.innerHTML = '<p class="yb-admin__muted" style="text-align:center;padding:12px">No results found. Try different options.</p>';
+      return;
+    }
+
+    var cats = { direct_competitor: 'Direct Competitors', aspirational: 'Aspirational', content_inspiration: 'Content Inspiration', local: 'Local' };
+    var grouped = {};
+    data.suggestions.forEach(function (s) {
+      var cat = s.category || 'other';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(s);
+    });
+
+    var rhtml = '';
+    Object.keys(cats).forEach(function (cat) {
+      if (!grouped[cat]) return;
+      rhtml += '<h4 style="margin:14px 0 6px;font-size:13px;font-weight:700;color:#f75c03">' + cats[cat] + '</h4>';
+      grouped[cat].forEach(function (s) {
+        rhtml += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #E8E4E0">' +
+          '<div style="flex:1;min-width:0"><strong style="font-size:12px">@' + escapeHtml(s.handle) + '</strong>' +
+          (s.name ? ' <span style="font-size:11px;color:#6F6A66">' + escapeHtml(s.name) + '</span>' : '') +
+          '<br><span style="font-size:11px;color:#6F6A66">' + escapeHtml(s.reason) + '</span></div>' +
+          '<button class="yb-btn yb-btn--primary yb-btn--xs" data-action="social-ai-competitor-add" data-handle="' + escapeHtml(s.handle) + '" data-platform="' + (s.platform || platform) + '" data-name="' + escapeHtml(s.name || '') + '">+ Add</button>' +
+          '</div>';
+      });
+    });
+    if (resultsEl) resultsEl.innerHTML = rhtml;
+  }
+
+  async function aiCompetitorContentStrategy() {
+    if (state.competitors.length === 0) { toast('Add competitors first', true); return; }
+    var stratBtn = document.querySelector('[data-action="social-ai-content-strategy"]');
+    setLoading(stratBtn, true, 'Analyzing...');
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'competitor-content-strategy',
+        competitors: state.competitors
+      })
+    });
+    setLoading(stratBtn, false);
+    if (!data) return;
+
+    var existing = document.getElementById('yb-social-ai-strategy-modal');
+    if (existing) existing.remove();
+
+    var a = data.analysis || {};
+    var ideas = data.post_ideas || [];
+
+    var html = '<div class="yb-social__connect-modal" id="yb-social-ai-strategy-modal">' +
+      '<div class="yb-social__connect-overlay" data-action="social-ai-strategy-close"></div>' +
+      '<div class="yb-social__connect-box" style="max-width:640px;max-height:80vh;overflow-y:auto">' +
+      '<h3>📊 AI Content Strategy</h3>';
+
+    if (a.competitive_position) {
+      html += '<p style="background:var(--yb-light);padding:.75rem;border-radius:8px;margin-bottom:1rem">' + escapeHtml(a.competitive_position) + '</p>';
+    }
+
+    if (a.content_gaps && a.content_gaps.length) {
+      html += '<h4 style="color:var(--yb-brand)">Content Gaps</h4><ul>';
+      a.content_gaps.forEach(function (g) { html += '<li>' + escapeHtml(g) + '</li>'; });
+      html += '</ul>';
+    }
+    if (a.trend_opportunities && a.trend_opportunities.length) {
+      html += '<h4 style="color:var(--yb-brand)">Trend Opportunities</h4><ul>';
+      a.trend_opportunities.forEach(function (t) { html += '<li>' + escapeHtml(t) + '</li>'; });
+      html += '</ul>';
+    }
+    if (a.differentiation_angles && a.differentiation_angles.length) {
+      html += '<h4 style="color:var(--yb-brand)">Differentiation</h4><ul>';
+      a.differentiation_angles.forEach(function (d) { html += '<li>' + escapeHtml(d) + '</li>'; });
+      html += '</ul>';
+    }
+    if (a.posting_recommendations) {
+      var pr = a.posting_recommendations;
+      html += '<h4 style="color:var(--yb-brand)">Posting Strategy</h4>' +
+        '<p>' + escapeHtml(pr.frequency || '') + '. Best formats: ' + (pr.best_formats || []).join(', ') + '</p>' +
+        (pr.timing_notes ? '<p style="color:var(--yb-muted);font-size:.85rem">' + escapeHtml(pr.timing_notes) + '</p>' : '');
+    }
+
+    if (ideas.length) {
+      html += '<h4 style="color:var(--yb-brand);margin-top:1rem">Post Ideas</h4>';
+      ideas.forEach(function (idea, i) {
+        html += '<div style="background:var(--yb-light);padding:.75rem;border-radius:8px;margin-bottom:.5rem">' +
+          '<strong>' + (i + 1) + '. ' + escapeHtml(idea.concept) + '</strong>' +
+          '<span style="background:var(--yb-brand);color:#fff;font-size:.7rem;padding:2px 6px;border-radius:4px;margin-left:.5rem">' + (idea.format || '') + '</span>' +
+          '<p style="font-size:.85rem;margin:.25rem 0">"' + escapeHtml(idea.caption_hook || '') + '"</p>' +
+          '<span style="font-size:.75rem;color:var(--yb-muted)">Inspired by: ' + escapeHtml(idea.inspired_by || '') + '</span>' +
+          '</div>';
+      });
+    }
+
+    html += '<div style="margin-top:1rem;text-align:right"><button class="yb-btn yb-btn--outline" data-action="social-ai-strategy-close">Close</button></div></div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
   }
 
   /* ═══ A/B TESTING ═══ */
@@ -2782,6 +3694,2065 @@
     if (modal) modal.hidden = true;
   }
 
+  /* ═══ SAVED REPLIES ═══ */
+  var savedRepliesState = { replies: [], loaded: false };
+
+  async function loadSavedReplies() {
+    var data = await api('social-saved-replies?action=list');
+    if (data) {
+      savedRepliesState.replies = data.replies || [];
+      savedRepliesState.loaded = true;
+    }
+  }
+
+  function renderSavedRepliesDropdown(ddEl) {
+    var container = ddEl || $('yb-social-saved-replies-dropdown');
+    if (!container) return;
+
+    if (!savedRepliesState.loaded) {
+      loadSavedReplies().then(renderSavedRepliesDropdown);
+      return;
+    }
+
+    if (savedRepliesState.replies.length === 0) {
+      container.innerHTML = '<p class="yb-admin__muted">No saved replies yet</p>';
+      return;
+    }
+
+    container.innerHTML = savedRepliesState.replies.map(function (r) {
+      return '<button type="button" class="yb-social__saved-reply-item" data-action="social-use-saved-reply" data-id="' + r.id + '">' +
+        '<span class="yb-social__saved-reply-name">' + escapeHtml(r.name) + '</span>' +
+        '<span class="yb-social__saved-reply-preview">' + escapeHtml(truncate(r.text, 60)) + '</span>' +
+        (r.shortcut ? '<span class="yb-social__saved-reply-shortcut">/' + r.shortcut + '</span>' : '') +
+      '</button>';
+    }).join('');
+  }
+
+  function useSavedReply(id, panelId) {
+    var reply = savedRepliesState.replies.find(function (r) { return r.id === id; });
+    if (!reply) return;
+
+    var pid = panelId || (inboxState.activeThread ? inboxState.activeThread.panelId : null);
+    var replyEl = pid ? getReplyElForPanel(pid) : null;
+    if (replyEl) {
+      replyEl.value = reply.text;
+      replyEl.focus();
+    }
+
+    api('social-saved-replies', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'update', id: id, incrementUsage: true })
+    });
+
+    // Hide dropdown in the panel
+    if (pid) {
+      var panel = document.getElementById(pid);
+      var dd = panel ? panel.querySelector('.yb-social__saved-replies-dropdown') : null;
+      if (dd) dd.hidden = true;
+    }
+  }
+
+  function toggleSavedRepliesDropdown(panelId) {
+    var pid = panelId || (inboxState.activeThread ? inboxState.activeThread.panelId : null);
+    if (!pid) return;
+    var panel = document.getElementById(pid);
+    var dd = panel ? panel.querySelector('.yb-social__saved-replies-dropdown') : null;
+    if (!dd) return;
+    dd.hidden = !dd.hidden;
+    if (!dd.hidden) renderSavedRepliesDropdown(dd);
+  }
+
+  async function saveCurrentReplyAsTemplate(panelId) {
+    var pid = panelId || (inboxState.activeThread ? inboxState.activeThread.panelId : null);
+    var replyEl = pid ? getReplyElForPanel(pid) : null;
+    if (!replyEl || !replyEl.value.trim()) { toast('Write a reply first', true); return; }
+
+    var name = prompt('Name for this saved reply:');
+    if (!name) return;
+
+    var data = await api('social-saved-replies', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create', name: name, text: replyEl.value.trim() })
+    });
+
+    if (data) {
+      toast('Reply saved as template');
+      savedRepliesState.loaded = false; // Force reload
+    }
+  }
+
+  /* ═══ CONTENT LIBRARY ═══ */
+  var libraryState = { assets: [], collections: [], tags: [], search: '', activeTag: '', activeCollection: '' };
+
+  async function loadContentLibrary() {
+    var params = 'action=list';
+    if (libraryState.activeTag) params += '&tag=' + encodeURIComponent(libraryState.activeTag);
+    if (libraryState.activeCollection) params += '&collection=' + encodeURIComponent(libraryState.activeCollection);
+    if (libraryState.search) params += '&search=' + encodeURIComponent(libraryState.search);
+
+    var results = await Promise.all([
+      api('social-content-library?' + params),
+      api('social-content-library?action=collections')
+    ]);
+
+    if (results[0]) {
+      libraryState.assets = results[0].assets || [];
+      libraryState.tags = results[0].tags || [];
+    }
+    if (results[1]) {
+      libraryState.collections = results[1].collections || [];
+    }
+
+    // If no tagged assets but we have imported posts, build library from imported media
+    if (libraryState.assets.length === 0 && !libraryState.activeTag && !libraryState.activeCollection && !libraryState.search) {
+      var allPosts = state.allPosts || [];
+      var importedAssets = [];
+      var seenUrls = {};
+      allPosts.forEach(function (p) {
+        if (!p.media || !p.media.length) return;
+        p.media.forEach(function (url) {
+          if (!url || seenUrls[url]) return;
+          seenUrls[url] = true;
+          var isVideo = (p.mediaType === 'video' || p.mediaType === 'reels') ||
+            url.match(/\.(mp4|mov|webm)$/i);
+          importedAssets.push({
+            url: url,
+            type: isVideo ? 'video' : 'image',
+            tags: p.platforms || [],
+            alt: (p.caption || '').substring(0, 60),
+            createdAt: p.createdAt
+          });
+        });
+      });
+      if (importedAssets.length > 0) {
+        libraryState.assets = importedAssets;
+      }
+    }
+
+    renderContentLibrary();
+  }
+
+  function renderContentLibrary() {
+    // Tag cloud
+    var tagCloud = $('yb-social-library-tags');
+    if (tagCloud) {
+      tagCloud.innerHTML = libraryState.tags.slice(0, 30).map(function (t) {
+        var active = libraryState.activeTag === t.tag ? ' is-active' : '';
+        return '<button class="yb-social__library-tag' + active + '" data-action="social-library-filter-tag" data-tag="' + t.tag + '">' +
+          t.tag + ' <span>(' + t.count + ')</span></button>';
+      }).join('');
+    }
+
+    // Collections
+    var collEl = $('yb-social-library-collections');
+    if (collEl) {
+      collEl.innerHTML = libraryState.collections.map(function (c) {
+        var active = libraryState.activeCollection === c.id ? ' is-active' : '';
+        return '<button class="yb-social__library-collection' + active + '" data-action="social-library-filter-collection" data-id="' + c.id + '">' +
+          escapeHtml(c.name) + ' <span>(' + (c.assetCount || 0) + ')</span></button>';
+      }).join('') +
+      '<button class="yb-social__library-collection yb-social__library-collection--add" data-action="social-library-new-collection">+ New</button>';
+    }
+
+    // Asset grid
+    var grid = $('yb-social-library-grid');
+    if (!grid) return;
+
+    if (libraryState.assets.length === 0) {
+      grid.innerHTML = '<div class="yb-social__inbox-empty"><p>No tagged assets yet. Browse media in the composer and tag assets to see them here.</p></div>';
+      return;
+    }
+
+    grid.innerHTML = libraryState.assets.map(function (a) {
+      var isVideo = a.type === 'video';
+      return '<div class="yb-social__library-item" data-action="social-library-edit-asset" data-url="' + a.url + '">' +
+        (isVideo
+          ? '<video src="' + a.url + '?width=300" class="yb-social__library-thumb"></video>'
+          : '<img src="' + a.url + '?width=300" alt="' + escapeHtml(a.alt || '') + '" class="yb-social__library-thumb" loading="lazy">') +
+        '<div class="yb-social__library-item-meta">' +
+          (a.tags && a.tags.length > 0 ? '<div class="yb-social__library-item-tags">' + a.tags.slice(0, 4).map(function (t) {
+            return '<span>' + t + '</span>';
+          }).join('') + '</div>' : '') +
+          (a.alt ? '<p class="yb-admin__muted">' + escapeHtml(truncate(a.alt, 40)) + '</p>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function showAssetEditor(url) {
+    var asset = libraryState.assets.find(function (a) { return a.url === url; });
+    var existing = document.getElementById('yb-social-asset-editor');
+    if (existing) existing.remove();
+
+    var tags = asset ? (asset.tags || []).join(', ') : '';
+    var alt = asset ? (asset.alt || '') : '';
+    var notes = asset ? (asset.notes || '') : '';
+
+    var html = '<div class="yb-social__modal-overlay" id="yb-social-asset-editor">' +
+      '<div class="yb-social__modal-box" style="max-width:500px">' +
+      '<h3>Edit Asset</h3>' +
+      '<div style="margin:10px 0"><img src="' + url + '?width=400" style="width:100%;border-radius:8px" alt=""></div>' +
+      '<div class="yb-admin__field"><label>Tags (comma separated)</label>' +
+      '<input type="text" id="yb-social-asset-tags" value="' + escapeHtml(tags) + '" placeholder="yoga, lifestyle, studio"></div>' +
+      '<div class="yb-admin__field"><label>Alt Text</label>' +
+      '<input type="text" id="yb-social-asset-alt" value="' + escapeHtml(alt) + '" placeholder="Descriptive alt text"></div>' +
+      '<div class="yb-admin__field"><label>Notes</label>' +
+      '<textarea id="yb-social-asset-notes" rows="2" placeholder="Internal notes...">' + escapeHtml(notes) + '</textarea></div>' +
+      '<div style="display:flex;gap:8px;margin-top:12px">' +
+      '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-library-save-asset" data-url="' + url + '">Save</button>' +
+      '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-library-close-editor">Cancel</button></div>' +
+      '</div></div>';
+
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  async function saveAssetMeta(url) {
+    var tags = ($('yb-social-asset-tags') || {}).value || '';
+    var alt = ($('yb-social-asset-alt') || {}).value || '';
+    var notes = ($('yb-social-asset-notes') || {}).value || '';
+
+    var tagArr = tags.split(/[,\n]+/).map(function (t) { return t.trim().toLowerCase(); }).filter(Boolean);
+
+    var data = await api('social-content-library', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'tag', url: url, tags: tagArr, alt: alt, notes: notes })
+    });
+
+    if (data) {
+      toast('Asset saved');
+      var editor = document.getElementById('yb-social-asset-editor');
+      if (editor) editor.remove();
+      loadContentLibrary();
+    }
+  }
+
+  async function createLibraryCollection() {
+    var name = prompt('Collection name:');
+    if (!name) return;
+
+    var data = await api('social-content-library', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create-collection', name: name })
+    });
+
+    if (data) { toast('Collection created'); loadContentLibrary(); }
+  }
+
+  /* ═══ VIDEO UPLOAD & EDITOR ═══ */
+  var videoState = { videos: [], uploading: false, editorVideoId: null, editorTrim: { start: 0, end: 0 }, editorAspect: 'original', editorThumbTime: 0 };
+
+  // ── Upload via TUS (chunked, resumable) ──
+  async function startVideoUpload(file) {
+    if (!file || videoState.uploading) return;
+    videoState.uploading = true;
+
+    var progressEl = $('yb-social-video-progress');
+    var nameEl = $('yb-social-video-progress-name');
+    var pctEl = $('yb-social-video-progress-pct');
+    var fillEl = $('yb-social-video-progress-fill');
+    var statusEl = $('yb-social-video-progress-status');
+    if (progressEl) progressEl.hidden = false;
+    if (nameEl) nameEl.textContent = file.name;
+    if (statusEl) statusEl.textContent = 'Creating video entry...';
+
+    // 1. Create video entry in Bunny Stream (get TUS credentials)
+    var title = file.name.replace(/\.[^.]+$/, '');
+    var data = await api('social-media-upload', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create-video', title: title })
+    });
+
+    if (!data || !data.videoId) {
+      toast('Failed to create video', true);
+      videoState.uploading = false;
+      if (progressEl) progressEl.hidden = true;
+      return;
+    }
+
+    if (statusEl) statusEl.textContent = 'Uploading... 0%';
+    toast('Uploading ' + file.name + '...');
+
+    // 2. Upload via TUS protocol directly to Bunny Stream
+    try {
+      await tusUpload(file, data, function (pct) {
+        if (fillEl) fillEl.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+        if (statusEl) statusEl.textContent = 'Uploading... ' + Math.round(pct) + '%';
+      });
+
+      if (statusEl) statusEl.textContent = 'Upload complete — encoding in progress';
+      toast(file.name + ' uploaded — encoding will take 1-2 min');
+      loadVideoLibrary();
+
+      // Poll for encoding completion (webhook updates Firestore, we just re-fetch)
+      var pollCount = 0;
+      var pollTimer = setInterval(async function () {
+        pollCount++;
+        await loadVideoLibrary();
+        // Check if any video is still encoding/uploading
+        var pending = videoState.videos.filter(function (v) {
+          return v.status === 'uploading' || v.status === 'encoding' || v.status === 'processing';
+        });
+        if (pending.length === 0 || pollCount >= 60) {
+          clearInterval(pollTimer);
+          if (pending.length === 0 && pollCount > 1) {
+            toast('Video encoding complete');
+          }
+        }
+      }, 5000);
+    } catch (err) {
+      toast('Upload failed: ' + err.message, true);
+      if (statusEl) statusEl.textContent = 'Upload failed: ' + err.message;
+    }
+
+    videoState.uploading = false;
+
+    // Auto-hide progress after 5s
+    setTimeout(function () {
+      if (progressEl) progressEl.hidden = true;
+    }, 5000);
+  }
+
+  // TUS upload using official tus-js-client library (loaded from CDN)
+  function tusUpload(file, creds, onProgress) {
+    return new Promise(function (resolve, reject) {
+      if (typeof tus === 'undefined') {
+        reject(new Error('TUS library not loaded'));
+        return;
+      }
+
+      var upload = new tus.Upload(file, {
+        endpoint: creds.tusUploadUrl,
+        retryDelays: [0, 1000, 3000, 5000],
+        chunkSize: 5 * 1024 * 1024,
+        headers: {
+          AuthorizationSignature: creds.authSignature,
+          AuthorizationExpire: creds.authExpiration.toString(),
+          VideoId: creds.videoId,
+          LibraryId: creds.libraryId
+        },
+        metadata: {
+          filetype: file.type,
+          title: file.name.replace(/\.[^.]+$/, '')
+        },
+        onError: function (error) {
+          console.error('[TUS] Upload error:', error);
+          reject(new Error('Upload failed: ' + (error.message || error)));
+        },
+        onProgress: function (bytesUploaded, bytesTotal) {
+          var pct = (bytesUploaded / bytesTotal) * 100;
+          onProgress(pct);
+        },
+        onSuccess: function () {
+          console.log('[TUS] Upload complete:', upload.url);
+          onProgress(100);
+          resolve();
+        }
+      });
+
+      // Check for previous uploads to resume
+      upload.findPreviousUploads().then(function (previousUploads) {
+        if (previousUploads.length > 0) {
+          console.log('[TUS] Resuming previous upload');
+          upload.resumeFromPreviousUpload(previousUploads[0]);
+        }
+        upload.start();
+      });
+    });
+  }
+
+  // ── Video Library ──
+  async function loadVideoLibrary() {
+    var grid = $('yb-social-video-library-grid');
+    var countEl = $('yb-social-video-count');
+    if (grid) grid.innerHTML = '<p class="yb-admin__muted">Loading videos...</p>';
+
+    var data = await api('social-media-upload?action=list');
+    if (!data) return;
+    videoState.videos = data.videos || [];
+
+    if (countEl) countEl.textContent = '(' + videoState.videos.length + ')';
+    if (!grid) return;
+
+    if (videoState.videos.length === 0) {
+      grid.innerHTML = '<p class="yb-admin__muted">No videos uploaded yet. Drag a video above to get started.</p>';
+      return;
+    }
+
+    grid.innerHTML = videoState.videos.map(function (v) {
+      var thumb = v.thumbnailUrl
+        ? '<img src="' + v.thumbnailUrl + '" alt="" loading="lazy">'
+        : '<span style="color:#6F6A66;font-size:28px">🎬</span>';
+
+      var statusClass = v.status === 'ready' ? '--ready' : v.status === 'failed' ? '--failed' : v.status === 'encoding' || v.status === 'processing' ? '--encoding' : '--uploading';
+      var duration = v.duration ? formatDuration(v.duration) : '';
+      var fileSize = v.fileSize ? formatFileSize(v.fileSize) : '';
+      var date = v.createdAt ? fmtDate(v.createdAt) : '';
+
+      return '<div class="yb-social__video-card">' +
+        '<div class="yb-social__video-card-thumb">' + thumb +
+        (duration ? '<span class="yb-social__video-card-duration">' + duration + '</span>' : '') +
+        '<span class="yb-social__video-card-status yb-social__video-card-status' + statusClass + '">' + (v.status || 'unknown') + '</span>' +
+        '</div>' +
+        '<div class="yb-social__video-card-body">' +
+        '<p class="yb-social__video-card-title">' + escapeHtml(v.title || 'Untitled') + '</p>' +
+        '<p class="yb-social__video-card-meta">' + [fileSize, date].filter(Boolean).join(' · ') + '</p>' +
+        '</div>' +
+        '<div class="yb-social__video-card-actions">' +
+        (v.status === 'ready' ? '<button data-action="social-video-edit" data-id="' + v.videoId + '">Edit</button>' : '') +
+        (v.status === 'ready' ? '<button data-action="social-video-use" data-id="' + v.videoId + '">Use in Post</button>' : '') +
+        '<button data-action="social-video-delete" data-id="' + v.videoId + '">Delete</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function formatDuration(seconds) {
+    var m = Math.floor(seconds / 60);
+    var s = Math.floor(seconds % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(0) + ' KB';
+    if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+    return (bytes / 1073741824).toFixed(2) + ' GB';
+  }
+
+  // ── Video Editor ──
+  function openVideoEditor(videoId) {
+    var video = videoState.videos.find(function (v) { return v.videoId === videoId; });
+    if (!video || video.status !== 'ready') { toast('Video not ready', true); return; }
+
+    videoState.editorVideoId = videoId;
+    videoState.editorTrim = { start: 0, end: video.duration || 0 };
+    videoState.editorAspect = 'original';
+    videoState.editorThumbTime = 0;
+
+    var modal = $('yb-social-video-editor');
+    if (modal) modal.hidden = false;
+
+    // Set video source
+    var player = $('yb-social-video-player');
+    if (player) {
+      player.src = video.mp4Url || '';
+      player.load();
+
+      player.onloadedmetadata = function () {
+        videoState.editorTrim.end = player.duration;
+        updateTrimDisplay();
+        generateThumbnails(player);
+      };
+
+      // Update playhead position
+      player.ontimeupdate = function () {
+        var playhead = $('yb-social-trim-playhead');
+        if (playhead && player.duration) {
+          var pct = (player.currentTime / player.duration) * 100;
+          playhead.style.left = pct + '%';
+        }
+      };
+    }
+
+    // Reset aspect buttons
+    qsa('.yb-social__video-aspect-btns .yb-social__btn-sm').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-ratio') === 'original');
+    });
+  }
+
+  function closeVideoEditor() {
+    var modal = $('yb-social-video-editor');
+    if (modal) modal.hidden = true;
+    var player = $('yb-social-video-player');
+    if (player) { player.pause(); player.src = ''; }
+    videoState.editorVideoId = null;
+  }
+
+  function updateTrimDisplay() {
+    var startEl = $('yb-social-trim-start-time');
+    var endEl = $('yb-social-trim-end-time');
+    var durEl = $('yb-social-trim-duration');
+    if (startEl) startEl.value = formatTimecode(videoState.editorTrim.start);
+    if (endEl) endEl.value = formatTimecode(videoState.editorTrim.end);
+    if (durEl) durEl.textContent = 'Duration: ' + formatTimecode(videoState.editorTrim.end - videoState.editorTrim.start);
+
+    // Update trim selection visual
+    var player = $('yb-social-video-player');
+    if (player && player.duration) {
+      var startPct = (videoState.editorTrim.start / player.duration) * 100;
+      var endPct = (videoState.editorTrim.end / player.duration) * 100;
+      var startHandle = $('yb-social-trim-start');
+      var endHandle = $('yb-social-trim-end');
+      var selection = $('yb-social-trim-selection');
+      if (startHandle) startHandle.style.left = startPct + '%';
+      if (endHandle) endHandle.style.left = endPct + '%';
+      if (selection) { selection.style.left = startPct + '%'; selection.style.right = (100 - endPct) + '%'; }
+    }
+  }
+
+  function formatTimecode(seconds) {
+    var m = Math.floor(seconds / 60);
+    var s = Math.floor(seconds % 60);
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function parseTimecode(tc) {
+    var parts = tc.split(':');
+    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+    return parseFloat(tc) || 0;
+  }
+
+  function generateThumbnails(videoEl) {
+    var container = $('yb-social-video-thumbnails');
+    if (!container || !videoEl.duration) return;
+    container.innerHTML = '';
+
+    var count = Math.min(6, Math.max(3, Math.floor(videoEl.duration / 5)));
+    var interval = videoEl.duration / count;
+    var generated = 0;
+
+    function captureFrame(time, index) {
+      var canvas = document.createElement('canvas');
+      canvas.width = 160;
+      canvas.height = 120;
+      var ctx = canvas.getContext('2d');
+
+      var tempVid = document.createElement('video');
+      tempVid.crossOrigin = 'anonymous';
+      tempVid.src = videoEl.src;
+      tempVid.currentTime = time;
+      tempVid.muted = true;
+
+      tempVid.onseeked = function () {
+        ctx.drawImage(tempVid, 0, 0, 160, 120);
+        var img = document.createElement('img');
+        img.src = canvas.toDataURL('image/jpeg', 0.7);
+        var item = document.createElement('div');
+        item.className = 'yb-social__video-thumbnail-item' + (index === 0 ? ' is-selected' : '');
+        item.setAttribute('data-action', 'social-video-select-thumb');
+        item.setAttribute('data-time', time.toFixed(2));
+        item.appendChild(img);
+        container.appendChild(item);
+        generated++;
+        tempVid.remove();
+      };
+      tempVid.onerror = function () { generated++; tempVid.remove(); };
+    }
+
+    for (var i = 0; i < count; i++) {
+      captureFrame(i * interval + 0.5, i);
+    }
+  }
+
+  function captureCurrentFrame() {
+    var player = $('yb-social-video-player');
+    var container = $('yb-social-video-thumbnails');
+    if (!player || !container) return;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = 160;
+    canvas.height = 120;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(player, 0, 0, 160, 120);
+
+    var img = document.createElement('img');
+    img.src = canvas.toDataURL('image/jpeg', 0.7);
+    var item = document.createElement('div');
+    item.className = 'yb-social__video-thumbnail-item is-selected';
+    item.setAttribute('data-action', 'social-video-select-thumb');
+    item.setAttribute('data-time', player.currentTime.toFixed(2));
+    item.appendChild(img);
+
+    // Deselect others
+    qsa('.yb-social__video-thumbnail-item').forEach(function (el) { el.classList.remove('is-selected'); });
+    container.insertBefore(item, container.firstChild);
+    videoState.editorThumbTime = player.currentTime;
+  }
+
+  function selectThumbnail(time) {
+    videoState.editorThumbTime = parseFloat(time);
+    qsa('.yb-social__video-thumbnail-item').forEach(function (el) {
+      el.classList.toggle('is-selected', el.getAttribute('data-time') === time);
+    });
+    var player = $('yb-social-video-player');
+    if (player) player.currentTime = videoState.editorThumbTime;
+  }
+
+  function setVideoAspect(ratio) {
+    videoState.editorAspect = ratio;
+    qsa('.yb-social__video-aspect-btns .yb-social__btn-sm').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-ratio') === ratio);
+    });
+  }
+
+  function useVideoInPost(videoId) {
+    var video = videoState.videos.find(function (v) { return v.videoId === (videoId || videoState.editorVideoId); });
+    if (!video) return;
+
+    var url = video.mp4Url || video.hlsUrl || '';
+
+    // If editor is open, include trim data
+    var editData = null;
+    if (videoState.editorVideoId) {
+      editData = {
+        videoId: video.videoId,
+        trim: videoState.editorTrim,
+        aspect: videoState.editorAspect,
+        thumbTime: videoState.editorThumbTime,
+        keepAudio: $('yb-social-video-mute') ? $('yb-social-video-mute').checked : true
+      };
+      closeVideoEditor();
+    }
+
+    // Open composer with the video
+    if (window.openSocialComposer) {
+      window.openSocialComposer(null);
+      setTimeout(function () {
+        // Inject video into composer media
+        if (window._ybSocial && window._ybSocial.state) {
+          // Access composer through the bridge
+          var captionEl = $('yb-social-caption');
+          if (captionEl && !captionEl.value) captionEl.value = video.title || '';
+        }
+      }, 200);
+    }
+
+    toast('Video added to composer');
+  }
+
+  async function deleteVideo(videoId) {
+    if (!confirm('Delete this video? This cannot be undone.')) return;
+    var data = await api('social-media-upload', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', videoId: videoId })
+    });
+    if (data) { toast('Video deleted'); loadVideoLibrary(); }
+  }
+
+  // ── Drag & Drop + File Input Setup ──
+  function initVideoUploadZone() {
+    var droparea = $('yb-social-video-droparea');
+    var fileInput = $('yb-social-video-file');
+    if (!droparea || !fileInput) return;
+
+    droparea.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      droparea.classList.add('is-dragover');
+    });
+    droparea.addEventListener('dragleave', function () {
+      droparea.classList.remove('is-dragover');
+    });
+    droparea.addEventListener('drop', function (e) {
+      e.preventDefault();
+      droparea.classList.remove('is-dragover');
+      var files = e.dataTransfer.files;
+      for (var i = 0; i < files.length; i++) {
+        if (files[i].type.startsWith('video/')) startVideoUpload(files[i]);
+      }
+    });
+    droparea.addEventListener('click', function (e) {
+      if (e.target.tagName !== 'BUTTON') fileInput.click();
+    });
+    fileInput.addEventListener('change', function () {
+      for (var i = 0; i < fileInput.files.length; i++) {
+        startVideoUpload(fileInput.files[i]);
+      }
+      fileInput.value = '';
+    });
+  }
+
+  // ── Trim Handle Dragging ──
+  function initTrimHandles() {
+    var timeline = $('yb-social-video-timeline');
+    if (!timeline) return;
+
+    var dragging = null;
+
+    timeline.addEventListener('mousedown', function (e) {
+      var startHandle = $('yb-social-trim-start');
+      var endHandle = $('yb-social-trim-end');
+      if (e.target === startHandle || e.target.closest('#yb-social-trim-start')) dragging = 'start';
+      else if (e.target === endHandle || e.target.closest('#yb-social-trim-end')) dragging = 'end';
+      else {
+        // Click on timeline = seek
+        var player = $('yb-social-video-player');
+        if (player && player.duration) {
+          var rect = timeline.getBoundingClientRect();
+          var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          player.currentTime = pct * player.duration;
+        }
+        return;
+      }
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      var rect = timeline.getBoundingClientRect();
+      var pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      var player = $('yb-social-video-player');
+      if (!player || !player.duration) return;
+      var time = pct * player.duration;
+
+      if (dragging === 'start') {
+        videoState.editorTrim.start = Math.min(time, videoState.editorTrim.end - 0.5);
+      } else {
+        videoState.editorTrim.end = Math.max(time, videoState.editorTrim.start + 0.5);
+      }
+      updateTrimDisplay();
+      player.currentTime = dragging === 'start' ? videoState.editorTrim.start : videoState.editorTrim.end;
+    });
+
+    document.addEventListener('mouseup', function () { dragging = null; });
+  }
+
+  /* ═══ CANVA DESIGN STUDIO ═══ */
+
+  var canvaState = {
+    designs: [],
+    brandKits: {},
+    platformTypes: {},
+    exportFormats: {},
+    currentDesignId: null,
+    pendingPostId: null
+  };
+
+  // Load Canva config (brand kits, platform mappings)
+  async function loadCanvaConfig() {
+    if (Object.keys(canvaState.brandKits).length) return; // Already loaded
+    var data = await api('social-canva?action=brand-kits');
+    if (data) {
+      canvaState.brandKits = data.brandKits || {};
+      canvaState.platformTypes = data.platformTypes || {};
+      canvaState.exportFormats = data.exportFormats || {};
+    }
+  }
+
+  // Open Canva Design Studio modal
+  async function openCanvaStudio(postId) {
+    try {
+      await loadCanvaConfig();
+    } catch (err) {
+      console.warn('[canva] loadCanvaConfig failed:', err);
+    }
+    canvaState.pendingPostId = postId || null;
+
+    // Get caption from composer if open
+    var captionEl = document.getElementById('yb-social-caption');
+    var caption = captionEl ? captionEl.value : '';
+
+    // Get selected platforms from composer
+    var selectedPlatforms = [];
+    document.querySelectorAll('#yb-social-composer-platforms input:checked').forEach(function (cb) {
+      selectedPlatforms.push(cb.value);
+    });
+
+    // Fallback brand kits + platform types if API didn't load
+    var brandKits = Object.keys(canvaState.brandKits).length ? canvaState.brandKits : {
+      'yoga-bible': { id: '', name: 'Yoga Bible DK' },
+      'hot-yoga-cph': { id: '', name: 'Hot Yoga CPH' },
+      'vibro-yoga': { id: '', name: 'Vibro Yoga' }
+    };
+    var platformTypes = Object.keys(canvaState.platformTypes).length ? canvaState.platformTypes : {
+      instagram_post: 'instagram_post', instagram_story: 'your_story', instagram_reel: 'your_story',
+      facebook_post: 'facebook_post', linkedin_post: 'facebook_post', tiktok: 'your_story'
+    };
+
+    var brandOptions = Object.entries(brandKits).map(function (entry) {
+      return '<option value="' + entry[0] + '">' + entry[1].name + '</option>';
+    }).join('');
+
+    var platformOptions = Object.entries(platformTypes).map(function (entry) {
+      return '<option value="' + entry[0] + '">' + entry[0].replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }) + '</option>';
+    }).join('');
+
+    var html = '<div class="yb-social__modal-overlay" id="yb-social-canva-modal">' +
+      '<div class="yb-social__modal-box yb-social__modal-box--canva">' +
+        '<div class="yb-social__modal-header">' +
+          '<h3>🎨 Canva Design Studio</h3>' +
+          '<button class="yb-social__btn-sm" data-action="social-canva-close">&times;</button>' +
+        '</div>' +
+        '<div class="yb-social__modal-body">' +
+          // Step 1: Design brief
+          '<div id="yb-canva-step-brief" class="yb-social__canva-step">' +
+            '<p class="yb-social__canva-step-label">Step 1: Design Brief</p>' +
+            // Brand
+            '<label class="yb-social__canva-label">Brand</label>' +
+            '<select id="yb-canva-brand" class="yb-social__input">' + brandOptions + '</select>' +
+            // Platform target
+            '<label class="yb-social__canva-label" style="margin-top:10px">Design For</label>' +
+            '<select id="yb-canva-platform" class="yb-social__input">' + platformOptions + '</select>' +
+            // Design prompt
+            '<label class="yb-social__canva-label" style="margin-top:10px">Design Description</label>' +
+            '<textarea id="yb-canva-prompt" class="yb-social__input" rows="3" placeholder="Describe the design you want... (e.g. \'Enrollment open for April 4-week YTT, warm orange tones, yoga pose silhouette\')">' +
+              (caption ? 'Social post design for: ' + caption.substring(0, 200) : '') +
+            '</textarea>' +
+            // Quick design presets
+            '<label class="yb-social__canva-label" style="margin-top:10px">Quick Presets</label>' +
+            '<div class="yb-social__canva-presets">' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="enrollment">YTT Enrollment</button>' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="blog">Blog Post</button>' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="class">Class Schedule</button>' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="testimonial">Student Story</button>' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="event">Event / Workshop</button>' +
+              '<button class="yb-social__canva-preset" data-action="social-canva-preset" data-preset="quote">Yoga Quote</button>' +
+            '</div>' +
+          '</div>' +
+          // Step 2: Results / Pick
+          '<div id="yb-canva-step-results" class="yb-social__canva-step" style="display:none">' +
+            '<p class="yb-social__canva-step-label">Step 2: Pick a Design</p>' +
+            '<div id="yb-canva-results" class="yb-social__canva-results"></div>' +
+          '</div>' +
+          // Step 3: Edit & Export
+          '<div id="yb-canva-step-export" class="yb-social__canva-step" style="display:none">' +
+            '<p class="yb-social__canva-step-label">Step 3: Export & Attach</p>' +
+            '<div id="yb-canva-export-info" class="yb-social__canva-export-info"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="yb-social__modal-footer">' +
+          '<button class="yb-social__btn-sm" data-action="social-canva-close">Cancel</button>' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-canva-generate" id="yb-canva-generate-btn">Create Brief &amp; Open Canva</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    // Remove existing modal if present
+    var existingModal = document.getElementById('yb-social-canva-modal');
+    if (existingModal) existingModal.remove();
+
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  // Preset descriptions for common design types
+  var CANVA_PRESETS = {
+    enrollment: 'Yoga teacher training enrollment announcement. Warm orange and black color scheme. Professional yet inviting. Include space for program dates, price, and CTA text. Yoga poses, studio vibes.',
+    blog: 'Blog post promotion card. Clean design with space for article title overlay. Yoga/wellness imagery. Warm tones. Include reading time badge area.',
+    class: 'Weekly class schedule announcement. Clean grid or list layout. Include time slots and class types. Studio branding. Warm inviting palette.',
+    testimonial: 'Student testimonial or success story. Quote-style layout with space for photo and name. Warm tones, inspirational feel. Include quotation marks design element.',
+    event: 'Event or workshop promotion. Eye-catching design with date, time, and location space. Energetic but professional. Yoga-themed graphics.',
+    quote: 'Inspirational yoga quote card. Minimalist design, beautiful typography. Warm tones or dark cinematic style. Include small logo placement.'
+  };
+
+  function applyCanvaPreset(preset) {
+    var promptEl = document.getElementById('yb-canva-prompt');
+    if (promptEl && CANVA_PRESETS[preset]) {
+      promptEl.value = CANVA_PRESETS[preset];
+    }
+  }
+
+  // Generate designs via Canva — this stores the request info so Claude can process it
+  async function generateCanvaDesign() {
+    var brandKey = (document.getElementById('yb-canva-brand') || {}).value || 'yoga-bible';
+    var platform = (document.getElementById('yb-canva-platform') || {}).value || 'instagram_post';
+    var prompt = (document.getElementById('yb-canva-prompt') || {}).value || '';
+
+    if (!prompt.trim()) { toast('Please describe the design you want', true); return; }
+
+    var brand = canvaState.brandKits[brandKey] || {};
+    var designType = canvaState.platformTypes[platform] || 'instagram_post';
+
+    // Show loading state
+    var resultsEl = document.getElementById('yb-canva-results');
+    var briefEl = document.getElementById('yb-canva-step-brief');
+    var resultsStep = document.getElementById('yb-canva-step-results');
+
+    if (briefEl) briefEl.style.display = 'none';
+    if (resultsStep) resultsStep.style.display = '';
+    if (resultsEl) resultsEl.innerHTML = '<div class="yb-social__canva-loading"><p>Preparing design brief...</p><p class="yb-admin__muted">Brand: ' + (brand.name || brandKey) + ' · Format: ' + platform.replace(/_/g, ' ') + '</p><div class="yb-social__canva-spinner"></div></div>';
+
+    var genBtn = document.getElementById('yb-canva-generate-btn');
+    if (genBtn) { genBtn.textContent = 'Preparing...'; genBtn.disabled = true; }
+
+    // Build the full prompt with brand context
+    var fullPrompt = prompt + '. Brand: Yoga Bible Copenhagen. Style: warm, professional, orange (#f75c03) and dark (#0F0F0F) color scheme. Font: modern sans-serif.';
+
+    // Store the generation request in Firestore for reference
+    var data = await api('social-canva', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'save-design',
+        canvaDesignId: 'pending_' + Date.now(),
+        title: prompt.substring(0, 50),
+        designType: designType,
+        brand: brandKey,
+        platformTarget: platform,
+        caption: prompt,
+        postId: canvaState.pendingPostId
+      })
+    });
+
+    if (data && data.id) {
+      canvaState.currentDesignId = data.id;
+    }
+
+    // Build Canva create URL for the selected design type
+    var canvaSizeMap = {
+      instagram_post: { w: 1080, h: 1080, label: 'Instagram Post' },
+      instagram_story: { w: 1080, h: 1920, label: 'Instagram Story' },
+      instagram_reel: { w: 1080, h: 1920, label: 'Instagram Reel' },
+      facebook_post: { w: 1200, h: 630, label: 'Facebook Post' },
+      facebook_story: { w: 1080, h: 1920, label: 'Facebook Story' },
+      facebook_cover: { w: 820, h: 312, label: 'Facebook Cover' },
+      linkedin_post: { w: 1200, h: 627, label: 'LinkedIn Post' },
+      tiktok: { w: 1080, h: 1920, label: 'TikTok' },
+      pinterest: { w: 1000, h: 1500, label: 'Pinterest Pin' },
+      youtube_thumbnail: { w: 1280, h: 720, label: 'YouTube Thumbnail' }
+    };
+    var sizeInfo = canvaSizeMap[platform] || { w: 1080, h: 1080, label: platform };
+    var canvaCreateUrl = 'https://www.canva.com/design/create?width=' + sizeInfo.w + '&height=' + sizeInfo.h + '&type=TAB';
+
+    if (resultsEl) {
+      resultsEl.innerHTML =
+        '<div class="yb-social__canva-request-card">' +
+          '<h4>Design Brief Saved</h4>' +
+          '<div class="yb-social__canva-request-detail">' +
+            '<div><strong>Brand:</strong> ' + (brand.name || brandKey) + '</div>' +
+            '<div><strong>Format:</strong> ' + sizeInfo.label + ' (' + sizeInfo.w + ' &times; ' + sizeInfo.h + 'px)</div>' +
+            '<div><strong>Prompt:</strong> ' + fullPrompt + '</div>' +
+          '</div>' +
+          '<div class="yb-social__canva-request-actions">' +
+            '<a href="' + canvaCreateUrl + '" target="_blank" rel="noopener" class="yb-social__btn-sm yb-social__btn-sm--primary" style="display:inline-block;text-decoration:none;text-align:center">Open Canva (' + sizeInfo.w + '&times;' + sizeInfo.h + ')</a>' +
+            '<button class="yb-social__btn-sm" data-action="social-canva-copy-request" style="margin-left:6px">Copy Brief</button>' +
+            '<button class="yb-social__btn-sm" data-action="social-canva-back-to-brief" style="margin-left:6px">Edit Brief</button>' +
+          '</div>' +
+          '<p class="yb-admin__muted" style="margin-top:10px;font-size:12px">Open Canva to create the design with the correct dimensions. Use the brief above as your guide. After exporting, upload the image via the media section.</p>' +
+        '</div>';
+    }
+
+    if (genBtn) { genBtn.textContent = 'Create Brief & Open Canva'; genBtn.disabled = false; }
+  }
+
+  // When a Canva design is exported and URL is available, attach to post
+  async function attachCanvaDesignToPost(mediaUrl) {
+    if (!canvaState.pendingPostId || !mediaUrl) return;
+
+    var data = await api('social-canva', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'attach-to-post',
+        postId: canvaState.pendingPostId,
+        mediaUrl: mediaUrl
+      })
+    });
+
+    if (data) {
+      toast('Design attached to post!');
+      // Also add to composer media if composer is open
+      if (window._ybSocial && window._ybSocial.addMediaToComposer) {
+        window._ybSocial.addMediaToComposer(mediaUrl);
+      }
+    }
+  }
+
+  // Close Canva modal
+  function closeCanvaModal() {
+    var modal = document.getElementById('yb-social-canva-modal');
+    if (modal) modal.remove();
+  }
+
+  // Expose for composer bridge
+  window._ybSocialCanva = {
+    openStudio: openCanvaStudio,
+    attachDesign: attachCanvaDesignToPost,
+    getState: function () { return canvaState; }
+  };
+
+  /* ═══ STORIES ═══ */
+  var storiesState = {
+    stories: [],
+    templates: [],
+    highlights: [],
+    filter: 'all',
+    editingStory: null
+  };
+
+  async function loadStories() {
+    var data = await api('social-stories?action=list');
+    if (data) storiesState.stories = data.stories || [];
+
+    var tplData = await api('social-stories?action=templates');
+    if (tplData) storiesState.templates = tplData.templates || [];
+
+    var hlData = await api('social-stories?action=highlights');
+    if (hlData) storiesState.highlights = hlData.highlights || [];
+
+    renderStories();
+  }
+
+  function renderStories() {
+    var container = $('yb-social-stories-list');
+    if (!container) return;
+
+    var stories = storiesState.stories;
+    if (storiesState.filter !== 'all') {
+      stories = stories.filter(function (s) { return s.status === storiesState.filter; });
+    }
+
+    // Stories filter bar
+    var filterBar = $('yb-social-stories-filters');
+    if (filterBar) {
+      var counts = { all: storiesState.stories.length, draft: 0, scheduled: 0, published: 0, expired: 0 };
+      storiesState.stories.forEach(function (s) { if (counts[s.status] !== undefined) counts[s.status]++; });
+      filterBar.innerHTML = ['all', 'draft', 'scheduled', 'published', 'expired'].map(function (f) {
+        return '<button class="yb-social__filter-btn' + (storiesState.filter === f ? ' is-active' : '') + '" data-action="social-stories-filter" data-filter="' + f + '">' +
+          f.charAt(0).toUpperCase() + f.slice(1) + ' (' + counts[f] + ')</button>';
+      }).join('');
+    }
+
+    if (!stories.length) {
+      container.innerHTML = '<p class="yb-admin__muted">No stories yet. Create your first story!</p>';
+      return;
+    }
+
+    container.innerHTML = stories.map(function (s) {
+      var isVideo = s.mediaType === 'VIDEO';
+      var statusClass = s.status === 'published' ? 'success' : s.status === 'scheduled' ? 'info' : s.status === 'expired' ? 'muted' : '';
+      var thumb = isVideo
+        ? '<div class="yb-social__story-thumb yb-social__story-thumb--video"><span>▶</span></div>'
+        : '<img class="yb-social__story-thumb" src="' + (s.media || '') + '" alt="">';
+
+      var stickers = (s.stickers || []).map(function (st) {
+        var icons = { link: '🔗', poll: '📊', countdown: '⏳', mention: '@', hashtag: '#', location: '📍', question: '❓' };
+        return '<span class="yb-social__story-sticker">' + (icons[st.type] || '📌') + '</span>';
+      }).join('');
+
+      var platforms = (s.platforms || []).map(function (p) {
+        return '<span class="yb-social__platform-dot yb-social__platform-dot--' + p + '"></span>';
+      }).join('');
+
+      return '<div class="yb-social__story-card">' +
+        '<div class="yb-social__story-preview">' + thumb +
+          (s.linkUrl ? '<span class="yb-social__story-link-badge">🔗 Link</span>' : '') +
+        '</div>' +
+        '<div class="yb-social__story-info">' +
+          '<div class="yb-social__story-meta">' +
+            '<span class="yb-social__badge yb-social__badge--' + statusClass + '">' + s.status + '</span>' +
+            platforms + stickers +
+          '</div>' +
+          '<p class="yb-social__story-caption">' + (s.caption || '<em>No caption</em>') + '</p>' +
+          (s.scheduledAt ? '<small class="yb-admin__muted">Scheduled: ' + fmtDate(s.scheduledAt) + '</small>' : '') +
+          (s.publishedAt ? '<small class="yb-admin__muted">Published: ' + fmtDate(s.publishedAt) + '</small>' : '') +
+        '</div>' +
+        '<div class="yb-social__story-actions">' +
+          (s.status === 'draft' || s.status === 'scheduled' ? '<button class="yb-social__btn-sm" data-action="social-story-edit" data-id="' + s.id + '">Edit</button>' : '') +
+          (s.status === 'draft' || s.status === 'scheduled' ? '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-story-publish" data-id="' + s.id + '">Publish</button>' : '') +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--danger" data-action="social-story-delete" data-id="' + s.id + '">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    // Render templates section
+    renderStoryTemplates();
+    // Render highlights section
+    renderStoryHighlights();
+  }
+
+  function renderStoryTemplates() {
+    var container = $('yb-social-story-templates-list');
+    if (!container) return;
+
+    if (!storiesState.templates.length) {
+      container.innerHTML = '<p class="yb-admin__muted">No story templates yet. Save a template to quickly create stories.</p>';
+      return;
+    }
+
+    container.innerHTML = storiesState.templates.map(function (tpl) {
+      var categoryBadge = '<span class="yb-social__badge">' + (tpl.category || 'general') + '</span>';
+      return '<div class="yb-social__story-template">' +
+        '<div class="yb-social__story-template-info">' +
+          '<strong>' + (tpl.name || 'Untitled') + '</strong> ' + categoryBadge +
+          '<span class="yb-admin__muted"> — used ' + (tpl.usageCount || 0) + ' times</span>' +
+          (tpl.caption ? '<p class="yb-social__story-caption">' + tpl.caption + '</p>' : '') +
+          (tpl.linkUrl ? '<small class="yb-admin__muted">🔗 ' + tpl.linkUrl + '</small>' : '') +
+        '</div>' +
+        '<div class="yb-social__story-actions">' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-story-use-template" data-id="' + tpl.id + '">Use</button>' +
+          '<button class="yb-social__btn-sm" data-action="social-story-edit-template" data-id="' + tpl.id + '">Edit</button>' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--danger" data-action="social-story-delete-template" data-id="' + tpl.id + '">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderStoryHighlights() {
+    var container = $('yb-social-story-highlights-list');
+    if (!container) return;
+
+    if (!storiesState.highlights.length) {
+      container.innerHTML = '<p class="yb-admin__muted">No highlights yet. Organize published stories into highlight groups.</p>';
+      return;
+    }
+
+    container.innerHTML = storiesState.highlights.map(function (hl) {
+      return '<div class="yb-social__story-highlight">' +
+        (hl.coverImage ? '<img class="yb-social__story-highlight-cover" src="' + hl.coverImage + '" alt="">' : '<div class="yb-social__story-highlight-cover yb-social__story-highlight-cover--empty">📌</div>') +
+        '<div class="yb-social__story-highlight-info">' +
+          '<strong>' + hl.name + '</strong>' +
+          '<small class="yb-admin__muted">' + (hl.storyIds || []).length + ' stories</small>' +
+        '</div>' +
+        '<div class="yb-social__story-actions">' +
+          '<button class="yb-social__btn-sm" data-action="social-story-edit-highlight" data-id="' + hl.id + '">Edit</button>' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--danger" data-action="social-story-delete-highlight" data-id="' + hl.id + '">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Open story composer modal
+  function openStoryComposer(storyId) {
+    var story = storyId ? storiesState.stories.find(function (s) { return s.id === storyId; }) : null;
+
+    var html = '<div class="yb-social__modal-overlay" id="yb-social-story-modal">' +
+      '<div class="yb-social__modal-box yb-social__modal-box--story">' +
+        '<div class="yb-social__modal-header">' +
+          '<h3>' + (story ? 'Edit Story' : 'Create Story') + '</h3>' +
+          '<button class="yb-social__btn-sm" data-action="social-story-close">&times;</button>' +
+        '</div>' +
+        '<div class="yb-social__modal-body">' +
+          // Media
+          '<div class="yb-social__story-composer-section">' +
+            '<label>Media (single image or video)</label>' +
+            '<div class="yb-social__story-media-drop" id="yb-story-media-area">' +
+              (story && story.media
+                ? (/\.(mp4|mov|webm)$/i.test(story.media) ? '<video src="' + story.media + '" class="yb-social__story-media-preview" muted></video>' : '<img src="' + story.media + '" class="yb-social__story-media-preview" alt="">')
+                : '<p>Click to browse media or drag & drop</p>') +
+              '<input type="hidden" id="yb-story-media-url" value="' + (story ? story.media || '' : '') + '">' +
+              '<button class="yb-social__btn-sm" data-action="social-story-browse-media">Browse CDN</button>' +
+            '</div>' +
+          '</div>' +
+          // Caption
+          '<div class="yb-social__story-composer-section">' +
+            '<label>Caption / Text Overlay</label>' +
+            '<textarea id="yb-story-caption" rows="2" class="yb-social__input">' + (story ? story.caption || '' : '') + '</textarea>' +
+          '</div>' +
+          // Link sticker
+          '<div class="yb-social__story-composer-section">' +
+            '<label>🔗 Link Sticker</label>' +
+            '<input type="url" id="yb-story-link-url" class="yb-social__input" placeholder="https://yogabible.dk/..." value="' + (story ? story.linkUrl || '' : '') + '">' +
+            '<input type="text" id="yb-story-link-text" class="yb-social__input" placeholder="Link label (e.g. Book Now)" value="' + (story ? story.linkText || '' : '') + '" style="margin-top:6px;">' +
+          '</div>' +
+          // Stickers
+          '<div class="yb-social__story-composer-section">' +
+            '<label>Stickers</label>' +
+            '<div class="yb-social__story-stickers" id="yb-story-stickers">' +
+              buildStickerButtons(story ? story.stickers : []) +
+            '</div>' +
+          '</div>' +
+          // Platforms
+          '<div class="yb-social__story-composer-section">' +
+            '<label>Platforms</label>' +
+            '<div class="yb-social__story-platforms">' +
+              ['instagram', 'facebook'].map(function (p) {
+                var checked = story ? (story.platforms || []).includes(p) : true;
+                return '<label class="yb-social__checkbox-label"><input type="checkbox" class="yb-story-platform" value="' + p + '"' + (checked ? ' checked' : '') + '> ' + p.charAt(0).toUpperCase() + p.slice(1) + '</label>';
+              }).join(' ') +
+            '</div>' +
+          '</div>' +
+          // Schedule
+          '<div class="yb-social__story-composer-section">' +
+            '<label>Schedule (optional)</label>' +
+            '<input type="datetime-local" id="yb-story-schedule" class="yb-social__input" value="' + (story && story.scheduledAt ? formatDatetimeLocal(story.scheduledAt) : '') + '">' +
+          '</div>' +
+        '</div>' +
+        '<div class="yb-social__modal-footer">' +
+          '<button class="yb-social__btn-sm" data-action="social-story-save-draft"' + (story ? ' data-id="' + story.id + '"' : '') + '>Save Draft</button>' +
+          '<button class="yb-social__btn-sm" data-action="social-story-save-template-from"' + (story ? ' data-id="' + story.id + '"' : '') + '>Save as Template</button>' +
+          '<button class="yb-social__btn-sm yb-social__btn-sm--primary" data-action="social-story-save-publish"' + (story ? ' data-id="' + story.id + '"' : '') + '>Publish Now</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  function buildStickerButtons(activeStickers) {
+    var stickers = [
+      { type: 'poll', icon: '📊', label: 'Poll' },
+      { type: 'countdown', icon: '⏳', label: 'Countdown' },
+      { type: 'mention', icon: '@', label: 'Mention' },
+      { type: 'hashtag', icon: '#', label: 'Hashtag' },
+      { type: 'location', icon: '📍', label: 'Location' },
+      { type: 'question', icon: '❓', label: 'Q&A' }
+    ];
+    var active = (activeStickers || []).map(function (s) { return s.type; });
+    return stickers.map(function (s) {
+      var isActive = active.includes(s.type);
+      return '<button class="yb-social__sticker-btn' + (isActive ? ' is-active' : '') + '" data-action="social-story-toggle-sticker" data-type="' + s.type + '">' +
+        s.icon + ' ' + s.label + '</button>';
+    }).join('');
+  }
+
+  function formatDatetimeLocal(d) {
+    if (!d) return '';
+    var date = d._seconds ? new Date(d._seconds * 1000) : new Date(d);
+    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+  }
+
+  function getStoryFormData(existingId) {
+    var platforms = [];
+    document.querySelectorAll('.yb-story-platform:checked').forEach(function (cb) {
+      platforms.push(cb.value);
+    });
+
+    var stickers = [];
+    document.querySelectorAll('.yb-social__sticker-btn.is-active').forEach(function (btn) {
+      stickers.push({ type: btn.getAttribute('data-type') });
+    });
+
+    return {
+      id: existingId || undefined,
+      media: ($('yb-story-media-url') || {}).value || '',
+      caption: ($('yb-story-caption') || {}).value || '',
+      linkUrl: ($('yb-story-link-url') || {}).value || '',
+      linkText: ($('yb-story-link-text') || {}).value || '',
+      platforms: platforms,
+      stickers: stickers,
+      scheduledAt: ($('yb-story-schedule') || {}).value || null
+    };
+  }
+
+  async function saveStory(publish) {
+    var idEl = document.querySelector('[data-action="social-story-save-draft"]');
+    var existingId = idEl ? idEl.getAttribute('data-id') : null;
+    var formData = getStoryFormData(existingId);
+
+    if (!formData.media) { toast('Please select a media file', true); return; }
+    if (!formData.platforms.length) { toast('Select at least one platform', true); return; }
+
+    if (existingId) {
+      formData.action = 'update';
+      if (formData.scheduledAt) formData.status = 'scheduled';
+      await api('social-stories', { method: 'POST', body: JSON.stringify(formData) });
+    } else {
+      formData.action = 'create';
+      var data = await api('social-stories', { method: 'POST', body: JSON.stringify(formData) });
+      if (data) existingId = data.id;
+    }
+
+    if (publish && existingId) {
+      await api('social-stories', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'publish', id: existingId })
+      });
+      toast('Story published!');
+    } else {
+      toast('Story saved');
+    }
+
+    closeStoryModal();
+    loadStories();
+  }
+
+  async function saveStoryAsTemplate(storyId) {
+    var formData = getStoryFormData(storyId);
+    var name = prompt('Template name:');
+    if (!name) return;
+    var category = prompt('Category (e.g. enrollment, blog, class, general):', 'general') || 'general';
+
+    await api('social-stories', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'create-template',
+        name: name,
+        category: category,
+        media: formData.media,
+        caption: formData.caption,
+        stickers: formData.stickers,
+        linkUrl: formData.linkUrl,
+        linkText: formData.linkText,
+        platforms: formData.platforms
+      })
+    });
+
+    toast('Template saved!');
+    loadStories();
+  }
+
+  async function useStoryTemplate(templateId) {
+    var data = await api('social-stories', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create-from-template', templateId: templateId })
+    });
+    if (data && data.id) {
+      toast('Story created from template');
+      await loadStories();
+      openStoryComposer(data.id);
+    }
+  }
+
+  async function deleteStory(id) {
+    if (!confirm('Delete this story?')) return;
+    await api('social-stories', { method: 'POST', body: JSON.stringify({ action: 'delete', id: id }) });
+    toast('Story deleted');
+    loadStories();
+  }
+
+  async function publishStoryNow(id) {
+    await api('social-stories', { method: 'POST', body: JSON.stringify({ action: 'publish', id: id }) });
+    toast('Story published!');
+    loadStories();
+  }
+
+  async function deleteStoryTemplate(id) {
+    if (!confirm('Delete this template?')) return;
+    await api('social-stories', { method: 'POST', body: JSON.stringify({ action: 'delete-template', id: id }) });
+    toast('Template deleted');
+    loadStories();
+  }
+
+  async function deleteStoryHighlight(id) {
+    if (!confirm('Delete this highlight?')) return;
+    await api('social-stories', { method: 'POST', body: JSON.stringify({ action: 'delete-highlight', id: id }) });
+    toast('Highlight deleted');
+    loadStories();
+  }
+
+  function closeStoryModal() {
+    var modal = document.getElementById('yb-social-story-modal');
+    if (modal) modal.remove();
+  }
+
+  function storyBrowseMedia() {
+    // Use existing Bunny browser from composer if available
+    if (window._ybSocial && window._ybSocial.openMediaBrowser) {
+      window._ybSocialStoryMediaCallback = function (url) {
+        var input = $('yb-story-media-url');
+        if (input) input.value = url;
+        var area = $('yb-story-media-area');
+        if (area) {
+          var isVideo = /\.(mp4|mov|webm)$/i.test(url);
+          var preview = isVideo
+            ? '<video src="' + url + '" class="yb-social__story-media-preview" muted autoplay loop></video>'
+            : '<img src="' + url + '" class="yb-social__story-media-preview" alt="">';
+          area.innerHTML = preview +
+            '<input type="hidden" id="yb-story-media-url" value="' + url + '">' +
+            '<button class="yb-social__btn-sm" data-action="social-story-browse-media">Change</button>';
+        }
+      };
+      window._ybSocial.openMediaBrowser();
+    } else {
+      var url = prompt('Enter media URL (Bunny CDN):');
+      if (url) {
+        var input = $('yb-story-media-url');
+        if (input) input.value = url;
+      }
+    }
+  }
+
+  /* ═══ CONTENT CALENDAR AI ═══ */
+  async function aiGenerateCalendar() {
+    var daysEl = $('yb-social-cal-ai-days');
+    var notesEl = $('yb-social-cal-ai-notes');
+    var resultsEl = $('yb-social-cal-ai-results');
+    var calAiBtn = document.querySelector('[data-action="social-cal-ai-generate"]');
+    if (!resultsEl) return;
+
+    var days = daysEl ? parseInt(daysEl.value) || 7 : 7;
+    var notes = notesEl ? notesEl.value : '';
+
+    setLoading(calAiBtn, true, 'Generating...');
+    resultsEl.innerHTML = '<p class="yb-admin__muted">Generating ' + days + '-day plan...</p>';
+
+    // Get recent posts to avoid repetition
+    var existingPosts = state.posts.slice(0, 10).map(function (p) {
+      return { caption: p.caption || '' };
+    });
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'calendar-plan',
+        days: days,
+        notes: notes,
+        existingPosts: existingPosts,
+        platforms: Object.keys(state.accounts).filter(function (k) { return state.accounts[k]; })
+      })
+    });
+
+    setLoading(calAiBtn, false);
+
+    if (!data || !data.plan) {
+      resultsEl.innerHTML = '<p class="yb-admin__muted">Could not generate plan.</p>';
+      return;
+    }
+
+    resultsEl.innerHTML = data.plan.map(function (p, i) {
+      return '<div class="yb-social__cal-ai-item">' +
+        '<div class="yb-social__cal-ai-item-head">' +
+          '<span class="yb-social__cal-ai-day">Day ' + p.day + ' · ' + (p.date_label || '') + '</span>' +
+          '<span class="yb-social__cal-ai-pillar">' + (p.pillar || '') + '</span>' +
+          '<span class="yb-social__cal-ai-time">' + (p.best_time || '') + '</span>' +
+        '</div>' +
+        '<h4>' + escapeHtml(p.topic || '') + '</h4>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+          '<div><span class="yb-admin__muted">🇩🇰</span><p style="font-size:12px">' + escapeHtml(p.caption_da || '') + '</p></div>' +
+          '<div><span class="yb-admin__muted">🇬🇧</span><p style="font-size:12px">' + escapeHtml(p.caption_en || '') + '</p></div>' +
+        '</div>' +
+        '<div class="yb-social__cal-ai-item-foot">' +
+          '<span>' + (p.media_type || '') + '</span>' +
+          '<span class="yb-admin__muted">' + escapeHtml(p.visual_idea || '') + '</span>' +
+          '<button class="yb-btn yb-btn--sm yb-btn--outline" data-action="social-cal-ai-create-post" data-index="' + i + '">Create Post</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    resultsEl._plan = data.plan;
+  }
+
+  function calAiCreatePost(index) {
+    var resultsEl = $('yb-social-cal-ai-results');
+    if (!resultsEl || !resultsEl._plan) return;
+    var p = resultsEl._plan[index];
+    if (!p) return;
+
+    // Open composer with pre-filled data
+    if (window.openSocialComposer) {
+      window.openSocialComposer(null);
+      setTimeout(function () {
+        var captionEl = $('yb-social-caption');
+        if (captionEl) captionEl.value = p.caption_en || p.caption_da || '';
+        var hashEl = $('yb-social-hashtags');
+        if (hashEl) hashEl.value = (p.hashtags || []).join(', ');
+      }, 100);
+    }
+  }
+
+  /* ═══ AUTO-REPLY SUGGESTIONS ═══ */
+  async function aiAutoReplySuggest(panelId) {
+    var thread = panelId ? getActiveThreadForPanel(panelId) : inboxState.activeThread;
+    if (!thread) { toast('Open a thread first', true); return; }
+    var pid = thread.panelId || panelId;
+
+    var suggestEl = getSuggestionsElForPanel(pid);
+    if (!suggestEl) return;
+    suggestEl.hidden = false;
+    suggestEl.innerHTML = '<p class="yb-admin__muted">Generating quick replies...</p>';
+
+    var commentText = '';
+    var sentiment = '';
+
+    if (thread.type === 'comment') {
+      var comment = inboxState.comments.find(function (c) { return c.commentId === thread.id; });
+      if (comment) {
+        commentText = comment.text || '';
+        sentiment = comment._sentiment ? comment._sentiment.sentiment : '';
+      }
+    } else {
+      var conv = inboxState.conversations.find(function (c) { return c.conversationId === thread.id; });
+      if (conv) commentText = conv.lastMessage || '';
+    }
+
+    if (!savedRepliesState.loaded) await loadSavedReplies();
+
+    var data = await api('social-ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'auto-reply-suggest',
+        comment: commentText,
+        platform: thread.platform,
+        sentiment: sentiment,
+        savedReplies: savedRepliesState.replies.slice(0, 5)
+      })
+    });
+
+    if (!data || !data.replies) {
+      suggestEl.innerHTML = '<p class="yb-admin__muted">Could not generate suggestions.</p>';
+      return;
+    }
+
+    suggestEl.innerHTML = data.replies.map(function (r, i) {
+      return '<button type="button" class="yb-social__auto-reply-option" data-action="social-use-auto-reply" data-index="' + i + '" data-panel-id="' + pid + '">' +
+        '<span class="yb-social__auto-reply-text">' + escapeHtml(r.text) + '</span>' +
+        '<span class="yb-social__auto-reply-style">' + (r.style || '') + '</span>' +
+      '</button>';
+    }).join('') +
+    '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-auto-reply-close" data-panel-id="' + pid + '" style="margin-top:6px">Close</button>';
+
+    suggestEl._replies = data.replies;
+  }
+
+  function useAutoReply(index, panelId) {
+    var pid = panelId || (inboxState.activeThread ? inboxState.activeThread.panelId : null);
+    var suggestEl = pid ? getSuggestionsElForPanel(pid) : null;
+    if (!suggestEl || !suggestEl._replies) return;
+    var r = suggestEl._replies[index];
+    if (!r) return;
+
+    var replyEl = pid ? getReplyElForPanel(pid) : null;
+    if (replyEl) {
+      replyEl.value = r.text;
+      replyEl.focus();
+    }
+    suggestEl.hidden = true;
+  }
+
+  /* ═══ LOADING STATE HELPER ═══ */
+  function setLoading(btn, loading, originalText) {
+    if (!btn) return;
+    if (loading) {
+      btn._origText = btn._origText || btn.textContent;
+      btn.classList.add('yb-social__btn-loading');
+      btn.disabled = true;
+      if (originalText !== false) btn.textContent = originalText || 'Loading...';
+    } else {
+      btn.classList.remove('yb-social__btn-loading');
+      btn.disabled = false;
+      if (btn._origText) { btn.textContent = btn._origText; btn._origText = null; }
+    }
+  }
+
+  /* ═══ IMPORT EXISTING POSTS FROM PLATFORMS ═══ */
+  /* ═══ CROSS-SHARE ENGINE ═══ */
+
+  // Platform compatibility rules
+  var PLATFORM_RULES = {
+    instagram: {
+      label: 'Instagram', abbr: 'IG',
+      mediaTypes: ['image', 'video', 'carousel'],
+      maxVideoDuration: 90,        // Reels: 90s (feed: 60min but reels are the main format)
+      maxImageRatio: 1.91,         // landscape max (1.91:1)
+      minImageRatio: 0.8,          // portrait min (4:5)
+      videoRatios: [0.5625, 1],    // 9:16 (reels), 1:1
+      maxCaptionLength: 2200,
+      maxHashtags: 30,
+      supportsCarousel: true,
+      requiresMedia: true
+    },
+    tiktok: {
+      label: 'TikTok', abbr: 'TT',
+      mediaTypes: ['video'],
+      maxVideoDuration: 600,       // 10 minutes
+      videoRatios: [0.5625],       // 9:16 only
+      maxCaptionLength: 4000,
+      maxHashtags: 100,
+      supportsCarousel: false,
+      requiresMedia: true,
+      videoOnly: true
+    },
+    facebook: {
+      label: 'Facebook', abbr: 'FB',
+      mediaTypes: ['image', 'video', 'carousel', 'text'],
+      maxVideoDuration: 14400,     // 4 hours
+      maxImageRatio: 4,
+      minImageRatio: 0.25,
+      maxCaptionLength: 63206,
+      maxHashtags: 100,
+      supportsCarousel: true,
+      requiresMedia: false
+    },
+    linkedin: {
+      label: 'LinkedIn', abbr: 'LI',
+      mediaTypes: ['image', 'video', 'text'],
+      maxVideoDuration: 600,       // 10 minutes
+      maxImageRatio: 3,
+      minImageRatio: 0.33,
+      maxCaptionLength: 3000,
+      maxHashtags: 30,
+      supportsCarousel: false,
+      requiresMedia: false
+    },
+    youtube: {
+      label: 'YouTube', abbr: 'YT',
+      mediaTypes: ['video'],
+      maxVideoDuration: 43200,     // 12 hours
+      videoRatios: [0.5625, 1.778],// 9:16 (shorts), 16:9
+      maxCaptionLength: 5000,
+      maxHashtags: 15,
+      supportsCarousel: false,
+      requiresMedia: true,
+      videoOnly: true
+    }
+  };
+
+  // Cross-share state
+  var crossShareState = {
+    sourcePlatform: 'instagram',
+    targetPlatform: 'all',
+    compatOnly: true,
+    selectedIds: [],
+    posts: []
+  };
+
+  /**
+   * Check if a post is compatible with a target platform
+   * Returns { compatible, warnings[], blockers[] }
+   */
+  function checkCompatibility(post, targetPlatform) {
+    var rules = PLATFORM_RULES[targetPlatform];
+    if (!rules) return { compatible: false, warnings: [], blockers: ['Unknown platform'] };
+
+    // Skip if already on that platform
+    if ((post.platforms || []).indexOf(targetPlatform) !== -1) {
+      return { compatible: false, warnings: [], blockers: ['Already posted on ' + rules.label] };
+    }
+
+    var blockers = [];
+    var warnings = [];
+    var mediaType = post.mediaType || 'image';
+    var hasMedia = post.media && post.media.length > 0 && post.media[0];
+
+    // Check: video-only platforms
+    if (rules.videoOnly && mediaType !== 'video') {
+      blockers.push(rules.label + ' requires video content');
+    }
+
+    // Check: media required
+    if (rules.requiresMedia && !hasMedia) {
+      blockers.push(rules.label + ' requires media');
+    }
+
+    // Check: carousel support
+    if (post.media && post.media.length > 1 && !rules.supportsCarousel) {
+      warnings.push(rules.label + ' doesn\'t support carousels — only first image will be used');
+    }
+
+    // Check: caption length
+    var captionLen = (post.caption || '').length;
+    if (captionLen > rules.maxCaptionLength) {
+      warnings.push('Caption exceeds ' + rules.label + ' limit (' + captionLen + '/' + rules.maxCaptionLength + ')');
+    }
+
+    // Check: hashtag count
+    var hashtagCount = (post.hashtags || []).length;
+    if (hashtagCount > rules.maxHashtags) {
+      warnings.push('Too many hashtags for ' + rules.label + ' (' + hashtagCount + '/' + rules.maxHashtags + ')');
+    }
+
+    // Check: video duration
+    if (mediaType === 'video' && post.videoDuration) {
+      if (post.videoDuration > rules.maxVideoDuration) {
+        blockers.push('Video too long for ' + rules.label + ' (max ' + formatDuration(rules.maxVideoDuration) + ')');
+      }
+    }
+
+    return {
+      compatible: blockers.length === 0,
+      warnings: warnings,
+      blockers: blockers
+    };
+  }
+
+  /**
+   * Get compatibility info for a post across all target platforms
+   */
+  function getPostCompatibility(post) {
+    var results = {};
+    var platforms = Object.keys(PLATFORM_RULES);
+    for (var i = 0; i < platforms.length; i++) {
+      var p = platforms[i];
+      results[p] = checkCompatibility(post, p);
+    }
+    return results;
+  }
+
+  /**
+   * Load and render the cross-share view
+   */
+  async function loadCrossShare() {
+    // Make sure posts are loaded
+    if (!state.allPosts || state.allPosts.length === 0) {
+      var data = await api('social-posts?action=list');
+      if (data) state.allPosts = data.posts || [];
+    }
+    crossShareState.selectedIds = [];
+    renderCrossShare();
+  }
+
+  function renderCrossShare() {
+    var grid = $('yb-crossshare-grid');
+    if (!grid) return;
+
+    var all = state.allPosts || [];
+    var src = crossShareState.sourcePlatform;
+    var tgt = crossShareState.targetPlatform;
+    var compatOnly = crossShareState.compatOnly;
+
+    // Filter to source platform posts
+    var sourcePosts = all.filter(function (p) {
+      return (p.platforms || []).indexOf(src) !== -1;
+    });
+
+    // Calculate compatibility for each post
+    var postsWithCompat = sourcePosts.map(function (p) {
+      var compat = getPostCompatibility(p);
+      // For "all" target, count how many platforms it can go to
+      var compatCount = 0;
+      var targetPlatforms = Object.keys(PLATFORM_RULES).filter(function (k) { return k !== src; });
+      targetPlatforms.forEach(function (tp) {
+        if (compat[tp].compatible) compatCount++;
+      });
+      return { post: p, compat: compat, compatCount: compatCount };
+    });
+
+    // Filter by target platform compatibility
+    if (tgt !== 'all' && compatOnly) {
+      postsWithCompat = postsWithCompat.filter(function (item) {
+        return item.compat[tgt] && item.compat[tgt].compatible;
+      });
+    } else if (tgt !== 'all') {
+      // Show all but sort compatible first
+      postsWithCompat.sort(function (a, b) {
+        var aOk = a.compat[tgt] && a.compat[tgt].compatible ? 1 : 0;
+        var bOk = b.compat[tgt] && b.compat[tgt].compatible ? 1 : 0;
+        return bOk - aOk;
+      });
+    }
+
+    crossShareState.posts = postsWithCompat;
+
+    // Update source tabs with counts
+    qsa('#yb-crossshare-source-tabs .yb-social__filter-btn').forEach(function (btn) {
+      var p = btn.getAttribute('data-platform');
+      var count = all.filter(function (post) { return (post.platforms || []).indexOf(p) !== -1; }).length;
+      var label = PLATFORM_RULES[p] ? PLATFORM_RULES[p].abbr : p;
+      btn.textContent = label + ' (' + count + ')';
+      btn.classList.toggle('is-active', p === src);
+    });
+
+    // Update target tabs — hide source platform, show compatible counts
+    qsa('#yb-crossshare-target .yb-social__platform-filter-btn').forEach(function (btn) {
+      var p = btn.getAttribute('data-platform');
+      btn.classList.toggle('is-active', p === tgt);
+      if (p === 'all' || p === src) {
+        btn.hidden = (p === src);
+        return;
+      }
+      // Count how many source posts are compatible with this target
+      var compatCount = 0;
+      sourcePosts.forEach(function (post) {
+        var c = checkCompatibility(post, p);
+        if (c.compatible) compatCount++;
+      });
+      var label = PLATFORM_RULES[p] ? PLATFORM_RULES[p].label : p;
+      btn.textContent = label + ' (' + compatCount + ')';
+    });
+
+    // Update counts
+    var countEl = $('yb-crossshare-count');
+    if (countEl) countEl.textContent = postsWithCompat.length + ' posts';
+
+    // Update share button
+    updateCrossShareBtn();
+
+    if (postsWithCompat.length === 0) {
+      grid.innerHTML = '<p class="yb-admin__muted">No ' + (compatOnly ? 'compatible ' : '') + 'posts found from ' +
+        (PLATFORM_RULES[src] ? PLATFORM_RULES[src].label : src) +
+        (tgt !== 'all' ? ' for ' + (PLATFORM_RULES[tgt] ? PLATFORM_RULES[tgt].label : tgt) : '') + '.</p>';
+      return;
+    }
+
+    grid.innerHTML = postsWithCompat.map(function (item) {
+      var p = item.post;
+      var isSelected = crossShareState.selectedIds.indexOf(p.id) !== -1;
+
+      // Thumbnail
+      var thumb = '';
+      if (p.media && p.media[0]) {
+        thumb = '<img src="' + p.media[0] + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.yb-social__crossshare-fallback\').style.display=\'flex\'">' +
+          '<span class="yb-social__crossshare-fallback" style="display:none">' +
+          (p.mediaType === 'video' ? '🎬' : '📝') + '</span>';
+      } else {
+        thumb = '<span class="yb-social__crossshare-fallback">📝</span>';
+      }
+
+      // Media type badge
+      var typeBadge = '<span class="yb-social__crossshare-type yb-social__crossshare-type--' + (p.mediaType || 'image') + '">' +
+        (p.mediaType === 'video' ? '🎬 Video' : p.media && p.media.length > 1 ? '📷 Carousel (' + p.media.length + ')' : '📷 Image') + '</span>';
+
+      // Compatibility badges for each target platform
+      var compatBadges = '';
+      var targetPlatforms = Object.keys(PLATFORM_RULES).filter(function (k) { return k !== src; });
+      if (tgt === 'all') {
+        compatBadges = targetPlatforms.map(function (tp) {
+          var c = item.compat[tp];
+          var cls = c.compatible ? (c.warnings.length ? 'warn' : 'ok') : 'no';
+          var title = c.compatible ?
+            (c.warnings.length ? c.warnings.join('; ') : 'Compatible') :
+            c.blockers.join('; ');
+          return '<span class="yb-social__compat-badge yb-social__compat-badge--' + cls + '" title="' + escapeAttr(title) + '">' +
+            PLATFORM_RULES[tp].abbr +
+            (cls === 'ok' ? ' ✓' : cls === 'warn' ? ' ⚠' : ' ✕') + '</span>';
+        }).join('');
+      } else {
+        var c = item.compat[tgt];
+        if (c) {
+          var cls = c.compatible ? (c.warnings.length ? 'warn' : 'ok') : 'no';
+          var msgs = c.compatible ? c.warnings : c.blockers;
+          compatBadges = '<span class="yb-social__compat-badge yb-social__compat-badge--' + cls + '">' +
+            (cls === 'ok' ? '✓ Compatible' : cls === 'warn' ? '⚠ ' + msgs[0] : '✕ ' + msgs[0]) + '</span>';
+        }
+      }
+
+      // Determine if this post can be selected (has at least one compatible target)
+      var canSelect = tgt === 'all' ? item.compatCount > 0 :
+        (item.compat[tgt] && item.compat[tgt].compatible);
+
+      return '<div class="yb-social__crossshare-card' + (isSelected ? ' is-selected' : '') + (canSelect ? '' : ' is-incompatible') + '">' +
+        '<label class="yb-social__crossshare-check">' +
+        '<input type="checkbox" data-action="social-crossshare-toggle" data-id="' + p.id + '"' +
+        (isSelected ? ' checked' : '') + (canSelect ? '' : ' disabled') + '>' +
+        '</label>' +
+        '<div class="yb-social__crossshare-thumb">' + thumb + typeBadge + '</div>' +
+        '<div class="yb-social__crossshare-body">' +
+        '<p class="yb-social__crossshare-caption">' + truncate(p.caption, 100) + '</p>' +
+        '<div class="yb-social__crossshare-compat">' + compatBadges + '</div>' +
+        '<div class="yb-social__crossshare-meta">' +
+        '<span>' + fmtDate(p.publishedAt || p.createdAt) + '</span>' +
+        (p.importedMetrics ? '<span>❤ ' + (p.importedMetrics.likes || 0) + '</span>' : '') +
+        '</div>' +
+        '</div>' +
+        '<button class="yb-social__btn-sm yb-social__crossshare-single" data-action="social-crossshare-one" data-id="' + p.id + '"' +
+        (canSelect ? '' : ' disabled') + '>Share →</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function escapeAttr(s) {
+    return (s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  function updateCrossShareBtn() {
+    var btn = $('yb-crossshare-share-btn');
+    if (!btn) return;
+    var count = crossShareState.selectedIds.length;
+    btn.textContent = 'Share Selected (' + count + ')';
+    btn.disabled = count === 0;
+  }
+
+  function toggleCrossShareSelect(id) {
+    var idx = crossShareState.selectedIds.indexOf(id);
+    if (idx === -1) crossShareState.selectedIds.push(id);
+    else crossShareState.selectedIds.splice(idx, 1);
+    updateCrossShareBtn();
+    // Update card visual
+    var card = document.querySelector('.yb-social__crossshare-card input[data-id="' + id + '"]');
+    if (card) card.closest('.yb-social__crossshare-card').classList.toggle('is-selected', idx === -1);
+  }
+
+  /**
+   * Open cross-share modal for one or multiple posts
+   */
+  function openCrossShareModal(postIds) {
+    var modal = $('yb-crossshare-modal');
+    var body = $('yb-crossshare-modal-body');
+    var title = $('yb-crossshare-modal-title');
+    if (!modal || !body) return;
+
+    var allPosts = state.allPosts || [];
+    var posts = postIds.map(function (id) {
+      return allPosts.find(function (p) { return p.id === id; });
+    }).filter(Boolean);
+
+    if (posts.length === 0) { toast('No posts selected', true); return; }
+
+    var src = crossShareState.sourcePlatform;
+    var tgt = crossShareState.targetPlatform;
+    var isBulk = posts.length > 1;
+
+    title.textContent = isBulk ? 'Cross-Share ' + posts.length + ' Posts' : 'Cross-Share Post';
+
+    // Determine available targets
+    var targetPlatforms = tgt !== 'all' ? [tgt] :
+      Object.keys(PLATFORM_RULES).filter(function (k) { return k !== src; });
+
+    // For bulk, find which targets ALL selected posts are compatible with
+    if (isBulk) {
+      targetPlatforms = targetPlatforms.filter(function (tp) {
+        return posts.every(function (p) {
+          return checkCompatibility(p, tp).compatible;
+        });
+      });
+    }
+
+    if (targetPlatforms.length === 0) {
+      body.innerHTML = '<p class="yb-admin__muted">No compatible platforms found for the selected posts.</p>';
+      $('yb-crossshare-confirm-btn').disabled = true;
+      modal.hidden = false;
+      return;
+    }
+
+    // Build modal content
+    var html = '';
+
+    // Target platform checkboxes
+    html += '<div class="yb-social__crossshare-targets">' +
+      '<label style="font-weight:600;font-size:13px;margin-bottom:8px;display:block">Share to:</label>' +
+      targetPlatforms.map(function (tp) {
+        var rules = PLATFORM_RULES[tp];
+        return '<label class="yb-social__crossshare-target-check">' +
+          '<input type="checkbox" name="crossshare-target" value="' + tp + '" checked> ' +
+          '<span class="yb-social__post-platform-icon yb-social__post-platform-icon--' + tp + '">' + rules.abbr + '</span> ' + rules.label +
+          '</label>';
+      }).join('') +
+      '</div>';
+
+    // Caption editor
+    if (isBulk) {
+      html += '<div class="yb-social__crossshare-bulk-info">' +
+        '<p style="font-size:13px;color:var(--yb-muted);margin:12px 0 8px">Bulk mode: each post keeps its original caption. You can modify captions individually after creation.</p>' +
+        '<div class="yb-social__crossshare-post-list">' +
+        posts.map(function (p) {
+          return '<div class="yb-social__crossshare-post-item">' +
+            (p.media && p.media[0] ? '<img src="' + p.media[0] + '" width="40" height="40" style="object-fit:cover;border-radius:6px" onerror="this.style.display=\'none\'">' : '') +
+            '<span>' + truncate(p.caption, 60) + '</span>' +
+            '</div>';
+        }).join('') +
+        '</div></div>';
+    } else {
+      var post = posts[0];
+      html += '<div class="yb-social__crossshare-caption-edit" style="margin-top:12px">' +
+        '<label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Caption:</label>' +
+        '<textarea id="yb-crossshare-caption" class="yb-social__input" rows="4" style="width:100%;font-size:13px">' + escapeHtml(post.caption || '') + '</textarea>' +
+        '<p style="font-size:11px;color:var(--yb-muted);margin-top:4px">Tip: modify the caption for the target platform. Hashtags will be preserved.</p>' +
+        '</div>';
+
+      // Preview
+      if (post.media && post.media[0]) {
+        html += '<div style="margin-top:12px">' +
+          '<img src="' + post.media[0] + '" style="max-width:200px;border-radius:8px" onerror="this.style.display=\'none\'">' +
+          '</div>';
+      }
+    }
+
+    // Status selector
+    html += '<div style="margin-top:12px">' +
+      '<label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px">Post status:</label>' +
+      '<select id="yb-crossshare-status" class="yb-admin__select" style="width:auto">' +
+      '<option value="draft">Draft — review before publishing</option>' +
+      '<option value="scheduled">Scheduled — set time to publish</option>' +
+      '</select></div>';
+
+    body.innerHTML = html;
+
+    // Store data for confirm handler
+    modal._postIds = postIds;
+    modal._posts = posts;
+    $('yb-crossshare-confirm-btn').disabled = false;
+    modal.hidden = false;
+  }
+
+  /**
+   * Confirm cross-share — create new posts for each target platform
+   */
+  async function confirmCrossShare() {
+    var modal = $('yb-crossshare-modal');
+    if (!modal || !modal._posts) return;
+
+    var posts = modal._posts;
+    var selectedTargets = [];
+    qsa('#yb-crossshare-modal-body input[name="crossshare-target"]:checked').forEach(function (cb) {
+      selectedTargets.push(cb.value);
+    });
+
+    if (selectedTargets.length === 0) { toast('Select at least one target platform', true); return; }
+
+    var statusEl = $('yb-crossshare-status');
+    var postStatus = statusEl ? statusEl.value : 'draft';
+    var captionEl = $('yb-crossshare-caption');
+    var customCaption = captionEl ? captionEl.value : null;
+
+    var confirmBtn = $('yb-crossshare-confirm-btn');
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Creating...'; }
+
+    var created = 0;
+    var errors = 0;
+
+    for (var i = 0; i < posts.length; i++) {
+      var post = posts[i];
+      var caption = (posts.length === 1 && customCaption !== null) ? customCaption : post.caption;
+
+      for (var j = 0; j < selectedTargets.length; j++) {
+        var target = selectedTargets[j];
+        var rules = PLATFORM_RULES[target];
+
+        // Trim caption if needed
+        if (caption.length > rules.maxCaptionLength) {
+          caption = caption.substring(0, rules.maxCaptionLength - 3) + '...';
+        }
+
+        // Trim hashtags if needed
+        var hashtags = (post.hashtags || []).slice(0, rules.maxHashtags);
+
+        var newPost = {
+          action: 'create',
+          caption: caption,
+          platforms: [target],
+          media: post.media || [],
+          mediaType: post.mediaType || 'image',
+          hashtags: hashtags,
+          status: postStatus,
+          crossSharedFrom: { postId: post.id, platform: (post.platforms || [])[0] || '' }
+        };
+
+        try {
+          var data = await api('social-posts', {
+            method: 'POST',
+            body: JSON.stringify(newPost)
+          });
+          if (data && data.id) created++;
+          else errors++;
+        } catch (e) {
+          errors++;
+        }
+      }
+    }
+
+    toast('Created ' + created + ' cross-shared post' + (created !== 1 ? 's' : '') +
+      (errors > 0 ? ' (' + errors + ' failed)' : ''));
+
+    modal.hidden = true;
+    crossShareState.selectedIds = [];
+
+    // Reload posts
+    var refreshData = await api('social-posts?action=list');
+    if (refreshData) {
+      state.allPosts = refreshData.posts || [];
+      renderCrossShare();
+    }
+  }
+
+  async function importExistingPosts(platform) {
+    var btn = document.querySelector('[data-action="social-import-posts"][data-platform="' + platform + '"]');
+    setLoading(btn, true, 'Importing...');
+    toast('Fetching ' + platform + ' posts...');
+
+    var data = await api('social-posts?action=import-from-platform', {
+      method: 'POST',
+      body: JSON.stringify({ platform: platform })
+    });
+
+    setLoading(btn, false);
+
+    if (data && data.imported) {
+      toast('Imported ' + data.imported + ' posts from ' + platform);
+      // Reload all posts
+      var d2 = await api('social-posts?action=list');
+      if (d2) { state.allPosts = d2.posts || []; renderPosts(); }
+    } else if (data && data.imported === 0) {
+      toast('No new posts to import');
+    }
+  }
+
+  async function refreshExpiredMedia(platform, btn) {
+    setLoading(btn, true, 'Fixing...');
+    toast('Re-downloading ' + platform + ' images to Bunny CDN...');
+    var data = await api('social-posts?action=refresh-media', {
+      method: 'POST',
+      body: JSON.stringify({ platform: platform })
+    });
+    setLoading(btn, false);
+    if (data) {
+      toast('Fixed ' + (data.refreshed || 0) + ' of ' + (data.total || 0) + ' images');
+      if (data.refreshed > 0) {
+        var d2 = await api('social-posts?action=list');
+        if (d2) { state.allPosts = d2.posts || []; renderPosts(); }
+      }
+    }
+  }
+
   /* ═══ EXPORT FOR COMPOSER ═══ */
   window._ybSocial = {
     state: state,
@@ -2813,6 +5784,8 @@
     else if (action === 'social-nav-templates') showView('templates');
     else if (action === 'social-nav-competitors') showView('competitors');
     else if (action === 'social-nav-abtesting') showView('abtesting');
+    else if (action === 'social-nav-library') showView('library');
+    else if (action === 'social-nav-stories') showView('stories');
 
     // Accounts
     else if (action === 'social-connect') connectAccount(btn.getAttribute('data-platform'));
@@ -2845,24 +5818,88 @@
     // Posts
     else if (action === 'social-filter-status') {
       state.postsFilter = btn.getAttribute('data-status');
-      qsa('.yb-social__filter-btn').forEach(function (b) {
+      qsa('#yb-social-v-posts .yb-social__filter-btn[data-action="social-filter-status"]').forEach(function (b) {
         b.classList.toggle('is-active', b.getAttribute('data-status') === state.postsFilter);
       });
-      loadPosts();
+      renderPosts();
     }
+    else if (action === 'social-filter-platform') {
+      state.postsPlatform = btn.getAttribute('data-platform') || 'all';
+      renderPosts();
+    }
+    else if (action === 'social-import-posts') {
+      importExistingPosts(btn.getAttribute('data-platform'));
+    }
+    else if (action === 'social-refresh-media') {
+      refreshExpiredMedia(btn.getAttribute('data-platform'), btn);
+    }
+
+    // Cross-share actions
+    else if (action === 'social-crossshare-source') {
+      crossShareState.sourcePlatform = btn.getAttribute('data-platform');
+      crossShareState.selectedIds = [];
+      renderCrossShare();
+    }
+    else if (action === 'social-crossshare-target') {
+      crossShareState.targetPlatform = btn.getAttribute('data-platform') || 'all';
+      crossShareState.selectedIds = [];
+      renderCrossShare();
+    }
+    else if (action === 'social-crossshare-toggle') {
+      toggleCrossShareSelect(btn.getAttribute('data-id'));
+    }
+    else if (action === 'social-crossshare-select-all') {
+      var allChecked = btn.checked;
+      crossShareState.selectedIds = [];
+      if (allChecked) {
+        (crossShareState.posts || []).forEach(function (item) {
+          var tgt = crossShareState.targetPlatform;
+          var canSelect = tgt === 'all' ? item.compatCount > 0 :
+            (item.compat[tgt] && item.compat[tgt].compatible);
+          if (canSelect) crossShareState.selectedIds.push(item.post.id);
+        });
+      }
+      renderCrossShare();
+    }
+    else if (action === 'social-crossshare-one') {
+      openCrossShareModal([btn.getAttribute('data-id')]);
+    }
+    else if (action === 'social-crossshare-selected') {
+      if (crossShareState.selectedIds.length > 0) openCrossShareModal(crossShareState.selectedIds);
+    }
+    else if (action === 'social-crossshare-modal-close') {
+      var csm = $('yb-crossshare-modal');
+      if (csm) csm.hidden = true;
+    }
+    else if (action === 'social-crossshare-confirm') {
+      confirmCrossShare();
+    }
+
+    else if (action === 'social-play-reel') playReelFromList(btn);
+    else if (action === 'social-close-video-player') { var vp = document.getElementById('yb-social-video-player'); if (vp) vp.remove(); }
     else if (action === 'social-delete-post') deletePost(btn.getAttribute('data-id'));
     else if (action === 'social-duplicate-post') duplicatePost(btn.getAttribute('data-id'));
     else if (action === 'social-publish-now') publishNow(btn.getAttribute('data-id'));
     else if (action === 'social-submit-review') submitForReview(btn.getAttribute('data-id'));
     else if (action === 'social-approve-post') approvePost(btn.getAttribute('data-id'));
     else if (action === 'social-recycle-post') recyclePost(btn.getAttribute('data-id'));
+    else if (action === 'social-preview-link') generatePreviewLink(btn.getAttribute('data-id'));
+    else if (action === 'social-recurring-schedule') openRecurringScheduler(btn.getAttribute('data-id'));
+    else if (action === 'social-save-recurring') saveRecurringSchedule(btn.getAttribute('data-id'));
+    else if (action === 'social-close-recurring-modal') { var rm = document.getElementById('yb-social-recurring-modal'); if (rm) rm.remove(); }
+    else if (action === 'social-close-preview-modal') { var pm = document.getElementById('yb-social-preview-modal'); if (pm) pm.remove(); }
+    else if (action === 'social-copy-preview-link') {
+      var urlEl = document.getElementById('yb-social-preview-url');
+      if (urlEl) { urlEl.select(); document.execCommand('copy'); toast('Link copied!'); }
+    }
+    else if (action === 'social-recurring-toggle-day') btn.classList.toggle('is-active');
 
-    // Bulk actions
-    else if (action === 'social-toggle-select') togglePostSelect(btn.getAttribute('data-id'));
+    // Bulk actions (social-toggle-select handled in change listener only to avoid double-toggle)
     else if (action === 'social-bulk-schedule') bulkSchedule();
     else if (action === 'social-bulk-approve') bulkApprove();
     else if (action === 'social-bulk-duplicate') bulkDuplicate();
     else if (action === 'social-bulk-delete') bulkDelete();
+    else if (action === 'social-bulk-smart-schedule') smartScheduleSelected();
     else if (action === 'social-bulk-clear') clearSelection();
 
     // Hashtags
@@ -2878,15 +5915,23 @@
 
     // Inbox
     else if (action === 'social-inbox-tab') switchInboxTab(btn.getAttribute('data-tab'));
+    else if (action === 'social-inbox-platform-filter') {
+      inboxState.platformFilter = btn.getAttribute('data-platform') || 'all';
+      renderInbox();
+    }
     else if (action === 'social-inbox-refresh') loadInbox();
     else if (action === 'social-inbox-mark-all-read') markAllRead();
     else if (action === 'social-inbox-open-comment') openCommentThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
     else if (action === 'social-inbox-open-conversation') openConversationThread(btn.getAttribute('data-id'), btn.getAttribute('data-platform'), btn.getAttribute('data-inbox-id'));
-    else if (action === 'social-inbox-close-thread') closeThread();
-    else if (action === 'social-inbox-send-reply') sendReply();
-    else if (action === 'social-ai-draft-reply') aiDraftReply();
-    else if (action === 'social-ai-use-reply') useAiReply(btn.getAttribute('data-index'));
-    else if (action === 'social-inbox-create-lead') createLeadFromInbox();
+    else if (action === 'social-inbox-close-thread') closeThread(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-inbox-send-reply') sendReply(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-ai-draft-reply') aiDraftReply(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-ai-use-reply') useAiReply(btn.getAttribute('data-index'), btn.getAttribute('data-panel-id'));
+    else if (action === 'social-inbox-sentiment-filter') filterInboxBySentiment(btn.getAttribute('data-filter'));
+    else if (action === 'social-inbox-analyze-sentiment') analyzeInboxSentiment();
+    else if (action === 'social-inbox-create-lead') { var cpid = btn.getAttribute('data-panel-id'); if (cpid) setActiveThread(cpid); createLeadFromInbox(); }
+    else if (action === 'social-lead-modal-save') saveLeadFromModal();
+    else if (action === 'social-lead-modal-close') { var lm = document.getElementById('yb-social-lead-modal'); if (lm) lm.remove(); }
 
     // Mentions
     else if (action === 'social-mention-open') openMention(btn.getAttribute('data-id'));
@@ -2922,6 +5967,20 @@
     else if (action === 'social-competitors-save') addCompetitor();
     else if (action === 'social-competitors-remove') removeCompetitor(btn.getAttribute('data-id'));
     else if (action === 'social-competitors-refresh') refreshCompetitors();
+    else if (action === 'social-ai-suggest-competitors') aiSuggestCompetitors();
+    else if (action === 'social-ai-competitor-close') { var m = document.getElementById('yb-social-ai-competitor-modal'); if (m) m.remove(); }
+    else if (action === 'social-ai-competitor-search') aiCompetitorSearch();
+    else if (action === 'social-ai-comp-cat') btn.classList.toggle('is-active');
+    else if (action === 'social-ai-comp-scope') {
+      qsa('#yb-ai-comp-scope .yb-social__ai-comp-chip').forEach(function (c) { c.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+    }
+    else if (action === 'social-ai-competitor-add') {
+      addCompetitorDirect(btn.getAttribute('data-handle'), btn.getAttribute('data-platform'), btn.getAttribute('data-name'));
+      btn.disabled = true; btn.textContent = '✓';
+    }
+    else if (action === 'social-ai-content-strategy') aiCompetitorContentStrategy();
+    else if (action === 'social-ai-strategy-close') { var m = document.getElementById('yb-social-ai-strategy-modal'); if (m) m.remove(); }
 
     // A/B Testing
     else if (action === 'social-ab-create') showAbCreateModal();
@@ -2939,6 +5998,103 @@
     else if (action === 'social-ab-update-metrics') showMetricsPrompt(btn.getAttribute('data-test-id'), btn.getAttribute('data-variant'));
     else if (action === 'social-ab-declare-winner') declareWinner(btn.getAttribute('data-test-id'), btn.getAttribute('data-variant'));
     else if (action === 'social-ab-delete') deleteAbTest(btn.getAttribute('data-id'));
+
+    // Saved Replies
+    else if (action === 'social-saved-replies-toggle') toggleSavedRepliesDropdown(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-use-saved-reply') useSavedReply(btn.getAttribute('data-id'), btn.getAttribute('data-panel-id'));
+    else if (action === 'social-save-reply-template') saveCurrentReplyAsTemplate(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-auto-reply-suggest') aiAutoReplySuggest(btn.getAttribute('data-panel-id'));
+    else if (action === 'social-use-auto-reply') useAutoReply(parseInt(btn.getAttribute('data-index')), btn.getAttribute('data-panel-id'));
+    else if (action === 'social-auto-reply-close') { var pid = btn.getAttribute('data-panel-id'); var s = pid ? getSuggestionsElForPanel(pid) : null; if (s) s.hidden = true; }
+
+    // Content Library
+    else if (action === 'social-library-filter-tag') {
+      libraryState.activeTag = libraryState.activeTag === btn.getAttribute('data-tag') ? '' : btn.getAttribute('data-tag');
+      loadContentLibrary();
+    }
+    else if (action === 'social-library-filter-collection') {
+      libraryState.activeCollection = libraryState.activeCollection === btn.getAttribute('data-id') ? '' : btn.getAttribute('data-id');
+      loadContentLibrary();
+    }
+    else if (action === 'social-library-new-collection') createLibraryCollection();
+    else if (action === 'social-library-edit-asset') showAssetEditor(btn.getAttribute('data-url'));
+    else if (action === 'social-library-save-asset') { saveAssetMeta(btn.getAttribute('data-url')); }
+    else if (action === 'social-library-close-editor') { var ed = document.getElementById('yb-social-asset-editor'); if (ed) ed.remove(); }
+    else if (action === 'social-library-search') {
+      libraryState.search = ($('yb-social-library-search') || {}).value || '';
+      loadContentLibrary();
+    }
+    else if (action === 'social-library-clear-filters') {
+      libraryState.activeTag = ''; libraryState.activeCollection = ''; libraryState.search = '';
+      var searchEl = $('yb-social-library-search'); if (searchEl) searchEl.value = '';
+      loadContentLibrary();
+    }
+
+    // Video Upload & Editor
+    else if (action === 'social-video-browse') { var fi = $('yb-social-video-file'); if (fi) fi.click(); }
+    else if (action === 'social-video-edit') openVideoEditor(btn.getAttribute('data-id'));
+    else if (action === 'social-video-use') useVideoInPost(btn.getAttribute('data-id'));
+    else if (action === 'social-video-delete') deleteVideo(btn.getAttribute('data-id'));
+    else if (action === 'social-video-editor-close') closeVideoEditor();
+    else if (action === 'social-video-use-in-post') useVideoInPost();
+    else if (action === 'social-video-capture-thumb') captureCurrentFrame();
+    else if (action === 'social-video-select-thumb') selectThumbnail(btn.getAttribute('data-time'));
+    else if (action === 'social-video-aspect') setVideoAspect(btn.getAttribute('data-ratio'));
+
+    // Canva Design Studio
+    else if (action === 'social-canva-open') openCanvaStudio(btn.getAttribute('data-post-id') || null);
+    else if (action === 'social-canva-close') closeCanvaModal();
+    else if (action === 'social-canva-generate') generateCanvaDesign();
+    else if (action === 'social-canva-preset') applyCanvaPreset(btn.getAttribute('data-preset'));
+    else if (action === 'social-canva-back-to-brief') {
+      var brief = document.getElementById('yb-canva-step-brief');
+      var results = document.getElementById('yb-canva-step-results');
+      if (brief) brief.style.display = '';
+      if (results) results.style.display = 'none';
+    }
+    else if (action === 'social-canva-copy-request') {
+      var detail = document.querySelector('.yb-social__canva-request-detail');
+      if (detail) {
+        var text = detail.innerText;
+        navigator.clipboard.writeText(text).then(function () { toast('Copied!'); });
+      }
+    }
+
+    // Stories
+    else if (action === 'social-stories-filter') {
+      storiesState.filter = btn.getAttribute('data-filter') || 'all';
+      renderStories();
+    }
+    else if (action === 'social-new-story') openStoryComposer(null);
+    else if (action === 'social-story-edit') openStoryComposer(btn.getAttribute('data-id'));
+    else if (action === 'social-story-publish') publishStoryNow(btn.getAttribute('data-id'));
+    else if (action === 'social-story-delete') deleteStory(btn.getAttribute('data-id'));
+    else if (action === 'social-story-close') closeStoryModal();
+    else if (action === 'social-story-save-draft') saveStory(false);
+    else if (action === 'social-story-save-publish') saveStory(true);
+    else if (action === 'social-story-save-template-from') saveStoryAsTemplate(btn.getAttribute('data-id'));
+    else if (action === 'social-story-browse-media') storyBrowseMedia();
+    else if (action === 'social-story-toggle-sticker') btn.classList.toggle('is-active');
+    else if (action === 'social-story-use-template') useStoryTemplate(btn.getAttribute('data-id'));
+    else if (action === 'social-story-edit-template') {
+      var tpl = storiesState.templates.find(function (t) { return t.id === btn.getAttribute('data-id'); });
+      if (tpl) {
+        var name = prompt('Template name:', tpl.name);
+        if (name) {
+          api('social-stories', { method: 'POST', body: JSON.stringify({ action: 'update-template', id: tpl.id, name: name }) }).then(function () { loadStories(); });
+        }
+      }
+    }
+    else if (action === 'social-story-delete-template') deleteStoryTemplate(btn.getAttribute('data-id'));
+    else if (action === 'social-story-delete-highlight') deleteStoryHighlight(btn.getAttribute('data-id'));
+
+    // Content Calendar AI
+    else if (action === 'social-cal-ai-generate') aiGenerateCalendar();
+    else if (action === 'social-cal-ai-create-post') calAiCreatePost(parseInt(btn.getAttribute('data-index')));
+    else if (action === 'social-cal-ai-toggle') {
+      var panel = $('yb-social-cal-ai-panel');
+      if (panel) panel.hidden = !panel.hidden;
+    }
 
     // New post / Edit post — handled by composer
     else if (action === 'social-new-post' && window.openSocialComposer) {
@@ -2963,18 +6119,40 @@
       togglePostSelect(e.target.getAttribute('data-id'));
       e.stopPropagation();
     }
+    // Cross-share compat-only toggle
+    if (e.target.id === 'yb-crossshare-compat-only') {
+      crossShareState.compatOnly = e.target.checked;
+      crossShareState.selectedIds = [];
+      renderCrossShare();
+    }
+    // Cross-share individual toggle
+    if (e.target.getAttribute && e.target.getAttribute('data-action') === 'social-crossshare-toggle') {
+      toggleCrossShareSelect(e.target.getAttribute('data-id'));
+      e.stopPropagation();
+    }
+    // Trim time inputs
+    if (e.target.id === 'yb-social-trim-start-time') {
+      videoState.editorTrim.start = parseTimecode(e.target.value);
+      updateTrimDisplay();
+    }
+    if (e.target.id === 'yb-social-trim-end-time') {
+      videoState.editorTrim.end = parseTimecode(e.target.value);
+      updateTrimDisplay();
+    }
   });
 
   /* ═══ INIT ═══ */
   function init() {
     T = window._ybAdminT || {};
 
-    // Load posts on first init (needed for calendar)
+    // Load accounts + posts on first init so composer platforms work immediately
     firebase.auth().onAuthStateChanged(function (user) {
       if (!user) return;
+      // Pre-load accounts so platform toggles are enabled in composer
+      loadAccounts();
       // Pre-load posts for calendar dots
       api('social-posts?action=list').then(function (data) {
-        if (data) state.posts = data.posts || [];
+        if (data) { state.allPosts = data.posts || []; state.posts = state.allPosts; }
       });
     });
   }

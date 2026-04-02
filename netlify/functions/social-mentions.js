@@ -1,19 +1,11 @@
-/**
- * Social Mentions Monitor — Yoga Bible
- * Tracks @mentions, tagged posts, and brand keyword mentions across platforms.
- *
- * GET  /.netlify/functions/social-mentions?action=list[&days=7]
- * GET  /.netlify/functions/social-mentions?action=stats
- * POST /.netlify/functions/social-mentions  { action: 'refresh' }
- * POST /.netlify/functions/social-mentions  { action: 'mark-read', ids: [...] }
- * POST /.netlify/functions/social-mentions  { action: 'update-keywords', keywords: [...] }
- *
- * Also runs as a scheduled function every 2 hours to fetch new mentions.
- *
- * Configured in netlify.toml:
- *   [functions."social-mentions"]
- *     schedule = "0 */2 * * *"
- */
+// Social Mentions Monitor — Yoga Bible
+// Tracks @mentions, tagged posts, and brand keyword mentions across platforms.
+// GET  /.netlify/functions/social-mentions?action=list[&days=7]
+// GET  /.netlify/functions/social-mentions?action=stats
+// POST /.netlify/functions/social-mentions  { action: 'refresh' }
+// POST /.netlify/functions/social-mentions  { action: 'mark-read', ids: [...] }
+// POST /.netlify/functions/social-mentions  { action: 'update-keywords', keywords: [...] }
+// Also runs as a scheduled function every 2 hours: schedule = "0 */2 * * *"
 
 const { getDb, serverTimestamp } = require('./shared/firestore');
 const { requireAuth } = require('./shared/auth');

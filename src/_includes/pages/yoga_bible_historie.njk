@@ -96,10 +96,6 @@
       <blockquote class="ybh-philosophy__quote">{{ t.philosophy_quote }}</blockquote>
     </div>
   </div>
-  {# Scroll-draw vine connecting philosophy to essence #}
-  <svg class="ybh-vine ybh-vine--philosophy" viewBox="0 0 100 200" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true">
-    <path class="ybh-vine__path" d="M50 0 C50 40, 20 60, 50 100 S80 140, 50 200" stroke="var(--yb-brand)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-  </svg>
 </section>
 
 
@@ -168,7 +164,6 @@
         <p>{{ t.origin1_desc }}</p>
       </div>
 
-      {# SVG connecting arrow between cards #}
       <div class="ybh-origin__connector" aria-hidden="true">
         <svg viewBox="0 0 80 24" fill="none" width="80" height="24">
           <path d="M0 12h60M60 12l-8-6M60 12l-8 6" stroke="var(--yb-brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -179,7 +174,14 @@
         <span class="ybh-origin__year">{{ t.origin2_year }}</span>
         <h3 class="ybh-origin__name">{{ t.origin2_name }}</h3>
         <p>{{ t.origin2_desc }}</p>
-        <img src="{{ media.historie.certificate | cloudimg('w_200,q_auto') }}" alt="Yoga Alliance RYT-200" class="ybh-origin__badge" width="120" loading="lazy">
+      </div>
+    </div>
+
+    <div class="ybh-origin__cert ybh-scroll-reveal">
+      <img src="{{ media.historie.certificate | cloudimg('w_400,q_auto') }}" alt="Yoga Alliance RYT-200 Certificate" width="280" height="200" loading="lazy">
+      <div class="ybh-origin__cert-text">
+        <span class="ybh-origin__cert-label">Yoga Alliance (USA)</span>
+        <span class="ybh-origin__cert-sub">{{ t.origin_cert_label }}</span>
       </div>
     </div>
 
@@ -283,7 +285,7 @@
 <section class="ybh-testimonial">
   <div class="ybh-testimonial__inner">
     <div class="ybh-testimonial__media">
-      <video muted loop playsinline poster="{{ media.historie.testimonial | cloudvid('w_608,so_1,q_60') }}">
+      <video muted loop playsinline preload="metadata" poster="{{ media.historie.testimonial | cloudimg('w_608,q_60') }}">
         <source src="{{ media.historie.testimonial | cloudvid('w_608,q_auto') }}" type="video/mp4">
       </video>
       <button class="ybh-testimonial__play" aria-label="Play" type="button">
@@ -306,7 +308,18 @@
 </section>
 
 
-{# ═══ 9. FAQ — Two-Column Accordion ═══ #}
+{# ═══ 9. MEET THE TEACHERS — CTA to teachers page ═══ #}
+<section class="ybh-teachers">
+  <div class="container ybh-teachers__inner">
+    <p class="ybh-teachers__eyebrow">{{ t.teachers_eyebrow }}</p>
+    <h2 class="ybh-teachers__title">{{ t.teachers_title }}</h2>
+    <p class="ybh-teachers__text">{{ t.teachers_text }}</p>
+    <a href="{{ lp }}/meet-the-teachers" class="btn btn--large btn--primary">{{ t.teachers_btn }}</a>
+  </div>
+</section>
+
+
+{# ═══ 10. FAQ — Two-Column Accordion ═══ #}
 <section class="ybh-faq">
   <div class="container">
     <h2 class="ybh-faq__title">{{ t.faq_title }}</h2>

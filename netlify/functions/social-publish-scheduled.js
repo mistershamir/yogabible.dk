@@ -31,12 +31,21 @@ exports.handler = async () => {
     const now = new Date();
 
     // Find posts that are due for publishing
-    // Query for 'scheduled' posts first
-    const scheduledSnap = await db.collection(POSTS_COLLECTION)
-      .where('status', 'in', ['scheduled', 'approved'])
-      .where('scheduledAt', '<=', now)
-      .limit(10)
-      .get();
+    let scheduledSnap;
+    try {
+      scheduledSnap = await db.collection(POSTS_COLLECTION)
+        .where('status', 'in', ['scheduled', 'approved'])
+        .where('scheduledAt', '<=', now)
+        .limit(10)
+        .get();
+    } catch (indexErr) {
+      // Composite index may not exist — fall back to single filter + client-side check
+      console.warn('[social-publish] Compound query needs index, using fallback:', indexErr.message);
+      scheduledSnap = await db.collection(POSTS_COLLECTION)
+        .where('status', 'in', ['scheduled', 'approved'])
+        .limit(20)
+        .get();
+    }
 
     if (scheduledSnap.empty) {
       return jsonResponse(200, { ok: true, published: 0 });
@@ -52,6 +61,11 @@ exports.handler = async () => {
 
     for (const doc of scheduledSnap.docs) {
       const post = doc.data();
+
+      // Client-side date check (needed when index fallback is used)
+      const scheduledAt = post.scheduledAt?.toDate ? post.scheduledAt.toDate() : new Date(post.scheduledAt || 0);
+      if (scheduledAt > now) continue;
+
       const platforms = post.platforms || [];
       const publishResults = {};
       let anySuccess = false;
@@ -60,7 +74,7 @@ exports.handler = async () => {
       const postPayload = {
         caption: post.caption || '',
         hashtags: post.hashtags || [],
-        media: post.mediaUrls || [],
+        media: post.media || post.mediaUrls || [],
         mediaType: post.mediaType || 'auto',
         firstComment: post.firstComment || '',
         location: post.location || null

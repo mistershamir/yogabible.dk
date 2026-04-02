@@ -75,18 +75,24 @@ async function publishPost(db, postId, platformFilter) {
       continue;
     }
 
+    // Use platform-specific caption if available
+    const platformPost = { ...post };
+    if (post.platformCaptions && post.platformCaptions[platform]) {
+      platformPost.caption = post.platformCaptions[platform];
+    }
+
     try {
       let result;
 
       if (platform === 'instagram') {
         result = await publishToInstagram(
           { accessToken: account.accessToken, igAccountId: account.igAccountId },
-          post
+          platformPost
         );
       } else if (platform === 'facebook') {
         result = await publishToFacebook(
           { accessToken: account.accessToken, pageId: account.pageId },
-          post
+          platformPost
         );
       } else if (platform === 'tiktok') {
         // Auto-refresh TikTok token if refresh token exists
@@ -105,17 +111,17 @@ async function publishPost(db, postId, platformFilter) {
         }
         result = await publishToTikTok(
           { accessToken: ttToken },
-          post
+          platformPost
         );
       } else if (platform === 'linkedin') {
         result = await publishToLinkedIn(
           { accessToken: account.accessToken, organizationId: account.organizationId },
-          post
+          platformPost
         );
       } else if (platform === 'youtube') {
         result = await publishToYouTube(
           { accessToken: account.accessToken, refreshToken: account.refreshToken },
-          post
+          platformPost
         );
         // If YouTube refreshed its token, update Firestore
         if (result.refreshedToken) {
@@ -126,7 +132,7 @@ async function publishPost(db, postId, platformFilter) {
       } else if (platform === 'pinterest') {
         result = await publishToPinterest(
           { accessToken: account.accessToken, boardId: account.boardId },
-          post
+          platformPost
         );
       } else {
         result = { success: false, error: `Unsupported platform: ${platform}` };

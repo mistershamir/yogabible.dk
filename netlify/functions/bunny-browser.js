@@ -133,6 +133,41 @@ function signUpload(folder) {
   });
 }
 
+// ── Action: proxy upload to Bunny Storage (avoids CORS) ──
+async function proxyUpload(folder, fileName, bodyBuffer, contentType) {
+  return new Promise((resolve, reject) => {
+    const uploadPath = '/' + BUNNY_STORAGE_ZONE + '/' + folder + '/' + fileName;
+    const options = {
+      hostname: BUNNY_STORAGE_HOST,
+      path: uploadPath,
+      method: 'PUT',
+      headers: {
+        'AccessKey': BUNNY_STORAGE_KEY,
+        'Content-Type': contentType || 'application/octet-stream',
+        'Content-Length': bodyBuffer.length
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          const cdnUrl = 'https://' + BUNNY_CDN_HOST + '/' + folder + '/' + fileName;
+          resolve(jsonResponse(200, { ok: true, url: cdnUrl }));
+        } else {
+          resolve(jsonResponse(res.statusCode, { ok: false, error: 'Bunny upload failed: ' + res.statusCode + ' ' + data }));
+        }
+      });
+    });
+
+    req.on('error', (err) => resolve(jsonResponse(500, { ok: false, error: err.message })));
+    req.setTimeout(120000, () => { req.destroy(); resolve(jsonResponse(504, { ok: false, error: 'Upload timeout' })); });
+    req.write(bodyBuffer);
+    req.end();
+  });
+}
+
 // ── Helper: detect resource type from extension ──
 function getResourceType(ext) {
   if (['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif', 'avif'].includes(ext)) return 'image';
@@ -198,11 +233,11 @@ exports.handler = async (event) => {
   const folder = params.folder || ROOT_PREFIX;
 
   // Security: ensure path/folder starts with an allowed prefix
-  const pathOk = ALLOWED_PREFIXES.some(p => path.startsWith(p));
+  const pathOk = ALLOWED_PREFIXES.some(p => path.startsWith(p) || path === p.replace(/\/$/, ''));
   if (!pathOk) {
     return jsonResponse(403, { ok: false, error: 'Access denied: outside allowed folders' });
   }
-  const folderOk = ALLOWED_PREFIXES.some(p => folder.startsWith(p));
+  const folderOk = ALLOWED_PREFIXES.some(p => folder.startsWith(p) || folder === p.replace(/\/$/, ''));
   if (!folderOk) {
     return jsonResponse(403, { ok: false, error: 'Access denied: outside allowed folders' });
   }
@@ -214,9 +249,28 @@ exports.handler = async (event) => {
       return listResources(path);
     case 'sign_upload':
       return signUpload(folder);
+    case 'upload': {
+      // Proxy upload: client sends file as base64 string in POST body
+      if (event.httpMethod !== 'POST') return jsonResponse(405, { ok: false, error: 'POST required for upload' });
+      const fileName = params.fileName;
+      const contentType = params.contentType || 'application/octet-stream';
+      if (!fileName) return jsonResponse(400, { ok: false, error: 'Missing fileName param' });
+      if (!event.body) return jsonResponse(400, { ok: false, error: 'Empty body' });
+      // Client sends raw base64 string; Netlify may also base64-encode it
+      let bodyBuffer;
+      if (event.isBase64Encoded) {
+        // Netlify already decoded the transport encoding — body is our base64 string
+        bodyBuffer = Buffer.from(event.body, 'base64');
+      } else {
+        // Body is the raw base64 string from client
+        bodyBuffer = Buffer.from(event.body, 'base64');
+      }
+      console.log(`[bunny-browser] upload: ${fileName} to ${folder}, size=${bodyBuffer.length}, isBase64=${event.isBase64Encoded}`);
+      return proxyUpload(folder, fileName, bodyBuffer, contentType);
+    }
     case 'init-social-folders':
       return initSocialFolders();
     default:
-      return jsonResponse(400, { ok: false, error: 'Invalid action. Use: folders, resources, sign_upload, init-social-folders' });
+      return jsonResponse(400, { ok: false, error: 'Invalid action. Use: folders, resources, sign_upload, upload, init-social-folders' });
   }
 };

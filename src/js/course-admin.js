@@ -84,15 +84,27 @@
         if (sidebar.classList.contains('is-open')) {
           closeSidebar();
         } else {
-          sidebar.classList.add('is-open');
-          var ov = document.getElementById('yb-admin-sidebar-overlay');
-          if (ov) ov.classList.add('is-visible');
+          openSidebar();
         }
       });
     }
 
+    // Close button inside sidebar
+    var closeBtn = document.getElementById('yb-admin-sidebar-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeSidebar);
+    }
+
+    function openSidebar() {
+      if (sidebar) sidebar.classList.add('is-open');
+      if (toggleBtn) toggleBtn.classList.add('is-hidden');
+      var ov = document.getElementById('yb-admin-sidebar-overlay');
+      if (ov) ov.classList.add('is-visible');
+    }
+
     function closeSidebar() {
       if (sidebar) sidebar.classList.remove('is-open');
+      if (toggleBtn) toggleBtn.classList.remove('is-hidden');
       var ov = document.getElementById('yb-admin-sidebar-overlay');
       if (ov) ov.classList.remove('is-visible');
     }
@@ -996,17 +1008,17 @@
     // Fetch all courses
     var coursesPromise = db.collection('courses').get().then(function (snap) {
       snap.forEach(function (doc) { allCourses.push(Object.assign({ id: doc.id }, doc.data())); });
-    });
+    }).catch(function () { /* collection may not exist */ });
 
     // Fetch all enrollments
     var enrollPromise = db.collection('enrollments').get().then(function (snap) {
       snap.forEach(function (doc) { allEnrollments.push(Object.assign({ id: doc.id }, doc.data())); });
-    });
+    }).catch(function () { /* collection may not exist */ });
 
     // Fetch all courseProgress docs
     var progressPromise = db.collection('courseProgress').get().then(function (snap) {
       snap.forEach(function (doc) { allProgress.push(Object.assign({ id: doc.id }, doc.data())); });
-    });
+    }).catch(function () { /* collection may not exist */ });
 
     Promise.all([coursesPromise, enrollPromise, progressPromise]).then(function () {
       // Total courses
@@ -1097,7 +1109,11 @@
       }
     }).catch(function (err) {
       console.error('Analytics error:', err);
-      toast(t('error_load'), true);
+      if (statCourses) statCourses.textContent = '0';
+      if (statEnrollments) statEnrollments.textContent = '0';
+      if (statStudents) statStudents.textContent = '0';
+      if (statProgress) statProgress.textContent = '0%';
+      if (tableEl) tableEl.innerHTML = '<p class="yb-admin__empty">' + t('no_courses') + '</p>';
     });
   }
 
@@ -1141,6 +1157,8 @@
         d._id = doc.id;
         funnelDocs.push(d);
       });
+    }).catch(function () {
+      // lead_funnel collection might not exist yet or permissions missing — that's OK
     });
 
     // Fetch ad_conversions collection
@@ -1339,7 +1357,14 @@
       }
     }).catch(function (err) {
       console.error('Conversion analytics error:', err);
-      if (funnelEl) funnelEl.innerHTML = '<p class="yb-admin__empty" style="color:#dc2626">' + t('error_load') + '</p>';
+      var errMsg = '<p class="yb-admin__empty" style="color:#dc2626">' + t('error_load') + '</p>';
+      if (funnelEl) funnelEl.innerHTML = errMsg;
+      if (productsEl) productsEl.innerHTML = errMsg;
+      if (sourcesEl) sourcesEl.innerHTML = errMsg;
+      if (recentEl) recentEl.innerHTML = errMsg;
+      [purchasesEl, revenueEl, leadsEl, rateEl].forEach(function (el) {
+        if (el) el.textContent = '—';
+      });
     });
   }
 

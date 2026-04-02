@@ -33,17 +33,17 @@ const {
 } = require('./email-service');
 const { getDb } = require('./firestore');
 const { prepareTrackedEmail } = require('./email-tracking');
-const { detectLeadCountry, normalizeCountryName, detectCountryFromPhone } = require('./country-detect');
 
 // Form ID → language map (same as facebook-leads-webhook.js)
 const FORM_LANG_MAP = {
-  '827004866473769':  'en',     // july-vinyasa-plus-en
+  '827004866473769':  'en',     // july-vinyasa-plus-en (UK)
   '25716246641411656':'en',     // july-vinyasa-plus-no
   '4318151781759438': 'en',     // july-vinyasa-plus-se
   '2450631555377690': 'de',     // july-vinyasa-plus-de
   '1668412377638315': 'en',     // july-vinyasa-plus-fi
   '960877763097239':  'en',     // july-vinyasa-plus-nl
-  '1344364364192542': 'da'      // july-vinyasa-plus-dk
+  '1344364364192542': 'da',     // july-vinyasa-plus-dk
+  '961808297026346':  'da'      // general dk form (multi-program)
 };
 
 // =========================================================================
@@ -215,34 +215,14 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       return result;
     }
 
-    // Determine language — multi-layer detection
-    // The old Facebook webhook stamped lang='da' on ALL leads, so lang field
-    // and country detection (which uses lang as fallback) are unreliable.
-    // Priority: form_id map → country/phone (no lang) → non-da rawLang → default da
-    const rawLang = (leadData.lang || leadData.meta_lang || '').toLowerCase().trim();
+    // Determine language — simple two-source logic:
+    //   1. Meta leads: FORM_LANG_MAP determines language from form_id
+    //   2. Website leads: lang field (set by /en/ path detection) determines language
+    //   3. Default: Danish
     const formLang = FORM_LANG_MAP[leadData.meta_form_id];
-    const hardCountryField = normalizeCountryName(leadData.country || leadData.city_country);
-    const hardCountryPhone = !hardCountryField ? detectCountryFromPhone(leadData.phone) : null;
-    const hardCountry = hardCountryField || hardCountryPhone;
-    let lang, isDanish, isGerman;
-
-    if (formLang) {
-      lang = formLang.substring(0, 2);
-      isDanish = ['da', 'dk'].includes(lang);
-      isGerman = lang === 'de';
-    } else if (hardCountry === 'DK') {
-      isDanish = true; isGerman = false; lang = 'da';
-    } else if (hardCountry && ['DE', 'AT', 'CH'].includes(hardCountry)) {
-      isDanish = false; isGerman = true; lang = 'de';
-    } else if (hardCountry && hardCountry !== 'OTHER') {
-      isDanish = false; isGerman = false; lang = 'en';
-    } else if (rawLang && rawLang !== 'da' && rawLang !== 'dk') {
-      lang = rawLang.substring(0, 2);
-      isDanish = false;
-      isGerman = lang === 'de';
-    } else {
-      isDanish = true; isGerman = false; lang = 'da';
-    }
+    const lang = (formLang || leadData.lang || leadData.meta_lang || 'da').toLowerCase().trim().substring(0, 2);
+    const isDanish = ['da', 'dk'].includes(lang);
+    const isGerman = lang === 'de';
 
     // German leads get DE templates (falling back to EN via i18n lookups)
     if (isGerman) {
@@ -2101,7 +2081,7 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   bodyHtml += i18nBookingCta(lang) + i18nQuestionPrompt(lang);
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // ---- Plain text ----
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2117,7 +2097,7 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   bodyPlain += t.lookingForward;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({
     to: leadData.email,
@@ -2200,7 +2180,7 @@ async function sendMultiFormatEmail(leadData, lang, tokenData) {
   bodyHtml += '<p>' + t.lookingForward + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // ---- Plain text ----
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2221,7 +2201,7 @@ async function sendMultiFormatEmail(leadData, lang, tokenData) {
   bodyPlain += t.lookingForward;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({
     to: leadData.email,
@@ -2289,7 +2269,7 @@ async function sendUndecidedEmail(leadData, lang, tokenData) {
   bodyHtml += '<p>' + u.replyOk + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // Plain text
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2302,7 +2282,7 @@ async function sendUndecidedEmail(leadData, lang, tokenData) {
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
@@ -2328,13 +2308,13 @@ async function sendEmailGenericBilingual(leadData, lang, tokenData = {}) {
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + g.intro.replace(/<[^>]+>/g, '') + '\n\n' +
     g.body + '\n\n' + g.bookLink + ': ' + CONFIG.MEETING_LINK + '\n' + g.visitLink + ': ' + g.visitUrl;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
@@ -2357,13 +2337,13 @@ async function sendMentorshipEmail(leadData, lang, tokenData = {}) {
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + p.intro.replace(/<[^>]+>/g, '').replace('{{service}}', service) + '\n\n' +
     p.description + '\n\n' + t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
@@ -2404,13 +2384,13 @@ async function sendCoursesEmail(leadData, lang, tokenData = {}) {
   bodyHtml += '<p>' + t.replyInvite + '</p>';
   if (lang === 'da') bodyHtml += getEnglishNoteHtml();
   else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email, lang);
+  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + (isBundle ? c.introBundle : c.introSingle).replace(/<[^>]+>/g, '').replace('{{courses}}', courses) + '\n\n';
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
   if (lang === 'da') bodyPlain += getEnglishNotePlain();
   else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email, lang);
+  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
   var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
   return { ...result, subject: subject };
