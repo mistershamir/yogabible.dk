@@ -198,11 +198,11 @@ exports.handler = async (event) => {
   const folder = params.folder || ROOT_PREFIX;
 
   // Security: ensure path/folder starts with an allowed prefix
-  const pathOk = ALLOWED_PREFIXES.some(p => path.startsWith(p));
+  const pathOk = ALLOWED_PREFIXES.some(p => path.startsWith(p) || path === p.replace(/\/$/, ''));
   if (!pathOk) {
     return jsonResponse(403, { ok: false, error: 'Access denied: outside allowed folders' });
   }
-  const folderOk = ALLOWED_PREFIXES.some(p => folder.startsWith(p));
+  const folderOk = ALLOWED_PREFIXES.some(p => folder.startsWith(p) || folder === p.replace(/\/$/, ''));
   if (!folderOk) {
     return jsonResponse(403, { ok: false, error: 'Access denied: outside allowed folders' });
   }

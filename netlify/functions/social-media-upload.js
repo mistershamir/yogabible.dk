@@ -114,19 +114,52 @@ async function createVideo(body, user) {
 }
 
 /**
- * List all uploaded videos from Firestore (with Bunny Stream status)
+ * List all uploaded videos from Firestore + Bunny Stream API fallback
  */
 async function listVideos() {
   const db = getDb();
-  const snap = await db.collection(COLLECTION)
-    .orderBy('createdAt', 'desc')
-    .limit(100)
-    .get();
+  let videos = [];
 
-  const videos = [];
-  snap.forEach(doc => {
-    videos.push({ id: doc.id, ...doc.data() });
-  });
+  // Try Firestore first
+  try {
+    const snap = await db.collection(COLLECTION)
+      .orderBy('createdAt', 'desc')
+      .limit(100)
+      .get();
+    snap.forEach(doc => {
+      videos.push({ id: doc.id, ...doc.data() });
+    });
+  } catch (e) {
+    console.warn('[social-media-upload] Firestore query error (may need index):', e.message);
+  }
+
+  // If Firestore is empty, fetch from Bunny Stream API directly
+  if (videos.length === 0 && API_KEY) {
+    try {
+      const res = await fetch(`https://video.bunnycdn.com/library/${LIBRARY_ID}/videos?page=1&itemsPerPage=100&orderBy=date`, {
+        headers: { AccessKey: API_KEY }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const items = data.items || [];
+        videos = items.map(v => ({
+          videoId: v.guid,
+          title: v.title || 'Untitled',
+          status: v.status === 4 ? 'ready' : (v.status === 3 ? 'encoding' : 'uploading'),
+          duration: v.length,
+          width: v.width,
+          height: v.height,
+          fileSize: v.storageSize,
+          thumbnailUrl: `https://${CDN_HOST}/${v.guid}/thumbnail.jpg`,
+          mp4Url: `https://${CDN_HOST}/${v.guid}/play_720p.mp4`,
+          hlsUrl: `https://${CDN_HOST}/${v.guid}/playlist.m3u8`,
+          createdAt: v.dateUploaded
+        }));
+      }
+    } catch (e) {
+      console.warn('[social-media-upload] Bunny Stream API fallback error:', e.message);
+    }
+  }
 
   return jsonResponse(200, { ok: true, videos });
 }
