@@ -757,10 +757,9 @@
       var file = files[i];
       S.toast('Uploading ' + (i + 1) + '/' + total + ': ' + file.name + '...');
 
-      // Netlify function body size limit is ~6MB for base64.
-      // For files > 4.5MB, warn and skip (use Library tab TUS upload for large videos)
+      // Netlify function body size limit is ~6MB for base64
       if (file.size > 4.5 * 1024 * 1024) {
-        S.toast(file.name + ' too large (max 4.5 MB). Use Library tab for large videos.', true);
+        S.toast(file.name + ' too large (max 4.5 MB). Use Videos tab for large videos.', true);
         continue;
       }
 
@@ -769,14 +768,19 @@
       var fileName = ts + '-' + safeName;
 
       try {
+        // Read file as base64 for reliable binary transfer to Netlify function
+        var base64 = await readFileAsBase64(file);
         var uploadRes = await fetch(
           '/.netlify/functions/bunny-browser?action=upload&folder=' + encodeURIComponent(folder) +
           '&fileName=' + encodeURIComponent(fileName) +
           '&contentType=' + encodeURIComponent(file.type || 'application/octet-stream'),
           {
             method: 'POST',
-            headers: { Authorization: 'Bearer ' + token },
-            body: file
+            headers: {
+              Authorization: 'Bearer ' + token,
+              'Content-Type': 'application/base64'
+            },
+            body: base64
           }
         );
         var result = await uploadRes.json();
@@ -794,6 +798,19 @@
 
     S.toast(success + '/' + total + ' uploaded successfully');
     loadMediaFolder(composer.currentPath);
+  }
+
+  function readFileAsBase64(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        // result is "data:mime;base64,XXXX" — strip the prefix
+        var b64 = reader.result.split(',')[1];
+        resolve(b64);
+      };
+      reader.onerror = function () { reject(new Error('Failed to read file')); };
+      reader.readAsDataURL(file);
+    });
   }
 
   // Upload video to Bunny Stream via TUS (for large video files)

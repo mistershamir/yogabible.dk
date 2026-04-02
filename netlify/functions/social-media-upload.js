@@ -117,35 +117,25 @@ async function createVideo(body, user) {
  * List all uploaded videos from Firestore + Bunny Stream API fallback
  */
 async function listVideos() {
-  const db = getDb();
-  let videos = [];
-
-  // Try Firestore first
-  try {
-    const snap = await db.collection(COLLECTION)
-      .orderBy('createdAt', 'desc')
-      .limit(100)
-      .get();
-    snap.forEach(doc => {
-      videos.push({ id: doc.id, ...doc.data() });
-    });
-  } catch (e) {
-    console.warn('[social-media-upload] Firestore query error (may need index):', e.message);
+  if (!API_KEY) {
+    return jsonResponse(500, { ok: false, error: 'BUNNY_STREAM_API_KEY not configured' });
   }
 
-  // If Firestore is empty, fetch from Bunny Stream API directly
-  if (videos.length === 0 && API_KEY) {
-    try {
-      const res = await fetch(`https://video.bunnycdn.com/library/${LIBRARY_ID}/videos?page=1&itemsPerPage=100&orderBy=date`, {
-        headers: { AccessKey: API_KEY }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const items = data.items || [];
-        videos = items.map(v => ({
+  // Always fetch from Bunny Stream API for fresh status
+  let videos = [];
+  try {
+    const res = await fetch(`https://video.bunnycdn.com/library/${LIBRARY_ID}/videos?page=1&itemsPerPage=100&orderBy=date`, {
+      headers: { AccessKey: API_KEY }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const items = data.items || [];
+      videos = items.map(v => {
+        const statusMap = { 0: 'uploading', 1: 'uploading', 2: 'uploading', 3: 'encoding', 4: 'ready', 5: 'ready', 6: 'failed' };
+        return {
           videoId: v.guid,
           title: v.title || 'Untitled',
-          status: v.status === 4 ? 'ready' : (v.status === 3 ? 'encoding' : 'uploading'),
+          status: statusMap[v.status] || 'unknown',
           duration: v.length,
           width: v.width,
           height: v.height,
@@ -154,11 +144,11 @@ async function listVideos() {
           mp4Url: `https://${CDN_HOST}/${v.guid}/play_720p.mp4`,
           hlsUrl: `https://${CDN_HOST}/${v.guid}/playlist.m3u8`,
           createdAt: v.dateUploaded
-        }));
-      }
-    } catch (e) {
-      console.warn('[social-media-upload] Bunny Stream API fallback error:', e.message);
+        };
+      });
     }
+  } catch (e) {
+    console.warn('[social-media-upload] Bunny Stream API error:', e.message);
   }
 
   return jsonResponse(200, { ok: true, videos });
