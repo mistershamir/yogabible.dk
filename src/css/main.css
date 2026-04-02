@@ -21084,4 +21084,155 @@ button.yb-btn--outline-white:hover {
   background: #f75c03;
 }
 
+/* ========================================
+   FLOATING CART BAR (YTT program pages)
+   ======================================== */
+.yb-float-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 16px;
+  pointer-events: none;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+}
+.yb-float-bar--visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+.yb-float-bar__btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: var(--yb-brand);
+  color: #fff;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.yb-float-bar__btn:hover {
+  background: var(--yb-brand-dark, #d94f02);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.22);
+}
+.yb-float-bar__btn:active {
+  transform: translateY(0);
+}
+.yb-float-bar__price {
+  opacity: 0.85;
+  font-weight: 400;
+  margin-left: 2px;
+}
+
+/* Cohort picker (4w page) */
+.yb-float-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 910;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(15, 15, 15, 0.5);
+  padding: 0 16px 24px;
+  -webkit-tap-highlight-color: transparent;
+}
+.yb-float-picker--open {
+  display: flex;
+}
+.yb-float-picker__sheet {
+  width: 100%;
+  max-width: 420px;
+  background: #FFFCF9;
+  border-radius: 20px;
+  padding: 28px 24px 20px;
+  box-shadow: 0 -4px 40px rgba(0,0,0,0.15);
+  transform: translateY(20px);
+  opacity: 0;
+  animation: ybFloatSheetIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes ybFloatSheetIn {
+  to { transform: translateY(0); opacity: 1; }
+}
+.yb-float-picker__title {
+  font-family: var(--font-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 16px;
+  text-align: center;
+}
+.yb-float-picker__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: #F5F3F0;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  text-align: left;
+}
+.yb-float-picker__option:hover {
+  border-color: var(--yb-brand);
+  background: #fff;
+}
+.yb-float-picker__option-period {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: #6F6A66;
+  margin-top: 2px;
+}
+.yb-float-picker__option-arrow {
+  color: var(--yb-brand);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+.yb-float-picker__close {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 4px;
+  background: none;
+  border: none;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  color: #6F6A66;
+  cursor: pointer;
+  text-align: center;
+}
+.yb-float-picker__close:hover {
+  color: #0F0F0F;
+}
+
+/* Hide floating bar when checkout modal is open */
+body.ycf-open .yb-float-bar,
+body.ycf-open .yb-float-picker { display: none !important; }
+
+@media (min-width: 768px) {
+  .yb-float-bar { padding: 0 24px 20px; }
+  .yb-float-bar__btn { padding: 16px 40px; font-size: 1.05rem; }
+}
+
 /* → Moved to admin-panel.css (Sequences Admin) */
