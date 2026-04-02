@@ -1008,17 +1008,17 @@
     // Fetch all courses
     var coursesPromise = db.collection('courses').get().then(function (snap) {
       snap.forEach(function (doc) { allCourses.push(Object.assign({ id: doc.id }, doc.data())); });
-    });
+    }).catch(function () { /* collection may not exist */ });
 
     // Fetch all enrollments
     var enrollPromise = db.collection('enrollments').get().then(function (snap) {
       snap.forEach(function (doc) { allEnrollments.push(Object.assign({ id: doc.id }, doc.data())); });
-    });
+    }).catch(function () { /* collection may not exist */ });
 
     // Fetch all courseProgress docs
     var progressPromise = db.collection('courseProgress').get().then(function (snap) {
       snap.forEach(function (doc) { allProgress.push(Object.assign({ id: doc.id }, doc.data())); });
-    });
+    }).catch(function () { /* collection may not exist */ });
 
     Promise.all([coursesPromise, enrollPromise, progressPromise]).then(function () {
       // Total courses
