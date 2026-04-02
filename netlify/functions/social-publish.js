@@ -12,6 +12,7 @@ const {
   publishToInstagram,
   publishToFacebook,
   publishToTikTok,
+  refreshTikTokToken,
   publishToLinkedIn,
   publishToYouTube,
   publishToPinterest
@@ -94,8 +95,22 @@ async function publishPost(db, postId, platformFilter) {
           platformPost
         );
       } else if (platform === 'tiktok') {
+        // Auto-refresh TikTok token if refresh token exists
+        let ttToken = account.accessToken;
+        if (account.refreshToken) {
+          const refreshed = await refreshTikTokToken(account.refreshToken);
+          if (refreshed) {
+            ttToken = refreshed.accessToken;
+            // Update stored tokens in Firestore
+            await db.collection('social_accounts').doc('tiktok').update({
+              accessToken: refreshed.accessToken,
+              refreshToken: refreshed.refreshToken,
+              lastTokenRefresh: serverTimestamp()
+            });
+          }
+        }
         result = await publishToTikTok(
-          { accessToken: account.accessToken },
+          { accessToken: ttToken },
           platformPost
         );
       } else if (platform === 'linkedin') {
