@@ -1008,17 +1008,17 @@
     // Fetch all courses
     var coursesPromise = db.collection('courses').get().then(function (snap) {
       snap.forEach(function (doc) { allCourses.push(Object.assign({ id: doc.id }, doc.data())); });
-    });
+    }).catch(function () { /* collection may not exist */ });
 
     // Fetch all enrollments
     var enrollPromise = db.collection('enrollments').get().then(function (snap) {
       snap.forEach(function (doc) { allEnrollments.push(Object.assign({ id: doc.id }, doc.data())); });
-    });
+    }).catch(function () { /* collection may not exist */ });
 
     // Fetch all courseProgress docs
     var progressPromise = db.collection('courseProgress').get().then(function (snap) {
       snap.forEach(function (doc) { allProgress.push(Object.assign({ id: doc.id }, doc.data())); });
-    });
+    }).catch(function () { /* collection may not exist */ });
 
     Promise.all([coursesPromise, enrollPromise, progressPromise]).then(function () {
       // Total courses
@@ -1109,7 +1109,11 @@
       }
     }).catch(function (err) {
       console.error('Analytics error:', err);
-      toast(t('error_load'), true);
+      if (statCourses) statCourses.textContent = '0';
+      if (statEnrollments) statEnrollments.textContent = '0';
+      if (statStudents) statStudents.textContent = '0';
+      if (statProgress) statProgress.textContent = '0%';
+      if (tableEl) tableEl.innerHTML = '<p class="yb-admin__empty">' + t('no_courses') + '</p>';
     });
   }
 
