@@ -740,11 +740,16 @@
     if (!token) { S.toast('Auth failed', true); return; }
 
     // Get upload credentials
-    var signRes = await fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(folder), {
-      headers: { Authorization: 'Bearer ' + token }
-    });
-    var signData = await signRes.json();
-    if (!signData.ok) { S.toast('Upload sign error', true); return; }
+    try {
+      var signRes = await fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(folder), {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      var signData = await signRes.json();
+      if (!signData.ok) { S.toast('Upload sign error: ' + (signData.error || 'unknown'), true); return; }
+    } catch (e) {
+      S.toast('Upload sign failed: ' + e.message, true);
+      return;
+    }
 
     var params = signData.upload_params;
     var success = 0;
@@ -756,17 +761,26 @@
       var fileName = ts + '-' + safeName;
 
       try {
-        var xhr = new XMLHttpRequest();
-        xhr.open('PUT', params.upload_url + fileName, false);
-        xhr.setRequestHeader('AccessKey', params.headers.AccessKey);
-        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-        xhr.send(file);
-        if (xhr.status >= 200 && xhr.status < 300) success++;
-      } catch (e) { /* skip */ }
+        var uploadRes = await fetch(params.upload_url + fileName, {
+          method: 'PUT',
+          headers: {
+            'AccessKey': params.headers.AccessKey,
+            'Content-Type': file.type || 'application/octet-stream'
+          },
+          body: file
+        });
+        if (uploadRes.ok) {
+          success++;
+          S.toast('Uploaded ' + (i + 1) + '/' + files.length + '...');
+        } else {
+          console.error('[MediaBrowser] Upload failed:', uploadRes.status, await uploadRes.text());
+        }
+      } catch (e) {
+        console.error('[MediaBrowser] Upload error:', e.message);
+      }
     }
 
-    S.toast(success + '/' + files.length + ' uploaded');
-    // Reload current folder to show new files
+    S.toast(success + '/' + files.length + ' uploaded successfully');
     loadMediaFolder(composer.currentPath);
   }
 
