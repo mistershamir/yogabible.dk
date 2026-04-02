@@ -680,7 +680,19 @@
       var isCarousel = p.media && p.media.length > 1;
       var thumbContent = '';
       if (p.media && p.media[0]) {
-        thumbContent = '<img src="' + p.media[0] + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+        var thumbSrc = p.media[0];
+        // For video files, try to get a thumbnail instead of using the video URL as img src
+        var isVideoFile = /\.(mp4|mov|webm|avi)(\?|$)/i.test(thumbSrc);
+        if (isVideoFile) {
+          // Bunny Stream URLs: .../play_720p.mp4 → .../thumbnail.jpg
+          var bsMatch = thumbSrc.match(/^(https:\/\/vz-[^/]+\.b-cdn\.net\/[^/]+)\//);
+          if (bsMatch) {
+            thumbSrc = bsMatch[1] + '/thumbnail.jpg';
+          } else if (p.videoThumbnails && p.videoThumbnails[p.media[0]]) {
+            thumbSrc = p.videoThumbnails[p.media[0]];
+          }
+        }
+        thumbContent = '<img src="' + thumbSrc + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
           '<span class="yb-social__post-thumb-fallback" style="display:none">' +
           (p.importedPermalink ? '<a href="' + p.importedPermalink + '" target="_blank" style="color:#f75c03;font-size:11px;text-decoration:none">🔗 View on ' + ((p.platforms || [])[0] || 'platform') + '</a>' : '📝') +
           '</span>';
@@ -6072,9 +6084,11 @@
   function init() {
     T = window._ybAdminT || {};
 
-    // Load posts on first init (needed for calendar)
+    // Load accounts + posts on first init so composer platforms work immediately
     firebase.auth().onAuthStateChanged(function (user) {
       if (!user) return;
+      // Pre-load accounts so platform toggles are enabled in composer
+      loadAccounts();
       // Pre-load posts for calendar dots
       api('social-posts?action=list').then(function (data) {
         if (data) { state.allPosts = data.posts || []; state.posts = state.allPosts; }

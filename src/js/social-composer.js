@@ -548,11 +548,34 @@
     // If "Post Now" and status is not draft — publish immediately
     if (status === 'published') {
       var pid = postId || data.id;
-      S.toast(t('social_publishing'));
-      var pub = await S.api('social-publish', {
-        method: 'POST', body: JSON.stringify({ postId: pid })
-      });
-      if (pub) S.toast(t('social_published'));
+      S.toast('Publishing to ' + composer.platforms.join(', ') + '...');
+      try {
+        var pub = await S.api('social-publish', {
+          method: 'POST', body: JSON.stringify({ postId: pid })
+        });
+        if (pub && pub.results) {
+          // Check each platform result
+          var failures = [];
+          var successes = [];
+          Object.keys(pub.results).forEach(function (platform) {
+            if (pub.results[platform].success) {
+              successes.push(platform);
+            } else {
+              failures.push(platform + ': ' + (pub.results[platform].error || 'unknown error'));
+            }
+          });
+          if (successes.length > 0) S.toast('Published to ' + successes.join(', '));
+          if (failures.length > 0) {
+            failures.forEach(function (f) { S.toast('Failed — ' + f, true); });
+          }
+        } else if (pub && pub.error) {
+          S.toast('Publish failed: ' + pub.error, true);
+        } else {
+          S.toast('Publish request sent');
+        }
+      } catch (e) {
+        S.toast('Publish error: ' + e.message, true);
+      }
     } else {
       S.toast(t('social_saved'));
     }
@@ -578,13 +601,17 @@
     switchMediaTab('storage');
     composer.currentPath = 'yoga-bible-DK';
     loadMediaFolder(composer.currentPath);
-    // Wire storage upload input
+    // Wire storage upload input — use addEventListener to avoid overwrite issues
     var uploadInput = $('yb-social-media-upload-input');
     if (uploadInput) {
-      uploadInput.onchange = function () {
-        if (uploadInput.files.length > 0) uploadFromBrowser(uploadInput.files);
-        uploadInput.value = '';
-      };
+      // Clone and replace to remove any old listeners
+      var newInput = uploadInput.cloneNode(true);
+      uploadInput.parentNode.replaceChild(newInput, uploadInput);
+      newInput.addEventListener('change', function () {
+        console.log('[MediaBrowser] Upload input changed, files:', newInput.files.length);
+        if (newInput.files.length > 0) uploadFromBrowser(newInput.files);
+        newInput.value = '';
+      });
     }
     // Wire video upload input (Bunny Stream via TUS)
     var videoUploadInput = $('yb-social-media-video-upload-input');
