@@ -140,16 +140,32 @@ async function triggerNewLeadSequences(leadId, leadData) {
         }
       }
 
-      // Check for existing active/paused enrollment in this sequence
-      const existingSnap = await db.collection('sequence_enrollments')
+      // Check for existing enrollment in this sequence — by lead_id OR email
+      // Covers all statuses (active, paused, completed) to prevent re-enrollment
+      // on duplicate form submissions or Meta webhook retries
+      const existingByIdSnap = await db.collection('sequence_enrollments')
         .where('sequence_id', '==', sequence.id)
         .where('lead_id', '==', leadId)
-        .where('status', 'in', ['active', 'paused'])
+        .limit(1)
         .get();
 
-      if (!existingSnap.empty) {
+      if (!existingByIdSnap.empty) {
         console.log(`[sequence-trigger] Lead ${leadId} already enrolled in "${sequence.name}", skipping`);
         continue;
+      }
+
+      // Also check by email — catches duplicate lead docs for the same person
+      if (leadData.email) {
+        const existingByEmailSnap = await db.collection('sequence_enrollments')
+          .where('sequence_id', '==', sequence.id)
+          .where('lead_email', '==', leadData.email)
+          .limit(1)
+          .get();
+
+        if (!existingByEmailSnap.empty) {
+          console.log(`[sequence-trigger] Email ${leadData.email} already enrolled in "${sequence.name}", skipping (different lead_id)`);
+          continue;
+        }
       }
 
       // Calculate first step delay
@@ -250,16 +266,29 @@ async function triggerStatusChangeSequences(leadId, leadData, oldStatus, newStat
         }
       }
 
-      // Check for existing active/paused enrollment in this sequence
-      const existingSnap = await db.collection('sequence_enrollments')
+      // Check for existing enrollment in this sequence — by lead_id OR email
+      const existingByIdSnap2 = await db.collection('sequence_enrollments')
         .where('sequence_id', '==', sequence.id)
         .where('lead_id', '==', leadId)
-        .where('status', 'in', ['active', 'paused'])
+        .limit(1)
         .get();
 
-      if (!existingSnap.empty) {
+      if (!existingByIdSnap2.empty) {
         console.log(`[sequence-trigger] Lead ${leadId} already enrolled in "${sequence.name}", skipping`);
         continue;
+      }
+
+      if (leadData.email) {
+        const existingByEmailSnap2 = await db.collection('sequence_enrollments')
+          .where('sequence_id', '==', sequence.id)
+          .where('lead_email', '==', leadData.email)
+          .limit(1)
+          .get();
+
+        if (!existingByEmailSnap2.empty) {
+          console.log(`[sequence-trigger] Email ${leadData.email} already enrolled in "${sequence.name}", skipping (different lead_id)`);
+          continue;
+        }
       }
 
       // Calculate first step delay
@@ -410,16 +439,29 @@ async function enrollInJulyInternationalSequence(db, leadId, leadData) {
     }
   }
 
-  // Check not already enrolled
-  var existingSnap = await db.collection('sequence_enrollments')
+  // Check not already enrolled — by lead_id OR email (all statuses)
+  var existingByIdSnap = await db.collection('sequence_enrollments')
     .where('sequence_id', '==', JULY_INTL_SEQUENCE_ID)
     .where('lead_id', '==', leadId)
-    .where('status', 'in', ['active', 'paused'])
+    .limit(1)
     .get();
 
-  if (!existingSnap.empty) {
+  if (!existingByIdSnap.empty) {
     console.log('[sequence-trigger] Lead ' + leadId + ' already enrolled in July International Conversion');
     return null;
+  }
+
+  if (leadData.email) {
+    var existingByEmailSnap = await db.collection('sequence_enrollments')
+      .where('sequence_id', '==', JULY_INTL_SEQUENCE_ID)
+      .where('lead_email', '==', leadData.email)
+      .limit(1)
+      .get();
+
+    if (!existingByEmailSnap.empty) {
+      console.log('[sequence-trigger] Email ' + leadData.email + ' already enrolled in July International Conversion');
+      return null;
+    }
   }
 
   var firstStepDelay = sequence.steps && sequence.steps[0] ? (sequence.steps[0].delay_minutes || 0) : 0;
