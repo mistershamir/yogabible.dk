@@ -314,83 +314,45 @@
         </div>
       </div>
       <div class="yb-cph-why__flights-map" aria-label="{{ t.flights_map_alt }}">
-        <svg class="yb-cph-flights-svg" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" fill="none">
-          {# Simplified Europe outline #}
-          <path class="yb-cph-flights-svg__land" d="M130,120 C135,105 155,85 175,78 C185,75 195,80 200,72 C208,60 220,55 235,58 C242,60 248,55 255,50 C270,42 285,45 295,50 C305,55 315,48 325,52 C340,58 350,65 345,80 C342,88 348,95 355,98 C365,102 370,112 380,115 C390,118 395,128 388,135 C382,140 385,150 390,158 C395,168 388,178 380,180 C372,182 368,192 370,200 C373,210 368,218 360,222 C355,225 358,235 362,242 C368,252 365,262 358,268 C350,275 345,285 348,295 C352,305 345,315 335,318 C325,320 318,330 320,340 C322,348 315,355 305,352 C295,349 288,355 285,365 M285,365 C280,375 268,380 258,375 C248,370 238,375 232,382 M130,120 C125,135 118,148 110,158 C102,168 108,182 115,190 C120,195 118,205 112,212 C105,220 108,232 115,238 C122,244 120,255 115,262 C108,272 112,285 120,290 C128,295 132,308 128,318 C124,328 130,340 140,345 C150,350 155,362 152,372 M210,148 C205,155 198,158 195,168 C190,182 195,195 202,205 C208,212 205,222 198,228 C190,235 192,248 200,255 C205,260 202,268 195,272 C188,278 190,290 198,295" stroke="#E8E4E0" stroke-width="1.5"/>
+        <div class="yb-cph-flights-hub">
+          {# Concentric range rings #}
+          <div class="yb-cph-flights-hub__ring yb-cph-flights-hub__ring--3"></div>
+          <div class="yb-cph-flights-hub__ring yb-cph-flights-hub__ring--2"></div>
+          <div class="yb-cph-flights-hub__ring yb-cph-flights-hub__ring--1"></div>
 
-          {# UK & Ireland #}
-          <path class="yb-cph-flights-svg__land" d="M148,125 C145,118 150,108 158,105 C165,102 168,110 172,115 C178,122 175,132 168,138 C160,145 152,140 148,132 Z M128,118 C125,112 130,105 138,108 C142,110 140,118 135,120 Z" stroke="#E8E4E0" stroke-width="1.2"/>
+          {# Animated arc routes — each city placed at real-ish compass bearing from CPH #}
+          {# Nordics — close ring #}
+          <div class="yb-cph-flights-hub__spoke" style="--angle:-30deg;  --dist:22%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Oslo</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:15deg;   --dist:24%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Stockholm</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:40deg;   --dist:34%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Helsinki</span></div>
 
-          {# Scandinavia #}
-          <path class="yb-cph-flights-svg__land" d="M258,50 C262,42 270,35 280,30 C290,25 300,28 308,35 C312,40 305,48 298,45 C290,42 285,50 288,58 C292,68 285,75 278,72 C270,68 262,62 258,50 Z" stroke="#E8E4E0" stroke-width="1.2"/>
+          {# Central Europe — mid ring #}
+          <div class="yb-cph-flights-hub__spoke" style="--angle:170deg;  --dist:28%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Berlin</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:200deg;  --dist:38%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Frankfurt</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:215deg;  --dist:40%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Amsterdam</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:230deg;  --dist:44%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Paris</span></div>
 
-          {# Copenhagen — pulsing dot #}
-          <circle class="yb-cph-flights-svg__cph-glow" cx="275" cy="108" r="18"/>
-          <circle class="yb-cph-flights-svg__cph-ring" cx="275" cy="108" r="10"/>
-          <circle class="yb-cph-flights-svg__cph-dot" cx="275" cy="108" r="5"/>
-          <text x="275" y="100" text-anchor="middle" class="yb-cph-flights-svg__cph-label">CPH</text>
+          {# UK & Ireland — mid-far ring #}
+          <div class="yb-cph-flights-hub__spoke" style="--angle:255deg;  --dist:40%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">London</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:275deg;  --dist:38%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Manchester</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:290deg;  --dist:40%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Edinburgh</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:265deg;  --dist:48%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Dublin</span></div>
 
-          {# Flight routes — animated dashed lines converging on Copenhagen (275,108) #}
-          {# London #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--1" x1="160" y1="130" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="160" cy="130" r="3"/><text x="148" y="142" class="yb-cph-flights-svg__city-label">London</text>
+          {# Southern Europe — far ring #}
+          <div class="yb-cph-flights-hub__spoke" style="--angle:195deg;  --dist:52%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Barcelona</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:165deg;  --dist:50%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Rome</span></div>
 
-          {# Paris #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--2" x1="195" y1="165" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="195" cy="165" r="3"/><text x="183" y="178" class="yb-cph-flights-svg__city-label">Paris</text>
+          {# Transatlantic — outer edge #}
+          <div class="yb-cph-flights-hub__spoke" style="--angle:250deg;  --dist:58%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">New York</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:280deg;  --dist:56%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Toronto</span></div>
 
-          {# Amsterdam #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--3" x1="215" y1="125" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="215" cy="125" r="3"/><text x="200" y="120" class="yb-cph-flights-svg__city-label">AMS</text>
-
-          {# Berlin #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--4" x1="260" y1="135" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="260" cy="135" r="3"/><text x="245" y="148" class="yb-cph-flights-svg__city-label">Berlin</text>
-
-          {# Frankfurt #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--5" x1="235" y1="155" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="235" cy="155" r="3"/><text x="218" y="162" class="yb-cph-flights-svg__city-label">FRA</text>
-
-          {# Oslo #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--6" x1="252" y1="62" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="252" cy="62" r="3"/><text x="238" y="57" class="yb-cph-flights-svg__city-label">Oslo</text>
-
-          {# Stockholm #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--7" x1="310" y1="68" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="310" cy="68" r="3"/><text x="316" y="64" class="yb-cph-flights-svg__city-label">STO</text>
-
-          {# Helsinki #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--8" x1="348" y1="55" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="348" cy="55" r="3"/><text x="354" y="52" class="yb-cph-flights-svg__city-label">HEL</text>
-
-          {# Dublin #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--9" x1="130" y1="118" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="130" cy="118" r="3"/><text x="113" y="114" class="yb-cph-flights-svg__city-label">Dublin</text>
-
-          {# Barcelona #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--10" x1="190" y1="238" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="190" cy="238" r="3"/><text x="172" y="250" class="yb-cph-flights-svg__city-label">BCN</text>
-
-          {# Rome #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--11" x1="262" y1="245" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="262" cy="245" r="3"/><text x="268" y="255" class="yb-cph-flights-svg__city-label">Rome</text>
-
-          {# New York (off-map left) #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--12" x1="30" y1="165" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="30" cy="165" r="3"/><text x="10" y="178" class="yb-cph-flights-svg__city-label">NYC</text>
-
-          {# Edinburgh #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--13" x1="148" y1="98" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="148" cy="98" r="3"/><text x="128" y="94" class="yb-cph-flights-svg__city-label">EDI</text>
-
-          {# Manchester #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--14" x1="155" y1="118" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="155" cy="118" r="3"/>
-
-          {# Toronto (off-map left) #}
-          <line class="yb-cph-flights-svg__route yb-cph-flights-svg__route--15" x1="20" y1="135" x2="275" y2="108"/>
-          <circle class="yb-cph-flights-svg__city" cx="20" cy="135" r="3"/><text x="8" y="128" class="yb-cph-flights-svg__city-label">YYZ</text>
-        </svg>
+          {# Center hub — CPH #}
+          <div class="yb-cph-flights-hub__center">
+            <span class="yb-cph-flights-hub__pulse"></span>
+            <span class="yb-cph-flights-hub__core"></span>
+            <span class="yb-cph-flights-hub__label">CPH</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
