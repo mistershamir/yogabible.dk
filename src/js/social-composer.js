@@ -796,50 +796,64 @@
     var token = await S.getToken();
     if (!token) { S.toast('Auth failed', true); return; }
 
+    // Get signed upload credentials from server
+    var signRes, signData;
+    try {
+      signRes = await fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(folder), {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      signData = await signRes.json();
+      if (!signData.ok) { S.toast('Upload auth error', true); return; }
+    } catch (e) { S.toast('Upload auth failed', true); return; }
+
+    var params = signData.upload_params;
     var success = 0;
     var total = files.length;
 
     for (var i = 0; i < total; i++) {
       var file = files[i];
-      // For large files (>4MB), use Videos tab TUS upload
-      if (file.size > 4 * 1024 * 1024) {
-        S.toast(file.name + ' is too large for Storage upload (' + Math.round(file.size/1024/1024) + ' MB). Use Videos tab for large files.', true);
-        continue;
-      }
-
       S.toast('Uploading ' + (i + 1) + '/' + total + ': ' + file.name + '...');
       var ts = Date.now();
       var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       var fileName = ts + '-' + safeName;
+      var uploadUrl = params.upload_url + fileName;
 
       try {
-        // Read file as ArrayBuffer and send as raw binary
-        var arrayBuffer = await file.arrayBuffer();
-        var uploadRes = await fetch(
-          '/.netlify/functions/bunny-browser?action=upload&folder=' + encodeURIComponent(folder) +
-          '&fileName=' + encodeURIComponent(fileName) +
-          '&contentType=' + encodeURIComponent(file.type || 'application/octet-stream'),
-          {
-            method: 'POST',
-            headers: {
-              Authorization: 'Bearer ' + token,
-              'Content-Type': 'application/octet-stream'
-            },
-            body: arrayBuffer
-          }
-        );
-        var result = await uploadRes.json();
-        console.log('[MediaBrowser] Upload result:', result);
-        if (result.ok) {
+        // Direct PUT to Bunny Storage (AccessKey in header)
+        var uploadRes = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'AccessKey': params.headers.AccessKey,
+            'Content-Type': file.type || 'application/octet-stream'
+          },
+          body: file
+        });
+        console.log('[MediaBrowser] Direct upload:', uploadRes.status, uploadRes.statusText);
+        if (uploadRes.ok || uploadRes.status === 201) {
           success++;
           S.toast('Uploaded ' + file.name);
         } else {
-          console.error('[MediaBrowser] Upload failed:', result.error);
-          S.toast('Failed: ' + (result.error || 'unknown'), true);
+          S.toast('Upload failed: HTTP ' + uploadRes.status, true);
         }
-      } catch (e) {
-        console.error('[MediaBrowser] Upload error:', e.message);
-        S.toast('Upload error: ' + e.message, true);
+      } catch (directErr) {
+        // CORS blocked — fall back to proxy via Netlify function
+        console.log('[MediaBrowser] Direct upload blocked by CORS, using proxy');
+        S.toast('Uploading via proxy...');
+        try {
+          var ab = await file.arrayBuffer();
+          var proxyRes = await fetch(
+            '/.netlify/functions/bunny-browser?action=upload&folder=' + encodeURIComponent(folder) +
+            '&fileName=' + encodeURIComponent(fileName) +
+            '&contentType=' + encodeURIComponent(file.type || 'application/octet-stream'),
+            { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/octet-stream' }, body: ab }
+          );
+          var pr = await proxyRes.json();
+          console.log('[MediaBrowser] Proxy upload result:', pr);
+          if (pr.ok) { success++; S.toast('Uploaded ' + file.name); }
+          else S.toast('Failed: ' + (pr.error || 'unknown'), true);
+        } catch (proxyErr) {
+          S.toast('Upload error: ' + proxyErr.message, true);
+        }
       }
     }
 
