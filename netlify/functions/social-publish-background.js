@@ -6,12 +6,14 @@
  */
 
 const https = require('https');
+const crypto = require('crypto');
 const { getDb, serverTimestamp } = require('./shared/firestore');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 const {
   publishToInstagram,
   publishToFacebook,
+  publishStoryToFacebook,
   publishToTikTok,
   refreshTikTokToken,
   publishToLinkedIn,
@@ -26,74 +28,101 @@ const BUNNY_STORAGE_ZONE = process.env.BUNNY_STORAGE_ZONE || 'yogabible';
 const BUNNY_STORAGE_KEY = process.env.BUNNY_STORAGE_API_KEY || '';
 const BUNNY_CDN_HOST = process.env.BUNNY_CDN_HOST || 'yogabible.b-cdn.net';
 const BUNNY_STREAM_CDN = process.env.BUNNY_STREAM_CDN_HOST || 'vz-4f2e2677-3b6.b-cdn.net';
-const BUNNY_STREAM_API_KEY = process.env.BUNNY_STREAM_API_KEY || '';
-const BUNNY_STREAM_LIBRARY_ID = process.env.BUNNY_STREAM_LIBRARY_ID || '627306';
+const BUNNY_ACCOUNT_API_KEY = process.env.BUNNY_ACCOUNT_API_KEY || '';
+
+// Cache the pull zone security key across invocations
+let _streamSecurityKey = null;
 
 /**
- * Extract Bunny Stream video ID from a CDN URL.
- * e.g. "https://vz-4f2e2677-3b6.b-cdn.net/abc123/play_720p.mp4" → "abc123"
+ * Get the Bunny Stream pull zone security key via Account API.
+ * Used to generate signed CDN URLs that bypass token auth.
  */
-function extractStreamVideoId(url) {
-  const match = url.match(/b-cdn\.net\/([a-f0-9-]+)\//);
-  return match ? match[1] : null;
+async function getStreamPullZoneKey() {
+  if (_streamSecurityKey) return _streamSecurityKey;
+  if (!BUNNY_ACCOUNT_API_KEY) {
+    console.error('[social-publish] BUNNY_ACCOUNT_API_KEY not set — cannot sign Stream URLs');
+    return null;
+  }
+  try {
+    const res = await fetch('https://api.bunny.net/pullzone', {
+      headers: { AccessKey: BUNNY_ACCOUNT_API_KEY, accept: 'application/json' }
+    });
+    if (!res.ok) {
+      console.error('[social-publish] Bunny Account API error:', res.status);
+      return null;
+    }
+    const zones = await res.json();
+    for (const zone of zones) {
+      const hostnames = zone.Hostnames || [];
+      if (hostnames.some(h => (h.Value || '').includes('vz-4f2e2677'))) {
+        _streamSecurityKey = zone.ZoneSecurityKey;
+        console.log('[social-publish] Found Stream pull zone security key');
+        return _streamSecurityKey;
+      }
+    }
+    console.error('[social-publish] Could not find Stream pull zone in', zones.length, 'zones');
+    return null;
+  } catch (e) {
+    console.error('[social-publish] Failed to get pull zone key:', e.message);
+    return null;
+  }
 }
 
 /**
- * If a media URL is from Bunny Stream (vz-*.b-cdn.net), download it via
- * the Bunny Stream API (which bypasses token auth) and re-upload to
- * Bunny Storage (yogabible.b-cdn.net) so social platforms can access it.
+ * Generate a signed Bunny CDN URL to bypass token authentication.
+ */
+function signBunnyCdnUrl(rawUrl, securityKey, expirySeconds) {
+  expirySeconds = expirySeconds || 3600;
+  const url = new URL(rawUrl);
+  const path = url.pathname;
+  const expires = Math.floor(Date.now() / 1000) + expirySeconds;
+  const hashStr = securityKey + path + String(expires);
+  const hash = crypto.createHash('sha256').update(hashStr).digest('base64');
+  const token = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  return rawUrl + '?token=' + token + '&expires=' + expires;
+}
+
+/**
+ * If a media URL is from Bunny Stream (vz-*.b-cdn.net), download it using
+ * a signed CDN URL (bypasses token auth) and re-upload to Bunny Storage
+ * (yogabible.b-cdn.net) so social platforms can access it publicly.
  */
 async function ensurePublicMediaUrl(mediaUrl) {
-  // Only process Bunny Stream URLs
   if (!mediaUrl.includes(BUNNY_STREAM_CDN)) return mediaUrl;
 
   console.log('[social-publish] Copying Bunny Stream video to Storage:', mediaUrl);
 
   try {
-    const videoId = extractStreamVideoId(mediaUrl);
-    if (!videoId) {
-      console.error('[social-publish] Could not extract video ID from:', mediaUrl);
-      return mediaUrl;
-    }
-
-    // Use Bunny Stream API to get the direct download URL (bypasses CDN token auth)
-    const apiRes = await fetch(
-      `https://video.bunnycdn.com/library/${BUNNY_STREAM_LIBRARY_ID}/videos/${videoId}`,
-      { headers: { AccessKey: BUNNY_STREAM_API_KEY } }
-    );
-    if (!apiRes.ok) {
-      console.error('[social-publish] Stream API error:', apiRes.status);
-      return mediaUrl;
-    }
-    const videoInfo = await apiRes.json();
-
-    // Try the direct download URL from Bunny Stream API
-    // Format: https://video.bunnycdn.com/library/{libId}/videos/{videoId}/play
-    const downloadUrl = `https://video.bunnycdn.com/library/${BUNNY_STREAM_LIBRARY_ID}/videos/${videoId}/play`;
-    console.log('[social-publish] Fetching video via API download URL');
-
-    const videoRes = await fetch(downloadUrl, {
-      headers: { AccessKey: BUNNY_STREAM_API_KEY },
-      redirect: 'follow'
-    });
-
-    if (!videoRes.ok) {
-      // Fallback: try original URL with Referer header (some CDN configs allow this)
-      console.log('[social-publish] API download failed, trying CDN with Referer');
-      const cdnRes = await fetch(mediaUrl, {
-        headers: { Referer: 'https://yogabible.dk/' }
-      });
-      if (!cdnRes.ok) {
-        console.error('[social-publish] All download methods failed');
-        return mediaUrl;
-      }
-      var videoBuffer = Buffer.from(await cdnRes.arrayBuffer());
+    // Get pull zone security key to sign the download URL
+    const securityKey = await getStreamPullZoneKey();
+    let downloadUrl;
+    if (securityKey) {
+      downloadUrl = signBunnyCdnUrl(mediaUrl, securityKey, 3600);
+      console.log('[social-publish] Using signed CDN URL for download');
     } else {
-      var videoBuffer = Buffer.from(await videoRes.arrayBuffer());
+      // No key available — try unsigned (will likely 403 if token auth enabled)
+      downloadUrl = mediaUrl;
+      console.log('[social-publish] No security key — trying unsigned URL');
     }
 
-    if (videoBuffer.length < 1000) {
-      console.error('[social-publish] Downloaded file too small:', videoBuffer.length, 'bytes — likely an error page');
+    const videoRes = await fetch(downloadUrl);
+    if (!videoRes.ok) {
+      console.error('[social-publish] Download failed:', videoRes.status, downloadUrl.substring(0, 80));
+      return mediaUrl;
+    }
+
+    // Check content-type to ensure we got a video, not an error page
+    const contentType = videoRes.headers.get('content-type') || '';
+    if (contentType.includes('text/html') || contentType.includes('application/json')) {
+      console.error('[social-publish] Download returned non-video content-type:', contentType);
+      return mediaUrl;
+    }
+
+    const videoBuffer = Buffer.from(await videoRes.arrayBuffer());
+    console.log('[social-publish] Downloaded video:', videoBuffer.length, 'bytes, content-type:', contentType);
+
+    if (videoBuffer.length < 10000) {
+      console.error('[social-publish] Downloaded file too small:', videoBuffer.length, 'bytes — likely an error');
       return mediaUrl;
     }
 
@@ -220,10 +249,20 @@ async function publishPost(db, postId, platformFilter) {
           platformPost
         );
       } else if (platform === 'facebook') {
-        result = await publishToFacebook(
-          { accessToken: account.accessToken, pageId: account.pageId },
-          platformPost
-        );
+        const fbMediaType = (post.mediaType || 'auto').toLowerCase();
+        if (fbMediaType === 'story') {
+          // Use Facebook Stories API
+          const storyMedia = (platformPost.media || [])[0];
+          result = await publishStoryToFacebook(
+            { accessToken: account.accessToken, pageId: account.pageId },
+            { media: storyMedia, caption: platformPost.caption || '' }
+          );
+        } else {
+          result = await publishToFacebook(
+            { accessToken: account.accessToken, pageId: account.pageId },
+            platformPost
+          );
+        }
       } else if (platform === 'tiktok') {
         // Auto-refresh TikTok token if refresh token exists
         let ttToken = account.accessToken;
