@@ -796,69 +796,65 @@
     var token = await S.getToken();
     if (!token) { S.toast('Auth failed', true); return; }
 
-    // Get signed upload credentials from server
-    var signRes, signData;
-    try {
-      signRes = await fetch('/.netlify/functions/bunny-browser?action=sign_upload&folder=' + encodeURIComponent(folder), {
-        headers: { Authorization: 'Bearer ' + token }
-      });
-      signData = await signRes.json();
-      if (!signData.ok) { S.toast('Upload auth error', true); return; }
-    } catch (e) { S.toast('Upload auth failed', true); return; }
-
-    var params = signData.upload_params;
+    var MAX_SIZE = 4.5 * 1024 * 1024; // ~4.5 MB (base64 adds ~33%, must stay under 6MB Netlify limit)
     var success = 0;
     var total = files.length;
 
     for (var i = 0; i < total; i++) {
       var file = files[i];
+      if (file.size > MAX_SIZE) {
+        S.toast(file.name + ' is too large (' + (file.size / 1024 / 1024).toFixed(1) + ' MB). Max ~4.5 MB per file. Use Videos tab for large videos.', true);
+        continue;
+      }
       S.toast('Uploading ' + (i + 1) + '/' + total + ': ' + file.name + '...');
       var ts = Date.now();
       var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       var fileName = ts + '-' + safeName;
-      var uploadUrl = params.upload_url + fileName;
 
       try {
-        // Direct PUT to Bunny Storage (AccessKey in header)
-        var uploadRes = await fetch(uploadUrl, {
-          method: 'PUT',
-          headers: {
-            'AccessKey': params.headers.AccessKey,
-            'Content-Type': file.type || 'application/octet-stream'
-          },
-          body: file
-        });
-        console.log('[MediaBrowser] Direct upload:', uploadRes.status, uploadRes.statusText);
-        if (uploadRes.ok || uploadRes.status === 201) {
-          success++;
-          S.toast('Uploaded ' + file.name);
-        } else {
-          S.toast('Upload failed: HTTP ' + uploadRes.status, true);
-        }
-      } catch (directErr) {
-        // CORS blocked — fall back to proxy via Netlify function
-        console.log('[MediaBrowser] Direct upload blocked by CORS, using proxy');
-        S.toast('Uploading via proxy...');
-        try {
-          var ab = await file.arrayBuffer();
-          var proxyRes = await fetch(
-            '/.netlify/functions/bunny-browser?action=upload&folder=' + encodeURIComponent(folder) +
-            '&fileName=' + encodeURIComponent(fileName) +
-            '&contentType=' + encodeURIComponent(file.type || 'application/octet-stream'),
-            { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/octet-stream' }, body: ab }
-          );
-          var pr = await proxyRes.json();
-          console.log('[MediaBrowser] Proxy upload result:', pr);
-          if (pr.ok) { success++; S.toast('Uploaded ' + file.name); }
-          else S.toast('Failed: ' + (pr.error || 'unknown'), true);
-        } catch (proxyErr) {
-          S.toast('Upload error: ' + proxyErr.message, true);
-        }
+        // Read file as base64 and send via JSON to proxy (avoids CORS + binary body issues)
+        var base64 = await fileToBase64(file);
+        var proxyRes = await fetch(
+          '/.netlify/functions/bunny-browser?action=upload&folder=' + encodeURIComponent(folder),
+          {
+            method: 'POST',
+            headers: {
+              Authorization: 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              fileName: fileName,
+              contentType: file.type || 'application/octet-stream',
+              data: base64
+            })
+          }
+        );
+        var pr = await proxyRes.json();
+        console.log('[MediaBrowser] Upload result:', pr);
+        if (pr.ok) { success++; S.toast('Uploaded ' + file.name); }
+        else S.toast('Failed: ' + (pr.error || 'unknown'), true);
+      } catch (err) {
+        console.error('[MediaBrowser] Upload error:', err);
+        S.toast('Upload error: ' + err.message, true);
       }
     }
 
     if (success > 0) S.toast(success + '/' + total + ' uploaded');
     loadMediaFolder(composer.currentPath);
+  }
+
+  // Convert File to base64 string (without data URI prefix)
+  function fileToBase64(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var result = reader.result;
+        var base64 = result.split(',')[1] || result;
+        resolve(base64);
+      };
+      reader.onerror = function () { reject(new Error('Failed to read file')); };
+      reader.readAsDataURL(file);
+    });
   }
 
   // Upload video to Bunny Stream via TUS (for large video files)
