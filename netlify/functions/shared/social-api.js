@@ -910,28 +910,69 @@ async function publishToLinkedIn(account, post) {
   const { accessToken, organizationId } = account;
   const caption = buildCaption(post);
   const media = post.media || [];
+  const mediaType = (post.mediaType || 'auto').toLowerCase();
 
-  if (!organizationId) {
-    return { success: false, error: 'LinkedIn requires organizationId' };
+  // LinkedIn does not support Stories (deprecated 2021)
+  if (mediaType === 'story') {
+    return { success: false, error: 'LinkedIn does not support Stories' };
   }
 
-  const author = `urn:li:organization:${organizationId}`;
+  // Determine author: try organization first, fall back to member profile
+  let author;
+  if (organizationId) {
+    author = `urn:li:organization:${organizationId}`;
+  }
+
+  // Also get the person ID as a fallback
+  let personId = account.personId;
+  if (!personId) {
+    try {
+      const meRes = await fetch('https://api.linkedin.com/v2/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        personId = meData.sub;
+        console.log('[social-api] LinkedIn person ID:', personId);
+      }
+    } catch (e) {
+      console.warn('[social-api] Failed to get LinkedIn person ID:', e.message);
+    }
+  }
+
+  if (!author && !personId) {
+    return { success: false, error: 'LinkedIn requires organizationId or valid access token with profile scope' };
+  }
 
   try {
-    // Text-only post
+    // Publish function that tries org first, falls back to person
+    async function tryPublish(publishFn) {
+      if (author) {
+        const result = await publishFn(author);
+        // If org posting fails (likely due to missing org scope), try as person
+        if (!result.success && personId && result.error &&
+            (result.error.includes('author') || result.error.includes('permission') ||
+             result.error.includes('Data Processing') || result.error.includes('ACCESS_DENIED'))) {
+          console.log('[social-api] LinkedIn org post failed, retrying as person:', personId);
+          return publishFn(`urn:li:person:${personId}`);
+        }
+        return result;
+      }
+      return publishFn(`urn:li:person:${personId}`);
+    }
+
     if (media.length === 0) {
-      return publishLinkedInText(accessToken, author, caption);
+      return tryPublish(a => publishLinkedInText(accessToken, a, caption));
     }
 
     const mediaUrl = media[0];
     const isVideo = /\.(mp4|mov|avi|wmv)$/i.test(mediaUrl);
 
     if (isVideo) {
-      return publishLinkedInVideo(accessToken, author, caption, mediaUrl);
+      return tryPublish(a => publishLinkedInVideo(accessToken, a, caption, mediaUrl));
     }
 
-    // Image post
-    return publishLinkedInImage(accessToken, author, caption, mediaUrl);
+    return tryPublish(a => publishLinkedInImage(accessToken, a, caption, mediaUrl));
   } catch (err) {
     console.error('[social-api] LinkedIn publish exception:', err);
     return { success: false, error: err.message };
