@@ -7961,122 +7961,62 @@ section {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 300px;
+  min-height: 280px;
 }
 
-/* Flight hub — radial CSS map */
-.yb-cph-flights-hub {
-  position: relative;
+/* Flight map — real Europe SVG */
+.yb-cph-flights-svg {
   width: 100%;
-  aspect-ratio: 1;
-  max-width: 380px;
-  margin: 0 auto;
+  height: auto;
+  max-height: 400px;
 }
 
-.yb-cph-flights-hub__ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid #E8E4E0;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+.yb-cph-flights-svg__route {
+  fill: none;
+  stroke: var(--yb-brand);
+  stroke-width: 1.2;
+  stroke-dasharray: 5 4;
+  opacity: 0.4;
+  animation: route-flow 12s linear infinite;
+  animation-delay: calc(var(--i, 0) * -0.8s);
 }
 
-.yb-cph-flights-hub__ring--1 { width: 40%; height: 40%; }
-.yb-cph-flights-hub__ring--2 { width: 70%; height: 70%; }
-.yb-cph-flights-hub__ring--3 { width: 100%; height: 100%; }
-
-/* Center CPH dot */
-.yb-cph-flights-hub__center {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.yb-cph-flights-hub__core {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--yb-brand);
-  position: relative;
-  z-index: 2;
-}
-
-.yb-cph-flights-hub__pulse {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--yb-brand);
-  opacity: 0;
-  animation: hub-pulse 2.5s ease-out infinite;
-}
-
-@keyframes hub-pulse {
-  0% { opacity: 0.25; transform: scale(0.5); }
-  100% { opacity: 0; transform: scale(1.2); }
-}
-
-.yb-cph-flights-hub__label {
-  position: absolute;
-  top: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--yb-brand);
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-}
-
-/* Spoke — line + dot + label from center to city */
-.yb-cph-flights-hub__spoke {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: var(--dist);
-  height: 1px;
-  transform-origin: 0 0;
-  transform: rotate(var(--angle));
-  z-index: 1;
-}
-
-.yb-cph-flights-hub__spoke::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 1px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--yb-brand) 0, var(--yb-brand) 4px,
-    transparent 4px, transparent 8px
-  );
+.yb-cph-flights-svg__route--long {
+  stroke-dasharray: 8 6;
   opacity: 0.3;
 }
 
-.yb-cph-flights-hub__dot {
-  position: absolute;
-  right: -4px; top: -4px;
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: #6F6A66;
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 1px #E8E4E0;
+@keyframes route-flow {
+  to { stroke-dashoffset: -90; }
 }
 
-.yb-cph-flights-hub__city {
-  position: absolute;
-  right: -4px;
-  top: 0;
-  font-size: 0.65rem;
+.yb-cph-flights-svg__city {
+  fill: #6F6A66;
+}
+
+.yb-cph-flights-svg__city-label {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 10px;
   font-weight: 600;
-  color: #555;
-  white-space: nowrap;
-  transform-origin: center center;
-  transform: rotate(calc(-1 * var(--angle))) translateY(-12px);
-  pointer-events: none;
+  fill: #555;
+}
+
+.yb-cph-flights-svg__cph-glow {
+  fill: var(--yb-brand);
+  opacity: 0;
+  animation: cph-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes cph-glow {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.12; }
+}
+
+.yb-cph-flights-svg__cph-label {
+  font-family: 'Abacaxi', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--yb-brand);
 }
 
 @media (max-width: 900px) {
