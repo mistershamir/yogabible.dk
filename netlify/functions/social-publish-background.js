@@ -26,11 +26,22 @@ const BUNNY_STORAGE_ZONE = process.env.BUNNY_STORAGE_ZONE || 'yogabible';
 const BUNNY_STORAGE_KEY = process.env.BUNNY_STORAGE_API_KEY || '';
 const BUNNY_CDN_HOST = process.env.BUNNY_CDN_HOST || 'yogabible.b-cdn.net';
 const BUNNY_STREAM_CDN = process.env.BUNNY_STREAM_CDN_HOST || 'vz-4f2e2677-3b6.b-cdn.net';
+const BUNNY_STREAM_API_KEY = process.env.BUNNY_STREAM_API_KEY || '';
+const BUNNY_STREAM_LIBRARY_ID = process.env.BUNNY_STREAM_LIBRARY_ID || '627306';
 
 /**
- * If a media URL is from Bunny Stream (vz-*.b-cdn.net), download it and
- * re-upload to Bunny Storage (yogabible.b-cdn.net) so social platforms
- * can access it without token auth / hotlink issues.
+ * Extract Bunny Stream video ID from a CDN URL.
+ * e.g. "https://vz-4f2e2677-3b6.b-cdn.net/abc123/play_720p.mp4" → "abc123"
+ */
+function extractStreamVideoId(url) {
+  const match = url.match(/b-cdn\.net\/([a-f0-9-]+)\//);
+  return match ? match[1] : null;
+}
+
+/**
+ * If a media URL is from Bunny Stream (vz-*.b-cdn.net), download it via
+ * the Bunny Stream API (which bypasses token auth) and re-upload to
+ * Bunny Storage (yogabible.b-cdn.net) so social platforms can access it.
  */
 async function ensurePublicMediaUrl(mediaUrl) {
   // Only process Bunny Stream URLs
@@ -39,14 +50,53 @@ async function ensurePublicMediaUrl(mediaUrl) {
   console.log('[social-publish] Copying Bunny Stream video to Storage:', mediaUrl);
 
   try {
-    // Download from Bunny Stream
-    const videoRes = await fetch(mediaUrl);
-    if (!videoRes.ok) {
-      console.error('[social-publish] Failed to download from Stream:', videoRes.status);
-      return mediaUrl; // Fall back to original URL
+    const videoId = extractStreamVideoId(mediaUrl);
+    if (!videoId) {
+      console.error('[social-publish] Could not extract video ID from:', mediaUrl);
+      return mediaUrl;
     }
 
-    const videoBuffer = Buffer.from(await videoRes.arrayBuffer());
+    // Use Bunny Stream API to get the direct download URL (bypasses CDN token auth)
+    const apiRes = await fetch(
+      `https://video.bunnycdn.com/library/${BUNNY_STREAM_LIBRARY_ID}/videos/${videoId}`,
+      { headers: { AccessKey: BUNNY_STREAM_API_KEY } }
+    );
+    if (!apiRes.ok) {
+      console.error('[social-publish] Stream API error:', apiRes.status);
+      return mediaUrl;
+    }
+    const videoInfo = await apiRes.json();
+
+    // Try the direct download URL from Bunny Stream API
+    // Format: https://video.bunnycdn.com/library/{libId}/videos/{videoId}/play
+    const downloadUrl = `https://video.bunnycdn.com/library/${BUNNY_STREAM_LIBRARY_ID}/videos/${videoId}/play`;
+    console.log('[social-publish] Fetching video via API download URL');
+
+    const videoRes = await fetch(downloadUrl, {
+      headers: { AccessKey: BUNNY_STREAM_API_KEY },
+      redirect: 'follow'
+    });
+
+    if (!videoRes.ok) {
+      // Fallback: try original URL with Referer header (some CDN configs allow this)
+      console.log('[social-publish] API download failed, trying CDN with Referer');
+      const cdnRes = await fetch(mediaUrl, {
+        headers: { Referer: 'https://yogabible.dk/' }
+      });
+      if (!cdnRes.ok) {
+        console.error('[social-publish] All download methods failed');
+        return mediaUrl;
+      }
+      var videoBuffer = Buffer.from(await cdnRes.arrayBuffer());
+    } else {
+      var videoBuffer = Buffer.from(await videoRes.arrayBuffer());
+    }
+
+    if (videoBuffer.length < 1000) {
+      console.error('[social-publish] Downloaded file too small:', videoBuffer.length, 'bytes — likely an error page');
+      return mediaUrl;
+    }
+
     const fileName = 'social-' + Date.now() + '.mp4';
     const storagePath = 'yoga-bible-DK/social-imports/' + fileName;
 
@@ -70,7 +120,7 @@ async function ensurePublicMediaUrl(mediaUrl) {
         });
       });
       req.on('error', reject);
-      req.setTimeout(60000, () => { req.destroy(); reject(new Error('Storage upload timeout')); });
+      req.setTimeout(120000, () => { req.destroy(); reject(new Error('Storage upload timeout')); });
       req.write(videoBuffer);
       req.end();
     });
@@ -80,7 +130,7 @@ async function ensurePublicMediaUrl(mediaUrl) {
     return publicUrl;
   } catch (err) {
     console.error('[social-publish] Failed to copy video:', err.message);
-    return mediaUrl; // Fall back to original URL
+    return mediaUrl;
   }
 }
 
