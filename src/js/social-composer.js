@@ -633,8 +633,12 @@
       uploadInput.parentNode.replaceChild(newInput, uploadInput);
       newInput.addEventListener('change', function () {
         console.log('[MediaBrowser] Upload input changed, files:', newInput.files.length);
-        if (newInput.files.length > 0) uploadFromBrowser(newInput.files);
-        newInput.value = '';
+        if (newInput.files.length > 0) {
+          // Copy files to array BEFORE clearing input (FileList is live-linked)
+          var fileArr = Array.prototype.slice.call(newInput.files);
+          newInput.value = '';
+          uploadFromBrowser(fileArr);
+        }
       });
     }
     // Wire video upload input (Bunny Stream via TUS)
@@ -791,56 +795,75 @@
 
   // Upload files via Netlify proxy (avoids CORS issues with direct Bunny PUT)
   async function uploadFromBrowser(files) {
-    if (!files || files.length === 0) return;
-    var folder = composer.currentPath;
-    var token = await S.getToken();
-    if (!token) { S.toast('Auth failed', true); return; }
+    try {
+      if (!files || files.length === 0) return;
+      var folder = composer.currentPath;
+      console.log('[MediaBrowser] uploadFromBrowser start, folder:', folder, 'files:', files.length);
 
-    var MAX_SIZE = 4.5 * 1024 * 1024; // ~4.5 MB (base64 adds ~33%, must stay under 6MB Netlify limit)
-    var success = 0;
-    var total = files.length;
-
-    for (var i = 0; i < total; i++) {
-      var file = files[i];
-      if (file.size > MAX_SIZE) {
-        S.toast(file.name + ' is too large (' + (file.size / 1024 / 1024).toFixed(1) + ' MB). Max ~4.5 MB per file. Use Videos tab for large videos.', true);
-        continue;
-      }
-      S.toast('Uploading ' + (i + 1) + '/' + total + ': ' + file.name + '...');
-      var ts = Date.now();
-      var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      var fileName = ts + '-' + safeName;
-
+      var token;
       try {
-        // Read file as base64 and send via JSON to proxy (avoids CORS + binary body issues)
-        var base64 = await fileToBase64(file);
-        var proxyRes = await fetch(
-          '/.netlify/functions/bunny-browser?action=upload&folder=' + encodeURIComponent(folder),
-          {
-            method: 'POST',
-            headers: {
-              Authorization: 'Bearer ' + token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              fileName: fileName,
-              contentType: file.type || 'application/octet-stream',
-              data: base64
-            })
-          }
-        );
-        var pr = await proxyRes.json();
-        console.log('[MediaBrowser] Upload result:', pr);
-        if (pr.ok) { success++; S.toast('Uploaded ' + file.name); }
-        else S.toast('Failed: ' + (pr.error || 'unknown'), true);
-      } catch (err) {
-        console.error('[MediaBrowser] Upload error:', err);
-        S.toast('Upload error: ' + err.message, true);
+        token = await S.getToken();
+      } catch (tokenErr) {
+        console.error('[MediaBrowser] getToken error:', tokenErr);
+        S.toast('Auth error: ' + tokenErr.message, true);
+        return;
       }
-    }
+      if (!token) { S.toast('Auth failed — please log in', true); return; }
+      console.log('[MediaBrowser] Got auth token, length:', token.length);
 
-    if (success > 0) S.toast(success + '/' + total + ' uploaded');
-    loadMediaFolder(composer.currentPath);
+      var MAX_SIZE = 4.5 * 1024 * 1024; // ~4.5 MB (base64 adds ~33%, must stay under 6MB Netlify limit)
+      var success = 0;
+      var total = files.length;
+
+      for (var i = 0; i < total; i++) {
+        var file = files[i];
+        console.log('[MediaBrowser] File:', file.name, 'size:', file.size, 'type:', file.type);
+        if (file.size > MAX_SIZE) {
+          S.toast(file.name + ' is too large (' + (file.size / 1024 / 1024).toFixed(1) + ' MB). Max ~4.5 MB. Use Videos tab for large videos.', true);
+          continue;
+        }
+        S.toast('Uploading ' + (i + 1) + '/' + total + ': ' + file.name + '...');
+        var ts = Date.now();
+        var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        var fileName = ts + '-' + safeName;
+
+        try {
+          // Read file as base64 and send via JSON to proxy (avoids CORS + binary body issues)
+          console.log('[MediaBrowser] Reading file as base64...');
+          var base64 = await fileToBase64(file);
+          console.log('[MediaBrowser] Base64 length:', base64.length, '— sending to proxy...');
+          var proxyRes = await fetch(
+            '/.netlify/functions/bunny-browser?action=upload&folder=' + encodeURIComponent(folder),
+            {
+              method: 'POST',
+              headers: {
+                Authorization: 'Bearer ' + token,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                fileName: fileName,
+                contentType: file.type || 'application/octet-stream',
+                data: base64
+              })
+            }
+          );
+          console.log('[MediaBrowser] Proxy response status:', proxyRes.status);
+          var pr = await proxyRes.json();
+          console.log('[MediaBrowser] Upload result:', pr);
+          if (pr.ok) { success++; S.toast('Uploaded ' + file.name); }
+          else S.toast('Failed: ' + (pr.error || 'unknown'), true);
+        } catch (err) {
+          console.error('[MediaBrowser] Upload error:', err);
+          S.toast('Upload error: ' + err.message, true);
+        }
+      }
+
+      if (success > 0) S.toast(success + '/' + total + ' uploaded');
+      loadMediaFolder(composer.currentPath);
+    } catch (outerErr) {
+      console.error('[MediaBrowser] uploadFromBrowser FATAL:', outerErr);
+      S.toast('Upload failed: ' + outerErr.message, true);
+    }
   }
 
   // Convert File to base64 string (without data URI prefix)
