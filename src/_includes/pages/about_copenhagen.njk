@@ -314,36 +314,110 @@
         </div>
       </div>
       <div class="yb-cph-why__flights-map" aria-label="{{ t.flights_map_alt }}">
-        <div class="yb-cph-flights-hub">
-          {# Concentric range rings #}
-          <div class="yb-cph-flights-hub__ring yb-cph-flights-hub__ring--3"></div>
-          <div class="yb-cph-flights-hub__ring yb-cph-flights-hub__ring--2"></div>
-          <div class="yb-cph-flights-hub__ring yb-cph-flights-hub__ring--1"></div>
+        <svg class="yb-cph-flights-svg" viewBox="0 0 580 480" xmlns="http://www.w3.org/2000/svg">
+          {# Europe landmass — simplified real geography #}
+          <path d="M168,148 L172,138 L180,132 L186,128 L194,130 L200,126 L206,118 L216,114 L224,108 L230,100 L240,96 L252,92 L262,88 L270,84 L278,80 L290,76 L302,72 L310,68 L318,64 L328,62 L340,60 L350,56 L358,52 L366,48 L374,46 L380,50 L386,56 L392,62 L396,70 L400,78 L402,86 L398,94 L392,100 L388,108 L386,116 L390,124 L396,130 L404,134 L412,132 L418,128 L426,126 L434,128 L440,134 L444,142 L448,150 L450,160 L446,168 L440,174 L434,178 L428,184 L424,192 L422,200 L426,208 L432,214 L436,222 L432,230 L426,236 L420,240 L414,246 L410,254 L408,262 L404,268 L398,272 L392,278 L386,284 L380,290 L374,296 L368,300 L360,304 L354,310 L348,316 L342,320 L336,322 L330,318 L324,312 L318,308 L312,306 L306,310 L302,318 L298,326 L292,332 L286,338 L278,342 L270,344 L262,340 L256,334 L250,328 L244,324 L238,320 L234,314 L232,308 L228,302 L224,296 L218,292 L212,290 L206,294 L200,300 L194,306 L188,312 L182,316 L176,320 L172,326 L168,332" fill="#F5F3F0" stroke="#E0DCD8" stroke-width="1.2" stroke-linejoin="round"/>
 
-          {# Cities evenly spaced ~24deg apart, distance by real geography #}
-          <div class="yb-cph-flights-hub__spoke" style="--angle:-40deg;  --dist:20%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Oslo</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:-16deg;  --dist:22%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Stockholm</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:10deg;   --dist:34%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Helsinki</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:150deg;  --dist:24%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Berlin</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:175deg;  --dist:36%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Frankfurt</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:210deg;  --dist:32%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Amsterdam</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:198deg;  --dist:42%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Paris</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:234deg;  --dist:38%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">London</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:254deg;  --dist:36%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Manchester</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:278deg;  --dist:38%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Edinburgh</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:260deg;  --dist:48%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Dublin</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:170deg;  --dist:50%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Barcelona</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:145deg;  --dist:48%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Rome</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:300deg;  --dist:56%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">New York</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:322deg;  --dist:54%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Toronto</span></div>
+          {# Iberian Peninsula #}
+          <path d="M168,332 L160,336 L152,342 L146,348 L140,356 L136,364 L134,372 L138,380 L144,386 L150,390 L158,392 L166,388 L174,382 L182,376 L190,372 L198,368 L206,362 L212,356 L218,350 L224,344 L228,336 L232,328 L234,320 L232,314 L228,308" fill="#F5F3F0" stroke="#E0DCD8" stroke-width="1.2" stroke-linejoin="round"/>
 
-          {# Center hub — CPH #}
-          <div class="yb-cph-flights-hub__center">
-            <span class="yb-cph-flights-hub__pulse"></span>
-            <span class="yb-cph-flights-hub__core"></span>
-            <span class="yb-cph-flights-hub__label">CPH</span>
-          </div>
-        </div>
+          {# Italy #}
+          <path d="M306,310 L310,316 L316,322 L318,330 L316,338 L312,346 L308,354 L304,362 L300,368 L296,372 L290,370 L286,364 L288,356 L292,348 L296,340 L300,332 L304,324 L306,316" fill="#F5F3F0" stroke="#E0DCD8" stroke-width="1.2" stroke-linejoin="round"/>
+
+          {# UK #}
+          <path d="M160,180 L158,172 L162,164 L168,156 L174,150 L180,148 L186,152 L190,160 L192,168 L190,176 L186,184 L180,190 L174,194 L168,192 L162,188 Z" fill="#F5F3F0" stroke="#E0DCD8" stroke-width="1.2" stroke-linejoin="round"/>
+
+          {# Ireland #}
+          <path d="M136,178 L134,170 L138,164 L144,160 L150,162 L154,168 L154,176 L150,182 L144,184 L138,182 Z" fill="#F5F3F0" stroke="#E0DCD8" stroke-width="1.2" stroke-linejoin="round"/>
+
+          {# Scandinavia #}
+          <path d="M278,80 L282,72 L286,64 L292,56 L298,50 L304,46 L312,42 L320,40 L326,44 L330,52 L328,60 L322,66 L316,70 L310,74 L304,78 L298,82 L292,84 L286,86 L280,84" fill="#F5F3F0" stroke="#E0DCD8" stroke-width="1.2" stroke-linejoin="round"/>
+
+          {# Flight routes — curved paths from cities to CPH #}
+          {% set cph_x = 312 %}
+          {% set cph_y = 136 %}
+
+          {# Oslo #}
+          <path d="M296,74 Q304,105 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:0"/>
+          <circle cx="296" cy="74" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="282" y="69" class="yb-cph-flights-svg__city-label">Oslo</text>
+
+          {# Stockholm #}
+          <path d="M350,78 Q331,107 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:1"/>
+          <circle cx="350" cy="78" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="356" y="74" class="yb-cph-flights-svg__city-label">Stockholm</text>
+
+          {# Helsinki #}
+          <path d="M400,68 Q356,102 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:2"/>
+          <circle cx="400" cy="68" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="406" y="64" class="yb-cph-flights-svg__city-label">Helsinki</text>
+
+          {# Berlin #}
+          <path d="M306,188 Q309,162 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:3"/>
+          <circle cx="306" cy="188" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="312" y="194" class="yb-cph-flights-svg__city-label">Berlin</text>
+
+          {# Frankfurt #}
+          <path d="M264,226 Q288,181 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:4"/>
+          <circle cx="264" cy="226" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="244" y="234" class="yb-cph-flights-svg__city-label">Frankfurt</text>
+
+          {# Amsterdam #}
+          <path d="M222,188 Q267,162 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:5"/>
+          <circle cx="222" cy="188" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="195" y="194" class="yb-cph-flights-svg__city-label">Amsterdam</text>
+
+          {# Paris #}
+          <path d="M214,262 Q263,199 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:6"/>
+          <circle cx="214" cy="262" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="198" y="272" class="yb-cph-flights-svg__city-label">Paris</text>
+
+          {# London #}
+          <path d="M178,192 Q245,164 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:7"/>
+          <circle cx="178" cy="192" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="156" y="198" class="yb-cph-flights-svg__city-label">London</text>
+
+          {# Manchester #}
+          <path d="M170,172 Q241,154 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:8"/>
+          <circle cx="170" cy="172" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="136" y="172" class="yb-cph-flights-svg__city-label">Manchester</text>
+
+          {# Edinburgh #}
+          <path d="M164,156 Q238,146 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:9"/>
+          <circle cx="164" cy="156" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="130" y="156" class="yb-cph-flights-svg__city-label">Edinburgh</text>
+
+          {# Dublin #}
+          <path d="M142,174 Q227,155 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:10"/>
+          <circle cx="142" cy="174" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="116" y="180" class="yb-cph-flights-svg__city-label">Dublin</text>
+
+          {# Barcelona #}
+          <path d="M192,356 Q252,246 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:11"/>
+          <circle cx="192" cy="356" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="170" y="366" class="yb-cph-flights-svg__city-label">Barcelona</text>
+
+          {# Rome #}
+          <path d="M308,348 Q310,242 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route" style="--i:12"/>
+          <circle cx="308" cy="348" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="316" y="354" class="yb-cph-flights-svg__city-label">Rome</text>
+
+          {# New York — dashed arc from left edge #}
+          <path d="M32,220 Q172,120 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route yb-cph-flights-svg__route--long" style="--i:13"/>
+          <circle cx="32" cy="220" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="14" y="232" class="yb-cph-flights-svg__city-label">New York</text>
+
+          {# Toronto — dashed arc from left edge #}
+          <path d="M26,178 Q169,108 {{cph_x}},{{cph_y}}" class="yb-cph-flights-svg__route yb-cph-flights-svg__route--long" style="--i:14"/>
+          <circle cx="26" cy="178" r="3.5" class="yb-cph-flights-svg__city"/>
+          <text x="10" y="172" class="yb-cph-flights-svg__city-label">Toronto</text>
+
+          {# CPH — pulsing center #}
+          <circle cx="{{cph_x}}" cy="{{cph_y}}" r="20" class="yb-cph-flights-svg__cph-glow"/>
+          <circle cx="{{cph_x}}" cy="{{cph_y}}" r="11" fill="none" stroke="#f75c03" stroke-width="1.5" opacity="0.3"/>
+          <circle cx="{{cph_x}}" cy="{{cph_y}}" r="6" fill="#f75c03"/>
+          <text x="{{cph_x}}" y="{{cph_y - 16}}" text-anchor="middle" class="yb-cph-flights-svg__cph-label">CPH</text>
+        </svg>
       </div>
     </div>
   </div>
