@@ -320,31 +320,22 @@
           <div class="yb-cph-flights-hub__ring yb-cph-flights-hub__ring--2"></div>
           <div class="yb-cph-flights-hub__ring yb-cph-flights-hub__ring--1"></div>
 
-          {# Animated arc routes — each city placed at real-ish compass bearing from CPH #}
-          {# Nordics — close ring #}
-          <div class="yb-cph-flights-hub__spoke" style="--angle:-30deg;  --dist:22%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Oslo</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:15deg;   --dist:24%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Stockholm</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:40deg;   --dist:34%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Helsinki</span></div>
-
-          {# Central Europe — mid ring #}
-          <div class="yb-cph-flights-hub__spoke" style="--angle:170deg;  --dist:28%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Berlin</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:200deg;  --dist:38%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Frankfurt</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:215deg;  --dist:40%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Amsterdam</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:230deg;  --dist:44%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Paris</span></div>
-
-          {# UK & Ireland — mid-far ring #}
-          <div class="yb-cph-flights-hub__spoke" style="--angle:255deg;  --dist:40%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">London</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:275deg;  --dist:38%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Manchester</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:290deg;  --dist:40%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Edinburgh</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:265deg;  --dist:48%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Dublin</span></div>
-
-          {# Southern Europe — far ring #}
-          <div class="yb-cph-flights-hub__spoke" style="--angle:195deg;  --dist:52%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Barcelona</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:165deg;  --dist:50%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Rome</span></div>
-
-          {# Transatlantic — outer edge #}
-          <div class="yb-cph-flights-hub__spoke" style="--angle:250deg;  --dist:58%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">New York</span></div>
-          <div class="yb-cph-flights-hub__spoke" style="--angle:280deg;  --dist:56%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Toronto</span></div>
+          {# Cities evenly spaced ~24deg apart, distance by real geography #}
+          <div class="yb-cph-flights-hub__spoke" style="--angle:-40deg;  --dist:20%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Oslo</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:-16deg;  --dist:22%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Stockholm</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:10deg;   --dist:34%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Helsinki</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:150deg;  --dist:24%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Berlin</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:175deg;  --dist:36%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Frankfurt</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:210deg;  --dist:32%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Amsterdam</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:198deg;  --dist:42%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Paris</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:234deg;  --dist:38%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">London</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:254deg;  --dist:36%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Manchester</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:278deg;  --dist:38%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Edinburgh</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:260deg;  --dist:48%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Dublin</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:170deg;  --dist:50%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Barcelona</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:145deg;  --dist:48%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Rome</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:300deg;  --dist:56%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">New York</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:322deg;  --dist:54%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Toronto</span></div>
 
           {# Center hub — CPH #}
           <div class="yb-cph-flights-hub__center">

@@ -7919,7 +7919,7 @@ section {
   grid-column: span 2;
   border: 2px solid var(--yb-brand);
   border-radius: 18px;
-  margin-top: 2rem;
+  margin-top: 3rem;
   padding: 2rem 2.5rem;
   display: grid;
   grid-template-columns: 1fr 1.2fr;
@@ -8068,14 +8068,15 @@ section {
 
 .yb-cph-flights-hub__city {
   position: absolute;
-  right: 0;
-  top: 8px;
-  font-size: 0.68rem;
+  right: -4px;
+  top: 0;
+  font-size: 0.65rem;
   font-weight: 600;
-  color: #6F6A66;
+  color: #555;
   white-space: nowrap;
-  transform-origin: left top;
-  transform: rotate(calc(-1 * var(--angle)));
+  transform-origin: center center;
+  transform: rotate(calc(-1 * var(--angle))) translateY(-12px);
+  pointer-events: none;
 }
 
 @media (max-width: 900px) {
