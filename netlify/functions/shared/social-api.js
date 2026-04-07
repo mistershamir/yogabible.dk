@@ -33,6 +33,19 @@ async function publishToInstagram(account, post) {
   const mediaUrl = media[0];
   const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(mediaUrl);
 
+  // Pre-check: verify the media URL is publicly accessible
+  try {
+    const checkRes = await fetch(mediaUrl, { method: 'HEAD' });
+    if (!checkRes.ok) {
+      console.error('[social-api] Media URL not accessible:', mediaUrl, 'status:', checkRes.status);
+      return { success: false, error: `Media URL returned ${checkRes.status}. The video may not be publicly accessible. Check Bunny CDN token authentication settings.` };
+    }
+    console.log('[social-api] Media URL accessible:', mediaUrl, 'content-type:', checkRes.headers.get('content-type'), 'size:', checkRes.headers.get('content-length'));
+  } catch (err) {
+    console.error('[social-api] Media URL check failed:', err.message);
+    return { success: false, error: `Cannot reach media URL: ${err.message}` };
+  }
+
   // Determine media type
   let mediaType;
   if (requestedType === 'STORIES') {
@@ -89,9 +102,9 @@ async function publishToInstagram(account, post) {
 
     // Step 2: Wait for processing (videos and stories need this)
     if (isVideo || mediaType === 'REELS' || mediaType === 'STORIES') {
-      const ready = await waitForMediaProcessing(account, containerId, 120000);
+      const ready = await waitForMediaProcessing(account, containerId, 300000);
       if (!ready) {
-        return { success: false, error: 'Media processing timed out after 120s' };
+        return { success: false, error: 'Media processing timed out after 300s. Video may be too large or in an unsupported format.' };
       }
     }
 
@@ -342,6 +355,16 @@ async function publishToFacebook(account, post) {
     const isVideo = /\.(mp4|mov|avi|wmv)$/i.test(firstMedia);
 
     if (isVideo) {
+      // Pre-check: verify the video URL is publicly accessible
+      try {
+        const checkRes = await fetch(firstMedia, { method: 'HEAD' });
+        if (!checkRes.ok) {
+          return { success: false, error: `Video URL returned ${checkRes.status}. Check Bunny CDN token auth settings.` };
+        }
+      } catch (err) {
+        return { success: false, error: `Cannot reach video URL: ${err.message}` };
+      }
+
       // Video post
       const res = await fetch(`${FB_API}/${pageId}/videos`, {
         method: 'POST',

@@ -847,11 +847,31 @@
   }
 
   async function publishNow(id) {
-    toast(t('social_publishing'));
-    var data = await api('social-publish', {
-      method: 'POST', body: JSON.stringify({ postId: id })
+    toast('Publishing in background...');
+    var token = await getToken();
+    if (!token) return;
+    await fetch('/.netlify/functions/social-publish-background', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId: id })
     });
-    if (data) { toast(t('social_published')); loadPosts(); }
+    toast('Publishing started. Refresh in ~30s to see results.');
+    // Poll for completion
+    var attempts = 0;
+    var poll = setInterval(async function () {
+      attempts++;
+      if (attempts > 20) { clearInterval(poll); return; }
+      var d = await api('social-posts?action=get&id=' + id);
+      if (d && d.post && (d.post.status === 'published' || d.post.status === 'failed')) {
+        clearInterval(poll);
+        var r = d.post.publishResults || {};
+        var ok = Object.keys(r).filter(function (p) { return r[p].success; });
+        var fail = Object.keys(r).filter(function (p) { return !r[p].success; });
+        if (ok.length) toast('Published to ' + ok.join(', '));
+        fail.forEach(function (p) { toast('Failed — ' + p + ': ' + (r[p].error || ''), true); });
+        loadPosts();
+      }
+    }, 6000);
   }
 
   // ── Approval Workflow ──────────────────────────────────────
