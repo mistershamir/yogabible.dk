@@ -142,7 +142,14 @@
     "locationGallery1": "yoga-bible-DK/copenhagen/yoga-bible-studio-exterior-torvegade",
     "locationGallery2": "yoga-bible-DK/copenhagen/christianshavn-canal-colorful-houses",
     "locationGallery3": "yoga-bible-DK/copenhagen/christianshavn-cobblestone-street-scene",
-    "whyMain": "yoga-bible-DK/copenhagen/yoga-bible-studio-interior-training",
+    "studioCarousel": [
+      "yoga-bible-DK/copenhagen/yoga-bible-studio-interior-training",
+      "yoga-bible-DK/copenhagen/yoga-bible-studio-interior-01",
+      "yoga-bible-DK/copenhagen/yoga-bible-studio-interior-02",
+      "yoga-bible-DK/copenhagen/yoga-bible-studio-interior-03",
+      "yoga-bible-DK/copenhagen/yoga-bible-studio-interior-04",
+      "yoga-bible-DK/copenhagen/yoga-bible-studio-interior-05"
+    ],
     "whySmall1": "yoga-bible-DK/copenhagen/copenhagen-historic-building-detail",
     "whySmall2": "yoga-bible-DK/copenhagen/copenhagen-airport-terminal",
     "flightsMap": "yoga-bible-DK/copenhagen/copenhagen-flight-connections-map-europe",
