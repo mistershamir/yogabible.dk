@@ -250,17 +250,23 @@ exports.handler = async (event) => {
     case 'sign_upload':
       return signUpload(folder);
     case 'upload': {
-      // Proxy upload: client sends binary file in POST body
+      // Proxy upload: client sends JSON { data: base64, fileName, contentType }
       if (event.httpMethod !== 'POST') return jsonResponse(405, { ok: false, error: 'POST required for upload' });
-      const fileName = params.fileName;
-      const contentType = params.contentType || 'application/octet-stream';
-      if (!fileName) return jsonResponse(400, { ok: false, error: 'Missing fileName param' });
-      if (!event.body) return jsonResponse(400, { ok: false, error: 'Empty body' });
-      // Netlify always base64-encodes binary request bodies
-      const bodyBuffer = Buffer.from(event.body, event.isBase64Encoded ? 'base64' : 'utf8');
-      console.log(`[bunny-browser] upload: ${fileName} to ${folder}, bodySize=${bodyBuffer.length}, isBase64=${event.isBase64Encoded}, rawLen=${event.body.length}`);
-      if (bodyBuffer.length === 0) return jsonResponse(400, { ok: false, error: 'Empty file body after decode' });
-      return proxyUpload(folder, fileName, bodyBuffer, contentType);
+      let uploadBody;
+      try {
+        const raw = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString('utf8') : event.body;
+        uploadBody = JSON.parse(raw);
+      } catch (e) {
+        return jsonResponse(400, { ok: false, error: 'Invalid JSON body' });
+      }
+      const upFileName = uploadBody.fileName || params.fileName;
+      const upContentType = uploadBody.contentType || params.contentType || 'application/octet-stream';
+      if (!upFileName) return jsonResponse(400, { ok: false, error: 'Missing fileName' });
+      if (!uploadBody.data) return jsonResponse(400, { ok: false, error: 'Missing data (base64)' });
+      const bodyBuffer = Buffer.from(uploadBody.data, 'base64');
+      console.log(`[bunny-browser] upload: ${upFileName} to ${folder}, bodySize=${bodyBuffer.length}`);
+      if (bodyBuffer.length === 0) return jsonResponse(400, { ok: false, error: 'Empty file after decode' });
+      return proxyUpload(folder, upFileName, bodyBuffer, upContentType);
     }
     case 'init-social-folders':
       return initSocialFolders();
