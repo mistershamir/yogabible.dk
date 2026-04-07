@@ -750,10 +750,15 @@
     else if (schedRevisits >= 1 || se.accommodation_visited) score += 2;
     else if (se.total_pageviews >= 3) score += 1;
 
+    // Social engagement (0-2) — following = interest signal
+    var soc = l.social_engagement || {};
+    if (soc.instagram_followed && (soc.instagram_dm_count || 0) > 0) score += 2;
+    else if (soc.instagram_followed || soc.facebook_followed) score += 1;
+
     // Consultation / application intent (bonus)
     if (se.consultation_booking_clicked || se.application_page_visited) score += 1;
 
-    // Map 0-12 raw score → 1-5 heat
+    // Map 0-14 raw score → 1-5 heat
     if (score >= 8) return 5;
     if (score >= 6) return 4;
     if (score >= 4) return 3;
@@ -888,6 +893,19 @@
         siteBadge = ' <span style="color:#0d47a1" title="Browsed ' + sitePages + ' pages. Interests: ' + interests + '">\ud83c\udf10</span>';
       }
 
+      // Social follow badge (Instagram/Facebook)
+      var socialBadge = '';
+      var soc = l.social_engagement;
+      if (soc && (soc.instagram_followed || soc.facebook_followed)) {
+        var socPlatforms = (soc.platforms || []).join(', ') || 'social';
+        var socDm = soc.instagram_dm_count || 0;
+        if (soc.instagram_followed && socDm > 0) {
+          socialBadge = ' <span style="color:#E4405F;font-weight:700" title="Follows on ' + esc(socPlatforms) + ' + ' + socDm + ' DMs">\ud83d\udcf1\ud83d\udd25</span>';
+        } else {
+          socialBadge = ' <span style="color:#E4405F" title="Follows on ' + esc(socPlatforms) + '">\ud83d\udcf1</span>';
+        }
+      }
+
       // Re-engagement badge (came back after silence)
       var reEngBadge = '';
       if (l.re_engaged && l.re_engaged_at) {
@@ -935,7 +953,7 @@
         '<td class="yb-lead__cell-name">' +
           priorityBadgeHtml(l.priority) +
           esc((l.first_name || '') + ' ' + (l.last_name || '')).trim() +
-          unreadBadge + heatBadge + statusFlagsBadge + reEngBadge + schedBadge + emailBadge + siteBadge +
+          unreadBadge + heatBadge + statusFlagsBadge + reEngBadge + socialBadge + schedBadge + emailBadge + siteBadge +
         '</td>' +
         '<td class="yb-lead__cell-contact">' +
           '<div class="yb-lead__cell-email-text">' + esc(l.email || '') +
@@ -1893,6 +1911,60 @@
         '</div>';
       });
       html += '</div>'; // end card 7
+    }
+
+    // Card 7b: Social Media Engagement
+    var socEng = l.social_engagement;
+    if (socEng && (socEng.instagram_followed || socEng.facebook_followed)) {
+      html += '<div class="yb-lead__section-card yb-lead__section-card--full">';
+      html += '<h4 class="yb-lead__card-title" style="color:#E4405F;">\ud83d\udcf1 SOCIAL MEDIA</h4>';
+
+      // Platforms
+      var socPlats = socEng.platforms || [];
+      if (socPlats.length > 0) {
+        html += '<div class="yb-lead__card-row">' +
+          '<span class="yb-lead__card-label">Follows on</span>' +
+          '<span class="yb-lead__card-value">' + socPlats.map(function (p) {
+            var bg = p === 'instagram' ? '#E4405F' : p === 'facebook' ? '#1877F2' : '#6F6A66';
+            return '<span class="yb-lead__badge" style="background:' + bg + ';color:#fff;margin:1px 2px;">' + esc(p) + '</span>';
+          }).join(' ') + '</span>' +
+        '</div>';
+      }
+
+      // Instagram details
+      if (socEng.instagram_followed) {
+        if (socEng.instagram_username) {
+          html += '<div class="yb-lead__card-row">' +
+            '<span class="yb-lead__card-label">Instagram</span>' +
+            '<span class="yb-lead__card-value"><a href="https://instagram.com/' + esc(socEng.instagram_username) + '" target="_blank" style="color:#E4405F;">@' + esc(socEng.instagram_username) + '</a></span>' +
+          '</div>';
+        }
+        if (socEng.instagram_followed_at) {
+          html += '<div class="yb-lead__card-row">' +
+            '<span class="yb-lead__card-label">Followed at</span>' +
+            '<span class="yb-lead__card-value">' + fmtDateTime(socEng.instagram_followed_at) + '</span>' +
+          '</div>';
+        }
+        if (socEng.instagram_dm_count) {
+          html += '<div class="yb-lead__card-row">' +
+            '<span class="yb-lead__card-label">DM interactions</span>' +
+            '<span class="yb-lead__card-value"><strong>' + socEng.instagram_dm_count + '</strong>' +
+              (socEng.last_dm_at ? ' <span style="font-size:.72rem;color:#6F6A66;">(last: ' + fmtDateTime(socEng.last_dm_at) + ')</span>' : '') +
+            '</span></div>';
+        }
+      }
+
+      // Facebook details
+      if (socEng.facebook_followed) {
+        if (socEng.facebook_followed_at) {
+          html += '<div class="yb-lead__card-row">' +
+            '<span class="yb-lead__card-label">Facebook follow</span>' +
+            '<span class="yb-lead__card-value">' + fmtDateTime(socEng.facebook_followed_at) + '</span>' +
+          '</div>';
+        }
+      }
+
+      html += '</div>'; // end card 7b
     }
 
     // Card 8: Pre-Lead Journey (anonymous browsing before signup)
