@@ -2,6 +2,36 @@
 {% set lp = "/en" if lang == "en" else "" %}
 
 
+<!-- ═══════════════════════════════════════
+     FLOATING CART BAR + COHORT PICKER
+     ═══════════════════════════════════════ -->
+<div class="yb-float-bar" id="p4w-float-bar">
+  <button class="yb-float-bar__btn" id="p4w-float-btn">
+    {{ t.float_cta }} <span class="yb-float-bar__price">— {{ t.float_price }}</span>
+  </button>
+</div>
+
+<div class="yb-float-picker" id="p4w-picker">
+  <div class="yb-float-picker__sheet">
+    <p class="yb-float-picker__title">{{ t.float_pick_title }}</p>
+    <button class="yb-float-picker__option" data-checkout-product="100121">
+      <div>
+        {{ t.float_pick_april }}
+        <div class="yb-float-picker__option-period">{{ t.float_pick_april_period }}</div>
+      </div>
+      <span class="yb-float-picker__option-arrow">→</span>
+    </button>
+    <button class="yb-float-picker__option" data-checkout-product="100211">
+      <div>
+        {{ t.float_pick_july }}
+        <div class="yb-float-picker__option-period">{{ t.float_pick_july_period }}</div>
+      </div>
+      <span class="yb-float-picker__option-arrow">→</span>
+    </button>
+    <button class="yb-float-picker__close" id="p4w-picker-close">{{ t.float_pick_close }}</button>
+  </div>
+</div>
+
 <!-- FAQPage Schema (AEO — featured snippets for AI search) -->
 <script type="application/ld+json">
 {%- set _faqs = [
@@ -1233,5 +1263,49 @@
     });
     setProgram('18w');
   }
+})();
+</script>
+
+<!-- Floating bar logic -->
+<script>
+(function(){
+  var bar = document.getElementById('p4w-float-bar');
+  var btn = document.getElementById('p4w-float-btn');
+  var picker = document.getElementById('p4w-picker');
+  var closeBtn = document.getElementById('p4w-picker-close');
+  if (!bar || !btn) return;
+
+  var hero = document.querySelector('.yb-hero');
+  var shown = false;
+  function checkScroll() {
+    if (!hero) return;
+    var past = window.scrollY > hero.offsetHeight * 0.7;
+    if (past && !shown) { bar.classList.add('yb-float-bar--visible'); shown = true; }
+    else if (!past && shown) { bar.classList.remove('yb-float-bar--visible'); shown = false; }
+  }
+  window.addEventListener('scroll', checkScroll, { passive: true });
+  checkScroll();
+
+  btn.addEventListener('click', function() {
+    picker.classList.add('yb-float-picker--open');
+  });
+
+  closeBtn.addEventListener('click', function() {
+    picker.classList.remove('yb-float-picker--open');
+  });
+
+  picker.addEventListener('click', function(e) {
+    if (e.target === picker) picker.classList.remove('yb-float-picker--open');
+  });
+
+  var opts = picker.querySelectorAll('[data-checkout-product]');
+  opts.forEach(function(o) {
+    o.addEventListener('click', function() {
+      picker.classList.remove('yb-float-picker--open');
+      var prodId = o.getAttribute('data-checkout-product');
+      if (window.openCheckoutFlow) window.openCheckoutFlow(prodId);
+      else if (window.startCheckoutFunnel) window.startCheckoutFunnel(prodId);
+    });
+  });
 })();
 </script>

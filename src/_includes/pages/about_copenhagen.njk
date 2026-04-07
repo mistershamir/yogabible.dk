@@ -177,7 +177,7 @@
 
     <div class="yb-cph-location__content">
       <div class="yb-cph-location__video-wrap">
-        {# CLOUDINARY: yoga-bible-DK/copenhagen/christianshavn-neighborhood-walkthrough — vertical video, 9:16 or 4:5, neighborhood walkthrough #}
+        {# BUNNY: yoga-bible-DK/copenhagen/christianshavn-neighborhood-walkthrough — vertical video, 9:16 or 4:5 #}
         {% cldvid media.copenhagen.locationVideo, media.copenhagen.canalPanorama, "w_600" %}
       </div>
       <div class="yb-cph-location__text">
@@ -271,7 +271,24 @@
 
       <div class="yb-cph-why__media">
         <div class="yb-cph-why__media-main">
-          {% cldimg media.copenhagen.whyMain, t.why_img_alt, "w_600,h_700,c_fill", "600", "700" %}
+          <div class="yba-carousel-wrapper">
+            <div class="yba-carousel" style="border-radius:18px;">
+              <div class="yba-carousel__track" id="studioCarouselTrack">
+                {% for img in media.copenhagen.studioCarousel %}
+                <div class="yba-carousel__slide" style="aspect-ratio:4/3;">
+                  {% cldimg img, t.studio_carousel_alt, "w_600,h_450,c_fill", "600", "450" %}
+                </div>
+                {% endfor %}
+              </div>
+              <button class="yba-carousel__btn yba-carousel__btn--prev" aria-label="Previous" id="studioCarouselPrev">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button class="yba-carousel__btn yba-carousel__btn--next" aria-label="Next" id="studioCarouselNext">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+            <div class="yba-carousel__dots" id="studioCarouselDots"></div>
+          </div>
           <span class="yb-cph-why__media-caption">{{ t.why_caption }}</span>
         </div>
         <div class="yb-cph-why__media-grid">
@@ -296,8 +313,37 @@
           {% endfor %}
         </div>
       </div>
-      <div class="yb-cph-why__flights-map">
-        {% cldimg media.copenhagen.flightsMap, t.flights_map_alt, "w_500,c_scale", "500", "400" %}
+      <div class="yb-cph-why__flights-map" aria-label="{{ t.flights_map_alt }}">
+        <div class="yb-cph-flights-hub">
+          {# Concentric range rings #}
+          <div class="yb-cph-flights-hub__ring yb-cph-flights-hub__ring--3"></div>
+          <div class="yb-cph-flights-hub__ring yb-cph-flights-hub__ring--2"></div>
+          <div class="yb-cph-flights-hub__ring yb-cph-flights-hub__ring--1"></div>
+
+          {# Cities evenly spaced ~24deg apart, distance by real geography #}
+          <div class="yb-cph-flights-hub__spoke" style="--angle:-40deg;  --dist:20%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Oslo</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:-16deg;  --dist:22%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Stockholm</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:10deg;   --dist:34%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Helsinki</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:150deg;  --dist:24%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Berlin</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:175deg;  --dist:36%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Frankfurt</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:210deg;  --dist:32%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Amsterdam</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:198deg;  --dist:42%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Paris</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:234deg;  --dist:38%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">London</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:254deg;  --dist:36%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Manchester</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:278deg;  --dist:38%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Edinburgh</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:260deg;  --dist:48%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Dublin</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:170deg;  --dist:50%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Barcelona</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:145deg;  --dist:48%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Rome</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:300deg;  --dist:56%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">New York</span></div>
+          <div class="yb-cph-flights-hub__spoke" style="--angle:322deg;  --dist:54%;"><span class="yb-cph-flights-hub__dot"></span><span class="yb-cph-flights-hub__city">Toronto</span></div>
+
+          {# Center hub — CPH #}
+          <div class="yb-cph-flights-hub__center">
+            <span class="yb-cph-flights-hub__pulse"></span>
+            <span class="yb-cph-flights-hub__core"></span>
+            <span class="yb-cph-flights-hub__label">CPH</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -705,3 +751,53 @@
     </div>
   </div>
 </section>
+
+<script>
+(function() {
+  var track = document.getElementById('studioCarouselTrack');
+  var prevBtn = document.getElementById('studioCarouselPrev');
+  var nextBtn = document.getElementById('studioCarouselNext');
+  var dotsContainer = document.getElementById('studioCarouselDots');
+  if (!track) return;
+
+  var slides = track.querySelectorAll('.yba-carousel__slide');
+  var currentIndex = 0;
+  var slideCount = slides.length;
+
+  for (var i = 0; i < slideCount; i++) {
+    var dot = document.createElement('button');
+    dot.className = 'yba-carousel__dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    dot.addEventListener('click', function(e) {
+      var idx = Array.from(dotsContainer.querySelectorAll('.yba-carousel__dot')).indexOf(e.target);
+      goToSlide(idx);
+    });
+    dotsContainer.appendChild(dot);
+  }
+
+  function updateCarousel() {
+    track.style.transform = 'translateX(' + (-currentIndex * 100) + '%)';
+    dotsContainer.querySelectorAll('.yba-carousel__dot').forEach(function(dot, i) {
+      dot.classList.toggle('active', i === currentIndex);
+    });
+  }
+
+  function goToSlide(index) {
+    currentIndex = index % slideCount;
+    if (currentIndex < 0) currentIndex = slideCount - 1;
+    updateCarousel();
+  }
+
+  prevBtn.addEventListener('click', function() { goToSlide(currentIndex - 1); });
+  nextBtn.addEventListener('click', function() { goToSlide(currentIndex + 1); });
+
+  var startX = 0;
+  track.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
+  track.addEventListener('touchend', function(e) {
+    var diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) goToSlide(currentIndex + (diff > 0 ? 1 : -1));
+  });
+
+  setInterval(function() { goToSlide(currentIndex + 1); }, 6000);
+})();
+</script>

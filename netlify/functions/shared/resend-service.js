@@ -25,6 +25,8 @@ const {
   getSignaturePlain,
   getEnglishNoteHtml,
   getEnglishNotePlain,
+  getGermanPsLineHtml,
+  getGermanPsLinePlain,
   getUnsubscribeFooterHtml,
   getUnsubscribeFooterPlain,
   substituteVars
@@ -142,12 +144,18 @@ function wrapLinksForTracking(html, campaignId, email) {
 
 // ─── Wrap body HTML with standard signature + unsubscribe ────────────────────
 
-function wrapHtml(bodyHtml, recipientEmail, campaignId) {
+function wrapHtml(bodyHtml, recipientEmail, campaignId, lang) {
+  // Language-aware note: English note only on DA emails, German PS on DE emails
+  var tl = (lang || 'da').toLowerCase().substring(0, 2);
+  var isDa = ['da', 'dk'].includes(tl);
+  var isDe = tl === 'de';
+  var noteHtml = isDa ? getEnglishNoteHtml() : isDe ? getGermanPsLineHtml() : '';
+
   let html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">' +
     bodyHtml +
-    getEnglishNoteHtml() +
-    getSignatureHtml() +
-    getUnsubscribeFooterHtml(recipientEmail) +
+    noteHtml +
+    getSignatureHtml(lang) +
+    getUnsubscribeFooterHtml(recipientEmail, lang) +
     '</div>';
   // Inject tracking if campaignId provided
   if (campaignId) {
@@ -157,15 +165,19 @@ function wrapHtml(bodyHtml, recipientEmail, campaignId) {
   return html;
 }
 
-function wrapText(bodyPlain, recipientEmail) {
-  return bodyPlain + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(recipientEmail);
+function wrapText(bodyPlain, recipientEmail, lang) {
+  var tl = (lang || 'da').toLowerCase().substring(0, 2);
+  var isDa = ['da', 'dk'].includes(tl);
+  var isDe = tl === 'de';
+  var notePlain = isDa ? getEnglishNotePlain() : isDe ? getGermanPsLinePlain() : '';
+  return bodyPlain + notePlain + getSignaturePlain(lang) + getUnsubscribeFooterPlain(recipientEmail, lang);
 }
 
 // ─── Send a single email via Resend ──────────────────────────────────────────
 
-async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, campaignId, fromEmail, bcc }) {
-  const html = wrapHtml(bodyHtml, to, campaignId);
-  const text = wrapText(bodyPlain || '', to);
+async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, campaignId, fromEmail, bcc, lang }) {
+  const html = wrapHtml(bodyHtml, to, campaignId, lang);
+  const text = wrapText(bodyPlain || '', to, lang);
 
   const message = buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc });
   const result = await resendPost('/emails', message);

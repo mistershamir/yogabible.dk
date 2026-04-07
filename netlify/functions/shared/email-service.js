@@ -64,20 +64,32 @@ function getTransporter() {
 // Signature & Reusable HTML Blocks
 // =========================================================================
 
-function getSignatureHtml() {
+function getSignatureHtml(lang) {
   const orange = '#f75c03';
+  var l = (lang || 'da').toLowerCase().substring(0, 2);
+  var isDa = ['da', 'dk'].includes(l);
+  var isDe = l === 'de';
+  var greeting = isDa ? 'K\u00e6rlig hilsen,' : isDe ? 'Herzliche Gr\u00fc\u00dfe,' : 'Warm regards,';
+  var title = isDa ? 'Kursusdirekt\u00f8r' : isDe ? 'Kursleiter' : 'Course Director';
+  var address = isDa ? 'Torvegade 66, 1400 K\u00f8benhavn K, Danmark' : 'Torvegade 66, 1400 Copenhagen K, Denmark';
   return '<div style="margin-top:18px;padding-top:14px;border-top:1px solid #EBE7E3;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#1a1a1a;">' +
-    '<div style="margin:0 0 2px;">K\u00e6rlig hilsen,</div>' +
-    '<div style="margin:0 0 2px;"><strong>Shamir</strong> - Kursusdirekt\u00f8r</div>' +
-    '<div style="margin:0 0 2px;">Yoga Bible (DK)</div>' +
+    '<div style="margin:0 0 2px;">' + greeting + '</div>' +
+    '<div style="margin:0 0 2px;"><strong>Shamir</strong> - ' + title + '</div>' +
+    '<div style="margin:0 0 2px;">Yoga Bible</div>' +
     '<div style="margin:0 0 2px;"><a href="https://www.yogabible.dk" style="color:' + orange + ';text-decoration:none;">www.yogabible.dk</a></div>' +
-    '<div style="margin:0 0 2px;"><a href="' + CONFIG.STUDIO_MAPS_URL + '" target="_blank" style="color:' + orange + ';text-decoration:none;">Torvegade 66, 1400 K\u00f8benhavn K, Danmark</a></div>' +
+    '<div style="margin:0 0 2px;"><a href="' + CONFIG.STUDIO_MAPS_URL + '" target="_blank" style="color:' + orange + ';text-decoration:none;">' + address + '</a></div>' +
     '<div style="margin:0;"><a href="tel:+4553881209" style="color:' + orange + ';text-decoration:none;">+45 53 88 12 09</a></div>' +
     '</div>';
 }
 
-function getSignaturePlain() {
-  return '\n\nK\u00e6rlig hilsen,\nShamir - Kursusdirekt\u00f8r\nYoga Bible (DK)\nwww.yogabible.dk\nTorvegade 66, 1400 K\u00f8benhavn K, Danmark\n+45 53 88 12 09';
+function getSignaturePlain(lang) {
+  var l = (lang || 'da').toLowerCase().substring(0, 2);
+  var isDa = ['da', 'dk'].includes(l);
+  var isDe = l === 'de';
+  var greeting = isDa ? 'K\u00e6rlig hilsen,' : isDe ? 'Herzliche Gr\u00fc\u00dfe,' : 'Warm regards,';
+  var title = isDa ? 'Kursusdirekt\u00f8r' : isDe ? 'Kursleiter' : 'Course Director';
+  var address = isDa ? 'Torvegade 66, 1400 K\u00f8benhavn K, Danmark' : 'Torvegade 66, 1400 Copenhagen K, Denmark';
+  return '\n\n' + greeting + '\nShamir - ' + title + '\nYoga Bible\nwww.yogabible.dk\n' + address + '\n+45 53 88 12 09';
 }
 
 function getEnglishNoteHtml() {
@@ -192,7 +204,7 @@ async function sendRawEmail({ to, subject, html, text, attachments, replyTo, fro
 /**
  * Send a template-based email from Firestore email_templates collection
  */
-async function sendTemplateEmail({ to, templateId, vars, leadId }) {
+async function sendTemplateEmail({ to, templateId, vars, leadId, lang }) {
   const db = getDb();
   const doc = await db.collection('email_templates').doc(templateId).get();
 
@@ -205,15 +217,22 @@ async function sendTemplateEmail({ to, templateId, vars, leadId }) {
   let bodyHtml = substituteVars(template.body_html || template.body || '', vars);
   let bodyPlain = substituteVars(template.body_plain || '', vars);
 
+  // Language-aware note: English note only on DA emails, German PS on DE emails
+  var tl = (lang || 'da').toLowerCase().substring(0, 2);
+  var isDa = ['da', 'dk'].includes(tl);
+  var isDe = tl === 'de';
+  var noteHtml = isDa ? getEnglishNoteHtml() : isDe ? getGermanPsLineHtml() : '';
+  var notePlain = isDa ? getEnglishNotePlain() : isDe ? getGermanPsLinePlain() : '';
+
   // Wrap with signature + unsubscribe
   const wrappedHtml = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">' +
     bodyHtml +
-    getEnglishNoteHtml() +
-    getSignatureHtml() +
-    getUnsubscribeFooterHtml(to) +
+    noteHtml +
+    getSignatureHtml(lang) +
+    getUnsubscribeFooterHtml(to, lang) +
     '</div>';
 
-  const wrappedPlain = bodyPlain + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(to);
+  const wrappedPlain = bodyPlain + notePlain + getSignaturePlain(lang) + getUnsubscribeFooterPlain(to, lang);
 
   const result = await sendRawEmail({ to, subject, html: wrappedHtml, text: wrappedPlain });
 
@@ -226,15 +245,21 @@ async function sendTemplateEmail({ to, templateId, vars, leadId }) {
 /**
  * Send a custom email (admin-composed, not from template)
  */
-async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, includeSignature = true, includeUnsubscribe = true, campaignId, fromEmail }) {
+async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, includeSignature = true, includeUnsubscribe = true, campaignId, fromEmail, lang }) {
+  // Language-aware note: English note only on DA emails, German PS on DE emails
+  var tl = (lang || 'da').toLowerCase().substring(0, 2);
+  var isDa = ['da', 'dk'].includes(tl);
+  var isDe = tl === 'de';
+
   let html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">';
   html += bodyHtml;
   if (includeSignature) {
-    html += getEnglishNoteHtml();
-    html += getSignatureHtml();
+    if (isDa) html += getEnglishNoteHtml();
+    else if (isDe) html += getGermanPsLineHtml();
+    html += getSignatureHtml(lang);
   }
   if (includeUnsubscribe) {
-    html += getUnsubscribeFooterHtml(to);
+    html += getUnsubscribeFooterHtml(to, lang);
   }
   html += '</div>';
 
@@ -245,8 +270,12 @@ async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, inclu
   }
 
   let text = bodyPlain || '';
-  if (includeSignature) text += getEnglishNotePlain() + getSignaturePlain();
-  if (includeUnsubscribe) text += getUnsubscribeFooterPlain(to);
+  if (includeSignature) {
+    if (isDa) text += getEnglishNotePlain();
+    else if (isDe) text += getGermanPsLinePlain();
+    text += getSignaturePlain(lang);
+  }
+  if (includeUnsubscribe) text += getUnsubscribeFooterPlain(to, lang);
 
   const result = await sendRawEmail({ to, subject, html, text, fromEmail });
   await logEmail({ to, subject, templateId: null, leadId, messageId: result.messageId, campaignId });
@@ -257,13 +286,33 @@ async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, inclu
  * Send admin notification about new lead
  */
 async function sendAdminNotification(leadData) {
-  const subject = `Ny lead: ${leadData.first_name} ${leadData.last_name || ''} (${leadData.type || 'unknown'})`;
+  // Determine country for subject line
+  const countryField = (leadData.country || '').toUpperCase().trim();
+  const cityCountry = leadData.city_country || '';
+  const displayCountry = cityCountry || countryField || '';
+  const lang = (leadData.lang || leadData.meta_lang || '').toLowerCase();
+  const phone = String(leadData.phone || '').replace(/\s+/g, '');
+  // DK detection: explicit country field, lang=da, Danish form, Danish phone (+45 or 8-digit), .dk email, or city_country contains Denmark/DK
+  const hasDkPhone = phone.startsWith('+45') || phone.startsWith('0045') || (/^\d{8}$/.test(phone));
+  const hasDkEmail = !!(leadData.email && leadData.email.toLowerCase().endsWith('.dk'));
+  const isDk = countryField === 'DK' || lang === 'da' || lang === 'dk' || hasDkPhone || hasDkEmail
+    || (cityCountry && (cityCountry.toLowerCase().includes('denmark') || cityCountry.toLowerCase().includes('danmark') || /,\s*dk$/i.test(cityCountry)));
+  const originTag = isDk ? 'DK' : 'INT';
+  const countryTag = displayCountry ? ` — ${displayCountry}` : '';
+
+  // Detect applicants vs leads
+  const isApplicant = leadData.type === 'education' || (leadData.source && leadData.source.toLowerCase().includes('ans\u00f8gning'))
+    || (leadData.notes && leadData.notes.includes('APPLICATION'));
+  const label = isApplicant ? 'New applicant' : 'New lead';
+  const cohort = leadData.program || leadData.ytt_program_type || '';
+  const cohortTag = cohort ? ` · ${cohort}` : '';
+  const subject = `${label} [${originTag}${countryTag}]: ${leadData.first_name} ${leadData.last_name || ''} (${leadData.type || 'unknown'})${cohortTag}`;
 
   let html = '<div style="font-family:monospace;font-size:14px;line-height:1.6;">';
-  html += '<h3 style="color:#f75c03;">Ny lead modtaget</h3>';
+  html += `<h3 style="color:#f75c03;">${label} received</h3>`;
   html += '<table style="border-collapse:collapse;">';
 
-  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'ytt_program_type', 'program', 'meta_form_id', 'meta_form_name', 'source', 'channel', 'utm_campaign', 'accommodation', 'city_country'];
+  const fields = ['email', 'first_name', 'last_name', 'phone', 'type', 'ytt_program_type', 'program', 'meta_form_id', 'meta_form_name', 'source', 'channel', 'utm_campaign', 'accommodation', 'city_country', 'country', 'lang', 'notes'];
   for (const field of fields) {
     if (leadData[field]) {
       const val = escapeHtml(String(leadData[field]));
@@ -280,7 +329,7 @@ async function sendAdminNotification(leadData) {
     to: CONFIG.EMAIL_ADMIN,
     subject,
     html,
-    text: `Ny lead: ${leadData.email} - ${leadData.first_name} - ${leadData.type} - ${leadData.program || ''}`
+    text: `${label} [${originTag}]: ${leadData.email} - ${leadData.first_name} - ${leadData.type} - ${cohort}${countryTag}`
   });
 }
 

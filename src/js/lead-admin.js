@@ -29,6 +29,48 @@
   var T = {};
   var currentUserRole = 'user';
 
+  // Audit logging — logs all significant actions to Firestore for accountability
+  function logAuditAction(action, details) {
+    try {
+      if (!db) return;
+      var user = firebase.auth().currentUser;
+      db.collection('admin_audit_log').add({
+        action: action,
+        user_email: user ? user.email : 'unknown',
+        user_role: currentUserRole,
+        details: details || {},
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        user_agent: navigator.userAgent
+      });
+    } catch (e) {
+      console.error('[audit] Log error:', e);
+    }
+  }
+
+  // Copy/select protection for non-admin roles on lead data
+  function applyLeadDataProtection() {
+    var style = document.createElement('style');
+    style.textContent = '#yb-admin-v-lead-list .yb-admin__table, #yb-admin-v-lead-detail .yb-lead__detail-card { -webkit-user-select: none; user-select: none; }';
+    document.head.appendChild(style);
+    // Log copy attempts
+    document.addEventListener('copy', function (e) {
+      var sel = (window.getSelection() || '').toString();
+      if (sel && sel.length > 10) {
+        logAuditAction('copy_attempt', { text_length: sel.length, preview: sel.substring(0, 50) });
+      }
+    });
+    // Intercept Ctrl+A on lead table
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+        var el = e.target.closest('#yb-admin-v-lead-list, #yb-admin-v-lead-detail');
+        if (el) {
+          e.preventDefault();
+          logAuditAction('select_all_blocked', {});
+        }
+      }
+    });
+  }
+
   // Lead state
   var leads = [];
   var leadsLoaded = false;
@@ -1390,6 +1432,8 @@
     currentLead = leads.find(function (l) { return l.id === leadId; });
     if (!currentLead) return;
 
+    if (currentUserRole !== 'admin') logAuditAction('lead_view', { lead_id: leadId, lead_email: currentLead.email });
+
     $('yb-admin-v-lead-list').hidden = true;
     $('yb-admin-v-lead-detail').hidden = false;
 
@@ -2025,6 +2069,9 @@
     updates.updated_at = firebase.firestore.FieldValue.serverTimestamp();
 
     db.collection('leads').doc(currentLeadId).update(updates).then(function () {
+      var changedFields = {};
+      fields.forEach(function (f) { if (updates[f.key] !== currentLead[f.key]) changedFields[f.key] = updates[f.key]; });
+      if (Object.keys(changedFields).length) logAuditAction('lead_fields_update', { lead_id: currentLeadId, lead_email: currentLead.email, changed_fields: Object.keys(changedFields) });
       // Update local cache
       Object.keys(updates).forEach(function (k) {
         if (k !== 'updated_at') currentLead[k] = updates[k];
@@ -2274,6 +2321,7 @@
     }
 
     db.collection('leads').doc(currentLeadId).update(updates).then(function () {
+      logAuditAction('lead_status_update', { lead_id: currentLeadId, lead_email: currentLead.email, changes: { status: newStatus, sub_status: newSubStatus, priority: newPriority, temperature: newTemp } });
       // Update local state
       Object.keys(updates).forEach(function (k) {
         currentLead[k] = updates[k];
@@ -2835,6 +2883,7 @@
     }).then(function (res) { return res.json(); })
       .then(function (data) {
         if (data.ok) {
+          logAuditAction(isBulk ? 'bulk_email_sent' : 'email_sent', { lead_count: isBulk ? recipients.length : 1, subject: subject, lead_id: isBulk ? null : recipients[0].id });
           toast(isBulk ? t('leads_email_bulk_sent') + ' (' + (data.results ? data.results.sent : '?') + ')' : t('leads_email_sent'));
           modal.hidden = true;
 
@@ -2957,6 +3006,7 @@
       });
 
       batch.commit().then(function () {
+        logAuditAction('bulk_status_update', { lead_count: selectedIds.size, new_status: newStatus, lead_ids: Array.from(selectedIds).slice(0, 20) });
         leads.forEach(function (l) {
           if (selectedIds.has(l.id)) l.status = newStatus;
         });
@@ -3017,6 +3067,7 @@
     });
 
     batch.commit().then(function () {
+      logAuditAction('bulk_archive', { lead_count: count, lead_ids: Array.from(selectedIds).slice(0, 20) });
       toast(count + ' ' + t('leads_bulk_archived'));
       selectedIds.clear();
       selectAll = false;
@@ -3031,8 +3082,14 @@
      CSV EXPORT
      ══════════════════════════════════════════ */
   function exportCSV() {
+    if (currentUserRole !== 'admin') {
+      toast('Only admins can export lead data', true);
+      logAuditAction('csv_export_blocked', { role: currentUserRole });
+      return;
+    }
     var filtered = getFilteredLeads();
     if (!filtered.length) { toast(t('leads_no_leads'), true); return; }
+    logAuditAction('csv_export', { lead_count: filtered.length });
 
     var headers = ['Name', 'Email', 'Phone', 'Type', 'Program', 'Status', 'Sub-Status', 'Priority', 'Temperature', 'Channel', 'Source', 'UTM Campaign', 'Landing Page', 'Accommodation', 'City', 'Follow-up', 'Last Contact', 'Call Attempts', 'Created'];
     var rows = filtered.map(function (l) {
@@ -5379,6 +5436,19 @@
           currentUserRole = data.role || 'user';
           // Re-render quick actions if a lead detail is already open
           if (currentLead) renderLeadQuickActions();
+          // Hide export CSV button for non-admin roles
+          var exportBtn = document.querySelector('[data-action="leads-export-csv"]');
+          if (exportBtn) {
+            exportBtn.style.display = currentUserRole === 'admin' ? '' : 'none';
+          }
+          // Apply copy/select protection for non-admin roles
+          if (currentUserRole !== 'admin') {
+            applyLeadDataProtection();
+          }
+          // Log session start for marketing users
+          if (currentUserRole === 'marketing') {
+            logAuditAction('session_start', { tab: 'leads' });
+          }
         }
       }).catch(function (err) {
         console.error('[lead-admin] Role fetch error:', err);

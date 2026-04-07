@@ -242,9 +242,9 @@ The processor in `process-sequences.js` determines email language per lead:
 2. Danish leads (`da`, `dk`) receive `email_subject` / `email_body` fields from the step
 3. All other languages receive `email_subject_en` / `email_body_en` (falls back to DA if EN fields missing)
 4. Email log includes `lang` field for analytics
-5. All links in `email_body_en` must use `/en/` prefix for Weglot translation
+5. All links in `email_body_en` must use `/en/` prefix for bilingual path routing
 
-**Website form language detection:** `modal-200ytt.js` and `modal-300ytt.js` append a `lang` field based on Weglot detection. Without this, website form leads had empty `lang` fields, causing Danish visitors to get English emails.
+**Website form language detection:** `modal-200ytt.js` and `modal-300ytt.js` append a `lang` field based on path detection (`/en/` prefix → `'en'`, otherwise → `'da'`). Without this, website form leads had empty `lang` fields, causing Danish visitors to get English emails.
 
 ### Auto-Deactivation with `enrollment_closes`
 
@@ -313,7 +313,7 @@ Steps 2, 4, 5 include booking link: `yogabible.dk/?booking=info-session` (DA) / 
 1. **Never mention course language.** All YTT courses are taught in English, but this must NEVER appear in marketing emails, ads, or content. Only discuss if a lead asks directly.
 2. **Never mention refunds.** Prep Phase (3,750 DKK) is ONLY refundable if Yoga Bible cancels the course. If the student changes their mind, no refund. Never include refund promises.
 3. **Email tone:** Warm, personal, from Shamir. Not newsletter-style. Plain text with occasional orange links. No fancy HTML design.
-4. **EN URLs must use `/en/` prefix.** All links in `email_body_en` must go to `yogabible.dk/en/...` for Weglot translation.
+4. **EN URLs must use `/en/` prefix.** All links in `email_body_en` must go to `yogabible.dk/en/...` for bilingual path routing.
 5. **Prep Phase description:** "3.750 kr. / 3,750 DKK — beløbet trækkes fra den fulde pris / the amount is deducted from the full price." No mention of class count (avoid "30 classes" — creates fear about time commitment).
 6. **DA and EN are NOT literal translations** — Danish is practical/local, English is aspirational/international. Both must read naturally in their own language.
 
@@ -1674,3 +1674,25 @@ social_media/{videoId}:
 - **Token expires:** ~60 days
 - **Redirect URI:** `https://yogabible.dk/admin/`
 - **Admin UI:** `/admin/` → Social → Accounts → LinkedIn → paste access token + Organization ID
+
+### YouTube (Google Cloud OAuth)
+
+- **Google Cloud Project:** YogaBibleNetlifyProject (Project ID: `yogabiblenetlifyproject`)
+- **Organization:** yogabible.dk
+- **OAuth Client ID:** `969617587598-u23upn58qi3l3i1dgqm4en1th9kel602.apps.googleusercontent.com`
+- **OAuth Client Secret:** `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`
+- **Redirect URI:** `https://yogabible.dk/admin/`
+- **Required Scopes:** `https://www.googleapis.com/auth/youtube.upload`, `https://www.googleapis.com/auth/youtube.readonly`
+- **API Enabled:** YouTube Data API v3
+- **Consent screen:** Internal (yogabible.dk org only, no verification needed)
+- **Admin UI:** `/admin/` → Social → Accounts → YouTube → paste access token + refresh token + Channel ID
+
+### Pinterest Developer App
+
+- **App Name:** Yoga Bible
+- **App ID:** `1556643`
+- **Platform:** Web
+- **Required Scopes:** `pins:read`, `pins:write`, `boards:read`, `user_accounts:read`
+- **Status:** Trial access pending
+- **Domain Verification:** Meta tag added to `head.njk` (`p:domain_verify`)
+- **Admin UI:** `/admin/` → Social → Accounts → Pinterest → paste access token

@@ -726,6 +726,39 @@ async function sendFacebookMessage(account, conversationId, text) {
 // ── TikTok Publishing ───────────────────────────────────────────
 
 const TT_API = 'https://open.tiktokapis.com/v2';
+const TT_CLIENT_KEY = 'aw0ak2eupqflz21x';
+const TT_CLIENT_SECRET = 'dxz3xIbgqPEw980FWUaGDeuRh15LxTfb';
+
+/**
+ * Refresh TikTok access token using refresh token.
+ * Returns { accessToken, refreshToken } or null on failure.
+ */
+async function refreshTikTokToken(refreshToken) {
+  try {
+    const res = await fetch(`${TT_API}/oauth/token/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_key: TT_CLIENT_KEY,
+        client_secret: TT_CLIENT_SECRET,
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken
+      }).toString()
+    });
+    const data = await res.json();
+    if (data.access_token) {
+      return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token || refreshToken
+      };
+    }
+    console.error('[social-api] TikTok refresh failed:', data);
+    return null;
+  } catch (err) {
+    console.error('[social-api] TikTok refresh exception:', err);
+    return null;
+  }
+}
 
 /**
  * Publish a video to TikTok via Content Posting API.
@@ -1599,6 +1632,7 @@ module.exports = {
   sendFacebookMessage,
   publishToTikTok,
   getTikTokAccountInfo,
+  refreshTikTokToken,
   publishToLinkedIn,
   getLinkedInOrgInfo,
   publishToYouTube,

@@ -125,11 +125,13 @@
       document.body.style.top = '-' + scrollY + 'px';
     }
     modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('ycf-open');
   }
 
   function closeModal() {
     if (!modal) return;
     modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('ycf-open');
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
     document.body.style.position = '';

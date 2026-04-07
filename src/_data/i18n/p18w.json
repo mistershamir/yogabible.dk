@@ -4,7 +4,6 @@
     "urgency_deadline": "Åben for tilmelding",
     "urgency_banner": "Efterårsholdet starter <strong>10. august 2026</strong> — åben for tilmelding. Sikr din plads nu.",
     "urgency_inline": "Næste hold · August–December 2026 · Åben for tilmelding",
-
     "hero_tagline": "200-Timer Yogalæreruddannelse",
     "hero_title": "18 Ugers Fleksibelt<br>Program",
     "hero_subtitle": "Bliv certificeret yogalærer ved siden af dit job, studie eller familieliv",
@@ -21,7 +20,6 @@
     "hero_cta_prep": "Start Forberedelsesfasen",
     "hero_cta_schedule": "Få Skema",
     "hero_cta_more": "Læs detaljer om vores 200-timers yogalæreruddannelse →",
-
     "curr_eyebrow": "Curriculum",
     "curr_title": "Hvad du lærer",
     "curr_subtitle": "Et komplet 200-timers curriculum der giver dig alt, du skal bruge som yogalærer.",
@@ -37,11 +35,9 @@
     "curr5_desc": "Åndedrætsteknikker, bandhas, meditationsformer og integration i dine klasser.",
     "curr6_title": "Professionel Udvikling",
     "curr6_desc": "Karrierestart, business basics, markedsføring, etik og livslang faglig udvikling.",
-
     "video_eyebrow": "Hør fra vores studerende",
     "video_title": "Oplev uddannelsen indefra",
     "video_subtitle": "Hør direkte fra vores studerende, hvad uddannelsen har betydet for dem.",
-
     "cert_eyebrow": "Internationalt anerkendt",
     "cert_title": "Yoga Alliance RYT-200 Certificering",
     "cert_subtitle": "En globalt anerkendt certificering, der åbner døre — uanset om du vil undervise i København, på Bali eller online fra din stue.",
@@ -63,8 +59,7 @@
     "cert_door4": "<strong>Videreuddannelse</strong> — fortsæt til 300-timers avanceret program og bliv RYT-500 certificeret for endnu flere muligheder.",
     "cert_door5": "<strong>Bred karriereadgang</strong> — fra yogastudier og fitnesscentre til corporate wellness, retreats og online undervisning. Denne certificering favner det hele.",
     "cert_closing": "Certificeringen er bred og alligevel dybt professionel — den giver dig en solid base til at undervise enhver yogastil og åbner karrieremuligheder du måske ikke havde forestillet dig.",
-    "cert_cta": "Læs mere om 200-timers uddannelsen",
-
+    "cert_cta": "Læs mere om yogalæreruddannelse i København",
     "certval_eyebrow": "Værdien af din certificering",
     "certval_title": "Mere end et certifikat — en livslang investering",
     "certval_intro": "RYT-200 er indgangen til yogaundervisning på alle niveauer. En certificering, der forandrer både din praksis og dit perspektiv — personligt og professionelt.",
@@ -79,7 +74,6 @@
     "certval_exam_title": "Eksamen & graduation",
     "certval_exam_text": "Du demonstrerer dine færdigheder ved at undervise op til 20 minutters sekvenser i hver stil for dit hold. Derudover skal du bestå tests og quizzer i anatomi og yogafilosofi. Ingen overraskelser — vi forbereder dig grundigt.",
     "certval_image_alt": "Eksempel på Yoga Alliance RYT-200 certificering",
-
     "flex_eyebrow": "Maksimal Fleksibilitet",
     "flex_title": "To formater. Én uddannelse.",
     "flex_subtitle": "Vi er formentlig den eneste skole i verden, der kører uddannelsen i to formater samtidig — hverdag og weekend. Det giver dig maksimal fleksibilitet, og du kan frit skifte mellem datoerne.",
@@ -89,7 +83,6 @@
     "flex2_desc": "Begge formater dækker præcis det samme pensum og giver samme Yoga Alliance certificering.",
     "flex3_title": "Max 24 deltagere",
     "flex3_desc": "Små hold (ca. 12 per kursus) betyder personlig opmærksomhed, tæt community og 90%+ gennemførelsesrate.",
-
     "tracks_kicker": "Fleksibelt program",
     "tracks_title": "Hverdags- eller weekendprogram",
     "tracks_subtitle": "Skift mellem sporene når du har brug for det",
@@ -126,7 +119,6 @@
     "tracks_faq3_a": "Nej. Vi planlægger udvalgte hverdage og weekender, og nogle perioder er helt fri.",
     "tracks_cta_hint": "Vil du se de præcise datoer?",
     "tracks_cta_button": "Få Skema",
-
     "journey_label": "18 ugers rejse",
     "journey_title": "Din vej uge for uge",
     "journey_desc": "Fra forberedelse til certificering — her er hvordan dit 18-ugers forløb udfolder sig.",
@@ -145,11 +137,9 @@
     "journey5_step": "UGE 16–18",
     "journey5_title": "Graduation",
     "journey5_desc": "Afsluttende assessment, portfolio og certificering. Du modtager din Yoga Alliance RYT-200 og er klar til at undervise.",
-
     "testimonial_quote": "Jeg kan varmt anbefale at tage yogalæreruddannelsen hos Yoga Bible. Underviserne er super dygtige, og de formår at skabe et trygt rum at lære i. Uddannelsen er fleksibel — du kan vælge hverdag eller weekend, og du kan skifte mellem hold. <br><br>Jeg har fået alle de rette værktøjer til at kunne undervise efter endt uddannelse. Min varmeste anbefaling.",
     "testimonial_attribution": "Patricia Frederiksen",
     "testimonial_attribution_suffix": "— Google Review ★★★★★",
-
     "invest_eyebrow": "Investering",
     "invest_title": "Pris & betalingsmuligheder",
     "invest_amount": "23.750 DKK",
@@ -173,7 +163,6 @@
     "invest_early_title": "Ansøg tidligt — få adgang til studiet med det samme",
     "invest_early_desc": "Start forberedelsesfasen og begynd at booke klasser hos Hot Yoga Copenhagen i Christianshavn. 30+ klasser om ugen i Hot Yoga, Vinyasa, Yin og mere.",
     "invest_deposit_cta": "Start forberedelsesfasen — 3.750 kr.",
-
     "early_kicker": "Hvorfor ansøge tidligt?",
     "early_title": "Start forberedelsesfasen og få tidlig adgang til studiet",
     "early_location": "Christianshavn",
@@ -188,7 +177,6 @@
     "early_refund_note": "Giv os besked hurtigst muligt ved afmelding.",
     "early_installment": "Resten betales i fleksible rater der passer dig — inden uddannelsesstart",
     "early_img_alt": "Rolig yogasal i København med måtter og varmt lys",
-
     "reviews_kicker": "Google-anmeldelser",
     "reviews_title": "Hvad tidligere elever fortæller",
     "reviews_lead": "Uddannelsen har hjulpet <strong>500+ elever</strong> videre — nogle fordyber egen praksis, andre underviser ved siden af et hovedjob, og flere er gået heltidsvejen med egne studier og retreats.",
@@ -198,24 +186,87 @@
     "reviews_link": "Se alle anmeldelser →",
     "reviews_card_aria_prefix": "Anmeldelse fra",
     "reviews": [
-      {"name":"Tanja E.","when":"for 4 mdr. siden","text":"Varmt, venligt miljø og kompetente lærere. God balance mellem praksis og den filosofiske del – stærk forståelse for anatomi."},
-      {"name":"Sara Gerlee","when":"for 4 mdr. siden","text":"200-timers forløb var transformerende. Vidende og støttende team – studiet føles som et andet hjem, for både nye og erfarne."},
-      {"name":"Clara Aagaard","when":"for 5 mdr. siden","text":"Holistisk læringsmiljø med plads til spørgsmål og praksisfokus. Dygtige undervisere og anvendelige værktøjer til klasseledelse."},
-      {"name":"Liza Westh","when":"for 9 mdr. siden","text":"Min varmeste anbefaling. 200 timer i class management, anatomi og praksis – følte mig optimalt forberedt som yogalærer."},
-      {"name":"Signe Schmidt","when":"for 1 år siden","text":"Effektiv 18-ugers uddannelse i anatomi, filosofi og praksis (yin, vinyasa, hatha) – i en smuk sal med dagslys og grønne planter."},
-      {"name":"Meg Ellis","when":"for 10 mdr. siden","text":"Ekstraordinært studie og lærerteam. 200t forløb forbereder dig fuldt — perfekt til både fordybelse og undervisning."},
-      {"name":"Kama Krystel","when":"for 1 år siden","text":"Velstruktureret intensivt forløb, der blander teori og praksis. Personlig feedback og støttende community – kan varmt anbefales."},
-      {"name":"Giorgianna G.","when":"for 1 år siden","text":"Udfordrende og belønnende. Unikt fokus på class management. Fem stjerner for de dygtige lærere og forberedelse til at undervise."},
-      {"name":"Helena Bend...","when":"for 1 år siden","text":"Kan virkelig anbefale uddannelsen – 5 lærerige måneder. Jeg føler mig godt klædt på til at fortsætte som yogalærer."},
-      {"name":"Tonje Follum","when":"for 1 år siden","text":"Inspiration, stor detaljegrad og varmt miljø. Fantastisk atmosfære med planter, lys og musik – mit yndlings-yogafællesskab."},
-      {"name":"Ping Li","when":"for 1 år siden","text":"Afsluttede netop min 200t – stor mental & fysisk udvikling. Dybt professionelt team. Meget glad for min rejse her."},
-      {"name":"Camilla Rend...","when":"for 1 år siden","text":"Nyuddannet instruktør – føler mig klar i hatha, vinyasa og yin. Hårdt arbejde, men det værd. Anbefales til både udøvere og kommende instruktører."},
-      {"name":"Dagmar Eliza...","when":"for 1 år siden","text":"Bredt udbud af klasser + mulighed for YTT. Dygtige undervisere i anatomi & filosofi. Lærte meget og fandt et stærkt fællesskab."},
-      {"name":"Yasmine Olof...","when":"for 1 år siden","text":"Fantastisk uddannelse! Føler mig klar til at lede egne klasser. Varme, professionelle undervisere og hyggeligt studie."},
-      {"name":"Anastasia Se...","when":"for 1 år siden","text":"Vidunderligt sted at praktisere. 5-måneders YTT var informativt og professionelt – lærerne støtter dig hele vejen."},
-      {"name":"Maja Pedersen","when":"for 10 mdr. siden","text":"Pragmatisk tilgang – man udvikler sig hurtigt. Super undervisere med stor erfaring i Hatha/Vinyasa, anatomi og yogafilosofi."}
+      {
+        "name": "Tanja E.",
+        "when": "for 4 mdr. siden",
+        "text": "Varmt, venligt miljø og kompetente lærere. God balance mellem praksis og den filosofiske del – stærk forståelse for anatomi."
+      },
+      {
+        "name": "Sara Gerlee",
+        "when": "for 4 mdr. siden",
+        "text": "200-timers forløb var transformerende. Vidende og støttende team – studiet føles som et andet hjem, for både nye og erfarne."
+      },
+      {
+        "name": "Clara Aagaard",
+        "when": "for 5 mdr. siden",
+        "text": "Holistisk læringsmiljø med plads til spørgsmål og praksisfokus. Dygtige undervisere og anvendelige værktøjer til klasseledelse."
+      },
+      {
+        "name": "Liza Westh",
+        "when": "for 9 mdr. siden",
+        "text": "Min varmeste anbefaling. 200 timer i class management, anatomi og praksis – følte mig optimalt forberedt som yogalærer."
+      },
+      {
+        "name": "Signe Schmidt",
+        "when": "for 1 år siden",
+        "text": "Effektiv 18-ugers uddannelse i anatomi, filosofi og praksis (yin, vinyasa, hatha) – i en smuk sal med dagslys og grønne planter."
+      },
+      {
+        "name": "Meg Ellis",
+        "when": "for 10 mdr. siden",
+        "text": "Ekstraordinært studie og lærerteam. 200t forløb forbereder dig fuldt — perfekt til både fordybelse og undervisning."
+      },
+      {
+        "name": "Kama Krystel",
+        "when": "for 1 år siden",
+        "text": "Velstruktureret intensivt forløb, der blander teori og praksis. Personlig feedback og støttende community – kan varmt anbefales."
+      },
+      {
+        "name": "Giorgianna G.",
+        "when": "for 1 år siden",
+        "text": "Udfordrende og belønnende. Unikt fokus på class management. Fem stjerner for de dygtige lærere og forberedelse til at undervise."
+      },
+      {
+        "name": "Helena Bend...",
+        "when": "for 1 år siden",
+        "text": "Kan virkelig anbefale uddannelsen – 5 lærerige måneder. Jeg føler mig godt klædt på til at fortsætte som yogalærer."
+      },
+      {
+        "name": "Tonje Follum",
+        "when": "for 1 år siden",
+        "text": "Inspiration, stor detaljegrad og varmt miljø. Fantastisk atmosfære med planter, lys og musik – mit yndlings-yogafællesskab."
+      },
+      {
+        "name": "Ping Li",
+        "when": "for 1 år siden",
+        "text": "Afsluttede netop min 200t – stor mental & fysisk udvikling. Dybt professionelt team. Meget glad for min rejse her."
+      },
+      {
+        "name": "Camilla Rend...",
+        "when": "for 1 år siden",
+        "text": "Nyuddannet instruktør – føler mig klar i hatha, vinyasa og yin. Hårdt arbejde, men det værd. Anbefales til både udøvere og kommende instruktører."
+      },
+      {
+        "name": "Dagmar Eliza...",
+        "when": "for 1 år siden",
+        "text": "Bredt udbud af klasser + mulighed for YTT. Dygtige undervisere i anatomi & filosofi. Lærte meget og fandt et stærkt fællesskab."
+      },
+      {
+        "name": "Yasmine Olof...",
+        "when": "for 1 år siden",
+        "text": "Fantastisk uddannelse! Føler mig klar til at lede egne klasser. Varme, professionelle undervisere og hyggeligt studie."
+      },
+      {
+        "name": "Anastasia Se...",
+        "when": "for 1 år siden",
+        "text": "Vidunderligt sted at praktisere. 5-måneders YTT var informativt og professionelt – lærerne støtter dig hele vejen."
+      },
+      {
+        "name": "Maja Pedersen",
+        "when": "for 10 mdr. siden",
+        "text": "Pragmatisk tilgang – man udvikler sig hurtigt. Super undervisere med stor erfaring i Hatha/Vinyasa, anatomi og yogafilosofi."
+      }
     ],
-
     "visit_kicker": "Mød os først",
     "visit_title": "Book et gratis infomøde i Christianshavn",
     "visit_lead": "Kom forbi og få en følelse af stedet — vi fortæller om uddannelsen, svarer på spørgsmål og hjælper dig med at se, hvordan den kan passe i din hverdag. Infomødet tager ca. <strong>20 minutter</strong>.",
@@ -238,7 +289,6 @@
     "visit_modal_close_aria": "Luk",
     "visit_modal_aria": "Book en aftale",
     "visit_modal_fallback": "",
-
     "faq_eyebrow": "Spørgsmål & svar",
     "faq_title": "Ofte stillede spørgsmål",
     "faq1_q": "Skal jeg have erfaring for at starte?",
@@ -253,13 +303,11 @@
     "faq5_a": "Du må maks. misse 10% af timerne. Vi tilbyder make-up sessions, og du kan eventuelt færdiggøre i næste hold hvis nødvendigt.",
     "faq6_q": "Er der eksamener?",
     "faq6_a": "Ja — praktisk undervisningsprøve, skriftlig anatomi-test og filosofi-aflevering. Alt er designet til læring, ikke stress. Vi har 90%+ beståelsesrate.",
-
     "final_title": "Klar til at starte din rejse?",
     "final_text": "Næste 18-ugers hold starter <strong>10. august 2026</strong> — åben for tilmelding nu. Start forberedelsesfasen og begynd at deltage i klasser med det samme.",
     "final_urgency": "Sikr din plads på efterårsholdet",
     "final_cta": "Få Skema Nu",
     "final_prep_cta": "Start Forberedelsesfasen — 3.750 kr",
-
     "more_kicker": "Udforsk mere",
     "more_title": "Andre uddannelser og kurser",
     "more_lead": "Hos <strong>Yoga Bible</strong> tilbyder vi forløb, der hjælper dig videre i din praksis – fra målrettede kursusforløb til fleksible læreruddannelser.",
@@ -294,11 +342,9 @@
     "prog8w_list3": "<strong>Mulighed for indkvartering</strong> under forløbet",
     "prog8w_cta": "Gå til 8-ugers semi-intensiv uddannelse →",
     "prog8w_alt": "200-timers – 8 ugers semi-intensivt program",
-
     "cohort_eyebrow": "Hold 2026",
     "cohort_title": "Vælg dit hold",
     "cohort_subtitle": "Vi kører to 18-ugers hold om året — forår og efterår. Samme uddannelse, samme certificering.",
-
     "cohort_spring_title": "Marts–Juni 2026",
     "cohort_spring_badge": "Udsolgt",
     "cohort_spring_proof": "22 studerende · 11 hverdagshold · 11 weekendhold",
@@ -309,7 +355,6 @@
     "cohort_spring_workshop_desc": "Alle workshops kan tages individuelt til 975 kr. pr. workshop. Se skemaet og book.",
     "cohort_spring_redirect": "Se efterårsholdet i stedet →",
     "cohort_spring_ended": "Forårholdet er afsluttet. Se vores næste hold herunder.",
-
     "cohort_autumn_title": "August–December 2026",
     "cohort_autumn_badge": "Åben for tilmelding",
     "cohort_autumn_desc": "18 uger, hverdags- eller weekendhold. Start: 10. august · Graduation: 13. december 2026.",
@@ -317,14 +362,15 @@
     "cohort_autumn_list2": "Online backup for alle workshops",
     "cohort_autumn_list3": "60 klasser inkluderet i forberedelsesfasen",
     "cohort_autumn_cta_prep": "Start Forberedelsesfasen — 3.750 kr",
-    "cohort_autumn_cta_schedule": "Se Skema Aug–Dec →"
+    "cohort_autumn_cta_schedule": "Se Skema Aug–Dec →",
+    "float_cta": "Start Forberedelsesfasen",
+    "float_price": "3.750 kr."
   },
   "en": {
     "urgency_badge": "Next cohort: August 2026",
     "urgency_deadline": "Open for enrollment",
     "urgency_banner": "The autumn cohort starts <strong>August 10, 2026</strong> — open for enrollment. Secure your place now.",
     "urgency_inline": "Next cohort · August–December 2026 · Open for enrollment",
-
     "hero_tagline": "200-Hour Yoga Teacher Training",
     "hero_title": "18-Week Flexible<br>Program",
     "hero_subtitle": "Become a certified yoga teacher alongside your job, studies or family life",
@@ -341,7 +387,6 @@
     "hero_cta_prep": "Start Preparation Phase",
     "hero_cta_schedule": "Get Schedule",
     "hero_cta_more": "Read details about our 200-hour yoga teacher training →",
-
     "curr_eyebrow": "Curriculum",
     "curr_title": "What you will learn",
     "curr_subtitle": "A complete 200-hour curriculum that gives you everything you need as a yoga teacher.",
@@ -357,11 +402,9 @@
     "curr5_desc": "Breathing techniques, bandhas, meditation forms and integration into your classes.",
     "curr6_title": "Professional Development",
     "curr6_desc": "Career launch, business basics, marketing, ethics and lifelong professional development.",
-
     "video_eyebrow": "Hear from our students",
     "video_title": "Experience the training from the inside",
     "video_subtitle": "Hear directly from our students what the training has meant to them.",
-
     "cert_eyebrow": "Internationally recognized",
     "cert_title": "Yoga Alliance RYT-200 Certification",
     "cert_subtitle": "A globally recognized certification that opens doors — whether you want to teach in Copenhagen, in Bali or online from your living room.",
@@ -383,8 +426,7 @@
     "cert_door4": "<strong>Further education</strong> — continue to the 300-hour advanced program and become RYT-500 certified for even more opportunities.",
     "cert_door5": "<strong>Broad career access</strong> — from yoga studios and fitness centers to corporate wellness, retreats and online teaching. This certification covers it all.",
     "cert_closing": "The certification is broad yet deeply professional — it gives you a solid foundation to teach any yoga style and opens career opportunities you may not have imagined.",
-    "cert_cta": "Read more about the 200-hour education",
-
+    "cert_cta": "Learn more about yoga teacher training in Copenhagen",
     "certval_eyebrow": "The value of your certification",
     "certval_title": "More than a certificate — a lifelong investment",
     "certval_intro": "RYT-200 is the entry point for yoga teaching at all levels. A certification that transforms both your practice and your perspective — personally and professionally.",
@@ -399,7 +441,6 @@
     "certval_exam_title": "Exam & graduation",
     "certval_exam_text": "You'll demonstrate your skills by teaching up to 20-minute sequences in each style to your group. You'll also pass tests and quizzes on anatomy and yoga philosophy. No surprises — we prepare you thoroughly.",
     "certval_image_alt": "Sample Yoga Alliance RYT-200 certification",
-
     "flex_eyebrow": "Maximum Flexibility",
     "flex_title": "Two formats. One education.",
     "flex_subtitle": "We are probably the only school in the world that runs the training in two formats simultaneously — weekday and weekend. This gives you maximum flexibility, and you can freely switch between dates.",
@@ -409,7 +450,6 @@
     "flex2_desc": "Both formats cover exactly the same curriculum and provide the same Yoga Alliance certification.",
     "flex3_title": "Max 24 participants",
     "flex3_desc": "Small groups (approx. 12 per course) mean personal attention, close community and 90%+ completion rate.",
-
     "tracks_kicker": "Flexible program",
     "tracks_title": "Weekday or weekend program",
     "tracks_subtitle": "Switch between tracks when you need to",
@@ -446,7 +486,6 @@
     "tracks_faq3_a": "No. We schedule selected weekdays and weekends, and some periods are completely free.",
     "tracks_cta_hint": "Want to see the exact dates?",
     "tracks_cta_button": "Get Schedule",
-
     "journey_label": "18-week journey",
     "journey_title": "Your path week by week",
     "journey_desc": "From preparation to certification — here's how your 18-week program unfolds.",
@@ -465,11 +504,9 @@
     "journey5_step": "WEEKS 16–18",
     "journey5_title": "Graduation",
     "journey5_desc": "Final assessment, portfolio and certification. You receive your Yoga Alliance RYT-200 and are ready to teach.",
-
     "testimonial_quote": "I highly recommend taking your yoga training at Yoga Bible. The teachers are super skilled, and they manage to create a safe space to learn in. The course is flexible — you can choose a weekday or weekend class, and it is even possible to jump between classes. <br><br>I have been given all the right tools to be able to teach after completing the training. My warmest recommendation.",
     "testimonial_attribution": "Patricia Frederiksen",
     "testimonial_attribution_suffix": "— Google Review ★★★★★",
-
     "invest_eyebrow": "Investment",
     "invest_title": "Price & payment options",
     "invest_amount": "23,750 DKK",
@@ -493,7 +530,6 @@
     "invest_early_title": "Apply early — get studio access right away",
     "invest_early_desc": "Start the Preparation Phase and begin booking classes at Hot Yoga Copenhagen in Christianshavn. 30+ classes per week in Hot Yoga, Vinyasa, Yin and more.",
     "invest_deposit_cta": "Start Preparation Phase — 3,750 DKK",
-
     "early_kicker": "Why apply early?",
     "early_title": "Start the Preparation Phase and get early access to the studio",
     "early_location": "Christianshavn",
@@ -508,7 +544,6 @@
     "early_refund_note": "Please let us know as soon as possible if you need to cancel.",
     "early_installment": "The rest is paid in flexible instalments that suit you — before training starts",
     "early_img_alt": "Calm yoga room in Copenhagen with mats and warm light",
-
     "reviews_kicker": "Google reviews",
     "reviews_title": "What former students say",
     "reviews_lead": "The training has helped <strong>500+ students</strong> move forward — some deepen their personal practice, others teach alongside their main job, and several have gone full time with their own studios and retreats.",
@@ -518,24 +553,87 @@
     "reviews_link": "See all reviews →",
     "reviews_card_aria_prefix": "Review from",
     "reviews": [
-      {"name":"Tanja E.","when":"4 months ago","text":"Warm, friendly environment and competent teachers. Great balance between practice and philosophy — strong understanding of anatomy."},
-      {"name":"Sara Gerlee","when":"4 months ago","text":"The 200-hour program was transformative. Knowledgeable and supportive team — the studio feels like a second home for both beginners and experienced practitioners."},
-      {"name":"Clara Aagaard","when":"5 months ago","text":"Holistic learning environment with room for questions and practice focus. Skilled teachers and useful tools for class management."},
-      {"name":"Liza Westh","when":"9 months ago","text":"My warmest recommendation. 200 hours in class management, anatomy and practice — felt optimally prepared as a yoga teacher."},
-      {"name":"Signe Schmidt","when":"1 year ago","text":"Effective 18-week training in anatomy, philosophy and practice (yin, vinyasa, hatha) — in a beautiful room with daylight and green plants."},
-      {"name":"Meg Ellis","when":"10 months ago","text":"Extraordinary studio and teaching team. The 200h program prepares you fully — perfect for both deepening and teaching."},
-      {"name":"Kama Krystel","when":"1 year ago","text":"Well-structured intensive program that blends theory and practice. Personal feedback and supportive community — highly recommended."},
-      {"name":"Giorgianna G.","when":"1 year ago","text":"Challenging and rewarding. Unique focus on class management. Five stars for the skilled teachers and preparation for teaching."},
-      {"name":"Helena Bend...","when":"1 year ago","text":"Can truly recommend the training — 5 educational months. I feel well equipped to continue as a yoga teacher."},
-      {"name":"Tonje Follum","when":"1 year ago","text":"Inspiration, great attention to detail and warm environment. Fantastic atmosphere with plants, light and music — my favorite yoga community."},
-      {"name":"Ping Li","when":"1 year ago","text":"Just finished my 200h — great mental & physical development. Deeply professional team. Very happy with my journey here."},
-      {"name":"Camilla Rend...","when":"1 year ago","text":"Newly graduated instructor — feel ready in hatha, vinyasa and yin. Hard work but worth it. Recommended for both practitioners and aspiring instructors."},
-      {"name":"Dagmar Eliza...","when":"1 year ago","text":"Wide range of classes + opportunity for YTT. Skilled teachers in anatomy & philosophy. Learned a lot and found a strong community."},
-      {"name":"Yasmine Olof...","when":"1 year ago","text":"Amazing training! Feel ready to lead my own classes. Warm, professional teachers and cozy studio."},
-      {"name":"Anastasia Se...","when":"1 year ago","text":"Wonderful place to practice. The 5-month YTT was informative and professional — the teachers support you all the way."},
-      {"name":"Maja Pedersen","when":"10 months ago","text":"Pragmatic approach — you develop quickly. Great teachers with extensive experience in Hatha/Vinyasa, anatomy and yoga philosophy."}
+      {
+        "name": "Tanja E.",
+        "when": "4 months ago",
+        "text": "Warm, friendly environment and competent teachers. Great balance between practice and philosophy — strong understanding of anatomy."
+      },
+      {
+        "name": "Sara Gerlee",
+        "when": "4 months ago",
+        "text": "The 200-hour program was transformative. Knowledgeable and supportive team — the studio feels like a second home for both beginners and experienced practitioners."
+      },
+      {
+        "name": "Clara Aagaard",
+        "when": "5 months ago",
+        "text": "Holistic learning environment with room for questions and practice focus. Skilled teachers and useful tools for class management."
+      },
+      {
+        "name": "Liza Westh",
+        "when": "9 months ago",
+        "text": "My warmest recommendation. 200 hours in class management, anatomy and practice — felt optimally prepared as a yoga teacher."
+      },
+      {
+        "name": "Signe Schmidt",
+        "when": "1 year ago",
+        "text": "Effective 18-week training in anatomy, philosophy and practice (yin, vinyasa, hatha) — in a beautiful room with daylight and green plants."
+      },
+      {
+        "name": "Meg Ellis",
+        "when": "10 months ago",
+        "text": "Extraordinary studio and teaching team. The 200h program prepares you fully — perfect for both deepening and teaching."
+      },
+      {
+        "name": "Kama Krystel",
+        "when": "1 year ago",
+        "text": "Well-structured intensive program that blends theory and practice. Personal feedback and supportive community — highly recommended."
+      },
+      {
+        "name": "Giorgianna G.",
+        "when": "1 year ago",
+        "text": "Challenging and rewarding. Unique focus on class management. Five stars for the skilled teachers and preparation for teaching."
+      },
+      {
+        "name": "Helena Bend...",
+        "when": "1 year ago",
+        "text": "Can truly recommend the training — 5 educational months. I feel well equipped to continue as a yoga teacher."
+      },
+      {
+        "name": "Tonje Follum",
+        "when": "1 year ago",
+        "text": "Inspiration, great attention to detail and warm environment. Fantastic atmosphere with plants, light and music — my favorite yoga community."
+      },
+      {
+        "name": "Ping Li",
+        "when": "1 year ago",
+        "text": "Just finished my 200h — great mental & physical development. Deeply professional team. Very happy with my journey here."
+      },
+      {
+        "name": "Camilla Rend...",
+        "when": "1 year ago",
+        "text": "Newly graduated instructor — feel ready in hatha, vinyasa and yin. Hard work but worth it. Recommended for both practitioners and aspiring instructors."
+      },
+      {
+        "name": "Dagmar Eliza...",
+        "when": "1 year ago",
+        "text": "Wide range of classes + opportunity for YTT. Skilled teachers in anatomy & philosophy. Learned a lot and found a strong community."
+      },
+      {
+        "name": "Yasmine Olof...",
+        "when": "1 year ago",
+        "text": "Amazing training! Feel ready to lead my own classes. Warm, professional teachers and cozy studio."
+      },
+      {
+        "name": "Anastasia Se...",
+        "when": "1 year ago",
+        "text": "Wonderful place to practice. The 5-month YTT was informative and professional — the teachers support you all the way."
+      },
+      {
+        "name": "Maja Pedersen",
+        "when": "10 months ago",
+        "text": "Pragmatic approach — you develop quickly. Great teachers with extensive experience in Hatha/Vinyasa, anatomy and yoga philosophy."
+      }
     ],
-
     "visit_kicker": "Meet us first",
     "visit_title": "Book a free info session in Christianshavn",
     "visit_lead": "Come by and get a feel for the place — we'll tell you about the training, answer questions and help you see how it can fit into your everyday life. The info session takes about <strong>20 minutes</strong>.",
@@ -558,7 +656,6 @@
     "visit_modal_close_aria": "Close",
     "visit_modal_aria": "Book an appointment",
     "visit_modal_fallback": "",
-
     "faq_eyebrow": "Questions & answers",
     "faq_title": "Frequently asked questions",
     "faq1_q": "Do I need experience to get started?",
@@ -573,13 +670,11 @@
     "faq5_a": "You may miss a maximum of 10% of the hours. We offer make-up sessions, and you can potentially complete with the next program if necessary.",
     "faq6_q": "Are there exams?",
     "faq6_a": "Yes — practical teaching exam, written anatomy test and philosophy assignment. Everything is designed for learning, not stress. We have a 90%+ pass rate.",
-
     "final_title": "Ready to start your journey?",
     "final_text": "Next 18-week program starts <strong>August 10, 2026</strong> — open for enrollment now. Start the Preparation Phase and begin attending classes right away.",
     "final_urgency": "Secure your place on the autumn cohort",
     "final_cta": "Get Schedule Now",
     "final_prep_cta": "Start Preparation Phase — 3,750 DKK",
-
     "more_kicker": "Explore more",
     "more_title": "Other trainings and courses",
     "more_lead": "At <strong>Yoga Bible</strong> we offer programs that help you progress in your practice — from targeted courses to flexible teacher trainings.",
@@ -614,11 +709,9 @@
     "prog8w_list3": "<strong>Accommodation option</strong> during the program",
     "prog8w_cta": "Go to 8-week semi-intensive training →",
     "prog8w_alt": "200-hour – 8-week semi-intensive program",
-
     "cohort_eyebrow": "Cohorts 2026",
     "cohort_title": "Choose your cohort",
     "cohort_subtitle": "We run two 18-week cohorts per year — spring and autumn. Same training, same certification.",
-
     "cohort_spring_title": "March–June 2026",
     "cohort_spring_badge": "Sold Out",
     "cohort_spring_proof": "22 students · 11 weekday · 11 weekend",
@@ -629,7 +722,6 @@
     "cohort_spring_workshop_desc": "All workshops can be taken individually at 975 DKK per workshop. See the schedule and book.",
     "cohort_spring_redirect": "See the autumn cohort instead →",
     "cohort_spring_ended": "The spring cohort has ended. See our next cohort below.",
-
     "cohort_autumn_title": "August–December 2026",
     "cohort_autumn_badge": "Open for enrollment",
     "cohort_autumn_desc": "18 weeks, weekday or weekend track. Start: August 10 · Graduation: December 13, 2026.",
@@ -637,6 +729,8 @@
     "cohort_autumn_list2": "Online backup for all workshops",
     "cohort_autumn_list3": "60 classes included in the Preparation Phase",
     "cohort_autumn_cta_prep": "Start Preparation Phase — 3,750 DKK",
-    "cohort_autumn_cta_schedule": "See Schedule Aug–Dec →"
+    "cohort_autumn_cta_schedule": "See Schedule Aug–Dec →",
+    "float_cta": "Start Preparation Phase",
+    "float_price": "DKK 3,750"
   }
 }

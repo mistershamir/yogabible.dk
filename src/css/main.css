@@ -3767,25 +3767,6 @@ section {
 }
 
 /* Vine SVG between sections */
-.ybh-vine {
-  display: block;
-  width: 60px;
-  height: 120px;
-  margin: -20px auto -20px;
-  position: relative;
-  z-index: 2;
-}
-
-.ybh-vine__path {
-  stroke-dasharray: 400;
-  stroke-dashoffset: 400;
-  transition: stroke-dashoffset 1.5s ease;
-}
-
-.ybh-vine--drawn .ybh-vine__path {
-  stroke-dashoffset: 0;
-}
-
 /* ── 3. Essence — Three-Step Timeline ── */
 .ybh-essence {
   padding: clamp(60px, 10vw, 120px) 20px;
@@ -3995,13 +3976,51 @@ section {
   margin: 0;
 }
 
-.ybh-origin__badge {
-  display: block;
-  width: 80px;
+.ybh-origin__cert {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin: clamp(32px, 5vw, 48px) auto 0;
+  max-width: 500px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(247, 92, 3, 0.3);
+  border-radius: 16px;
+  padding: 24px 32px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.ybh-origin__cert.ybh-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ybh-origin__cert img {
+  width: 120px;
   height: auto;
-  margin-top: 16px;
-  opacity: 0.8;
-  border-radius: 4px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.ybh-origin__cert-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ybh-origin__cert-label {
+  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+  font-weight: 700;
+  color: #fff;
+}
+
+.ybh-origin__cert-sub {
+  font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .ybh-origin__connector {
@@ -4272,8 +4291,8 @@ section {
   position: relative;
   border-radius: 16px;
   overflow: hidden;
-  aspect-ratio: 1/1;
-  max-width: 400px;
+  aspect-ratio: 3/4;
+  max-width: 380px;
 }
 
 .ybh-testimonial__media video {
@@ -4341,7 +4360,42 @@ section {
   gap: 4px;
 }
 
-/* ── 9. FAQ — Two-Column ── */
+/* ── 9. Meet the Teachers — CTA Section ── */
+.ybh-teachers {
+  padding: clamp(60px, 10vw, 100px) 20px;
+  background: #F5F3F0;
+}
+
+.ybh-teachers__inner {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.ybh-teachers__eyebrow {
+  font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--yb-brand);
+  margin: 0 0 12px;
+}
+
+.ybh-teachers__title {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 16px;
+}
+
+.ybh-teachers__text {
+  font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+  color: #6F6A66;
+  line-height: 1.7;
+  margin: 0 0 clamp(24px, 4vw, 36px);
+}
+
+/* ── 10. FAQ — Two-Column ── */
 .ybh-faq {
   padding: clamp(60px, 10vw, 100px) 20px;
   background: #FFFCF9;
@@ -4457,6 +4511,16 @@ section {
     transform: rotate(90deg);
   }
 
+  .ybh-origin__cert {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .ybh-origin__cert img {
+    width: 100px;
+  }
+
   .ybh-stats__grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 32px 16px;
@@ -4518,7 +4582,6 @@ section {
 
 /* ── Historie: reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
-  .ybh-vine,
   .ybh-scroll-reveal {
     opacity: 1 !important;
     transform: none !important;
@@ -7523,6 +7586,14 @@ section {
   transition: transform 0.4s ease;
 }
 
+.yb-cph-life__card-img picture,
+.yb-cph-life__card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .yb-cph-life__card:hover .yb-cph-life__card-img {
   transform: scale(1.05);
 }
@@ -7560,6 +7631,10 @@ section {
 @media (max-width: 480px) {
   .yb-cph-life__grid {
     grid-template-columns: 1fr;
+  }
+
+  .yb-cph-life__card {
+    aspect-ratio: 4 / 3;
   }
 }
 
@@ -7680,6 +7755,11 @@ section {
     gap: 2rem;
   }
 
+  .yb-cph-location__video-wrap {
+    aspect-ratio: 4 / 3;
+    max-height: 400px;
+  }
+
   .yb-cph-location__gallery {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -7781,9 +7861,15 @@ section {
 .yb-cph-why__media-main {
   position: relative;
   border-radius: 18px;
-  aspect-ratio: 4 / 3;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.yb-cph-why__media-main .yba-carousel__slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .yb-cph-why__media-main img {
@@ -7833,6 +7919,7 @@ section {
   grid-column: span 2;
   border: 2px solid var(--yb-brand);
   border-radius: 18px;
+  margin-top: 3rem;
   padding: 2rem 2.5rem;
   display: grid;
   grid-template-columns: 1fr 1.2fr;
@@ -7871,20 +7958,135 @@ section {
 
 .yb-cph-why__flights-map {
   border-radius: 14px;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
 }
 
-.yb-cph-why__flights-map img {
+/* Flight hub — radial CSS map */
+.yb-cph-flights-hub {
+  position: relative;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+  aspect-ratio: 1;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.yb-cph-flights-hub__ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid #E8E4E0;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.yb-cph-flights-hub__ring--1 { width: 40%; height: 40%; }
+.yb-cph-flights-hub__ring--2 { width: 70%; height: 70%; }
+.yb-cph-flights-hub__ring--3 { width: 100%; height: 100%; }
+
+/* Center CPH dot */
+.yb-cph-flights-hub__center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yb-cph-flights-hub__core {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--yb-brand);
+  position: relative;
+  z-index: 2;
+}
+
+.yb-cph-flights-hub__pulse {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--yb-brand);
+  opacity: 0;
+  animation: hub-pulse 2.5s ease-out infinite;
+}
+
+@keyframes hub-pulse {
+  0% { opacity: 0.25; transform: scale(0.5); }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+
+.yb-cph-flights-hub__label {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--yb-brand);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* Spoke — line + dot + label from center to city */
+.yb-cph-flights-hub__spoke {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: var(--dist);
+  height: 1px;
+  transform-origin: 0 0;
+  transform: rotate(var(--angle));
+  z-index: 1;
+}
+
+.yb-cph-flights-hub__spoke::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--yb-brand) 0, var(--yb-brand) 4px,
+    transparent 4px, transparent 8px
+  );
+  opacity: 0.3;
+}
+
+.yb-cph-flights-hub__dot {
+  position: absolute;
+  right: -4px; top: -4px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #6F6A66;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #E8E4E0;
+}
+
+.yb-cph-flights-hub__city {
+  position: absolute;
+  right: -4px;
+  top: 0;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #555;
+  white-space: nowrap;
+  transform-origin: center center;
+  transform: rotate(calc(-1 * var(--angle))) translateY(-12px);
+  pointer-events: none;
 }
 
 @media (max-width: 900px) {
   .yb-cph-why__content {
     grid-template-columns: 1fr;
+  }
+
+  .yb-cph-why__media-main {
+    aspect-ratio: 3 / 2;
+    max-height: 360px;
   }
 
   .yb-cph-why__flights {
@@ -8067,9 +8269,25 @@ section {
     margin: 0 auto;
   }
 
+  .yb-cph-hygge__media-main {
+    aspect-ratio: 3 / 4;
+    max-height: 420px;
+  }
+
   .yb-cph-hygge__media-accent {
     bottom: -20px;
     right: -15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .yb-cph-hygge__media {
+    max-width: 100%;
+  }
+
+  .yb-cph-hygge__media-main {
+    aspect-ratio: 3 / 4;
+    max-height: 360px;
   }
 }
 
@@ -8210,7 +8428,10 @@ section {
   cursor: pointer;
 }
 
-.yb-cph-explore__card-img {
+.yb-cph-explore__card-img,
+.yb-cph-explore__card > picture,
+.yb-cph-explore__card > picture > img,
+.yb-cph-explore__card > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -8218,7 +8439,9 @@ section {
   transition: transform 0.5s ease;
 }
 
-.yb-cph-explore__card:hover .yb-cph-explore__card-img {
+.yb-cph-explore__card:hover .yb-cph-explore__card-img,
+.yb-cph-explore__card:hover > picture > img,
+.yb-cph-explore__card:hover > img {
   transform: scale(1.06);
 }
 
@@ -20976,6 +21199,157 @@ button.yb-btn--outline-white:hover {
 
 .yba-carousel__dot.active {
   background: #f75c03;
+}
+
+/* ========================================
+   FLOATING CART BAR (YTT program pages)
+   ======================================== */
+.yb-float-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 16px;
+  pointer-events: none;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+}
+.yb-float-bar--visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+.yb-float-bar__btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: var(--yb-brand);
+  color: #fff;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.yb-float-bar__btn:hover {
+  background: var(--yb-brand-dark, #d94f02);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.22);
+}
+.yb-float-bar__btn:active {
+  transform: translateY(0);
+}
+.yb-float-bar__price {
+  opacity: 0.85;
+  font-weight: 400;
+  margin-left: 2px;
+}
+
+/* Cohort picker (4w page) */
+.yb-float-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 910;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(15, 15, 15, 0.5);
+  padding: 0 16px 24px;
+  -webkit-tap-highlight-color: transparent;
+}
+.yb-float-picker--open {
+  display: flex;
+}
+.yb-float-picker__sheet {
+  width: 100%;
+  max-width: 420px;
+  background: #FFFCF9;
+  border-radius: 20px;
+  padding: 28px 24px 20px;
+  box-shadow: 0 -4px 40px rgba(0,0,0,0.15);
+  transform: translateY(20px);
+  opacity: 0;
+  animation: ybFloatSheetIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes ybFloatSheetIn {
+  to { transform: translateY(0); opacity: 1; }
+}
+.yb-float-picker__title {
+  font-family: var(--font-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F0F0F;
+  margin: 0 0 16px;
+  text-align: center;
+}
+.yb-float-picker__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: #F5F3F0;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  text-align: left;
+}
+.yb-float-picker__option:hover {
+  border-color: var(--yb-brand);
+  background: #fff;
+}
+.yb-float-picker__option-period {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: #6F6A66;
+  margin-top: 2px;
+}
+.yb-float-picker__option-arrow {
+  color: var(--yb-brand);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+.yb-float-picker__close {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 4px;
+  background: none;
+  border: none;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  color: #6F6A66;
+  cursor: pointer;
+  text-align: center;
+}
+.yb-float-picker__close:hover {
+  color: #0F0F0F;
+}
+
+/* Hide floating bar when checkout modal is open */
+body.ycf-open .yb-float-bar,
+body.ycf-open .yb-float-picker { display: none !important; }
+
+@media (min-width: 768px) {
+  .yb-float-bar { padding: 0 24px 20px; }
+  .yb-float-bar__btn { padding: 16px 40px; font-size: 1.05rem; }
 }
 
 /* → Moved to admin-panel.css (Sequences Admin) */

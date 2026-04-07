@@ -141,20 +141,76 @@
       var connectBtn = card.querySelector('[data-action="social-connect"]');
       var disconnBtn = card.querySelector('[data-action="social-disconnect"]');
 
+      var tokenEl = $('yb-social-' + abbr + '-token-status');
+
       if (a) {
         card.classList.add('is-connected');
         if (handleEl) handleEl.textContent = a.pageName || a.handle || t('social_connected');
         if (followEl) followEl.textContent = (a.followerCount || 0).toLocaleString() + ' ' + t('social_followers');
         if (connectBtn) connectBtn.hidden = true;
         if (disconnBtn) disconnBtn.hidden = false;
+        // Token status
+        if (tokenEl) tokenEl.innerHTML = getTokenStatusHtml(p, a);
       } else {
         card.classList.remove('is-connected');
         if (handleEl) handleEl.textContent = t('social_not_connected');
         if (followEl) followEl.textContent = '';
+        if (tokenEl) tokenEl.innerHTML = '';
         if (connectBtn) connectBtn.hidden = false;
         if (disconnBtn) disconnBtn.hidden = true;
       }
     });
+  }
+
+  // Token expiry info per platform
+  var TOKEN_EXPIRY = {
+    instagram: { type: 'never', label: 'Page token — never expires' },
+    facebook: { type: 'never', label: 'Page token — never expires' },
+    tiktok: { type: 'auto', label: 'Auto-refreshes (1 year refresh token)' },
+    linkedin: { type: 'expires', days: 60, label: '60-day token' },
+    youtube: { type: 'auto', label: 'Auto-refreshes via Google OAuth' },
+    pinterest: { type: 'expires', days: 1, label: 'Trial token — 24h' }
+  };
+
+  function getTokenStatusHtml(platform, account) {
+    var info = TOKEN_EXPIRY[platform];
+    if (!info) return '';
+
+    var connectedAt = account.connectedAt;
+    var ts = connectedAt ? (connectedAt.seconds ? connectedAt.seconds * 1000 : (connectedAt._seconds ? connectedAt._seconds * 1000 : new Date(connectedAt).getTime())) : 0;
+
+    if (info.type === 'never') {
+      return '<span style="color:#27ae60;font-size:11px">&#10003; ' + info.label + '</span>';
+    }
+
+    if (info.type === 'auto') {
+      var hasRefresh = !!account.refreshToken;
+      if (hasRefresh) {
+        return '<span style="color:#27ae60;font-size:11px">&#10003; ' + info.label + '</span>';
+      }
+      return '<span style="color:#e67e22;font-size:11px">&#9888; No refresh token — will expire</span>';
+    }
+
+    if (info.type === 'expires' && ts) {
+      var expiresAt = ts + (info.days * 24 * 60 * 60 * 1000);
+      var now = Date.now();
+      var daysLeft = Math.ceil((expiresAt - now) / (24 * 60 * 60 * 1000));
+
+      if (daysLeft <= 0) {
+        return '<span style="color:#e74c3c;font-size:11px">&#10007; Token expired — reconnect needed</span>';
+      } else if (daysLeft <= 7) {
+        return '<span style="color:#e74c3c;font-size:11px">&#9888; Expires in ' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + ' — renew soon!</span>';
+      } else if (daysLeft <= 14) {
+        return '<span style="color:#e67e22;font-size:11px">&#9888; Expires in ' + daysLeft + ' days</span>';
+      }
+      return '<span style="color:#6F6A66;font-size:11px">&#128336; Expires in ' + daysLeft + ' days</span>';
+    }
+
+    if (account.lastError) {
+      return '<span style="color:#e74c3c;font-size:11px">&#10007; Error: ' + account.lastError + '</span>';
+    }
+
+    return '<span style="color:#6F6A66;font-size:11px">' + (info.label || '') + '</span>';
   }
 
   var PLATFORM_DEFAULTS = {
@@ -176,7 +232,7 @@
     var needsOrgId = platform === 'linkedin';
     var needsChannelId = platform === 'youtube';
     var needsBoardId = platform === 'pinterest';
-    var needsRefreshToken = platform === 'youtube';
+    var needsRefreshToken = platform === 'youtube' || platform === 'tiktok';
     var pageIdLabel = platform === 'facebook' ? 'Facebook Page ID' : platform === 'instagram' ? 'Instagram Business Account ID' : '';
     var hasOAuth = OAUTH_PLATFORMS.indexOf(platform) !== -1;
 
@@ -197,7 +253,7 @@
         '<label for="yb-social-connect-orgid">LinkedIn Organization ID</label>' +
         '<input type="text" id="yb-social-connect-orgid" placeholder="e.g. 12345678">' +
         '</div>';
-    } else if (needsChannelId) {
+    } else if (needsRefreshToken && needsChannelId) {
       extraFields = '<div class="yb-admin__field">' +
         '<label for="yb-social-connect-refreshtoken">Refresh Token</label>' +
         '<input type="text" id="yb-social-connect-refreshtoken" placeholder="Required for token refresh">' +
@@ -205,6 +261,11 @@
         '<div class="yb-admin__field">' +
         '<label for="yb-social-connect-channelid">Channel ID <span style="color:var(--yb-muted)">(optional)</span></label>' +
         '<input type="text" id="yb-social-connect-channelid" placeholder="e.g. UCxxxxxxxx">' +
+        '</div>';
+    } else if (needsRefreshToken) {
+      extraFields = '<div class="yb-admin__field">' +
+        '<label for="yb-social-connect-refreshtoken">Refresh Token</label>' +
+        '<input type="text" id="yb-social-connect-refreshtoken" placeholder="Required for auto-refresh (lasts 1 year)">' +
         '</div>';
     } else if (needsBoardId) {
       extraFields = '<div class="yb-admin__field">' +

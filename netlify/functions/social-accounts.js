@@ -82,7 +82,11 @@ async function listAccounts(db) {
       igAccountId: data.igAccountId || null,
       channelId: data.channelId || null,
       boardId: data.boardId || null,
-      profilePicture: data.profilePicture || null
+      profilePicture: data.profilePicture || null,
+      hasRefreshToken: !!data.refreshToken,
+      refreshToken: !!data.refreshToken,
+      lastError: data.lastError || null,
+      lastTokenRefresh: data.lastTokenRefresh?.toDate?.() || data.lastTokenRefresh || null
     });
   });
 
