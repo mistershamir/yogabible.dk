@@ -92,7 +92,7 @@
 
     <div class="p18-cohorts__grid">
 
-      <!-- March–June 2026 — Archived / Sold Out -->
+      <!-- March–June 2026 — Fully Sold Out -->
       <div class="p18-cohort-card p18-cohort-card--archive" id="p18-cohort-spring">
         <div class="p18-cohort-card__header">
           <h3 class="p18-cohort-card__title">{{ t.cohort_spring_title }}</h3>
@@ -101,22 +101,14 @@
         <p class="p18-cohort-card__proof">{{ t.cohort_spring_proof }}</p>
         <p class="p18-cohort-card__proof-detail">{{ t.cohort_spring_proof_detail }}</p>
 
-        <!-- Phase 1: Until mid-April — Join Late + Workshops -->
-        <div class="p18-cohort-spring__phase" data-phase="late">
-          <p class="p18-cohort-card__desc">{{ t.cohort_spring_late_desc }}</p>
-          <button class="yb-btn yb-btn--outline" onclick="openYBScheduleModal('18w-mar')" style="width:100%;margin-bottom:0.75rem">{{ t.cohort_spring_late_cta }}</button>
-          <button class="yb-btn yb-btn--outline" data-open-workshops style="width:100%;margin-bottom:0.75rem">{{ t.cohort_spring_workshop_cta }}</button>
-          <a href="#p18-cohort-autumn" class="p18-cohort-card__redirect">{{ t.cohort_spring_redirect }}</a>
-        </div>
-
-        <!-- Phase 2: Mid-April to end June — Workshops + Redirect -->
-        <div class="p18-cohort-spring__phase" data-phase="workshops" hidden>
+        <!-- Until end June — Workshops only -->
+        <div class="p18-cohort-spring__phase" data-phase="workshops">
           <p class="p18-cohort-card__desc">{{ t.cohort_spring_workshop_desc }}</p>
           <button class="yb-btn yb-btn--outline" data-open-workshops style="width:100%;margin-bottom:0.75rem">{{ t.cohort_spring_workshop_cta }}</button>
           <a href="#p18-cohort-autumn" class="p18-cohort-card__redirect">{{ t.cohort_spring_redirect }}</a>
         </div>
 
-        <!-- Phase 3: After end June — Informational only -->
+        <!-- After end June — Informational only -->
         <div class="p18-cohort-spring__phase" data-phase="ended" hidden>
           <p class="p18-cohort-card__desc">{{ t.cohort_spring_ended }}</p>
           <a href="#p18-cohort-autumn" class="p18-cohort-card__redirect">{{ t.cohort_spring_redirect }}</a>
@@ -147,17 +139,9 @@
 <script>
 (function() {
   var now = new Date();
-  var midApril = new Date(2026, 3, 15);  // April 15, 2026
   var endJune = new Date(2026, 5, 30);   // June 30, 2026
 
-  var phase;
-  if (now < midApril) {
-    phase = 'late';
-  } else if (now < endJune) {
-    phase = 'workshops';
-  } else {
-    phase = 'ended';
-  }
+  var phase = now < endJune ? 'workshops' : 'ended';
 
   var phases = document.querySelectorAll('.p18-cohort-spring__phase');
   phases.forEach(function(el) {
