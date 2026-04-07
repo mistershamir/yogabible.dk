@@ -545,34 +545,21 @@
 
     if (!data) return;
 
-    // If "Post Now" and status is not draft — publish immediately
+    // If "Post Now" and status is not draft — publish in background
     if (status === 'published') {
       var pid = postId || data.id;
-      S.toast('Publishing to ' + composer.platforms.join(', ') + '...');
+      S.toast('Publishing to ' + composer.platforms.join(', ') + '... (processing in background)');
       try {
-        var pub = await S.api('social-publish', {
-          method: 'POST', body: JSON.stringify({ postId: pid })
+        var token = await S.getToken();
+        // Background function returns 202 immediately — no response body
+        await fetch('/.netlify/functions/social-publish-background', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId: pid })
         });
-        if (pub && pub.results) {
-          // Check each platform result
-          var failures = [];
-          var successes = [];
-          Object.keys(pub.results).forEach(function (platform) {
-            if (pub.results[platform].success) {
-              successes.push(platform);
-            } else {
-              failures.push(platform + ': ' + (pub.results[platform].error || 'unknown error'));
-            }
-          });
-          if (successes.length > 0) S.toast('Published to ' + successes.join(', '));
-          if (failures.length > 0) {
-            failures.forEach(function (f) { S.toast('Failed — ' + f, true); });
-          }
-        } else if (pub && pub.error) {
-          S.toast('Publish failed: ' + pub.error, true);
-        } else {
-          S.toast('Publish request sent');
-        }
+        S.toast('Publishing in background. Refresh Posts tab in ~30s to see results.');
+        // Start polling for results
+        pollPublishResults(pid);
       } catch (e) {
         S.toast('Publish error: ' + e.message, true);
       }
@@ -582,6 +569,38 @@
 
     closeComposer();
     S.loadPosts();
+  }
+
+  // Poll for publish results from background function
+  function pollPublishResults(postId) {
+    var attempts = 0;
+    var maxAttempts = 20; // ~2 minutes
+    var interval = setInterval(async function () {
+      attempts++;
+      if (attempts > maxAttempts) {
+        clearInterval(interval);
+        S.toast('Publish still processing. Check Posts tab for status.');
+        return;
+      }
+      try {
+        var data = await S.api('social-posts?action=get&id=' + postId);
+        if (!data || !data.post) return;
+        var p = data.post;
+        if (p.status === 'published' || p.status === 'failed') {
+          clearInterval(interval);
+          var results = p.publishResults || {};
+          var failures = [];
+          var successes = [];
+          Object.keys(results).forEach(function (platform) {
+            if (results[platform].success) successes.push(platform);
+            else failures.push(platform + ': ' + (results[platform].error || 'failed'));
+          });
+          if (successes.length > 0) S.toast('Published to ' + successes.join(', '));
+          if (failures.length > 0) failures.forEach(function (f) { S.toast('Failed — ' + f, true); });
+          if (S.loadPosts) S.loadPosts();
+        }
+      } catch (e) { /* keep polling */ }
+    }, 6000);
   }
 
   /* ═══ MEDIA BROWSER ═══ */

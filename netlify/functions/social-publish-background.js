@@ -5,6 +5,7 @@
  * POST /.netlify/functions/social-publish  { postId, platforms? }
  */
 
+const https = require('https');
 const { getDb, serverTimestamp } = require('./shared/firestore');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
@@ -19,6 +20,68 @@ const {
 
 const POSTS_COLLECTION = 'social_posts';
 const ACCOUNTS_COLLECTION = 'social_accounts';
+
+const BUNNY_STORAGE_ZONE = process.env.BUNNY_STORAGE_ZONE || 'yogabible';
+const BUNNY_STORAGE_KEY = process.env.BUNNY_STORAGE_API_KEY || '';
+const BUNNY_CDN_HOST = process.env.BUNNY_CDN_HOST || 'yogabible.b-cdn.net';
+const BUNNY_STREAM_CDN = process.env.BUNNY_STREAM_CDN_HOST || 'vz-4f2e2677-3b6.b-cdn.net';
+
+/**
+ * If a media URL is from Bunny Stream (vz-*.b-cdn.net), download it and
+ * re-upload to Bunny Storage (yogabible.b-cdn.net) so social platforms
+ * can access it without token auth / hotlink issues.
+ */
+async function ensurePublicMediaUrl(mediaUrl) {
+  // Only process Bunny Stream URLs
+  if (!mediaUrl.includes(BUNNY_STREAM_CDN)) return mediaUrl;
+
+  console.log('[social-publish] Copying Bunny Stream video to Storage:', mediaUrl);
+
+  try {
+    // Download from Bunny Stream
+    const videoRes = await fetch(mediaUrl);
+    if (!videoRes.ok) {
+      console.error('[social-publish] Failed to download from Stream:', videoRes.status);
+      return mediaUrl; // Fall back to original URL
+    }
+
+    const videoBuffer = Buffer.from(await videoRes.arrayBuffer());
+    const fileName = 'social-' + Date.now() + '.mp4';
+    const storagePath = 'yoga-bible-DK/social-imports/' + fileName;
+
+    // Upload to Bunny Storage
+    await new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: 'storage.bunnycdn.com',
+        path: '/' + BUNNY_STORAGE_ZONE + '/' + storagePath,
+        method: 'PUT',
+        headers: {
+          'AccessKey': BUNNY_STORAGE_KEY,
+          'Content-Type': 'video/mp4',
+          'Content-Length': videoBuffer.length
+        }
+      }, (res) => {
+        let data = '';
+        res.on('data', c => data += c);
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) resolve();
+          else reject(new Error('Storage upload failed: ' + res.statusCode + ' ' + data));
+        });
+      });
+      req.on('error', reject);
+      req.setTimeout(60000, () => { req.destroy(); reject(new Error('Storage upload timeout')); });
+      req.write(videoBuffer);
+      req.end();
+    });
+
+    const publicUrl = 'https://' + BUNNY_CDN_HOST + '/' + storagePath;
+    console.log('[social-publish] Video copied to public URL:', publicUrl);
+    return publicUrl;
+  } catch (err) {
+    console.error('[social-publish] Failed to copy video:', err.message);
+    return mediaUrl; // Fall back to original URL
+  }
+}
 
 /**
  * Publish a post to its target platforms.
@@ -67,6 +130,17 @@ async function publishPost(db, postId, platformFilter) {
     accounts[doc.id] = doc.data();
   });
 
+  // If media includes Bunny Stream URLs, copy to Bunny Storage for public access
+  let publicMedia = post.media || [];
+  if (publicMedia.some(url => url.includes(BUNNY_STREAM_CDN))) {
+    const resolved = [];
+    for (const url of publicMedia) {
+      resolved.push(await ensurePublicMediaUrl(url));
+    }
+    publicMedia = resolved;
+    console.log('[social-publish] Resolved media URLs:', publicMedia);
+  }
+
   // Publish to each platform
   const results = {};
   let anySuccess = false;
@@ -80,8 +154,8 @@ async function publishPost(db, postId, platformFilter) {
       continue;
     }
 
-    // Use platform-specific caption if available
-    const platformPost = { ...post };
+    // Use platform-specific caption if available, and resolved media URLs
+    const platformPost = { ...post, media: publicMedia };
     if (post.platformCaptions && post.platformCaptions[platform]) {
       platformPost.caption = post.platformCaptions[platform];
     }
