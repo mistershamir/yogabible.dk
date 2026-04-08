@@ -3,12 +3,19 @@
  * Auto-caption generation from video audio via Deepgram Nova-2.
  *
  * POST /.netlify/functions/social-captions  { action: 'transcribe', videoUrl }
+ *   → Now delegates to social-captions-background (Netlify background function)
+ *     to avoid the 10s sync function timeout. Returns a jobId for polling.
+ * GET  /.netlify/functions/social-captions?action=poll&jobId=...
+ *   → Polls for background transcription results.
  * POST /.netlify/functions/social-captions  { action: 'translate', text, targetLang }
  */
 
 const https = require('https');
+const { getDb } = require('./shared/firestore');
 const { requireAuth } = require('./shared/auth');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
+
+const JOBS_COLLECTION = 'social_caption_jobs';
 
 const MAX_CHUNK_SECS = 10;
 
@@ -19,11 +26,20 @@ exports.handler = async (event) => {
   if (user.error) return user.error;
 
   try {
+    // GET actions (polling)
+    if (event.httpMethod === 'GET') {
+      const params = event.queryStringParameters || {};
+      if (params.action === 'poll' && params.jobId) {
+        return pollTranscriptionJob(params.jobId);
+      }
+      return jsonResponse(400, { ok: false, error: 'Unknown GET action' });
+    }
+
     const body = JSON.parse(event.body || '{}');
     const action = body.action;
 
     switch (action) {
-      case 'transcribe': return transcribeVideo(body);
+      case 'transcribe': return startTranscription(body, event);
       case 'translate':  return translateText(body);
       default:
         return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
@@ -33,6 +49,66 @@ exports.handler = async (event) => {
     return jsonResponse(500, { ok: false, error: err.message });
   }
 };
+
+/**
+ * Start transcription via background function.
+ * Returns a jobId immediately; client polls via GET ?action=poll&jobId=...
+ */
+async function startTranscription(body, event) {
+  const { videoUrl } = body;
+  if (!videoUrl) return jsonResponse(400, { ok: false, error: 'Missing videoUrl' });
+
+  const jobId = 'cap_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+
+  // Fire the background function (returns 202, runs up to 15 minutes)
+  const token = event.headers.authorization || event.headers.Authorization || '';
+  try {
+    const siteUrl = process.env.URL || 'https://yogabible.dk';
+    fetch(`${siteUrl}/.netlify/functions/social-captions-background`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+      },
+      body: JSON.stringify({ videoUrl, jobId })
+    }).catch(err => console.warn('[social-captions] Background invoke error:', err.message));
+  } catch (e) {
+    console.warn('[social-captions] Background invoke error:', e.message);
+  }
+
+  return jsonResponse(200, { ok: true, jobId, status: 'processing' });
+}
+
+/**
+ * Poll for transcription job results stored in Firestore by the background function.
+ */
+async function pollTranscriptionJob(jobId) {
+  const db = getDb();
+  const doc = await db.collection(JOBS_COLLECTION).doc(jobId).get();
+
+  if (!doc.exists) {
+    return jsonResponse(404, { ok: false, status: 'not_found' });
+  }
+
+  const data = doc.data();
+  if (data.status === 'complete') {
+    return jsonResponse(200, {
+      ok: true,
+      status: 'complete',
+      transcript: data.transcript,
+      utterances: data.utterances,
+      language: data.language,
+      vtt: data.vtt,
+      srt: data.srt
+    });
+  }
+
+  if (data.status === 'failed') {
+    return jsonResponse(200, { ok: false, status: 'failed', error: data.error });
+  }
+
+  return jsonResponse(200, { ok: true, status: 'processing' });
+}
 
 
 // ── Deepgram Transcription ───────────────────────────────────────────

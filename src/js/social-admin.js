@@ -541,6 +541,19 @@
     });
   }
 
+  /**
+   * Convert a date + time string entered in Europe/Copenhagen timezone to a UTC ISO string.
+   */
+  function copenhagenToUTC(dateStr, timeStr) {
+    var cphStr = new Date(dateStr + 'T' + timeStr + ':00').toLocaleString('en-US', { timeZone: 'Europe/Copenhagen' });
+    var browserStr = new Date(dateStr + 'T' + timeStr + ':00').toLocaleString('en-US');
+    var browserMs = new Date(browserStr).getTime();
+    var cphMs = new Date(cphStr).getTime();
+    var offsetMs = browserMs - cphMs;
+    var corrected = new Date(new Date(dateStr + 'T' + timeStr + ':00').getTime() + offsetMs);
+    return corrected.toISOString();
+  }
+
   async function reschedulePost(postId, newDateStr) {
     // Build a new scheduledAt datetime (keep existing time or default to 10:00)
     var post = state.posts.find(function (p) { return p.id === postId; });
@@ -548,18 +561,20 @@
     var hours = '10';
     var minutes = '00';
     if (existingDate) {
+      // Display in Copenhagen timezone to extract the correct local time
       var dt = existingDate._seconds ? new Date(existingDate._seconds * 1000) : new Date(existingDate);
-      hours = String(dt.getHours()).padStart(2, '0');
-      minutes = String(dt.getMinutes()).padStart(2, '0');
+      var cphParts = dt.toLocaleString('en-GB', { timeZone: 'Europe/Copenhagen', hour: '2-digit', minute: '2-digit', hour12: false }).split(':');
+      hours = cphParts[0] || '10';
+      minutes = cphParts[1] || '00';
     }
-    var newScheduledAt = new Date(newDateStr + 'T' + hours + ':' + minutes + ':00');
+    var newScheduledAtISO = copenhagenToUTC(newDateStr, hours + ':' + minutes);
 
     var data = await api('social-posts', {
       method: 'POST',
       body: JSON.stringify({
         action: 'update',
         id: postId,
-        scheduledAt: newScheduledAt.toISOString(),
+        scheduledAt: newScheduledAtISO,
         status: 'scheduled'
       })
     });
@@ -568,7 +583,7 @@
       toast(t('social_post_rescheduled') || 'Post rescheduled');
       // Update local state
       if (post) {
-        post.scheduledAt = { _seconds: Math.floor(newScheduledAt.getTime() / 1000) };
+        post.scheduledAt = { _seconds: Math.floor(new Date(newScheduledAtISO).getTime() / 1000) };
         post.status = 'scheduled';
       }
       renderCalendar();
@@ -2496,12 +2511,20 @@
     if (!aiPlanData || !aiPlanData[index]) return;
     var item = aiPlanData[index];
     // Open composer pre-filled with the plan item
-    if (window._ybSocial && window._ybSocial.openSocialComposer) {
-      window._ybSocial.openSocialComposer({
-        caption: item.caption_idea || '',
-        platforms: item.platforms || [],
-        scheduledAt: item.date && item.time ? item.date + 'T' + item.time : null
-      });
+    if (window.openSocialComposer) {
+      window.openSocialComposer(null);
+      setTimeout(function () {
+        var captionEl = $('yb-social-caption');
+        if (captionEl) captionEl.value = item.caption_idea || '';
+        if (item.date && item.time) {
+          var dateEl = $('yb-social-schedule-date');
+          var timeEl = $('yb-social-schedule-time');
+          if (dateEl) dateEl.value = item.date;
+          if (timeEl) timeEl.value = item.time;
+          var schedRadio = document.querySelector('input[name="yb-social-when"][value="schedule"]');
+          if (schedRadio) { schedRadio.checked = true; schedRadio.dispatchEvent(new Event('change')); }
+        }
+      }, 150);
     }
     // Close plan modal
     var m = $('yb-social-ai-plan-modal');
@@ -4313,7 +4336,7 @@
 
     var url = video.mp4Url || video.hlsUrl || '';
 
-    // If editor is open, include trim data
+    // If editor is open, capture trim data
     var editData = null;
     if (videoState.editorVideoId) {
       editData = {
@@ -4326,16 +4349,23 @@
       closeVideoEditor();
     }
 
-    // Open composer with the video
+    // Open composer with the video and inject media + editData
     if (window.openSocialComposer) {
       window.openSocialComposer(null);
       setTimeout(function () {
-        // Inject video into composer media
-        if (window._ybSocial && window._ybSocial.state) {
-          // Access composer through the bridge
-          var captionEl = $('yb-social-caption');
-          if (captionEl && !captionEl.value) captionEl.value = video.title || '';
+        // Inject video URL into composer media array
+        if (window._ybSocialComposer) {
+          window._ybSocialComposer.media = [url];
+          window._ybSocialComposer.mediaType = 'video';
+          // Store trim/aspect data so save payload can include it
+          window._ybSocialComposer.videoEditData = editData;
+          // Trigger media preview re-render
+          if (typeof window._ybSocialComposer.renderMediaPreview === 'function') {
+            window._ybSocialComposer.renderMediaPreview();
+          }
         }
+        var captionEl = $('yb-social-caption');
+        if (captionEl && !captionEl.value) captionEl.value = video.title || '';
       }, 200);
     }
 
@@ -4352,10 +4382,13 @@
   }
 
   // ── Drag & Drop + File Input Setup ──
+  var _uploadZoneInit = false;
   function initVideoUploadZone() {
+    if (_uploadZoneInit) return;
     var droparea = $('yb-social-video-droparea');
     var fileInput = $('yb-social-video-file');
     if (!droparea || !fileInput) return;
+    _uploadZoneInit = true;
 
     droparea.addEventListener('dragover', function (e) {
       e.preventDefault();
@@ -4384,9 +4417,12 @@
   }
 
   // ── Trim Handle Dragging ──
+  var _trimHandlesInit = false;
   function initTrimHandles() {
+    if (_trimHandlesInit) return;
     var timeline = $('yb-social-video-timeline');
     if (!timeline) return;
+    _trimHandlesInit = true;
 
     var dragging = null;
 
@@ -5682,13 +5718,14 @@
 
     for (var i = 0; i < posts.length; i++) {
       var post = posts[i];
-      var caption = (posts.length === 1 && customCaption !== null) ? customCaption : post.caption;
+      var originalCaption = (posts.length === 1 && customCaption !== null) ? customCaption : post.caption;
 
       for (var j = 0; j < selectedTargets.length; j++) {
         var target = selectedTargets[j];
         var rules = PLATFORM_RULES[target];
 
-        // Trim caption if needed
+        // Clone caption per platform to avoid mutating the original
+        var caption = originalCaption;
         if (caption.length > rules.maxCaptionLength) {
           caption = caption.substring(0, rules.maxCaptionLength - 3) + '...';
         }
@@ -5798,6 +5835,7 @@
     if (action === 'social-nav-accounts') showView('accounts');
     else if (action === 'social-nav-calendar') showView('calendar');
     else if (action === 'social-nav-posts') showView('posts');
+    else if (action === 'social-nav-crossshare') showView('crossshare');
     else if (action === 'social-nav-analytics') showView('analytics');
     else if (action === 'social-nav-inbox') showView('inbox');
     else if (action === 'social-nav-hashtags') showView('hashtags');

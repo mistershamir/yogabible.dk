@@ -9,6 +9,24 @@
   function $(id) { return document.getElementById(id); }
   function t(k) { return S ? S.t(k) : k; }
 
+  /**
+   * Convert a date + time string entered in Europe/Copenhagen timezone to a UTC ISO string.
+   * This ensures scheduling works correctly regardless of the admin's browser timezone.
+   */
+  function copenhagenToUTC(dateStr, timeStr) {
+    // Build a locale string that forces Copenhagen interpretation
+    // E.g., "2026-04-10" + "14:30" → interpreted as 14:30 CEST → converted to UTC
+    var cphStr = new Date(dateStr + 'T' + timeStr + ':00').toLocaleString('en-US', { timeZone: 'Europe/Copenhagen' });
+    var browserStr = new Date(dateStr + 'T' + timeStr + ':00').toLocaleString('en-US');
+    // Calculate the offset between what the browser thinks and what Copenhagen time is
+    var browserMs = new Date(browserStr).getTime();
+    var cphMs = new Date(cphStr).getTime();
+    var offsetMs = browserMs - cphMs;
+    // Adjust the original date by the offset to get the correct UTC time
+    var corrected = new Date(new Date(dateStr + 'T' + timeStr + ':00').getTime() + offsetMs);
+    return corrected.toISOString();
+  }
+
   /* ═══ STATE ═══ */
   var composer = {
     postId: null,
@@ -47,6 +65,7 @@
     composer.media = [];
     composer.mediaType = 'image';
     composer.videoUrl = '';
+    composer.videoEditData = null;
     composer.importedPermalink = '';
     composer.platforms = [];
     composer.platformCaptions = {};
@@ -522,17 +541,18 @@
       location: ($('yb-social-location') || {}).value || '',
       mediaType: mediaType,
       videoThumbnails: composer.videoThumbnails || {},
+      videoEditData: composer.videoEditData || null,
       contentPillar: ($('yb-social-pillar') || {}).value || '',
       platformCaptions: composer.platformCaptions || {},
       status: status === 'published' ? 'pending' : status
     };
 
-    // Handle scheduling
+    // Handle scheduling — interpret date/time as Europe/Copenhagen timezone
     if (status === 'scheduled') {
       var dateVal = ($('yb-social-schedule-date') || {}).value;
       var timeVal = ($('yb-social-schedule-time') || {}).value || '10:00';
       if (!dateVal) { S.toast('Pick a date', true); return; }
-      body.scheduledAt = new Date(dateVal + 'T' + timeVal + ':00').toISOString();
+      body.scheduledAt = copenhagenToUTC(dateVal, timeVal);
     }
 
     var postId = ($('yb-social-post-id') || {}).value;
@@ -1334,24 +1354,51 @@
     if (editor) editor.hidden = true;
 
     try {
-      var data = await S.api('social-captions', {
+      // Start background transcription — returns jobId immediately
+      var startData = await S.api('social-captions', {
         method: 'POST',
         body: JSON.stringify({ action: 'transcribe', videoUrl: videoUrl })
       });
 
+      if (!startData || !startData.jobId) {
+        throw new Error((startData && startData.error) || 'Failed to start transcription');
+      }
+
+      var jobId = startData.jobId;
+
+      // Poll for results (every 3s, up to 5 minutes)
+      var maxPolls = 100;
+      var pollCount = 0;
+      var data = await new Promise(function (resolve, reject) {
+        var poll = setInterval(async function () {
+          pollCount++;
+          try {
+            var result = await S.api('social-captions?action=poll&jobId=' + jobId);
+            if (result && result.status === 'complete') {
+              clearInterval(poll);
+              resolve(result);
+            } else if (result && result.status === 'failed') {
+              clearInterval(poll);
+              reject(new Error(result.error || 'Transcription failed'));
+            } else if (pollCount >= maxPolls) {
+              clearInterval(poll);
+              reject(new Error('Transcription timed out'));
+            }
+          } catch (e) {
+            if (pollCount >= maxPolls) { clearInterval(poll); reject(e); }
+          }
+        }, 3000);
+      });
+
       if (loader) loader.hidden = true;
 
-      if (data && data.ok) {
-        composer.captions = {
-          utterances: data.utterances || [],
-          language: data.language || 'unknown',
-          vtt: data.vtt || '',
-          srt: data.srt || ''
-        };
-        renderCaptionEditor();
-      } else {
-        throw new Error((data && data.error) || 'Transcription failed');
-      }
+      composer.captions = {
+        utterances: data.utterances || [],
+        language: data.language || 'unknown',
+        vtt: data.vtt || '',
+        srt: data.srt || ''
+      };
+      renderCaptionEditor();
     } catch (err) {
       if (loader) loader.hidden = true;
       S.toast('Caption error: ' + err.message, true);
@@ -2123,6 +2170,9 @@
       S.toast('Error finding slot', true);
     }
   }
+
+  /* ═══ EXPORT COMPOSER STATE FOR SOCIAL-ADMIN BRIDGE ═══ */
+  window._ybSocialComposer = composer;
 
   /* ═══ INIT ═══ */
   function init() {

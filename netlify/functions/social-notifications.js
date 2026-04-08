@@ -64,26 +64,41 @@ exports.handler = async () => {
     }
 
     // 3. Check for high-engagement posts (viral detection)
+    // Read metrics from social_analytics collection (populated by social-metric-sync)
     const recentPublished = await db.collection('social_posts')
       .where('status', '==', 'published')
       .orderBy('publishedAt', 'desc')
       .limit(20)
       .get();
 
-    recentPublished.forEach(doc => {
+    for (const doc of recentPublished.docs) {
       const p = doc.data();
-      const results = p.publishResults || {};
-      Object.keys(results).forEach(platform => {
-        const m = (results[platform] || {}).metrics || {};
-        const engagement = (m.likes || 0) + (m.comments || 0) + (m.shares || 0);
-        // Alert if engagement > 50 in a single post (adjust threshold as needed)
-        if (engagement > 50 && !p._notifiedViral) {
-          alerts.push(`🔥 *Viral alert!* ${platform} post with ${engagement} engagements:\n"${(p.caption || '').substring(0, 60)}..."\n❤️ ${m.likes || 0} 💬 ${m.comments || 0} 🔄 ${m.shares || 0}`);
-          // Mark as notified to avoid repeat alerts
-          db.collection('social_posts').doc(doc.id).update({ _notifiedViral: true }).catch(() => {});
-        }
+      if (p._notifiedViral) continue;
+
+      // Fetch actual metrics from social_analytics
+      const analyticsSnap = await db.collection('social_analytics')
+        .where('postId', '==', doc.id)
+        .get();
+
+      let totalEngagement = 0;
+      let engByPlatform = {};
+      analyticsSnap.forEach(aDoc => {
+        const a = aDoc.data();
+        const m = a.metrics || {};
+        const eng = (m.likes || 0) + (m.comments || 0) + (m.shares || 0);
+        totalEngagement += eng;
+        engByPlatform[a.platform] = m;
       });
-    });
+
+      // Alert if engagement > 50 in a single post (adjust threshold as needed)
+      if (totalEngagement > 50) {
+        const platformSummary = Object.entries(engByPlatform)
+          .map(([plat, m]) => `${plat}: ❤️${m.likes || 0} 💬${m.comments || 0} 🔄${m.shares || 0}`)
+          .join(' · ');
+        alerts.push(`🔥 *Viral alert!* Post with ${totalEngagement} engagements:\n"${(p.caption || '').substring(0, 60)}..."\n${platformSummary}`);
+        db.collection('social_posts').doc(doc.id).update({ _notifiedViral: true }).catch(() => {});
+      }
+    }
 
     // 4. Check for posts scheduled in the next 2 hours (heads up)
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);

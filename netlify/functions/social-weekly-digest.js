@@ -20,6 +20,36 @@ const https = require('https');
 const { getDb } = require('./shared/firestore');
 const { jsonResponse } = require('./shared/utils');
 
+const ANALYTICS_COLLECTION = 'social_analytics';
+
+/**
+ * Fetch aggregated metrics for a post from social_analytics collection.
+ * Returns { likes, comments, shares, reach } summed across all platforms.
+ */
+async function getPostMetrics(db, postId) {
+  const totals = { likes: 0, comments: 0, shares: 0, reach: 0 };
+  const platformTotals = {};
+  const snap = await db.collection(ANALYTICS_COLLECTION)
+    .where('postId', '==', postId)
+    .get();
+  snap.forEach(doc => {
+    const d = doc.data();
+    const m = d.metrics || {};
+    const likes = m.likes || 0;
+    const comments = m.comments || 0;
+    const shares = m.shares || 0;
+    const reach = m.reach || m.post_reach || 0;
+    totals.likes += likes;
+    totals.comments += comments;
+    totals.shares += shares;
+    totals.reach += reach;
+    const plat = d.platform || 'unknown';
+    if (!platformTotals[plat]) platformTotals[plat] = 0;
+    platformTotals[plat] += likes + comments + shares;
+  });
+  return { totals, platformTotals };
+}
+
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_OWNER_CHAT_ID || '';
 
@@ -73,39 +103,35 @@ exports.handler = async () => {
 
     let lastWeekCount = 0;
     let lastWeekEng = 0;
+    const lastWeekDocs = [];
     lastWeekSnap.forEach(doc => {
       lastWeekCount++;
-      const d = doc.data();
-      Object.values(d.publishResults || {}).forEach(r => {
-        const m = (r || {}).metrics || {};
-        lastWeekEng += (m.likes || 0) + (m.comments || 0) + (m.shares || 0);
-      });
+      lastWeekDocs.push(doc.id);
     });
+    for (const pid of lastWeekDocs) {
+      const { totals } = await getPostMetrics(db, pid);
+      lastWeekEng += totals.likes + totals.comments + totals.shares;
+    }
 
-    // ── Calculate this week's metrics ──
+    // ── Calculate this week's metrics from social_analytics collection ──
     let totalLikes = 0, totalComments = 0, totalShares = 0, totalReach = 0;
     const platformEng = {};
     const hashtagEng = {};
     const postScores = [];
 
-    thisWeekPosts.forEach(p => {
-      let postEng = 0;
-      Object.entries(p.publishResults || {}).forEach(([plat, r]) => {
-        const m = (r || {}).metrics || {};
-        const likes = m.likes || 0;
-        const comments = m.comments || 0;
-        const shares = m.shares || 0;
-        const reach = m.reach || m.post_reach || 0;
+    for (const p of thisWeekPosts) {
+      const { totals, platformTotals } = await getPostMetrics(db, p.id);
+      const postEng = totals.likes + totals.comments + totals.shares;
 
-        totalLikes += likes;
-        totalComments += comments;
-        totalShares += shares;
-        totalReach += reach;
-        postEng += likes + comments + shares;
+      totalLikes += totals.likes;
+      totalComments += totals.comments;
+      totalShares += totals.shares;
+      totalReach += totals.reach;
 
+      for (const [plat, eng] of Object.entries(platformTotals)) {
         if (!platformEng[plat]) platformEng[plat] = 0;
-        platformEng[plat] += likes + comments + shares;
-      });
+        platformEng[plat] += eng;
+      }
 
       // Track hashtag performance
       (p.hashtags || []).forEach(tag => {
@@ -116,7 +142,7 @@ exports.handler = async () => {
       });
 
       postScores.push({ post: p, engagement: postEng });
-    });
+    }
 
     const totalEng = totalLikes + totalComments + totalShares;
 

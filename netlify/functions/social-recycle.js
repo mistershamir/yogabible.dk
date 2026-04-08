@@ -131,14 +131,16 @@ exports.handler = async () => {
       // Skip if already has recycle config or is itself recycled
       if (post.recycleConfig || post.recycledFrom) continue;
 
-      // Calculate engagement score
-      const results = post.publishResults || {};
+      // Calculate engagement score from social_analytics (populated by social-metric-sync)
+      const analyticsSnap = await db.collection('social_analytics')
+        .where('postId', '==', doc.id)
+        .get();
+
       let totalEng = 0;
-      for (const [, r] of Object.entries(results)) {
-        if (r.metrics) {
-          totalEng += (r.metrics.likes || 0) + (r.metrics.comments || 0) * 2 + (r.metrics.shares || 0) * 3;
-        }
-      }
+      analyticsSnap.forEach(aDoc => {
+        const m = (aDoc.data().metrics) || {};
+        totalEng += (m.likes || 0) + (m.comments || 0) * 2 + (m.shares || 0) * 3;
+      });
 
       if (totalEng < AUTO_RECYCLE_MIN_ENGAGEMENT) continue;
 
