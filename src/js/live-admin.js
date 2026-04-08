@@ -1163,10 +1163,6 @@
      ══════════════════════════════════════════ */
   function init() {
     bindEvents();
-    // If URL hash is #live, load immediately
-    if (window.location.hash === '#live') {
-      loadItems();
-    }
   }
 
   var checkInterval = setInterval(function () {

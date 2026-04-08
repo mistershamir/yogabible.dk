@@ -219,6 +219,12 @@
   to = "/terms-conditions"
   status = 301
 
+# Admin panel SPA routing — serve /admin/ for all /admin/* paths
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/"
+  status = 200
+
 # Custom 404 (must be last redirect rule)
 [[redirects]]
   from = "/*"

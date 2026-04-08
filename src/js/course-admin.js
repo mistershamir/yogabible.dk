@@ -65,7 +65,91 @@
 
   /* ═══════════════════════════════════════
      TAB SWITCHING (sidebar navigation)
+     with History API routing
      ═══════════════════════════════════════ */
+
+  // Routing map: URL slug ↔ tab name
+  var ROUTE_TO_TAB = {
+    'analytics': 'analytics',
+    'leads': 'leads',
+    'applications': 'applications',
+    'users': 'users',
+    'courses': 'courses',
+    'catalog': 'catalog',
+    'documents': 'documents',
+    'knowledge': 'knowledge',
+    'campaigns': 'email-lists',
+    'ads': 'ads',
+    'careers': 'careers',
+    'social': 'social',
+    'appointments': 'appointments',
+    'live': 'live',
+    'billing': 'billing',
+    'nurture': 'email-lists',
+    'email-lists': 'email-lists'
+  };
+
+  // Reverse: tab name → URL slug (prefer canonical slug)
+  var TAB_TO_ROUTE = {
+    'analytics': 'analytics',
+    'leads': 'leads',
+    'applications': 'applications',
+    'users': 'users',
+    'courses': 'courses',
+    'catalog': 'catalog',
+    'documents': 'documents',
+    'knowledge': 'knowledge',
+    'email-lists': 'campaigns',
+    'ads': 'ads',
+    'careers': 'careers',
+    'social': 'social',
+    'appointments': 'appointments',
+    'live': 'live',
+    'billing': 'billing'
+  };
+
+  function getTabFromUrl() {
+    var path = window.location.pathname.replace(/\/+$/, ''); // strip trailing slash
+    var parts = path.split('/').filter(Boolean); // e.g. ['admin', 'leads']
+    if (parts.length >= 2 && parts[0] === 'admin') {
+      var slug = parts[1];
+      return ROUTE_TO_TAB[slug] || 'analytics';
+    }
+    return 'analytics';
+  }
+
+  function activateTab(tabName, pushState) {
+    // Toggle active on nav items
+    document.querySelectorAll('[data-yb-admin-tab]').forEach(function (b) { b.classList.remove('is-active'); });
+    var btn = document.querySelector('[data-yb-admin-tab="' + tabName + '"]');
+    if (btn) btn.classList.add('is-active');
+
+    // Toggle active on panels
+    document.querySelectorAll('[data-yb-admin-panel]').forEach(function (p) { p.classList.remove('is-active'); });
+    var panel = document.querySelector('[data-yb-admin-panel="' + tabName + '"]');
+    if (panel) panel.classList.add('is-active');
+
+    // Push URL if requested (not on popstate or initial load)
+    if (pushState) {
+      var routeSlug = TAB_TO_ROUTE[tabName] || tabName;
+      var url = routeSlug === 'analytics' ? '/admin/' : '/admin/' + routeSlug + '/';
+      if (window.location.pathname !== url) {
+        history.pushState({ tab: tabName }, '', url);
+      }
+    }
+
+    // Lazy loaders
+    if (tabName === 'users' && !usersLoaded) {
+      loadAllUsers();
+      usersLoaded = true;
+    }
+    if (tabName === 'analytics' && !analyticsLoaded) {
+      loadAnalytics();
+      loadConversionAnalytics();
+      analyticsLoaded = true;
+    }
+  }
+
   function initTabs() {
     var sidebar = document.getElementById('yb-admin-sidebar');
     var toggleBtn = document.getElementById('yb-admin-sidebar-toggle');
@@ -110,36 +194,27 @@
       if (ov) ov.classList.remove('is-visible');
     }
 
-    // Tab click handlers
+    // Tab click handlers — pushState + activate
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var tabName = btn.getAttribute('data-yb-admin-tab');
-        // Toggle active on nav items
-        document.querySelectorAll('[data-yb-admin-tab]').forEach(function (b) { b.classList.remove('is-active'); });
-        btn.classList.add('is-active');
-        // Toggle active on panels
-        document.querySelectorAll('[data-yb-admin-panel]').forEach(function (p) { p.classList.remove('is-active'); });
-        var panel = document.querySelector('[data-yb-admin-panel="' + tabName + '"]');
-        if (panel) panel.classList.add('is-active');
-
-        // Close mobile sidebar after selection
+        activateTab(tabName, true);
         closeSidebar();
-
-        // Load users on first visit
-        if (tabName === 'users' && !usersLoaded) {
-          loadAllUsers();
-          usersLoaded = true;
-        }
-
-        // Load analytics when analytics tab is clicked (once)
-        if (tabName === 'analytics' && !analyticsLoaded) {
-          loadAnalytics();
-          loadConversionAnalytics();
-          analyticsLoaded = true;
-        }
       });
     });
 
+    // Browser back/forward
+    window.addEventListener('popstate', function () {
+      activateTab(getTabFromUrl(), false);
+    });
+
+    // Initial load — activate tab from URL
+    var initialTab = getTabFromUrl();
+    activateTab(initialTab, false);
+    // Replace current history entry so back works correctly
+    var initialSlug = TAB_TO_ROUTE[initialTab] || initialTab;
+    var initialUrl = initialSlug === 'analytics' ? '/admin/' : '/admin/' + initialSlug + '/';
+    history.replaceState({ tab: initialTab }, '', initialUrl);
   }
 
   /* ═══════════════════════════════════════
