@@ -187,6 +187,27 @@ async function processLeadgenChange(value) {
     return;
   }
 
+  // ── Dedup: check if a lead with this email already exists ─────────────
+  // Meta retries webhook delivery on non-200 responses, and users sometimes
+  // submit forms multiple times. Without this check, each retry/resubmit
+  // creates a new lead doc → triggers welcome email + sequence enrollments.
+  const db = getDb();
+  const existingLeadSnap = await db.collection('leads')
+    .where('email', '==', email)
+    .limit(1)
+    .get();
+
+  if (!existingLeadSnap.empty) {
+    const existingId = existingLeadSnap.docs[0].id;
+    const existingData = existingLeadSnap.docs[0].data();
+    const ageMinutes = (Date.now() - (existingData.created_at?.toDate?.() || new Date(existingData.created_at)).getTime()) / 60000;
+    console.log(`[fb-leads] Duplicate email ${email} — existing lead ${existingId} (${Math.round(ageMinutes)} min old). Skipping.`);
+    // If the existing lead was created very recently (< 60 min), it's almost certainly
+    // a Meta retry or double-submit. Skip entirely.
+    // If older, still skip lead creation but log for awareness.
+    return;
+  }
+
   // Resolve program type: FORM_ID_MAP first, then answer mapping, then keyword fallback
   let resolvedType;
   const formMapType = FORM_ID_MAP[form_id];
@@ -210,7 +231,6 @@ async function processLeadgenChange(value) {
   const englishComfort = normalizeEnglishComfort(englishComfortAnswer);
 
   // Check if already an applicant in Firestore
-  const db = getDb();
   const existingSnap = await db.collection('applications')
     .where('email', '==', email)
     .limit(1)
