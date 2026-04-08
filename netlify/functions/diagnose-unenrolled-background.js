@@ -117,7 +117,7 @@ async function doWork(doFix, dryRun) {
 
     var [leadsSnap, enrollSnap, dripSnap, seqSnap] = await Promise.all([
       db.collection('leads').where('type', '==', 'ytt').get(),
-      db.collection(ENROLLMENTS_COL).where('status', 'in', ['active', 'paused']).get(),
+      db.collection(ENROLLMENTS_COL).get(),
       db.collection('lead_drip_sequences').get(),
       db.collection('sequences').where('active', '==', true).get()
     ]);
@@ -318,7 +318,8 @@ async function doWork(doFix, dryRun) {
               var firstStepDelay = (sequence.steps[0] && sequence.steps[0].delay_minutes) || 0;
               var nextSendAt = new Date(now.getTime() + firstStepDelay * 60 * 1000);
 
-              await db.collection(ENROLLMENTS_COL).add({
+              var enrollDocId = sequence.id + '_' + lead.lead_id;
+              await db.collection(ENROLLMENTS_COL).doc(enrollDocId).set({
                 sequence_id: sequence.id,
                 sequence_name: sequence.name,
                 lead_id: lead.lead_id,

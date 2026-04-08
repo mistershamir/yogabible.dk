@@ -179,11 +179,59 @@ async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, c
   const html = wrapHtml(bodyHtml, to, campaignId, lang);
   const text = wrapText(bodyPlain || '', to, lang);
 
-  const message = buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc, lang });
-  const result = await resendPost('/emails', message);
+  // Log BEFORE send with 'pending' status — prevents dedup gaps if function crashes after send
+  var pendingLogId = null;
+  var messageId = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
+  try {
+    const db = getDb();
+    var pendingRef = await db.collection('email_log').add({
+      to,
+      subject,
+      lead_id: leadId || null,
+      message_id: messageId,
+      sent_at: new Date(),
+      provider: 'resend',
+      status: 'pending',
+      campaign_id: campaignId || null
+    });
+    pendingLogId = pendingRef.id;
+  } catch (logErr) {
+    console.warn('[resend] Pre-send log failed (proceeding):', logErr.message);
+  }
 
-  await logResendEmail({ to, subject, leadId, messageId: result.id, campaignId });
-  return { success: true, messageId: result.id };
+  try {
+    const message = buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc, lang });
+    const result = await resendPost('/emails', message);
+
+    // Update log to 'sent' with real Resend message ID
+    if (pendingLogId) {
+      try {
+        const db = getDb();
+        await db.collection('email_log').doc(pendingLogId).update({
+          status: 'sent',
+          message_id: result.id || messageId
+        });
+      } catch (updateErr) {
+        console.warn('[resend] Log update failed:', updateErr.message);
+      }
+    }
+
+    return { success: true, messageId: result.id };
+  } catch (sendErr) {
+    // Update log to 'failed'
+    if (pendingLogId) {
+      try {
+        const db = getDb();
+        await db.collection('email_log').doc(pendingLogId).update({
+          status: 'failed',
+          error: sendErr.message
+        });
+      } catch (updateErr) {
+        console.warn('[resend] Log update failed:', updateErr.message);
+      }
+    }
+    throw sendErr;
+  }
 }
 
 // ─── Bulk send via Resend batch API ──────────────────────────────────────────

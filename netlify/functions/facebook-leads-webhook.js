@@ -187,24 +187,18 @@ async function processLeadgenChange(value) {
     return;
   }
 
-  // ── Dedup: check if a lead with this email already exists ─────────────
+  // ── Atomic dedup: use deterministic doc ID from email to prevent race conditions ──
   // Meta retries webhook delivery on non-200 responses, and users sometimes
-  // submit forms multiple times. Without this check, each retry/resubmit
-  // creates a new lead doc → triggers welcome email + sequence enrollments.
+  // submit forms multiple times. Deterministic doc ID + transaction prevents
+  // both query-race duplicates and retry duplicates.
   const db = getDb();
-  const existingLeadSnap = await db.collection('leads')
-    .where('email', '==', email)
-    .limit(1)
-    .get();
+  const leadDocId = email.toLowerCase().trim().replace(/[\/\.#\[\]]/g, '_');
+  const leadDocRef = db.collection('leads').doc(leadDocId);
 
-  if (!existingLeadSnap.empty) {
-    const existingId = existingLeadSnap.docs[0].id;
-    const existingData = existingLeadSnap.docs[0].data();
-    const ageMinutes = (Date.now() - (existingData.created_at?.toDate?.() || new Date(existingData.created_at)).getTime()) / 60000;
-    console.log(`[fb-leads] Duplicate email ${email} — existing lead ${existingId} (${Math.round(ageMinutes)} min old). Skipping.`);
-    // If the existing lead was created very recently (< 60 min), it's almost certainly
-    // a Meta retry or double-submit. Skip entirely.
-    // If older, still skip lead creation but log for awareness.
+  // Quick pre-check (non-atomic but avoids transaction overhead for most cases)
+  const existingCheck = await leadDocRef.get();
+  if (existingCheck.exists) {
+    console.log(`[fb-leads] Duplicate email ${email} — lead doc ${leadDocId} exists. Skipping.`);
     return;
   }
 
@@ -292,15 +286,33 @@ async function processLeadgenChange(value) {
   // Detect and normalize country for nurture sequence country blocks
   lead.country = detectLeadCountry(lead);
 
-  // Save to Firestore leads collection
-  const docRef = await db.collection('leads').add(lead);
+  // Save to Firestore leads collection — atomic create via transaction
+  var isNewLead = false;
+  try {
+    await db.runTransaction(async (txn) => {
+      const existing = await txn.get(leadDocRef);
+      if (existing.exists) throw new Error('LEAD_EXISTS');
+      txn.set(leadDocRef, lead);
+    });
+    isNewLead = true;
+  } catch (txnErr) {
+    if (txnErr.message === 'LEAD_EXISTS') {
+      console.log(`[fb-leads] Duplicate email ${email} — lead doc ${leadDocId} exists (caught by transaction). Skipping.`);
+      return;
+    }
+    throw txnErr;
+  }
+  const docRef = { id: leadDocId };
   console.log(`[fb-leads] Lead saved: ${docRef.id} (${email})`);
 
-  // Tokenized link for the lead's schedule/booking page
+  // Tokenized link for the lead's schedule/booking page — also save to doc
   const scheduleToken = crypto
     .createHmac('sha256', TOKEN_SECRET)
     .update(docRef.id + ':' + email)
     .digest('hex');
+  await leadDocRef.update({ schedule_token: scheduleToken }).catch(function (e) {
+    console.warn('[fb-leads] Failed to save schedule_token:', e.message);
+  });
 
   // Map ytt_program_type → correct email template action
   const emailAction = yttTypeToAction(lead.ytt_program_type);

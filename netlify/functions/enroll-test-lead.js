@@ -78,7 +78,6 @@ exports.handler = async (event) => {
       var existing = await db.collection('sequence_enrollments')
         .where('sequence_id', '==', seqId)
         .where('lead_id', '==', leadId)
-        .where('status', 'in', ['active', 'paused'])
         .get();
 
       if (!existing.empty) {
@@ -121,11 +120,12 @@ exports.handler = async (event) => {
         created_at: serverTimestamp()
       };
 
-      var ref = await db.collection('sequence_enrollments').add(enrollData);
+      var enrollDocId = seqId + '_' + leadId;
+      await db.collection('sequence_enrollments').doc(enrollDocId).set(enrollData);
       results.enrollments.push({
         sequence: seq.name,
         id: seqId,
-        enrollment_id: ref.id,
+        enrollment_id: enrollDocId,
         next_send_at: nextDate.toISOString(),
         status: 'enrolled'
       });

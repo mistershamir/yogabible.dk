@@ -216,9 +216,7 @@ exports.handler = async (event) => {
     var alreadyEnrolledLeadIds = new Set();
     existingEnrollSnap.forEach(function (doc) {
       var data = doc.data();
-      if (data.status === 'active' || data.status === 'paused') {
-        alreadyEnrolledLeadIds.add(data.lead_id);
-      }
+      alreadyEnrolledLeadIds.add(data.lead_id);
     });
 
     // ── Task 4: Enroll each eligible lead ─────────────────────────────────
@@ -281,7 +279,8 @@ exports.handler = async (event) => {
 
       // Enroll
       try {
-        await db.collection('sequence_enrollments').add({
+        var enrollDocId = sequenceId + '_' + leadId;
+        await db.collection('sequence_enrollments').doc(enrollDocId).set({
           sequence_id: sequenceId,
           sequence_name: BROADCAST_SEQUENCE.name,
           lead_id: leadId,

@@ -157,41 +157,54 @@ async function sendWelcomeSMS(leadData, leadDocId) {
   // multiple times for the same lead (Meta retries, form resubmits).
   try {
     const db = getDb();
-    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000);
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const recentSmsSnap = await db.collection('sms_log')
       .where('to', '==', phone)
       .where('source', '==', 'welcome')
-      .where('sent_at', '>=', tenMinAgo)
-      .where('status', '==', 'sent')
+      .where('sent_at', '>=', twentyFourHoursAgo)
+      .where('status', 'in', ['sent', 'pending'])
       .limit(1)
       .get();
 
     if (!recentSmsSnap.empty) {
-      console.log(`[sms] Welcome SMS already sent to ${phone} within 10 min — skipping duplicate`);
+      console.log(`[sms] Welcome SMS already sent to ${phone} within 24h — skipping duplicate`);
       return { success: true, reason: 'already_sent' };
     }
   } catch (dedupErr) {
     console.warn('[sms] Welcome SMS dedup check failed (proceeding):', dedupErr.message);
   }
 
-  // Send
+  // Log BEFORE send with 'pending' status — prevents dedup gaps if function crashes after send
   await updateLeadSMSStatus(leadDocId, 'sending');
-  const result = await sendSMS(phone, message);
-
-  // Log to sms_log for dedup and audit trail
+  var pendingSmsLogId = null;
   try {
-    const db = getDb();
-    await db.collection('sms_log').add({
+    const db2 = getDb();
+    var pendingRef = await db2.collection('sms_log').add({
       lead_id: leadDocId,
       to: phone,
       message: message.substring(0, 100),
       sent_at: new Date(),
-      status: result.success ? 'sent' : 'failed',
+      status: 'pending',
       source: 'welcome',
       created_at: new Date()
     });
+    pendingSmsLogId = pendingRef.id;
   } catch (logErr) {
-    console.warn('[sms] Failed to log welcome SMS:', logErr.message);
+    console.warn('[sms] Pre-send log failed (proceeding):', logErr.message);
+  }
+
+  const result = await sendSMS(phone, message);
+
+  // Update log to sent/failed
+  if (pendingSmsLogId) {
+    try {
+      const db2 = getDb();
+      await db2.collection('sms_log').doc(pendingSmsLogId).update({
+        status: result.success ? 'sent' : 'failed'
+      });
+    } catch (logErr) {
+      console.warn('[sms] Failed to update SMS log:', logErr.message);
+    }
   }
 
   if (result.success) {

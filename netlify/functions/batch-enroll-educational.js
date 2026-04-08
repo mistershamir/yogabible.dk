@@ -53,10 +53,9 @@ exports.handler = async (event) => {
     return jsonResponse(200, { ok: true, message: 'No completed broadcast enrollments found', enrolled: 0 });
   }
 
-  // 3. Find all existing educational enrollments (active/paused) to skip
+  // 3. Find all existing educational enrollments (any status) to skip
   var existingEduSnap = await db.collection('sequence_enrollments')
     .where('sequence_id', '==', eduSeqId)
-    .where('status', 'in', ['active', 'paused'])
     .get();
 
   var alreadyEnrolled = new Set();
@@ -113,7 +112,8 @@ exports.handler = async (event) => {
     }
 
     if (!dryRun) {
-      await db.collection('sequence_enrollments').add({
+      var enrollDocId = eduSeqId + '_' + leadId;
+      await db.collection('sequence_enrollments').doc(enrollDocId).set({
         sequence_id: eduSeqId,
         sequence_name: eduSeq.name || 'YTT Educational Nurture — 2026',
         lead_id: leadId,

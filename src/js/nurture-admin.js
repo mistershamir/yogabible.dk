@@ -165,6 +165,8 @@
   }
 
   function processNow() {
+    if (processNow._running) return;
+    processNow._running = true;
     toast('Processing sequences...');
     api('POST', 'sequences?action=process').then(function (data) {
       if (data.ok) {
@@ -174,7 +176,8 @@
       } else {
         toast('Error: ' + (data.error || 'Unknown'), true);
       }
-    }).catch(function (err) { toast('Error: ' + err.message, true); });
+    }).catch(function (err) { toast('Error: ' + err.message, true); })
+      .finally(function () { processNow._running = false; });
   }
 
   // ── Quick Enrollment ────────────────────────────────────────────────────

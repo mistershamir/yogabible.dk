@@ -173,8 +173,9 @@ async function triggerNewLeadSequences(leadId, leadData) {
       const now = new Date();
       const nextSendAt = new Date(now.getTime() + firstStepDelay * 60 * 1000);
 
-      // Create enrollment
-      await db.collection('sequence_enrollments').add({
+      // Create enrollment — deterministic ID prevents duplicates from concurrent calls
+      var enrollDocId = sequence.id + '_' + leadId;
+      await db.collection('sequence_enrollments').doc(enrollDocId).set({
         sequence_id: sequence.id,
         sequence_name: sequence.name || '',
         lead_id: leadId,
@@ -296,8 +297,9 @@ async function triggerStatusChangeSequences(leadId, leadData, oldStatus, newStat
       const now = new Date();
       const nextSendAt = new Date(now.getTime() + firstStepDelay * 60 * 1000);
 
-      // Create enrollment
-      await db.collection('sequence_enrollments').add({
+      // Create enrollment — deterministic ID prevents duplicates from concurrent calls
+      var enrollDocId2 = sequence.id + '_' + leadId;
+      await db.collection('sequence_enrollments').doc(enrollDocId2).set({
         sequence_id: sequence.id,
         sequence_name: sequence.name || '',
         lead_id: leadId,
@@ -468,7 +470,8 @@ async function enrollInJulyInternationalSequence(db, leadId, leadData) {
   var now = new Date();
   var nextSendAt = new Date(now.getTime() + firstStepDelay * 60 * 1000);
 
-  await db.collection('sequence_enrollments').add({
+  var julyEnrollDocId = JULY_INTL_SEQUENCE_ID + '_' + leadId;
+  await db.collection('sequence_enrollments').doc(julyEnrollDocId).set({
     sequence_id: JULY_INTL_SEQUENCE_ID,
     sequence_name: sequence.name || 'July Vinyasa Plus — International Conversion 2026',
     lead_id: leadId,

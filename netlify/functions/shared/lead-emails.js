@@ -210,17 +210,17 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
   // is called multiple times for the same lead (Meta retries, form resubmits).
   try {
     const db = getDb();
-    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000);
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const recentWelcomeSnap = await db.collection('email_log')
       .where('to', '==', leadData.email.toLowerCase().trim())
       .where('template_id', '==', 'auto_welcome')
-      .where('sent_at', '>=', tenMinAgo)
-      .where('status', '==', 'sent')
+      .where('sent_at', '>=', twentyFourHoursAgo)
+      .where('status', 'in', ['sent', 'pending'])
       .limit(1)
       .get();
 
     if (!recentWelcomeSnap.empty) {
-      console.log(`[lead-emails] Welcome email already sent to ${leadData.email} within 10 min — skipping duplicate`);
+      console.log(`[lead-emails] Welcome email already sent to ${leadData.email} within 24h — skipping duplicate`);
       return { success: true, reason: 'already_sent' };
     }
   } catch (dedupErr) {
@@ -233,7 +233,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
     if (action === 'lead_waitlist_300h') {
       const result = await sendWaitlist300hEmail(leadData, tokenData);
       if (result && result.success) {
-        await logWelcomeEmail(leadData.email, result.subject || 'Waitlist 300h email');
+        await logWelcomeEmail(leadData.email, result.subject || 'Waitlist 300h email', (tokenData || {}).leadId);
       }
       return result;
     }
@@ -283,7 +283,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         result = await sendEmailGenericBilingual(leadData, 'de', tokenData);
       }
       if (result && result.success) {
-        await logWelcomeEmail(leadData.email, result.subject || 'Welcome email (DE)');
+        await logWelcomeEmail(leadData.email, result.subject || 'Welcome email (DE)', (tokenData || {}).leadId);
       }
       return result;
     }
@@ -325,7 +325,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         result = await sendEmailGenericBilingual(leadData, 'en', tokenData);
       }
       if (result && result.success) {
-        await logWelcomeEmail(leadData.email, result.subject || 'Welcome email (EN)');
+        await logWelcomeEmail(leadData.email, result.subject || 'Welcome email (EN)', (tokenData || {}).leadId);
       }
       return result;
     }
@@ -335,7 +335,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
     if (leadData.multi_format === 'Yes' && leadData.all_formats) {
       const result = await sendEmailMultiYTT(leadData, tokenData);
       if (result && result.success) {
-        await logWelcomeEmail(leadData.email, result.subject || 'Multi-format welcome email');
+        await logWelcomeEmail(leadData.email, result.subject || 'Multi-format welcome email', (tokenData || {}).leadId);
       }
       return result;
     }
@@ -394,7 +394,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
 
     // Log to email_log + record sent timestamp on lead for timing signals
     if (result && result.success) {
-      await logWelcomeEmail(leadData.email, result.subject || 'Welcome email');
+      await logWelcomeEmail(leadData.email, result.subject || 'Welcome email', (tokenData || {}).leadId);
       if (tokenData && tokenData.leadId) {
         const db = getDb();
         db.collection('leads').doc(tokenData.leadId).update({
@@ -411,13 +411,14 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
   }
 }
 
-async function logWelcomeEmail(to, subject) {
+async function logWelcomeEmail(to, subject, leadId) {
   try {
     const db = getDb();
     await db.collection('email_log').add({
       to,
       subject,
       template_id: 'auto_welcome',
+      lead_id: leadId || null,
       sent_at: new Date(),
       status: 'sent'
     });
@@ -2468,7 +2469,7 @@ async function sendApplicationConfirmation(email, applicationId, firstName) {
     text: bodyPlain
   });
 
-  await logWelcomeEmail(email, subject);
+  await logWelcomeEmail(email, subject, (tokenData || {}).leadId);
   return { ...result, subject };
 }
 
@@ -2495,7 +2496,7 @@ async function sendCareersConfirmation(email, firstName, category, role) {
     text: bodyPlain
   });
 
-  await logWelcomeEmail(email, subject);
+  await logWelcomeEmail(email, subject, (tokenData || {}).leadId);
   return { ...result, subject };
 }
 

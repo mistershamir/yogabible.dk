@@ -43,49 +43,18 @@ SCHEDULE_LINKS = {
 
 
 def initialize_drip_for_lead(lead_id, lead_data):
-    """DEPRECATED: New leads are now auto-enrolled via Netlify sequence engine.
-    This function only runs if the lead was NOT enrolled by triggerNewLeadSequences().
-    Starts at step 2 since step 1 (welcome email) is already sent by the Netlify function."""
-
-    # Migration guard: check if lead is already enrolled in a Netlify sequence
-    # Wrapped in try/except — if Firestore is down or collection doesn't exist,
-    # default to NOT enrolled (let the existing drip continue as normal)
-    try:
-        db = get_db()
-        existing = db.collection('sequence_enrollments') \
-            .where('lead_id', '==', lead_id) \
-            .where('status', 'in', ['active', 'paused']) \
-            .limit(1) \
-            .get()
-
-        if len(existing.docs) > 0:
-            seq_name = existing.docs[0].to_dict().get('sequence_name', 'unknown')
-            logger.info(f'Lead {lead_id} already in Netlify sequence "{seq_name}" — skipping agent drip')
-            return
-    except Exception as e:
-        logger.warning(f'Migration guard check failed for {lead_id}: {e} — falling back to agent drip')
-
-    # Fallback: create agent drip (will be removed once all new leads go through Netlify sequences)
-    program_type = lead_data.get('ytt_program_type', '8-week')
-    next_send = datetime.now(timezone.utc) + timedelta(days=DRIP_SCHEDULE[2])
-
-    set_drip_status(lead_id, {
-        'current_step': 2,
-        'next_send_at': next_send,
-        'paused': False,
-        'completed': False,
-        'program_type': program_type,
-        'lead_email': lead_data.get('email', ''),
-        'started_at': datetime.now(timezone.utc),
-    })
-    logger.info(f'Drip initialized for {lead_id} (step 2, due {next_send.isoformat()}) — agent fallback')
+    """DISABLED: All email sequences are now handled by the Netlify sequence engine.
+    Agent drip was causing duplicate emails when both systems were active for the same lead.
+    The agent continues to handle Telegram notifications and call reminders."""
+    logger.info(f'Drip disabled — all email sequences handled by Netlify sequence engine (lead {lead_id})')
+    return
 
 
 def process_due_drips():
-    """Check for and send due drip emails. Called periodically by APScheduler."""
-    due = get_leads_due_for_drip()
-    logger.info(f'Checking drip queue: {len(due)} leads due')
-    db = get_db()
+    """DISABLED: All drip processing is now handled by the Netlify sequence engine.
+    Agent drip was causing duplicate emails when both systems were active for the same lead."""
+    logger.info('Drip processing disabled — handled by Netlify sequence engine')
+    return
 
     for drip in due:
         lead_id = drip['lead_id']

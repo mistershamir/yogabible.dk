@@ -83,9 +83,8 @@ exports.handler = async (event) => {
       candidates.push({ id: doc.id, ...lead });
     });
 
-    // 3. Bulk-load existing enrollments (single read)
+    // 3. Bulk-load existing enrollments (single read — all statuses to prevent re-enrollment)
     var enrollSnap = await db.collection('sequence_enrollments')
-      .where('status', 'in', ['active', 'paused'])
       .get();
 
     var enrolledLeadIds = new Set();
@@ -177,7 +176,8 @@ exports.handler = async (event) => {
           var firstStepDelay = (sequence.steps[0] && sequence.steps[0].delay_minutes) || 0;
           var nextSendAt = new Date(now.getTime() + firstStepDelay * 60 * 1000);
 
-          await db.collection('sequence_enrollments').add({
+          var enrollDocId = sequence.id + '_' + lead.id;
+          await db.collection('sequence_enrollments').doc(enrollDocId).set({
             sequence_id: sequence.id,
             sequence_name: sequence.name,
             lead_id: lead.id,

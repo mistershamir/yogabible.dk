@@ -68,39 +68,48 @@ exports.handler = async (event) => {
     // Write to Firestore
     const db = getDb();
 
-    // ── Dedup: check if a lead with this email already exists ─────────────
-    // Users sometimes resubmit forms (double-click, page refresh, browser
-    // back-button). Without this check, each submission creates a new lead
-    // doc → triggers welcome email + sequence enrollments → duplicate sends.
-    if (leadData.email) {
-      const existingLeadSnap = await db.collection('leads')
-        .where('email', '==', leadData.email)
-        .limit(1)
-        .get();
-
-      if (!existingLeadSnap.empty) {
-        const existingId = existingLeadSnap.docs[0].id;
-        console.log(`[lead] Duplicate email ${leadData.email} — existing lead ${existingId}. Returning success without creating new doc.`);
-        const response = jsonResponse(200, { ok: true, message: 'Request received successfully' });
-        return wrapCallback(callback, response);
-      }
+    // ── Atomic dedup: use deterministic doc ID from email to prevent race conditions ──
+    // Two concurrent submissions of the same email both pass a query-based check,
+    // but with a deterministic doc ID, both write to the same document.
+    // Uses a Firestore transaction to check-then-create atomically.
+    if (!leadData.email) {
+      return wrapCallback(callback, jsonResponse(400, { ok: false, error: 'Email is required' }));
     }
 
     // Calculate form score from lead answers (0-7)
     const formScore = calculateFormScore(leadData);
     if (formScore > 0) leadData.form_score = formScore;
 
-    const docRef = await db.collection('leads').add({
-      ...leadData,
-      created_at: new Date(),
-      updated_at: new Date()
-    });
+    const leadDocId = leadData.email.toLowerCase().trim().replace(/[\/\.#\[\]]/g, '_');
+    const leadDocRef = db.collection('leads').doc(leadDocId);
+
+    var isNewLead = false;
+    try {
+      await db.runTransaction(async (txn) => {
+        const existing = await txn.get(leadDocRef);
+        if (existing.exists) {
+          throw new Error('LEAD_EXISTS');
+        }
+        txn.set(leadDocRef, {
+          ...leadData,
+          created_at: new Date(),
+          updated_at: new Date()
+        });
+      });
+      isNewLead = true;
+    } catch (txnErr) {
+      if (txnErr.message === 'LEAD_EXISTS') {
+        console.log(`[lead] Duplicate email ${leadData.email} — lead doc ${leadDocId} exists. Returning success.`);
+        return wrapCallback(callback, jsonResponse(200, { ok: true, message: 'Request received successfully' }));
+      }
+      throw txnErr;
+    }
+
+    const docRef = { id: leadDocId };
 
     // Store schedule tracking token on lead doc for sequence email injection
-    const scheduleTokenForDoc = generateScheduleToken(docRef.id, leadData.email);
-    await db.collection('leads').doc(docRef.id).update({
-      schedule_token: scheduleTokenForDoc
-    });
+    const scheduleTokenForDoc = generateScheduleToken(leadDocId, leadData.email);
+    await leadDocRef.update({ schedule_token: scheduleTokenForDoc });
 
     // Identity stitching: merge anonymous browsing history into lead profile
     const visitorId = payload.visitor_id || payload.visitorId || '';

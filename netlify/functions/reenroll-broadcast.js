@@ -47,7 +47,7 @@ exports.handler = async (event) => {
   // Find leads already active in broadcast
   var activeBroadcastLeads = new Set();
   allEnrollments.forEach(function (e) {
-    if (e.sequence_id === BROADCAST_ID && (e.status === 'active' || e.status === 'paused')) {
+    if (e.sequence_id === BROADCAST_ID) {
       activeBroadcastLeads.add(e.lead_id);
     }
   });
@@ -113,7 +113,8 @@ exports.handler = async (event) => {
   for (var i = 0; i < candidates.length; i++) {
     var lead = candidates[i];
     try {
-      await db.collection('sequence_enrollments').add({
+      var enrollDocId = BROADCAST_ID + '_' + lead.lead_id;
+      await db.collection('sequence_enrollments').doc(enrollDocId).set({
         sequence_id: BROADCAST_ID,
         sequence_name: broadcast.name || '',
         lead_id: lead.lead_id,

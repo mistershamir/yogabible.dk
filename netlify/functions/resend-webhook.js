@@ -160,7 +160,21 @@ exports.handler = async function (event) {
 
   var now = new Date();
   var bounceType = eventType === 'email.complained' ? 'complaint' : 'hard';
+  var resendEmailId = eventData.email_id || eventData.id || null;
   var processed = 0;
+
+  // Idempotency: if this Resend event was already processed, skip entirely
+  if (resendEmailId) {
+    var existingBounce = await db.collection('email_bounces')
+      .where('resend_email_id', '==', resendEmailId)
+      .where('event_type', '==', eventType)
+      .limit(1)
+      .get();
+    if (!existingBounce.empty) {
+      console.log('[resend-webhook] Duplicate event for resend_email_id=' + resendEmailId + ', skipping');
+      return jsonResponse(200, { ok: true, duplicate: true });
+    }
+  }
 
   for (var i = 0; i < recipients.length; i++) {
     var email = (recipients[i] || '').toLowerCase().trim();
@@ -172,7 +186,7 @@ exports.handler = async function (event) {
         email: email,
         type: bounceType,
         event_type: eventType,
-        resend_email_id: eventData.email_id || eventData.id || null,
+        resend_email_id: resendEmailId,
         subject: eventData.subject || null,
         raw_data: eventData,
         created_at: now

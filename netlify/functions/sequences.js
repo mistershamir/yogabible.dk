@@ -24,6 +24,7 @@ const { sendSingleViaResend } = require('./shared/resend-service');
 const { detectLeadCountry } = require('./shared/country-detect');
 const { prepareTrackedEmail } = require('./shared/email-tracking');
 const { createSequenceSyncPost } = require('./shared/social-sync');
+const { checkDailySendLimit } = require('./shared/send-limiter');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
@@ -287,11 +288,12 @@ async function handleEnroll(db, event) {
 
       var lead = leadDoc.data();
 
-      // Check if already enrolled in this sequence
+      // Check if already enrolled in this sequence (any status — prevents re-enrollment)
+      var enrollDocId = payload.sequence_id + '_' + leadId;
       var existingSnap = await db.collection(ENROLLMENTS_COL)
         .where('sequence_id', '==', payload.sequence_id)
         .where('lead_id', '==', leadId)
-        .where('status', 'in', ['active', 'paused'])
+        .limit(1)
         .get();
 
       if (!existingSnap.empty) {
@@ -316,8 +318,8 @@ async function handleEnroll(db, event) {
         created_at: serverTimestamp()
       };
 
-      var ref = await db.collection(ENROLLMENTS_COL).add(enrollData);
-      enrolled.push({ lead_id: leadId, enrollment_id: ref.id });
+      await db.collection(ENROLLMENTS_COL).doc(enrollDocId).set(enrollData);
+      enrolled.push({ lead_id: leadId, enrollment_id: enrollDocId });
     } catch (err) {
       console.error('[sequences] Enroll error for lead ' + leadId + ':', err.message);
       errors.push({ lead_id: leadId, error: err.message });
@@ -440,6 +442,7 @@ async function handleProcess() {
   var processed = 0;
   var errors = [];
   var sentSummary = []; // Track sent items for digest email
+  var invocationId = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
 
   try {
     // Resolve July International sequence ID (for completion → educational chaining)
@@ -467,6 +470,41 @@ async function handleProcess() {
       var enrollId = enrollDoc.id;
 
       try {
+        // ── Atomic claim: prevent concurrent processors from picking up the same enrollment ──
+        // Uses a Firestore transaction to verify the enrollment is still due and claim it
+        // by bumping next_send_at to a future time. If another processor already claimed it,
+        // the transaction will see the updated next_send_at and skip.
+        var LOCK_DURATION_MS = 30 * 60 * 1000; // 30 minutes
+        var claimed = false;
+        try {
+          await db.runTransaction(async function (txn) {
+            var freshRef = db.collection(ENROLLMENTS_COL).doc(enrollId);
+            var freshDoc = await txn.get(freshRef);
+            if (!freshDoc.exists) throw new Error('not_found');
+            var fresh = freshDoc.data();
+
+            // Verify still active and still due
+            if (fresh.status !== 'active') throw new Error('not_active');
+            var freshNext = fresh.next_send_at;
+            if (freshNext && freshNext.toDate) freshNext = freshNext.toDate();
+            else if (typeof freshNext === 'string') freshNext = new Date(freshNext);
+            if (!freshNext || freshNext > nowDate) throw new Error('not_due');
+
+            // Claim: bump next_send_at so other processors skip this enrollment
+            txn.update(freshRef, {
+              next_send_at: new Date(Date.now() + LOCK_DURATION_MS),
+              processing_lock: { invocation_id: invocationId, locked_at: new Date() }
+            });
+          });
+          claimed = true;
+        } catch (claimErr) {
+          // Another processor already claimed this, or it's no longer due
+          if (!['not_found', 'not_active', 'not_due'].includes(claimErr.message)) {
+            console.log('[sequences] Claim failed for ' + enrollId + ': ' + claimErr.message);
+          }
+          continue;
+        }
+        if (!claimed) continue;
         // Load sequence (cached)
         var seqId = enrollment.sequence_id;
         if (!sequenceCache[seqId]) {
@@ -708,6 +746,21 @@ async function handleProcess() {
           continue;
         }
 
+        // Per-recipient daily send limit — prevent runaway sends
+        if (wantsEmail && lead.email) {
+          var underLimit = await checkDailySendLimit(lead.email, 'email', 8);
+          if (!underLimit) {
+            console.log('[sequences] Daily email limit reached for ' + lead.email + ' — skipping');
+            // Reset next_send_at to retry tomorrow
+            await db.collection(ENROLLMENTS_COL).doc(enrollId).update({
+              next_send_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+              processing_lock: null,
+              updated_at: now
+            });
+            continue;
+          }
+        }
+
         // Send email
         if (wantsEmail) {
           if (lead.email && hasEmailContent) {
@@ -719,7 +772,7 @@ async function handleProcess() {
             var alreadySentSnap = await db.collection('email_log')
               .where('lead_id', '==', enrollment.lead_id)
               .where('template_id', '==', stepTemplateId)
-              .where('status', '==', 'sent')
+              .where('status', 'in', ['sent', 'pending'])
               .limit(1)
               .get();
 
@@ -865,7 +918,7 @@ async function handleProcess() {
             emailSent: emailSent,
             smsSent: smsSent,
             lang: leadLang,
-            country: hardCountry || null,
+            country: (isDanish ? 'DK' : (detectLeadCountry(lead) || null)),
             origin: isDanish ? 'DK' : 'INT'
           });
 
@@ -879,12 +932,13 @@ async function handleProcess() {
           }
         }
 
-        // Advance enrollment
+        // Advance enrollment and clear processing lock
         var nextStep = (enrollment.current_step || 1) + 1;
         var updateData = {
           current_step: nextStep,
           updated_at: now,
-          step_history: [...(enrollment.step_history || []), stepHistory]
+          step_history: [...(enrollment.step_history || []), stepHistory],
+          processing_lock: null
         };
 
         if (nextStep > sequence.steps.length) {
@@ -1008,11 +1062,11 @@ async function enrollInEducationalSequence(db, leadId, lead, now) {
     }
   }
 
-  // Check not already enrolled
+  // Check not already enrolled (any status — prevents re-enrollment after completion)
   var existingSnap = await db.collection(ENROLLMENTS_COL)
     .where('sequence_id', '==', EDUCATIONAL_SEQUENCE_ID)
     .where('lead_id', '==', leadId)
-    .where('status', 'in', ['active', 'paused'])
+    .limit(1)
     .get();
 
   if (!existingSnap.empty) {
@@ -1024,7 +1078,8 @@ async function enrollInEducationalSequence(db, leadId, lead, now) {
   var firstStep = sequence.steps && sequence.steps[0];
   var nextSendAt = calculateNextSendAt(now, firstStep);
 
-  await db.collection(ENROLLMENTS_COL).add({
+  var eduEnrollDocId = EDUCATIONAL_SEQUENCE_ID + '_' + leadId;
+  await db.collection(ENROLLMENTS_COL).doc(eduEnrollDocId).set({
     sequence_id: EDUCATIONAL_SEQUENCE_ID,
     sequence_name: sequence.name || 'YTT Educational Nurture — 2026',
     lead_id: leadId,

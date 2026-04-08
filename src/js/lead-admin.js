@@ -2263,7 +2263,10 @@
     var message = input.value.trim();
     if (!message) { toast(t('leads_sms_empty'), true); return; }
 
+    // Disable both input and send button to prevent double-sends
+    var sendBtn = document.querySelector('[data-action="sms-reply-send"]');
     input.disabled = true;
+    if (sendBtn) sendBtn.disabled = true;
 
     getAuthToken().then(function (token) {
       return fetch('/.netlify/functions/send-sms', {
@@ -2286,6 +2289,7 @@
         toast(t('leads_sms_failed') + ': ' + err.message, true);
       }).finally(function () {
         if (input) input.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
       });
   }
 

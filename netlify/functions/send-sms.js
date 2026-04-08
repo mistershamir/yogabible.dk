@@ -79,9 +79,25 @@ async function handleBulkSMS(payload, source) {
   const results = { sent: 0, failed: 0, skipped: 0, errors: [] };
   const ids = source === 'application' ? payload.applicationIds : payload.leadIds;
   const sendFn = source === 'application' ? sendSMSToApplication : sendSMSToLead;
+  const collection = source === 'application' ? 'applications' : 'leads';
+  const db = getDb();
+  const seenPhones = new Set();
 
   for (const id of ids) {
     try {
+      // Dedup: skip if we already sent to this phone number in this batch
+      const doc = await db.collection(collection).doc(id).get();
+      if (doc.exists) {
+        const phone = normalizePhone(doc.data().phone);
+        if (phone) {
+          if (seenPhones.has(phone)) {
+            results.skipped++;
+            continue;
+          }
+          seenPhones.add(phone);
+        }
+      }
+
       const result = await sendFn(id, payload.message);
 
       if (result.success) {
