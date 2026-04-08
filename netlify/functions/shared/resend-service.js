@@ -81,7 +81,7 @@ function resendPost(path, body) {
 
 // ─── Build a single Resend message payload ───────────────────────────────────
 
-function buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc }) {
+function buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc, lang }) {
   var senderEmail = fromEmail || process.env.GMAIL_USER || CONFIG.EMAIL_FROM;
   var senderName = fromEmail && fromEmail.includes('hotyogacph') ? 'Hot Yoga CPH' : CONFIG.FROM_NAME;
   const from = fromEmail
@@ -91,7 +91,7 @@ function buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bc
   // reply_to = the Gmail inbox so replies land there, not in Resend
   const replyTo = process.env.GMAIL_USER || CONFIG.EMAIL_FROM;
 
-  const unsubUrl = buildUnsubscribeUrl(to);
+  const unsubUrl = buildUnsubscribeUrl(to, lang);
 
   var message = {
     from,
@@ -179,7 +179,7 @@ async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, c
   const html = wrapHtml(bodyHtml, to, campaignId, lang);
   const text = wrapText(bodyPlain || '', to, lang);
 
-  const message = buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc });
+  const message = buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc, lang });
   const result = await resendPost('/emails', message);
 
   await logResendEmail({ to, subject, leadId, messageId: result.id, campaignId });

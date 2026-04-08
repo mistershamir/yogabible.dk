@@ -624,16 +624,6 @@ async function handleProcess() {
           }
         }
 
-        // Substitute template variables
-        var vars = {
-          '{{first_name}}': lead.first_name || '',
-          '{{last_name}}': lead.last_name || '',
-          '{{email}}': lead.email || '',
-          '{{phone}}': lead.phone || '',
-          '{{program}}': lead.program || lead.ytt_program_type || '',
-          '{{unsubscribe_url}}': buildUnsubscribeUrl(lead.email || '')
-        };
-
         var stepHistory = { step: enrollment.current_step, sent_at: now, channel: step.channel, result: 'skipped' };
         var emailSent = false;
         var smsSent = false;
@@ -648,6 +638,16 @@ async function handleProcess() {
         var leadLang = rawLang.substring(0, 2);
         var isDanish = ['da', 'dk'].includes(leadLang);
         var isGerman = leadLang === 'de';
+
+        // Substitute template variables (after lang detection so unsubscribe URL is lang-aware)
+        var vars = {
+          '{{first_name}}': lead.first_name || '',
+          '{{last_name}}': lead.last_name || '',
+          '{{email}}': lead.email || '',
+          '{{phone}}': lead.phone || '',
+          '{{program}}': lead.program || lead.ytt_program_type || '',
+          '{{unsubscribe_url}}': buildUnsubscribeUrl(lead.email || '', leadLang)
+        };
 
         // Select language-appropriate email content
         // Priority: DE (if available) → EN (non-Danish) → DA (default)
