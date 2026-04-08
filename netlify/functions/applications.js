@@ -166,9 +166,10 @@ async function revokeApplicationRole(db, email, revokedAppId) {
   const previousRole = userData.role || 'member';
   const previousDetails = userData.roleDetails || {};
 
-  // Don't revoke teacher/marketing/admin roles (those are assigned manually, not via applications)
-  if (['teacher', 'marketing', 'admin'].includes(previousRole)) {
-    console.log(`[applications:revoke] ${normalizedEmail}: role is ${previousRole} — not revoking (manually assigned)`);
+  // Don't revoke protected roles (assigned manually, not via applications)
+  const protectedRoles = ['admin', 'owner', 'instructor', 'teacher', 'marketing'];
+  if (protectedRoles.includes(previousRole)) {
+    console.log(`[applications:revoke] ${normalizedEmail}: role is ${previousRole} — not revoking (protected role)`);
     return;
   }
 

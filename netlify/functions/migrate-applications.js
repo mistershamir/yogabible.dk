@@ -340,7 +340,7 @@ exports.handler = async (event) => {
                 roleDetails: {},
                 createdAt: new Date(),
                 updatedAt: new Date()
-              });
+              }, { merge: true });
             }
             report.user_docs_created++;
             detail.actions.push('Created Firestore user doc');

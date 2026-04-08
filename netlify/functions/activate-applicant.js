@@ -246,7 +246,7 @@ exports.handler = async function (event) {
         roleDetails: targetDetails,
         createdAt: new Date(),
         updatedAt: new Date()
-      });
+      }, { merge: true });
       report.actions.push('Created user doc with role: ' + targetRole);
     } else {
       // Existing user — merge role (never downgrade)

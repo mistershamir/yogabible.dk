@@ -520,7 +520,7 @@ exports.handler = async (event) => {
             roleDetails: {},
             createdAt: new Date(),
             updatedAt: new Date()
-          });
+          }, { merge: true });
           console.log(`[apply] Created Firestore user doc for ${appDoc.email}`);
         }
       } else {

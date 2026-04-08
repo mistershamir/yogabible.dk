@@ -152,7 +152,7 @@
           profileData.consents = consents;
         }
 
-        userRef.set(profileData);
+        userRef.set(profileData, { merge: true });
 
         // Write audit trail records to separate consents collection
         if (consents) {
