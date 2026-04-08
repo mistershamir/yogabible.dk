@@ -30,6 +30,7 @@
   };
 
   var usersLoaded = false;
+  var analyticsLoaded = false;
 
   // User management enhanced state
   var userSearchTerm = '';
@@ -130,10 +131,11 @@
           usersLoaded = true;
         }
 
-        // Load analytics when analytics tab is clicked
-        if (tabName === 'analytics') {
+        // Load analytics when analytics tab is clicked (once)
+        if (tabName === 'analytics' && !analyticsLoaded) {
           loadAnalytics();
           loadConversionAnalytics();
+          analyticsLoaded = true;
         }
       });
     });

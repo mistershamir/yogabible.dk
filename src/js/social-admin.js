@@ -6165,16 +6165,40 @@
   function init() {
     T = window._ybAdminT || {};
 
-    // Load accounts + posts on first init so composer platforms work immediately
-    firebase.auth().onAuthStateChanged(function (user) {
-      if (!user) return;
-      // Pre-load accounts so platform toggles are enabled in composer
-      loadAccounts();
-      // Pre-load posts for calendar dots
-      api('social-posts?action=list').then(function (data) {
-        if (data) { state.allPosts = data.posts || []; state.posts = state.allPosts; }
+    // Defer accounts + posts loading until social tab is first activated
+    var socialDataLoaded = false;
+    var observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (m) {
+        if (m.type === 'attributes' && m.attributeName === 'class') {
+          var panel = m.target;
+          if (panel.classList.contains('is-active') && !socialDataLoaded) {
+            socialDataLoaded = true;
+            firebase.auth().onAuthStateChanged(function (user) {
+              if (!user) return;
+              loadAccounts();
+              api('social-posts?action=list').then(function (data) {
+                if (data) { state.allPosts = data.posts || []; state.posts = state.allPosts; }
+              });
+            });
+          }
+        }
       });
     });
+    var socialPanel = document.querySelector('[data-yb-admin-panel="social"]');
+    if (socialPanel) {
+      if (socialPanel.classList.contains('is-active')) {
+        socialDataLoaded = true;
+        firebase.auth().onAuthStateChanged(function (user) {
+          if (!user) return;
+          loadAccounts();
+          api('social-posts?action=list').then(function (data) {
+            if (data) { state.allPosts = data.posts || []; state.posts = state.allPosts; }
+          });
+        });
+      } else {
+        observer.observe(socialPanel, { attributes: true });
+      }
+    }
   }
 
   if (document.readyState === 'loading') {

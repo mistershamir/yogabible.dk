@@ -617,7 +617,7 @@
 .yb-admin__toast {
   position: fixed; bottom: 2rem; right: 2rem; padding: 0.75rem 1.25rem;
   background: #0F0F0F; color: white; border-radius: 10px; font-size: 0.9rem;
-  font-weight: 600; z-index: 1000; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  font-weight: 600; z-index: 99999; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
   animation: yb-toast-in 0.3s ease;
 }
 .yb-admin__toast--error { background: #dc2626; }
@@ -625,6 +625,12 @@
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Live Status Badges */
+.yb-admin__status-badge { display: inline-flex; align-items: center; padding: 0.25rem 0.65rem; border-radius: 999px; font-size: 0.78rem; font-weight: 700; }
+.yb-admin__status-badge--live { background: #dcfce7; color: #16a34a; }
+.yb-admin__status-badge--muted { background: #fef3ed; color: #f75c03; }
+.yb-admin__status-badge--danger { background: #fee2e2; color: #dc2626; }
 
 /* Knowledge Base Admin */
 .yb-kb__brand-tabs {
