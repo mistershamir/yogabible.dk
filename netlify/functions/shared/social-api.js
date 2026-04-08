@@ -31,7 +31,11 @@ async function publishToInstagram(account, post) {
   }
 
   const mediaUrl = media[0];
-  const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(mediaUrl);
+  const mediaUrlPath = mediaUrl.split('?')[0]; // strip query params (signed CDN URLs)
+  const explicitMediaType = (post.mediaType || '').toUpperCase();
+  const isVideo = ['VIDEO', 'REEL', 'REELS', 'STORY', 'STORIES'].includes(explicitMediaType)
+    || /\.(mp4|mov|avi|wmv|webm|m4v|mkv)$/i.test(mediaUrlPath)
+    || /\/play_\d+p\.mp4/i.test(mediaUrl);
 
   // Pre-check: verify the media URL is publicly accessible
   try {
@@ -774,9 +778,30 @@ async function publishToTikTok(account, post) {
   }
 
   const videoUrl = media[0];
-  const isVideo = /\.(mp4|mov|avi|wmv)$/i.test(videoUrl);
-  if (!isVideo) {
-    return { success: false, error: 'TikTok only supports video uploads' };
+
+  // Detect video from multiple signals:
+  // 1. Explicit mediaType from the composer (reel/video/story all imply video)
+  // 2. URL path extension (strip query params first — signed CDN URLs have ?token=&expires=)
+  // 3. Content-type HEAD check as last resort
+  const explicitType = (post.mediaType || '').toLowerCase();
+  const isExplicitVideo = ['video', 'reel', 'reels', 'story', 'stories'].includes(explicitType);
+  const urlPath = videoUrl.split('?')[0]; // strip query params before checking extension
+  const hasVideoExt = /\.(mp4|mov|avi|wmv|webm|m4v|mkv)$/i.test(urlPath);
+  // Bunny Stream URLs contain recognizable path patterns (play_720p, playlist.m3u8)
+  const isBunnyStream = /\/play_\d+p\.mp4/i.test(videoUrl) || videoUrl.includes('playlist.m3u8');
+
+  if (!isExplicitVideo && !hasVideoExt && !isBunnyStream) {
+    // Last resort: check content-type via HEAD request
+    let isVideoByContentType = false;
+    try {
+      const headRes = await fetch(videoUrl, { method: 'HEAD' });
+      const ct = (headRes.headers.get('content-type') || '').toLowerCase();
+      isVideoByContentType = ct.startsWith('video/');
+    } catch (e) { /* ignore */ }
+
+    if (!isVideoByContentType) {
+      return { success: false, error: 'TikTok only supports video uploads' };
+    }
   }
 
   try {
@@ -1207,7 +1232,11 @@ async function publishToYouTube(account, post) {
   }
 
   const videoUrl = media[0];
-  const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(videoUrl);
+  const ytUrlPath = videoUrl.split('?')[0];
+  const ytExplicitType = (post.mediaType || '').toLowerCase();
+  const isVideo = ['video', 'reel', 'reels'].includes(ytExplicitType)
+    || /\.(mp4|mov|avi|wmv|webm|m4v|mkv)$/i.test(ytUrlPath)
+    || /\/play_\d+p\.mp4/i.test(videoUrl);
   if (!isVideo) {
     return { success: false, error: 'YouTube only supports video uploads' };
   }
