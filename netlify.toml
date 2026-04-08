@@ -221,7 +221,12 @@
   to = "/terms-conditions"
   status = 301
 
-# Admin panel SPA routing — serve /admin/ for all /admin/* paths
+# Admin panel SPA routing — serve admin page for all /admin/* paths
+[[redirects]]
+  from = "/en/admin/*"
+  to = "/en/admin/"
+  status = 200
+
 [[redirects]]
   from = "/admin/*"
   to = "/admin/"

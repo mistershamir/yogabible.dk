@@ -108,9 +108,23 @@
     'billing': 'billing'
   };
 
-  function getTabFromUrl() {
-    var path = window.location.pathname.replace(/\/+$/, ''); // strip trailing slash
-    var parts = path.split('/').filter(Boolean); // e.g. ['admin', 'leads']
+  // Language prefix — detected once from the initial URL
+  var langPrefix = window.location.pathname.indexOf('/en/') === 0 ? '/en' : '';
+
+  function getLangPrefix(path) {
+    return (path || window.location.pathname).indexOf('/en/') === 0 ? '/en' : '';
+  }
+
+  function buildAdminUrl(routeSlug) {
+    var prefix = langPrefix;
+    return routeSlug === 'analytics' ? prefix + '/admin/' : prefix + '/admin/' + routeSlug + '/';
+  }
+
+  function getTabFromUrl(path) {
+    var p = (path || window.location.pathname).replace(/\/+$/, '');
+    // Strip /en prefix if present
+    if (p.indexOf('/en/') === 0) p = p.substring(3);
+    var parts = p.split('/').filter(Boolean); // e.g. ['admin', 'leads']
     if (parts.length >= 2 && parts[0] === 'admin') {
       var slug = parts[1];
       return ROUTE_TO_TAB[slug] || 'analytics';
@@ -132,7 +146,7 @@
     // Push URL if requested (not on popstate or initial load)
     if (pushState) {
       var routeSlug = TAB_TO_ROUTE[tabName] || tabName;
-      var url = routeSlug === 'analytics' ? '/admin/' : '/admin/' + routeSlug + '/';
+      var url = buildAdminUrl(routeSlug);
       if (window.location.pathname !== url) {
         history.pushState({ tab: tabName }, '', url);
       }
@@ -205,6 +219,8 @@
 
     // Browser back/forward
     window.addEventListener('popstate', function () {
+      // Update prefix in case back/forward crosses language boundary
+      langPrefix = getLangPrefix();
       activateTab(getTabFromUrl(), false);
     });
 
@@ -213,7 +229,7 @@
     activateTab(initialTab, false);
     // Replace current history entry so back works correctly
     var initialSlug = TAB_TO_ROUTE[initialTab] || initialTab;
-    var initialUrl = initialSlug === 'analytics' ? '/admin/' : '/admin/' + initialSlug + '/';
+    var initialUrl = buildAdminUrl(initialSlug);
     history.replaceState({ tab: initialTab }, '', initialUrl);
   }
 
