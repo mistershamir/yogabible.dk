@@ -134,10 +134,12 @@ function verifyUnsubscribeToken(email, token) {
   return generateUnsubscribeToken(email) === token;
 }
 
-function buildUnsubscribeUrl(email) {
+function buildUnsubscribeUrl(email, lang) {
   const token = generateUnsubscribeToken(email);
   const baseUrl = CONFIG.SITE_URL;
-  return `${baseUrl}/.netlify/functions/unsubscribe?email=${encodeURIComponent(email)}&token=${token}`;
+  var l = (lang || 'da').toLowerCase().substring(0, 2);
+  var langParam = (['da', 'dk'].includes(l)) ? '' : '&lang=' + encodeURIComponent(l);
+  return `${baseUrl}/.netlify/functions/unsubscribe?email=${encodeURIComponent(email)}&token=${token}${langParam}`;
 }
 
 // =========================================================================

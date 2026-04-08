@@ -111,7 +111,7 @@ function getGermanPsLinePlain() {
 }
 
 function getUnsubscribeFooterHtml(email, lang) {
-  const url = buildUnsubscribeUrl(email);
+  const url = buildUnsubscribeUrl(email, lang);
   var l = (lang || 'da').toLowerCase().substring(0, 2);
   var text;
   if (l === 'de') {
@@ -127,7 +127,7 @@ function getUnsubscribeFooterHtml(email, lang) {
 }
 
 function getUnsubscribeFooterPlain(email, lang) {
-  const url = buildUnsubscribeUrl(email);
+  const url = buildUnsubscribeUrl(email, lang);
   var l = (lang || 'da').toLowerCase().substring(0, 2);
   var label;
   if (l === 'de') {

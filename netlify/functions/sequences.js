@@ -624,16 +624,6 @@ async function handleProcess() {
           }
         }
 
-        // Substitute template variables
-        var vars = {
-          '{{first_name}}': lead.first_name || '',
-          '{{last_name}}': lead.last_name || '',
-          '{{email}}': lead.email || '',
-          '{{phone}}': lead.phone || '',
-          '{{program}}': lead.program || lead.ytt_program_type || '',
-          '{{unsubscribe_url}}': buildUnsubscribeUrl(lead.email || '')
-        };
-
         var stepHistory = { step: enrollment.current_step, sent_at: now, channel: step.channel, result: 'skipped' };
         var emailSent = false;
         var smsSent = false;
@@ -648,6 +638,16 @@ async function handleProcess() {
         var leadLang = rawLang.substring(0, 2);
         var isDanish = ['da', 'dk'].includes(leadLang);
         var isGerman = leadLang === 'de';
+
+        // Substitute template variables (after lang detection so unsubscribe URL is lang-aware)
+        var vars = {
+          '{{first_name}}': lead.first_name || '',
+          '{{last_name}}': lead.last_name || '',
+          '{{email}}': lead.email || '',
+          '{{phone}}': lead.phone || '',
+          '{{program}}': lead.program || lead.ytt_program_type || '',
+          '{{unsubscribe_url}}': buildUnsubscribeUrl(lead.email || '', leadLang)
+        };
 
         // Select language-appropriate email content
         // Priority: DE (if available) → EN (non-Danish) → DA (default)
@@ -783,6 +783,34 @@ async function handleProcess() {
           hasSmsContent = !!selectedSms;
 
           if (lead.phone && hasSmsContent) {
+            // ── Already-sent guard (SMS) ────────────────────────────────
+            // Same race condition as email: if SMS sent but Firestore
+            // update fails, enrollment stays "due" → re-sends next cycle.
+            var smsTemplateId = 'sequence:' + seqId + ':step' + enrollment.current_step;
+            var alreadySentSmsSnap = await db.collection('sms_log')
+              .where('lead_id', '==', enrollment.lead_id)
+              .where('source', '==', 'sequence')
+              .where('sequence_id', '==', seqId)
+              .where('status', '==', 'sent')
+              .limit(5)
+              .get();
+
+            // Check if any logged SMS matches this exact step
+            var smsAlreadySent = false;
+            alreadySentSmsSnap.forEach(function(doc) {
+              var logData = doc.data();
+              // sms_log doesn't have template_id — match by message content
+              if (logData.message === substituteVars(step.sms_message, vars) ||
+                  logData.message === substituteVars(selectedSms, vars)) {
+                smsAlreadySent = true;
+              }
+            });
+
+            if (smsAlreadySent) {
+              console.log('[sequences] SMS step ' + enrollment.current_step + ' already sent for lead ' + enrollment.lead_id + ' — skipping re-send');
+              smsSent = true;
+              if (!stepHistory.result || stepHistory.result === 'skipped') stepHistory.result = 'already_sent';
+            } else {
             var smsResult = await sendSequenceSMS(
               lead.phone,
               substituteVars(selectedSms, vars)
@@ -799,13 +827,14 @@ async function handleProcess() {
             await db.collection('sms_log').add({
               lead_id: enrollment.lead_id,
               to: lead.phone,
-              message: substituteVars(step.sms_message, vars),
+              message: substituteVars(selectedSms, vars),
               sent_at: new Date(),
               status: smsResult.success ? 'sent' : 'failed',
               source: 'sequence',
               sequence_id: seqId,
               created_at: serverTimestamp()
             });
+            } // end else (not already sent SMS)
           }
         }
 

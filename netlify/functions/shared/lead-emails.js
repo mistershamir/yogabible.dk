@@ -707,7 +707,7 @@ function julySignatureHtml() {
  * Bilingual unsubscribe footer for July emails.
  */
 function julyUnsubscribeHtml(email, lang) {
-  var url = buildUnsubscribeUrl(email);
+  var url = buildUnsubscribeUrl(email, lang);
   var text;
   if (lang === 'de') {
     text = 'Keine weiteren E-Mails erhalten? <a href="' + url + '" style="color:#999;text-decoration:none;">Hier abmelden</a>';
@@ -847,7 +847,7 @@ async function sendJulyVinyasaPlusEnEmail(leadData, tokenData) {
   plain += 'Start Preparation Phase: https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211\n\n';
   plain += 'Book a Free Online Consultation: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
   plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
-  plain += '\n---\nUnsubscribe: ' + buildUnsubscribeUrl(leadData.email);
+  plain += '\n---\nUnsubscribe: ' + buildUnsubscribeUrl(leadData.email, 'en');
 
   var result = await sendRawEmail({
     to: leadData.email,
@@ -1019,7 +1019,7 @@ async function sendJulyVinyasaPlusDeEmail(leadData, tokenData) {
   plain += 'Vorbereitungsphase starten: https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211\n\n';
   plain += 'Kostenloses Online-Gespräch buchen: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
   plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
-  plain += '\n---\nAbmelden: ' + buildUnsubscribeUrl(leadData.email);
+  plain += '\n---\nAbmelden: ' + buildUnsubscribeUrl(leadData.email, 'de');
 
   var result = await sendRawEmail({
     to: leadData.email,
@@ -1173,7 +1173,7 @@ async function sendJulyVinyasaPlusDaEmail(leadData, tokenData) {
   plain += 'Start Forberedelsesfasen: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs?product=100211\n\n';
   plain += 'Book en gratis online samtale: https://yogabible.dk/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
   plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
-  plain += '\n---\nAfmeld: ' + buildUnsubscribeUrl(leadData.email);
+  plain += '\n---\nAfmeld: ' + buildUnsubscribeUrl(leadData.email, 'da');
 
   var result = await sendRawEmail({
     to: leadData.email,

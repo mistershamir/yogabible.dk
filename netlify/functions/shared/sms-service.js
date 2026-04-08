@@ -152,9 +152,47 @@ async function sendWelcomeSMS(leadData, leadDocId) {
     .replace(/\{\{first_name\}\}/gi, firstName)
     .replace(/\{\{program\}\}/gi, programName);
 
+  // ── Dedup: check if welcome SMS was already sent to this phone recently ──
+  // Prevents duplicate SMS when lead.js or facebook-leads-webhook.js fires
+  // multiple times for the same lead (Meta retries, form resubmits).
+  try {
+    const db = getDb();
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000);
+    const recentSmsSnap = await db.collection('sms_log')
+      .where('to', '==', phone)
+      .where('source', '==', 'welcome')
+      .where('sent_at', '>=', tenMinAgo)
+      .where('status', '==', 'sent')
+      .limit(1)
+      .get();
+
+    if (!recentSmsSnap.empty) {
+      console.log(`[sms] Welcome SMS already sent to ${phone} within 10 min — skipping duplicate`);
+      return { success: true, reason: 'already_sent' };
+    }
+  } catch (dedupErr) {
+    console.warn('[sms] Welcome SMS dedup check failed (proceeding):', dedupErr.message);
+  }
+
   // Send
   await updateLeadSMSStatus(leadDocId, 'sending');
   const result = await sendSMS(phone, message);
+
+  // Log to sms_log for dedup and audit trail
+  try {
+    const db = getDb();
+    await db.collection('sms_log').add({
+      lead_id: leadDocId,
+      to: phone,
+      message: message.substring(0, 100),
+      sent_at: new Date(),
+      status: result.success ? 'sent' : 'failed',
+      source: 'welcome',
+      created_at: new Date()
+    });
+  } catch (logErr) {
+    console.warn('[sms] Failed to log welcome SMS:', logErr.message);
+  }
 
   if (result.success) {
     await updateLeadSMSStatus(leadDocId, 'sent');
