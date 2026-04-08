@@ -68,6 +68,24 @@ exports.handler = async (event) => {
     // Write to Firestore
     const db = getDb();
 
+    // ── Dedup: check if a lead with this email already exists ─────────────
+    // Users sometimes resubmit forms (double-click, page refresh, browser
+    // back-button). Without this check, each submission creates a new lead
+    // doc → triggers welcome email + sequence enrollments → duplicate sends.
+    if (leadData.email) {
+      const existingLeadSnap = await db.collection('leads')
+        .where('email', '==', leadData.email)
+        .limit(1)
+        .get();
+
+      if (!existingLeadSnap.empty) {
+        const existingId = existingLeadSnap.docs[0].id;
+        console.log(`[lead] Duplicate email ${leadData.email} — existing lead ${existingId}. Returning success without creating new doc.`);
+        const response = jsonResponse(200, { ok: true, message: 'Request received successfully' });
+        return wrapCallback(callback, response);
+      }
+    }
+
     // Calculate form score from lead answers (0-7)
     const formScore = calculateFormScore(leadData);
     if (formScore > 0) leadData.form_score = formScore;

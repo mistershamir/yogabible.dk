@@ -711,6 +711,23 @@ async function handleProcess() {
         // Send email
         if (wantsEmail) {
           if (lead.email && hasEmailContent) {
+            // ── Already-sent guard ──────────────────────────────────────
+            // If email was already sent for this exact step (e.g. previous
+            // run sent the email but the Firestore enrollment update failed),
+            // skip re-sending to prevent duplicate emails.
+            var stepTemplateId = 'sequence:' + seqId + ':step' + enrollment.current_step;
+            var alreadySentSnap = await db.collection('email_log')
+              .where('lead_id', '==', enrollment.lead_id)
+              .where('template_id', '==', stepTemplateId)
+              .where('status', '==', 'sent')
+              .limit(1)
+              .get();
+
+            if (!alreadySentSnap.empty) {
+              console.log('[sequences] Step ' + enrollment.current_step + ' already sent for lead ' + enrollment.lead_id + ' (found in email_log) — skipping re-send');
+              emailSent = true;
+              stepHistory.result = 'already_sent';
+            } else {
             // Inject schedule tracking tokens into any schedule URLs in the body
             var finalBody = injectScheduleTokens(
               substituteVars(selectedBody, vars),
@@ -749,6 +766,7 @@ async function handleProcess() {
               lang: isDanish ? 'da' : leadLang,
               created_at: serverTimestamp()
             });
+            } // end else (not already sent)
           }
         }
 

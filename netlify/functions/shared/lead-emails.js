@@ -205,6 +205,29 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
     return { success: false, reason: 'unsubscribed' };
   }
 
+  // ── Dedup: check if welcome email was already sent to this email recently ──
+  // Prevents duplicate welcome emails when lead.js or facebook-leads-webhook.js
+  // is called multiple times for the same lead (Meta retries, form resubmits).
+  try {
+    const db = getDb();
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000);
+    const recentWelcomeSnap = await db.collection('email_log')
+      .where('to', '==', leadData.email.toLowerCase().trim())
+      .where('template_id', '==', 'auto_welcome')
+      .where('sent_at', '>=', tenMinAgo)
+      .where('status', '==', 'sent')
+      .limit(1)
+      .get();
+
+    if (!recentWelcomeSnap.empty) {
+      console.log(`[lead-emails] Welcome email already sent to ${leadData.email} within 10 min — skipping duplicate`);
+      return { success: true, reason: 'already_sent' };
+    }
+  } catch (dedupErr) {
+    // Non-blocking — if dedup check fails, proceed with sending
+    console.warn('[lead-emails] Welcome dedup check failed (proceeding):', dedupErr.message);
+  }
+
   try {
     // Waitlist 300h — bilingual, handles lang internally
     if (action === 'lead_waitlist_300h') {
