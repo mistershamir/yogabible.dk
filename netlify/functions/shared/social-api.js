@@ -805,7 +805,25 @@ async function publishToTikTok(account, post) {
   }
 
   try {
-    // Step 1: Initialize upload via URL
+    // Step 1: Download video to memory buffer
+    console.log('[social-api] TikTok: downloading video from', videoUrl.substring(0, 80));
+    const videoRes = await fetch(videoUrl);
+    if (!videoRes.ok) {
+      return { success: false, error: `Failed to download video: HTTP ${videoRes.status}` };
+    }
+    const videoBuffer = Buffer.from(await videoRes.arrayBuffer());
+    const videoSize = videoBuffer.length;
+    console.log('[social-api] TikTok: downloaded', videoSize, 'bytes');
+
+    if (videoSize < 1000) {
+      return { success: false, error: 'Video file too small — likely a download error' };
+    }
+
+    // Step 2: Initialize FILE_UPLOAD with TikTok
+    // Chunk size: 10 MB (must be >= 5 MB, <= 64 MB; final chunk can be up to 128 MB)
+    const CHUNK_SIZE = 10 * 1024 * 1024;
+    const totalChunkCount = Math.ceil(videoSize / CHUNK_SIZE);
+
     const initRes = await fetch(`${TT_API}/post/publish/video/init/`, {
       method: 'POST',
       headers: {
@@ -821,8 +839,10 @@ async function publishToTikTok(account, post) {
           disable_stitch: false
         },
         source_info: {
-          source: 'PULL_FROM_URL',
-          video_url: videoUrl
+          source: 'FILE_UPLOAD',
+          video_size: videoSize,
+          chunk_size: CHUNK_SIZE,
+          total_chunk_count: totalChunkCount
         }
       })
     });
@@ -835,11 +855,40 @@ async function publishToTikTok(account, post) {
     }
 
     const publishId = initData.data?.publish_id;
-    if (!publishId) {
-      return { success: false, error: 'No publish_id returned from TikTok' };
+    const uploadUrl = initData.data?.upload_url;
+    if (!publishId || !uploadUrl) {
+      return { success: false, error: 'TikTok init did not return publish_id or upload_url' };
     }
 
-    // Step 2: Check publish status (TikTok processes async)
+    // Step 3: Upload video in chunks via PUT to the upload_url
+    for (let chunkIdx = 0; chunkIdx < totalChunkCount; chunkIdx++) {
+      const start = chunkIdx * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, videoSize);
+      const chunk = videoBuffer.subarray(start, end);
+
+      const contentRange = `bytes ${start}-${end - 1}/${videoSize}`;
+      console.log(`[social-api] TikTok: uploading chunk ${chunkIdx + 1}/${totalChunkCount} (${contentRange})`);
+
+      const chunkRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'video/mp4',
+          'Content-Length': String(chunk.length),
+          'Content-Range': contentRange
+        },
+        body: chunk
+      });
+
+      if (!chunkRes.ok && chunkRes.status !== 201) {
+        const errBody = await chunkRes.text().catch(() => '');
+        console.error(`[social-api] TikTok chunk ${chunkIdx + 1} failed:`, chunkRes.status, errBody.substring(0, 200));
+        return { success: false, error: `TikTok chunk upload failed: HTTP ${chunkRes.status}` };
+      }
+    }
+
+    console.log('[social-api] TikTok: all chunks uploaded, waiting for processing');
+
+    // Step 4: Poll for publish status (TikTok processes async)
     const statusResult = await waitForTikTokPublish(accessToken, publishId, 180000);
     if (statusResult.success) {
       console.log('[social-api] TikTok published:', statusResult.id);
