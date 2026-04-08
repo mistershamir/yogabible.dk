@@ -1,13 +1,11 @@
 /**
  * Social Publish Scheduled — Yoga Bible
- * Scheduled function that publishes social posts whose scheduledAt time has passed.
+ * DEPRECATED: This function's cron schedule has been disabled in netlify.toml.
+ * social-schedule.js is now the sole scheduled publisher to prevent double-publish
+ * race conditions. This file is kept for reference but its cron is commented out.
  *
- * Runs every 5 minutes. Picks up posts with status 'scheduled' or 'approved'
- * whose scheduledAt is in the past and attempts to publish them to all target platforms.
- *
- * Configured in netlify.toml:
- *   [functions."social-publish-scheduled"]
- *     schedule = "*/5 * * * *"
+ * Previously: Ran every 5 minutes picking up 'scheduled' or 'approved' posts.
+ * Now: social-schedule.js handles both statuses with transactional claiming.
  */
 
 const { getDb, serverTimestamp } = require('./shared/firestore');

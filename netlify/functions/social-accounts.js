@@ -203,6 +203,11 @@ async function saveToken(db, body, user) {
   }
 
   // Build account document
+  // TODO: Tokens should be encrypted at rest using a key management strategy
+  // (e.g., AES-256-GCM with a KMS-managed key). Currently stored as plaintext
+  // in Firestore. listAccounts() correctly strips tokens from API responses,
+  // but the raw Firestore documents contain them. Ensure Firestore security
+  // rules prevent non-admin reads of the social_accounts collection.
   const accountData = {
     platform,
     accessToken,

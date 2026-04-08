@@ -41,9 +41,7 @@ exports.handler = async function (event) {
     const newToken = data.access_token;
     const expiresIn = data.expires_in; // seconds
 
-    console.log('[ig-token] Token refreshed successfully');
-    console.log('[ig-token] New token starts with:', newToken.substring(0, 10) + '...');
-    console.log('[ig-token] Expires in:', Math.round(expiresIn / 86400), 'days');
+    console.log('[ig-token] Token refreshed successfully, expires in', Math.round(expiresIn / 86400), 'days');
 
     // Automatically update the Netlify env var if NETLIFY_API_TOKEN is set
     if (process.env.NETLIFY_API_TOKEN && process.env.NETLIFY_SITE_ID) {
@@ -88,25 +86,24 @@ exports.handler = async function (event) {
         );
 
         if (createRes.ok) {
-          console.log('[ig-token] Netlify env var updated automatically!');
+          console.log('[ig-token] Netlify env var updated automatically');
         } else {
           const errText = await createRes.text();
           console.error('[ig-token] Failed to update Netlify env var:', createRes.status, errText);
-          console.log('[ig-token] MANUAL UPDATE NEEDED — new token:', newToken);
+          console.error('[ig-token] MANUAL UPDATE NEEDED — retrieve the new token from the Meta API or re-run this function with NETLIFY_API_TOKEN configured');
         }
       } catch (netlifyErr) {
         console.error('[ig-token] Netlify API error:', netlifyErr.message);
-        console.log('[ig-token] MANUAL UPDATE NEEDED — new token:', newToken);
+        console.error('[ig-token] MANUAL UPDATE NEEDED — retrieve the new token from the Meta API or re-run this function with NETLIFY_API_TOKEN configured');
       }
     } else {
       console.log('[ig-token] No NETLIFY_API_TOKEN set — automatic update unavailable');
-      console.log('[ig-token] MANUAL UPDATE NEEDED — new token:', newToken);
+      console.error('[ig-token] MANUAL UPDATE NEEDED — set NETLIFY_API_TOKEN and NETLIFY_SITE_ID for automatic rotation');
     }
 
     return jsonResponse(200, {
       success: true,
       expiresInDays: Math.round(expiresIn / 86400),
-      tokenPrefix: newToken.substring(0, 10) + '...',
       autoUpdated: !!(process.env.NETLIFY_API_TOKEN && process.env.NETLIFY_SITE_ID)
     });
   } catch (err) {

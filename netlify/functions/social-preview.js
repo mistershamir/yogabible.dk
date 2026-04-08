@@ -6,6 +6,10 @@
  * GET  /.netlify/functions/social-preview?id=POST_ID&tok=TOKEN
  * POST /.netlify/functions/social-preview  { action: 'generate-link', postId }  (admin)
  * POST /.netlify/functions/social-preview  { action: 'approve', id, tok }       (public)
+ *
+ * NOTE: Requires SOCIAL_PREVIEW_SECRET env var to be set in Netlify.
+ * This is intentionally separate from UNSUBSCRIBE_SECRET to avoid
+ * coupling preview token rotation with email unsubscribe links.
  */
 
 const { getDb, serverTimestamp } = require('./shared/firestore');
@@ -15,7 +19,7 @@ const crypto = require('crypto');
 
 const POSTS_COLLECTION = 'social_posts';
 const PREVIEWS_COLLECTION = 'social_post_previews';
-const PREVIEW_SECRET = process.env.UNSUBSCRIBE_SECRET || 'preview-secret';
+const PREVIEW_SECRET = process.env.SOCIAL_PREVIEW_SECRET || process.env.UNSUBSCRIBE_SECRET || 'preview-secret';
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();

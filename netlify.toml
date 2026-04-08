@@ -42,9 +42,11 @@
 [functions."social-mentions"]
   schedule = "0 */2 * * *"
 
-# Scheduled function: publish scheduled posts (every 5 minutes)
-[functions."social-publish-scheduled"]
-  schedule = "*/5 * * * *"
+# DISABLED: social-publish-scheduled duplicates social-schedule and caused
+# double-publish race conditions. social-schedule.js now handles both
+# 'scheduled' and 'approved' statuses with transactional claiming.
+# [functions."social-publish-scheduled"]
+#   schedule = "*/5 * * * *"
 
 # Scheduled function: evergreen post recycler (daily 6am UTC)
 [functions."social-recycle"]

@@ -5,9 +5,13 @@
  * Bunny Stream sends callbacks when video status changes:
  * - VideoId: the GUID of the video
  * - Status: 0=created, 1=uploaded, 2=processing, 3=transcoding, 4=finished, 5=error
+ *
+ * Security: Verifies HMAC-SHA256 signature via BUNNY_WEBHOOK_SECRET env var.
+ * Set this secret in both Bunny Stream webhook config and Netlify env vars.
  */
 
 const { getDb, serverTimestamp } = require('./shared/firestore');
+const crypto = require('crypto');
 
 const STATUS_MAP = {
   0: 'created',
@@ -26,6 +30,20 @@ exports.handler = async (event) => {
 
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
+  }
+
+  // Verify webhook signature using BUNNY_WEBHOOK_SECRET
+  const webhookSecret = process.env.BUNNY_WEBHOOK_SECRET;
+  if (webhookSecret) {
+    const rawBody = event.body || '';
+    const expectedSig = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
+    const providedSig = (event.headers['webhook-signature'] || event.headers['Webhook-Signature'] || '').toLowerCase();
+    if (!providedSig || providedSig !== expectedSig) {
+      console.warn('[bunny-stream-webhook] Invalid or missing webhook signature');
+      return { statusCode: 401, body: JSON.stringify({ error: 'Invalid webhook signature' }) };
+    }
+  } else {
+    console.warn('[bunny-stream-webhook] BUNNY_WEBHOOK_SECRET not set — skipping signature verification. Set this env var for security.');
   }
 
   try {

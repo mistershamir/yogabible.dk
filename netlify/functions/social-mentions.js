@@ -29,15 +29,14 @@ exports.handler = async (event) => {
 
   const db = getDb();
 
-  // Scheduled invocation — refresh mentions
-  if (!event.httpMethod || event.httpMethod === 'GET' && !event.queryStringParameters?.action) {
-    // Could be a scheduled trigger
-    if (!event.queryStringParameters || !event.queryStringParameters.action) {
-      return refreshMentions(db);
-    }
+  // Scheduled invocation — Netlify cron triggers have no httpMethod
+  // or use a special event source. Only allow unauthenticated refresh
+  // when there is genuinely no HTTP method (cron trigger).
+  if (!event.httpMethod) {
+    return refreshMentions(db);
   }
 
-  // Auth required for all API calls
+  // Auth required for all API calls (including manual refresh)
   const user = await requireAuth(event, ['admin']);
   if (user.error) return user.error;
 

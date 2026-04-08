@@ -2,9 +2,11 @@
  * Social Schedule Processor — Yoga Bible
  * Scheduled function that runs every 5 minutes to publish due posts.
  *
- * NOTE: This function delegates to social-publish-scheduled which handles
- * the actual publishing logic. This is a lightweight wrapper to avoid
- * cross-function require() issues on Netlify.
+ * This is the ONLY scheduled publisher. social-publish-scheduled.js has been
+ * disabled in netlify.toml to prevent double-publish race conditions.
+ *
+ * Uses a Firestore transaction to atomically claim each post (status → 'publishing')
+ * before publishing, so concurrent invocations cannot publish the same post twice.
  *
  * Configured in netlify.toml:
  *   [functions."social-schedule"]
@@ -29,18 +31,18 @@ exports.handler = async (event) => {
   const now = new Date();
 
   try {
-    // Query posts that are scheduled and due for publishing
+    // Query posts that are scheduled/approved and due for publishing
     let snap;
     try {
       snap = await db.collection(POSTS_COLLECTION)
-        .where('status', '==', 'scheduled')
+        .where('status', 'in', ['scheduled', 'approved'])
         .where('scheduledAt', '<=', now)
         .limit(20)
         .get();
     } catch (indexErr) {
       console.warn('[social-schedule] Compound query needs index, using fallback:', indexErr.message);
       snap = await db.collection(POSTS_COLLECTION)
-        .where('status', '==', 'scheduled')
+        .where('status', 'in', ['scheduled', 'approved'])
         .limit(30)
         .get();
     }
@@ -60,12 +62,40 @@ exports.handler = async (event) => {
     const results = [];
 
     for (const doc of snap.docs) {
-      const post = doc.data();
       const postId = doc.id;
 
       // Check scheduledAt is actually past (needed for fallback query)
-      const scheduledAt = post.scheduledAt?.toDate ? post.scheduledAt.toDate() : new Date(post.scheduledAt || 0);
+      const rawPost = doc.data();
+      const scheduledAt = rawPost.scheduledAt?.toDate ? rawPost.scheduledAt.toDate() : new Date(rawPost.scheduledAt || 0);
       if (scheduledAt > now) continue;
+
+      // Atomically claim the post via transaction to prevent double-publish.
+      // If another invocation already changed the status, we skip this post.
+      let post;
+      try {
+        post = await db.runTransaction(async (txn) => {
+          const freshDoc = await txn.get(db.collection(POSTS_COLLECTION).doc(postId));
+          if (!freshDoc.exists) return null;
+          const freshData = freshDoc.data();
+          if (freshData.status !== 'scheduled' && freshData.status !== 'approved') {
+            // Another invocation already claimed this post
+            return null;
+          }
+          txn.update(db.collection(POSTS_COLLECTION).doc(postId), {
+            status: 'publishing',
+            updatedAt: serverTimestamp()
+          });
+          return freshData;
+        });
+      } catch (txnErr) {
+        console.warn(`[social-schedule] Transaction failed for ${postId}, skipping:`, txnErr.message);
+        continue;
+      }
+
+      if (!post) {
+        console.log(`[social-schedule] Post ${postId} already claimed by another invocation, skipping`);
+        continue;
+      }
 
       const platforms = post.platforms || [];
       const publishResults = {};
