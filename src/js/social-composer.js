@@ -652,7 +652,6 @@
       var newInput = uploadInput.cloneNode(true);
       uploadInput.parentNode.replaceChild(newInput, uploadInput);
       newInput.addEventListener('change', function () {
-        console.log('[MediaBrowser] Upload input changed, files:', newInput.files.length);
         if (newInput.files.length > 0) {
           // Copy files to array BEFORE clearing input (FileList is live-linked)
           var fileArr = Array.prototype.slice.call(newInput.files);
@@ -733,7 +732,6 @@
     var filesData = results[1];
 
     // Debug: log API responses
-    console.log('[MediaBrowser] Path:', path, 'Folders:', foldersData, 'Files:', filesData);
     var filterType = mediaBrowser.filter;
     var html = '';
     var folderIcon = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
@@ -792,7 +790,6 @@
     var html = '';
     var CDN = 'https://vz-4f2e2677-3b6.b-cdn.net';
 
-    console.log('[MediaBrowser] Stream videos:', mediaBrowser.streamVideos);
 
     mediaBrowser.streamVideos.forEach(function (v) {
       var thumbUrl = v.thumbnailUrl || (CDN + '/' + v.videoId + '/thumbnail.jpg');
@@ -818,7 +815,6 @@
     try {
       if (!files || files.length === 0) return;
       var folder = composer.currentPath;
-      console.log('[MediaBrowser] uploadFromBrowser start, folder:', folder, 'files:', files.length);
 
       var token;
       try {
@@ -829,7 +825,6 @@
         return;
       }
       if (!token) { S.toast('Auth failed — please log in', true); return; }
-      console.log('[MediaBrowser] Got auth token, length:', token.length);
 
       var MAX_SIZE = 4.5 * 1024 * 1024; // ~4.5 MB (base64 adds ~33%, must stay under 6MB Netlify limit)
       var success = 0;
@@ -837,7 +832,6 @@
 
       for (var i = 0; i < total; i++) {
         var file = files[i];
-        console.log('[MediaBrowser] File:', file.name, 'size:', file.size, 'type:', file.type);
         if (file.size > MAX_SIZE) {
           S.toast(file.name + ' is too large (' + (file.size / 1024 / 1024).toFixed(1) + ' MB). Max ~4.5 MB. Use Videos tab for large videos.', true);
           continue;
@@ -849,9 +843,7 @@
 
         try {
           // Read file as base64 and send via JSON to proxy (avoids CORS + binary body issues)
-          console.log('[MediaBrowser] Reading file as base64...');
           var base64 = await fileToBase64(file);
-          console.log('[MediaBrowser] Base64 length:', base64.length, '— sending to proxy...');
           var proxyRes = await fetch(
             '/.netlify/functions/bunny-browser?action=upload&folder=' + encodeURIComponent(folder),
             {
@@ -867,9 +859,7 @@
               })
             }
           );
-          console.log('[MediaBrowser] Proxy response status:', proxyRes.status);
           var pr = await proxyRes.json();
-          console.log('[MediaBrowser] Upload result:', pr);
           if (pr.ok) { success++; S.toast('Uploaded ' + file.name); }
           else S.toast('Failed: ' + (pr.error || 'unknown'), true);
         } catch (err) {
@@ -989,7 +979,11 @@
   }
 
   function confirmMediaSelection() {
-    composer.media = composer.media.concat(composer.mediaSelected);
+    // Deduplicate — only add media URLs not already in the array
+    var existing = new Set(composer.media);
+    composer.mediaSelected.forEach(function (url) {
+      if (!existing.has(url)) composer.media.push(url);
+    });
     composer.mediaSelected = [];
     closeMediaBrowser();
     renderMediaPreview();
@@ -997,8 +991,29 @@
   }
 
   /* ═══ FILE UPLOAD ═══ */
+  var MAX_IMAGE_SIZE = 4.5 * 1024 * 1024;  // 4.5 MB
+  var MAX_VIDEO_SIZE = 50 * 1024 * 1024;   // 50 MB
+
   async function uploadFiles(files) {
     if (!files || files.length === 0) return;
+
+    // Validate file sizes before uploading
+    var validFiles = [];
+    for (var v = 0; v < files.length; v++) {
+      var f = files[v];
+      var isVideo = f.type.startsWith('video/');
+      var maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+      var maxLabel = isVideo ? '50 MB' : '4.5 MB';
+      if (f.size > maxSize) {
+        var sizeMb = (f.size / (1024 * 1024)).toFixed(1);
+        S.toast(f.name + ' is too large (' + sizeMb + ' MB). Max ' + maxLabel, true);
+      } else {
+        validFiles.push(f);
+      }
+    }
+    if (validFiles.length === 0) return;
+    files = validFiles;
+
     S.toast('Uploading ' + files.length + ' file(s)...');
     var token = await S.getToken();
     if (!token) { S.toast('Auth failed — please log in again', true); return; }

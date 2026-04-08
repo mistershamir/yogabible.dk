@@ -98,6 +98,11 @@
   /* ═══ VIEW MANAGEMENT ═══ */
   function showView(name) {
     state.view = name;
+    // Stop inbox polling when leaving inbox view
+    if (name !== 'inbox' && inboxState.pollTimer) {
+      clearInterval(inboxState.pollTimer);
+      inboxState.pollTimer = null;
+    }
     ['accounts', 'calendar', 'posts', 'crossshare', 'analytics', 'inbox', 'hashtags', 'templates', 'competitors', 'abtesting', 'library', 'stories'].forEach(function (v) {
       var el = $('yb-social-v-' + v);
       if (el) el.hidden = (v !== name);
@@ -1249,6 +1254,8 @@
     // 1. Overview stat cards
     if (overview) {
       var s = overview.overview || {};
+      // Store raw data for AI insights (avoids scraping formatted DOM text)
+      state.analyticsOverview = s;
       var el;
       el = $('yb-social-stat-followers'); if (el) el.textContent = (s.totalFollowers || 0).toLocaleString();
       el = $('yb-social-stat-posts'); if (el) el.textContent = (s.totalPosts || 0).toLocaleString();
@@ -2109,8 +2116,9 @@
         '<p>' + escapeHtml(comment.text) + '</p>' +
       '</div>';
 
+      var fbPageId = (state.accounts.facebook || {}).pageId || '';
       (comment.replies || []).forEach(function (r) {
-        var isOwn = r.username === 'yogabible' || (r.from && r.from.name === 'Yoga Bible');
+        var isOwn = r.username === 'yogabible' || (r.from && (r.from.name === 'Yoga Bible' || (fbPageId && r.from.id === fbPageId)));
         html += '<div class="yb-social__inbox-msg' + (isOwn ? ' yb-social__inbox-msg--own' : ' yb-social__inbox-msg--them') + '">' +
           '<div class="yb-social__inbox-msg-head"><strong>' + escapeHtml(r.username || (r.from ? r.from.name : '')) + '</strong> <span>' + formatTimeAgo(r.timestamp || r.created_time) + '</span></div>' +
           '<p>' + escapeHtml(r.text || r.message || '') + '</p>' +
@@ -2126,7 +2134,7 @@
     if (data && data.thread && data.thread.length > 0) {
       var extraHtml = '';
       data.thread.forEach(function (r) {
-        var isOwn = r.username === 'yogabible' || (r.from && r.from.name === 'Yoga Bible');
+        var isOwn = r.username === 'yogabible' || (r.from && (r.from.name === 'Yoga Bible' || (fbPageId && r.from.id === fbPageId)));
         extraHtml += '<div class="yb-social__inbox-msg' + (isOwn ? ' yb-social__inbox-msg--own' : ' yb-social__inbox-msg--them') + '">' +
           '<div class="yb-social__inbox-msg-head"><strong>' + escapeHtml(r.username || (r.from ? r.from.name : '')) + '</strong> <span>' + formatTimeAgo(r.timestamp || r.created_time) + '</span></div>' +
           '<p>' + escapeHtml(r.text || r.message || '') + '</p>' +
@@ -2166,8 +2174,9 @@
     var data = await api('social-inbox?action=thread&id=' + conversationId + '&platform=' + platform + '&type=conversation');
     if (data && data.thread) {
       var msgs = data.thread.reverse();
+      var fbPid = (state.accounts.facebook || {}).pageId || '';
       body.innerHTML = msgs.map(function (m) {
-        var isOwn = (m.from && (m.from.name === 'Yoga Bible' || m.from.id === '878172732056415'));
+        var isOwn = (m.from && (m.from.name === 'Yoga Bible' || (fbPid && m.from.id === fbPid)));
         return '<div class="yb-social__inbox-msg' + (isOwn ? ' yb-social__inbox-msg--own' : ' yb-social__inbox-msg--them') + '">' +
           '<div class="yb-social__inbox-msg-head"><strong>' + escapeHtml(m.from ? m.from.name : '') + '</strong> <span>' + formatTimeAgo(m.created_time) + '</span></div>' +
           '<p>' + escapeHtml(m.message || '') + '</p>' +
@@ -2542,13 +2551,14 @@
     panel.hidden = false;
     if (bodyEl) bodyEl.innerHTML = '<p class="yb-admin__muted">' + t('social_ai_analyzing') + '</p>';
 
-    // Gather current metrics from the DOM
+    // Use actual data objects from analytics API (not DOM text which may be formatted)
+    var ov = state.analyticsOverview || {};
     var metrics = {
-      followers: ($('yb-social-stat-followers') || {}).textContent || '0',
-      engagement: ($('yb-social-stat-engagement') || {}).textContent || '0',
-      reach: ($('yb-social-stat-reach') || {}).textContent || '0',
-      posts: ($('yb-social-stat-posts') || {}).textContent || '0',
-      period: ($('yb-social-analytics-range') || {}).value || '30'
+      followers: ov.totalFollowers || 0,
+      engagement: ov.avgEngagement || 0,
+      reach: ov.totalReach || 0,
+      posts: ov.totalPosts || 0,
+      period: state.analyticsRange || 30
     };
 
     var data = await api('social-ai', {
@@ -5948,7 +5958,16 @@
     else if (action === 'social-close-preview-modal') { var pm = document.getElementById('yb-social-preview-modal'); if (pm) pm.remove(); }
     else if (action === 'social-copy-preview-link') {
       var urlEl = document.getElementById('yb-social-preview-url');
-      if (urlEl) { urlEl.select(); document.execCommand('copy'); toast('Link copied!'); }
+      if (urlEl) {
+        navigator.clipboard.writeText(urlEl.value || urlEl.textContent).then(function () {
+          toast('Link copied!');
+        }).catch(function () {
+          // Fallback for older browsers
+          urlEl.select();
+          try { document.execCommand('copy'); } catch (e) { /* ignore */ }
+          toast('Link copied!');
+        });
+      }
     }
     else if (action === 'social-recurring-toggle-day') btn.classList.toggle('is-active');
 
@@ -6211,6 +6230,7 @@
           var panel = m.target;
           if (panel.classList.contains('is-active') && !socialDataLoaded) {
             socialDataLoaded = true;
+            observer.disconnect();
             firebase.auth().onAuthStateChanged(function (user) {
               if (!user) return;
               loadAccounts();

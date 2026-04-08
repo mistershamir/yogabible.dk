@@ -74,7 +74,8 @@ exports.handler = async () => {
               metrics = {
                 likes: result.metrics.likes || 0,
                 comments: result.metrics.comments || 0,
-                shares: result.metrics.shares || result.metrics.saved || 0,
+                shares: result.metrics.shares || 0,
+                saved: result.metrics.saved || 0,
                 reach: result.metrics.reach || 0,
                 impressions: result.metrics.impressions || 0
               };

@@ -68,16 +68,43 @@ exports.handler = async (event) => {
 // ── List posts with filters ─────────────────────────────────────
 
 async function listPosts(db, params) {
-  // Fetch ALL posts with a simple orderBy (no composite index needed).
-  // Filtering by status/platform is done client-side to avoid missing indexes.
-  const snap = await db.collection(COLLECTION)
-    .orderBy('createdAt', 'desc')
-    .limit(200)
-    .get();
+  const limit = parseInt(params.limit) || 200;
+  const statusFilter = params.status;
+  const platformFilter = params.platform;
+
+  let snap;
+  let usedFallback = false;
+
+  try {
+    let query = db.collection(COLLECTION);
+
+    // Apply server-side filters when provided (avoids loading all 200 posts)
+    if (statusFilter && statusFilter !== 'all') {
+      query = query.where('status', '==', statusFilter);
+    }
+    if (platformFilter && platformFilter !== 'all') {
+      query = query.where('platforms', 'array-contains', platformFilter);
+    }
+
+    snap = await query.orderBy('createdAt', 'desc').limit(limit).get();
+  } catch (indexErr) {
+    // Composite index may not exist — fall back to unfiltered query
+    console.warn('[social-posts] Compound query needs index, using fallback:', indexErr.message);
+    usedFallback = true;
+    snap = await db.collection(COLLECTION)
+      .orderBy('createdAt', 'desc')
+      .limit(limit)
+      .get();
+  }
 
   const posts = [];
   snap.forEach(doc => {
     const data = doc.data();
+    // Client-side fallback filtering when index wasn't available
+    if (usedFallback) {
+      if (statusFilter && statusFilter !== 'all' && data.status !== statusFilter) return;
+      if (platformFilter && platformFilter !== 'all' && !(data.platforms || []).includes(platformFilter)) return;
+    }
     posts.push({
       id: doc.id,
       ...data,
