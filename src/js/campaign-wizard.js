@@ -1505,9 +1505,20 @@
     if (campaignState.sending) return;
     campaignState.sending = true;
 
+    // Track sent recipients across retries — skip anyone already sent to
+    if (!campaignState._sentRecipientIds) campaignState._sentRecipientIds = new Set();
+
     var isSMS = campaignState.type === 'sms';
-    var recipients = campaignState.allRecipients.filter(function (l) { return campaignState.selectedIds.has(l.id); });
+    var allSelected = campaignState.allRecipients.filter(function (l) { return campaignState.selectedIds.has(l.id); });
+    // Filter out recipients already sent to (from a previous attempt that partially succeeded)
+    var recipients = allSelected.filter(function (l) { return !campaignState._sentRecipientIds.has(l.id); });
     var total = recipients.length;
+
+    if (total === 0 && allSelected.length > 0) {
+      campaignState.sending = false;
+      if (typeof bridge !== 'undefined' && bridge.toast) bridge.toast('All recipients already sent — nothing to retry');
+      return;
+    }
 
     // Show progress bar + disable send button
     var progressEl = $('yb-campaign-progress');
@@ -1543,6 +1554,7 @@
       var promises = batch.map(function (lead) {
         return sendToLead(lead, isSMS).then(function (res) {
           if (res.ok) {
+            campaignState._sentRecipientIds.add(lead.id);
             if (campaignState.schedule === 'now') results.sent++;
             else results.scheduled++;
           } else {
@@ -1630,6 +1642,9 @@
           merged.errors.push({ id: 'batch', error: data.error || 'Unknown error' });
         }
       });
+
+      // Mark all recipients as sent so retries skip them
+      recipients.forEach(function (r) { campaignState._sentRecipientIds.add(r.id); });
 
       campaignState.sending = false;
       campaignState.results = merged;

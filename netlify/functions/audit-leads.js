@@ -426,15 +426,26 @@ async function handleRefetchRecovery(event) {
       // Detect country
       lead.country = detectLeadCountry(lead);
 
-      // Save to Firestore
-      const docRef = await db.collection('leads').add(lead);
+      // Save to Firestore — use deterministic doc ID for atomic dedup
+      const leadDocId = email.toLowerCase().trim().replace(/[\/\.#\[\]]/g, '_');
+      const leadDocRef = db.collection('leads').doc(leadDocId);
+      const existingDoc = await leadDocRef.get();
+      if (existingDoc.exists) {
+        results.skipped.push({ leadgen_id: leadgenId, email, reason: 'Lead doc already exists (atomic check)' });
+        continue;
+      }
+      await leadDocRef.set(lead);
+      const docRef = { id: leadDocId };
       console.log(`[audit-leads] Refetch recovery: saved ${docRef.id} (${email}) — type=${resolvedType}, lang=${metaLang}, country=${lead.country}`);
 
-      // Generate schedule token + email action
+      // Generate schedule token + email action + save token to doc
       const scheduleToken = crypto
         .createHmac('sha256', TOKEN_SECRET)
         .update(docRef.id + ':' + email)
         .digest('hex');
+      await leadDocRef.update({ schedule_token: scheduleToken }).catch(e => {
+        console.warn('[audit-leads] Failed to save schedule_token:', e.message);
+      });
       const emailAction = yttTypeToAction(resolvedType);
 
       // Send notifications

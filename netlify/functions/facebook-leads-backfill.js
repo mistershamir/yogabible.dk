@@ -19,6 +19,8 @@ const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
 const { sendWelcomeEmail } = require('./shared/lead-emails');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
+const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
+const { detectLeadCountry } = require('./shared/country-detect');
 
 const GRAPH_API_VERSION = 'v25.0';
 const PAGE_ID = '878172732056415';
@@ -184,6 +186,11 @@ async function processBackfillLead(rawLead, form, dryRun) {
     return { email, first_name: firstName, last_name: lastName, firestoreId: null };
   }
 
+  // Detect country for sequence routing (was missing from backfill)
+  if (!lead.country) {
+    lead.country = detectLeadCountry(lead);
+  }
+
   // Save to Firestore
   const docRef = await db.collection('leads').add(lead);
   console.log(`[backfill] Saved lead ${docRef.id} (${email})`);
@@ -193,7 +200,12 @@ async function processBackfillLead(rawLead, form, dryRun) {
     .update(docRef.id + ':' + email)
     .digest('hex');
 
-  // Fire notifications — same as live webhook
+  // Save schedule_token to lead doc (was missing from backfill)
+  await db.collection('leads').doc(docRef.id).update({ schedule_token: scheduleToken }).catch(e => {
+    console.warn('[backfill] Failed to save schedule_token:', e.message);
+  });
+
+  // Fire notifications + sequence enrollment — same as live webhook
   await Promise.all([
     process.env.GMAIL_APP_PASSWORD
       ? sendAdminNotification(lead).catch(e => console.error('[backfill] Admin email failed:', e.message))
@@ -204,7 +216,9 @@ async function processBackfillLead(rawLead, form, dryRun) {
       : Promise.resolve(),
     process.env.GATEWAYAPI_TOKEN && phone
       ? sendWelcomeSMS(lead, docRef.id).catch(e => console.error('[backfill] SMS failed:', e.message))
-      : Promise.resolve()
+      : Promise.resolve(),
+    // Auto-enroll in matching sequences (was missing from backfill)
+    triggerNewLeadSequences(docRef.id, lead).catch(e => console.error('[backfill] Sequence trigger failed:', e.message))
   ]);
 
   return { email, first_name: firstName, last_name: lastName, firestoreId: docRef.id };
