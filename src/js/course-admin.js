@@ -1062,387 +1062,615 @@
   }
 
   /* ═══════════════════════════════════════
-     ANALYTICS
+     COMPREHENSIVE ANALYTICS DASHBOARD
+     7 rows, parallel Firestore loading
      ═══════════════════════════════════════ */
+  var convPeriodDays = 7;
+
+  // Shared data cache — populated once, re-filtered on period change
+  var yaCache = {
+    leads: null, applications: null, funnelDocs: null, conversionDocs: null,
+    emailLogs: null, emailBounces: null, emailTracking: null,
+    sequences: null, seqEnrollments: null
+  };
+
+  // Firestore timestamp → JS Date
+  function toDate(v) {
+    if (!v) return null;
+    if (v.toDate) return v.toDate();
+    if (typeof v === 'string') return new Date(v);
+    if (v.seconds) return new Date(v.seconds * 1000);
+    return null;
+  }
+
+  function cutoffDate() {
+    if (!convPeriodDays) return null;
+    var d = new Date(); d.setDate(d.getDate() - convPeriodDays); return d;
+  }
+
+  function fmtNum(n) { return (n || 0).toLocaleString('da-DK'); }
+  function fmtDKK(n) { return (n || 0).toLocaleString('da-DK') + ' kr'; }
+  function pct(n, d) { return d > 0 ? Math.round((n / d) * 100) : 0; }
+
+  function fetchCol(name) {
+    return db.collection(name).get().then(function (snap) {
+      var arr = [];
+      snap.forEach(function (doc) { arr.push(Object.assign({ _id: doc.id }, doc.data())); });
+      return arr;
+    }).catch(function () { return []; });
+  }
+
+  function statCard(value, label, colorClass) {
+    return '<div class="ya-stat' + (colorClass ? ' ya-stat--' + colorClass : '') + '">' +
+      '<span class="ya-stat__value">' + value + '</span>' +
+      '<span class="ya-stat__label">' + label + '</span></div>';
+  }
+
+  /* ── Main loader ── */
   function loadAnalytics() {
-    var statCourses = $('yb-admin-stat-courses');
-    var statEnrollments = $('yb-admin-stat-enrollments');
-    var statStudents = $('yb-admin-stat-students');
-    var statProgress = $('yb-admin-stat-progress');
-    var tableEl = $('yb-admin-analytics-courses');
+    // Fetch all data in parallel (only once — cache it)
+    var needsFetch = !yaCache.leads;
+    var p = needsFetch ? Promise.all([
+      fetchCol('leads').then(function (d) { yaCache.leads = d; }),
+      fetchCol('applications').then(function (d) { yaCache.applications = d; }),
+      fetchCol('lead_funnel').then(function (d) { yaCache.funnelDocs = d; }),
+      fetchCol('ad_conversions').then(function (d) { yaCache.conversionDocs = d; }),
+      fetchCol('email_log').then(function (d) { yaCache.emailLogs = d; }),
+      fetchCol('email_bounces').then(function (d) { yaCache.emailBounces = d; }),
+      fetchCol('email_tracking').then(function (d) { yaCache.emailTracking = d; }),
+      fetchCol('sequences').then(function (d) { yaCache.sequences = d; }),
+      fetchCol('sequence_enrollments').then(function (d) { yaCache.seqEnrollments = d; })
+    ]) : Promise.resolve();
 
-    // Show loading state
-    if (statCourses) statCourses.textContent = '...';
-    if (statEnrollments) statEnrollments.textContent = '...';
-    if (statStudents) statStudents.textContent = '...';
-    if (statProgress) statProgress.textContent = '...';
-    if (tableEl) tableEl.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
-
-    var allCourses = [];
-    var allEnrollments = [];
-    var allProgress = [];
-
-    // Fetch all courses
-    var coursesPromise = db.collection('courses').get().then(function (snap) {
-      snap.forEach(function (doc) { allCourses.push(Object.assign({ id: doc.id }, doc.data())); });
-    }).catch(function () { /* collection may not exist */ });
-
-    // Fetch all enrollments
-    var enrollPromise = db.collection('enrollments').get().then(function (snap) {
-      snap.forEach(function (doc) { allEnrollments.push(Object.assign({ id: doc.id }, doc.data())); });
-    }).catch(function () { /* collection may not exist */ });
-
-    // Fetch all courseProgress docs
-    var progressPromise = db.collection('courseProgress').get().then(function (snap) {
-      snap.forEach(function (doc) { allProgress.push(Object.assign({ id: doc.id }, doc.data())); });
-    }).catch(function () { /* collection may not exist */ });
-
-    Promise.all([coursesPromise, enrollPromise, progressPromise]).then(function () {
-      // Total courses
-      var totalCourses = allCourses.length;
-
-      // Active enrollments
-      var activeEnrollments = allEnrollments.filter(function (e) { return e.status === 'active'; });
-      var totalActive = activeEnrollments.length;
-
-      // Unique active students
-      var uniqueStudents = {};
-      activeEnrollments.forEach(function (e) {
-        if (e.userId) uniqueStudents[e.userId] = true;
-      });
-      var totalStudents = Object.keys(uniqueStudents).length;
-
-      // Average completion %
-      var totalPercent = 0;
-      var progressCount = 0;
-      allProgress.forEach(function (p) {
-        var viewed = p.viewed;
-        if (viewed && typeof viewed === 'object') {
-          var keys = Object.keys(viewed);
-          var total = keys.length;
-          var done = 0;
-          keys.forEach(function (k) { if (viewed[k]) done++; });
-          if (total > 0) {
-            totalPercent += (done / total) * 100;
-            progressCount++;
-          }
-        }
-      });
-      var avgProgress = progressCount > 0 ? Math.round(totalPercent / progressCount) : 0;
-
-      // Render stat cards
-      if (statCourses) statCourses.textContent = totalCourses;
-      if (statEnrollments) statEnrollments.textContent = totalActive;
-      if (statStudents) statStudents.textContent = totalStudents;
-      if (statProgress) statProgress.textContent = avgProgress + '%';
-
-      // Per-course stats table
-      if (tableEl) {
-        if (!allCourses.length) {
-          tableEl.innerHTML = '<p class="yb-admin__empty">' + t('no_courses') + '</p>';
-          return;
-        }
-
-        tableEl.innerHTML = allCourses.map(function (course) {
-          // Enrollments for this course
-          var courseEnrollments = activeEnrollments.filter(function (e) { return e.courseId === course.id; });
-          var enrollCount = courseEnrollments.length;
-
-          // Progress for this course
-          var courseProgressDocs = allProgress.filter(function (p) {
-            return p.id && p.id.indexOf('_' + course.id) > -1;
-          });
-
-          var coursePercent = 0;
-          var courseProgressCount = 0;
-          var completedCount = 0;
-          courseProgressDocs.forEach(function (p) {
-            var viewed = p.viewed;
-            if (viewed && typeof viewed === 'object') {
-              var keys = Object.keys(viewed);
-              var total = keys.length;
-              var done = 0;
-              keys.forEach(function (k) { if (viewed[k]) done++; });
-              if (total > 0) {
-                var pct = (done / total) * 100;
-                coursePercent += pct;
-                courseProgressCount++;
-                if (pct >= 100) completedCount++;
-              }
-            }
-          });
-
-          var avgCoursePct = courseProgressCount > 0 ? Math.round(coursePercent / courseProgressCount) : 0;
-          var completionRate = enrollCount > 0 ? Math.round((completedCount / enrollCount) * 100) : 0;
-
-          return '<div class="yb-admin__analytics-row">' +
-            '<span class="yb-admin__analytics-icon">' + (course.icon || '📚') + '</span>' +
-            '<span class="yb-admin__analytics-name">' + esc(course.title_en || course.title_da) + '</span>' +
-            '<span class="yb-admin__analytics-stat">' + enrollCount + ' ' + (t('enrolled') || 'enrolled') + '</span>' +
-            '<span class="yb-admin__analytics-stat">' + avgCoursePct + '% ' + (t('avg_progress') || 'avg') + '</span>' +
-            '<span class="yb-admin__analytics-stat">' + completionRate + '% ' + (t('completion') || 'completion') + '</span>' +
-          '</div>';
-        }).join('');
-      }
+    p.then(function () {
+      renderRow1KPI();
+      renderRow2Pipeline();
+      renderRow3Sources();
+      renderRow4Cohort();
+      renderRow5Email();
+      renderRow6Engagement();
+      renderRow7Revenue();
     }).catch(function (err) {
-      console.error('Analytics error:', err);
-      if (statCourses) statCourses.textContent = '0';
-      if (statEnrollments) statEnrollments.textContent = '0';
-      if (statStudents) statStudents.textContent = '0';
-      if (statProgress) statProgress.textContent = '0%';
-      if (tableEl) tableEl.innerHTML = '<p class="yb-admin__empty">' + t('no_courses') + '</p>';
+      console.error('Analytics load error:', err);
     });
   }
 
-  /* ═══════════════════════════════════════
-     CONVERSION & AD TRACKING ANALYTICS
-     Queries: lead_funnel + ad_conversions
-     ═══════════════════════════════════════ */
-  var convPeriodDays = 30;
-
   function loadConversionAnalytics() {
-    var purchasesEl = $('yb-conv-purchases');
-    var revenueEl = $('yb-conv-revenue');
-    var leadsEl = $('yb-conv-leads');
-    var rateEl = $('yb-conv-rate');
-    var funnelEl = $('yb-conv-funnel');
-    var productsEl = $('yb-conv-products');
-    var sourcesEl = $('yb-conv-sources');
-    var recentEl = $('yb-conv-recent');
+    // Now handled by loadAnalytics — this is called for period changes
+    loadAnalytics();
+  }
 
-    if (!purchasesEl) return;
+  /* ── ROW 1: KPI Stat Cards ── */
+  function renderRow1KPI() {
+    var el = $('ya-row-kpi');
+    if (!el) return;
+    var cut = cutoffDate();
+    var leads = yaCache.leads || [];
+    var apps = yaCache.applications || [];
+    var convDocs = yaCache.conversionDocs || [];
+    var emailLogs = yaCache.emailLogs || [];
 
-    // Show loading
-    [purchasesEl, revenueEl, leadsEl, rateEl].forEach(function (el) {
-      if (el) el.textContent = '...';
+    // New leads in period
+    var newLeads = leads.filter(function (l) {
+      if (!cut) return true;
+      var d = toDate(l.created_at);
+      return d && d >= cut;
+    }).length;
+
+    // Open applications (all-time)
+    var closedStatuses = ['archived', 'enrolled', 'rejected'];
+    var openApps = apps.filter(function (a) { return closedStatuses.indexOf(a.status) === -1; }).length;
+
+    // Revenue from ad_conversions
+    var purchases = convDocs.filter(function (c) {
+      if (c.conversion_action !== 'purchase') return false;
+      if (!cut) return true;
+      var d = toDate(c.created_at) || (c.created_at ? new Date(c.created_at) : null);
+      return d && d >= cut;
+    });
+    var revenue = 0;
+    purchases.forEach(function (c) { revenue += (c.value || 0); });
+
+    // Email open rate
+    var periodEmails = emailLogs.filter(function (e) {
+      if (!cut) return true;
+      var d = toDate(e.sent_at);
+      return d && d >= cut;
+    });
+    var sent = periodEmails.length;
+    var opened = periodEmails.filter(function (e) { return e.status === 'opened'; }).length;
+    var openRate = pct(opened, sent);
+
+    el.innerHTML =
+      '<div class="ya-cards">' +
+        statCard(fmtNum(newLeads), t('ya_kpi_new_leads'), 'orange') +
+        statCard(fmtNum(openApps), t('ya_kpi_open_apps')) +
+        statCard(fmtDKK(revenue), t('ya_kpi_revenue'), 'green') +
+        statCard(openRate + '%', t('ya_kpi_open_rate')) +
+      '</div>';
+  }
+
+  /* ── ROW 2: Lead Pipeline Funnel ── */
+  function renderRow2Pipeline() {
+    var el = $('ya-row-pipeline');
+    if (!el) return;
+    var leads = yaCache.leads || [];
+
+    // Count by status
+    var statusMap = {};
+    leads.forEach(function (l) {
+      var s = (l.status || 'New').toLowerCase();
+      statusMap[s] = (statusMap[s] || 0) + 1;
     });
 
-    var cutoff = null;
-    if (convPeriodDays > 0) {
-      cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - convPeriodDays);
+    var stages = [
+      { key: 'new', label: t('ya_pipe_new'), color: '#E8E4E0', textDark: true },
+      { key: 'contacted', label: t('ya_pipe_contacted'), color: '#fed7aa' , textDark: true },
+      { key: 'qualified', label: t('ya_pipe_qualified'), color: '#ff9966' },
+      { key: 'applied', label: t('ya_pipe_applied'), color: '#f75c03' },
+      { key: 'accepted', label: t('ya_pipe_accepted'), color: '#d94f02' },
+      { key: 'converted', label: t('ya_pipe_converted'), color: '#22c55e' },
+      { key: 'enrolled', label: t('ya_pipe_enrolled'), color: '#16a34a' }
+    ];
+
+    // Also count applications statuses for applied/accepted
+    var apps = yaCache.applications || [];
+    var appPending = apps.filter(function (a) { return !a.status || a.status === 'pending' || a.status === 'submitted'; }).length;
+    var appAccepted = apps.filter(function (a) { return a.status === 'accepted'; }).length;
+
+    var counts = {};
+    stages.forEach(function (s) { counts[s.key] = statusMap[s.key] || 0; });
+    // Supplement with application data
+    if (appPending > counts.applied) counts.applied = appPending;
+    if (appAccepted > counts.accepted) counts.accepted = appAccepted;
+
+    var total = leads.length || 1;
+    var maxCount = 0;
+    stages.forEach(function (s) { if (counts[s.key] > maxCount) maxCount = counts[s.key]; });
+    if (!maxCount) maxCount = 1;
+
+    var title = el.querySelector('.ya-title');
+    var html = title ? title.outerHTML : '';
+    html += '<div class="ya-funnel">';
+    stages.forEach(function (s) {
+      var c = counts[s.key];
+      var w = Math.max(pct(c, maxCount), 6);
+      html += '<div class="ya-funnel__row">' +
+        '<span class="ya-funnel__label">' + s.label + '</span>' +
+        '<div class="ya-funnel__track">' +
+          '<div class="ya-funnel__bar" style="width:' + w + '%;background:' + s.color + '">' +
+            '<span class="ya-funnel__count' + (s.textDark ? ' ya-funnel__count--dark' : '') + '">' + c + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<span class="ya-funnel__pct">' + pct(c, total) + '%</span>' +
+      '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  /* ── ROW 3: Lead Sources ── */
+  function renderRow3Sources() {
+    var el = $('ya-row-sources');
+    if (!el) return;
+    var leads = yaCache.leads || [];
+    var cut = cutoffDate();
+
+    // All-time source counts
+    var sourceMap = {};
+    leads.forEach(function (l) {
+      var s = (l.source || 'other').toLowerCase();
+      if (s === 'facebook' || s === 'meta') s = 'meta';
+      else if (s === 'website' || s === 'web') s = 'website';
+      else if (s === 'manual' || s === 'admin') s = 'manual';
+      else if (s !== 'instagram' && s !== 'google') s = 'other';
+      sourceMap[s] = (sourceMap[s] || 0) + 1;
+    });
+
+    var totalLeads = leads.length || 1;
+    var sourceOrder = ['meta', 'website', 'instagram', 'google', 'manual', 'other'];
+    var sourceColors = { meta: '#1877F2', website: '#f75c03', instagram: '#E1306C', google: '#34A853', manual: '#6F6A66', other: '#a8a29e' };
+    var sourceLabels = { meta: 'Meta Ads', website: t('ya_src_website'), instagram: 'Instagram', google: 'Google', manual: t('ya_src_manual'), other: t('ya_src_other') };
+
+    // Build conic-gradient segments
+    var segments = [];
+    var acc = 0;
+    sourceOrder.forEach(function (s) {
+      var c = sourceMap[s] || 0;
+      if (c > 0) {
+        var p = (c / totalLeads) * 100;
+        segments.push({ source: s, count: c, pct: p, start: acc, color: sourceColors[s] });
+        acc += p;
+      }
+    });
+
+    var conicStops = segments.map(function (s) {
+      return s.color + ' ' + s.start.toFixed(1) + '% ' + (s.start + s.pct).toFixed(1) + '%';
+    }).join(', ');
+
+    // Weekly trend (last 8 weeks)
+    var weekBuckets = [];
+    for (var wi = 7; wi >= 0; wi--) {
+      var wStart = new Date(); wStart.setDate(wStart.getDate() - (wi + 1) * 7);
+      var wEnd = new Date(); wEnd.setDate(wEnd.getDate() - wi * 7);
+      weekBuckets.push({ start: wStart, end: wEnd, label: wStart.toLocaleDateString('da-DK', { day: 'numeric', month: 'short' }), meta: 0, website: 0, other: 0, total: 0 });
+    }
+    leads.forEach(function (l) {
+      var d = toDate(l.created_at);
+      if (!d) return;
+      var s = (l.source || 'other').toLowerCase();
+      if (s === 'facebook' || s === 'meta') s = 'meta';
+      else if (s === 'website' || s === 'web') s = 'website';
+      else s = 'other';
+      weekBuckets.forEach(function (b) {
+        if (d >= b.start && d < b.end) {
+          b[s] = (b[s] || 0) + 1;
+          b.total++;
+        }
+      });
+    });
+
+    var title = el.querySelector('.ya-title');
+    var html = title ? title.outerHTML : '';
+    html += '<div class="ya-split">';
+
+    // Left: donut
+    html += '<div class="ya-donut-wrap">' +
+      '<div class="ya-donut" style="background:conic-gradient(' + (conicStops || '#E8E4E0 0% 100%') + ')"></div>' +
+      '<div class="ya-donut__legend">';
+    segments.forEach(function (s) {
+      html += '<div class="ya-donut__item">' +
+        '<span class="ya-donut__dot" style="background:' + s.color + '"></span>' +
+        '<span>' + (sourceLabels[s.source] || s.source) + '</span>' +
+        '<strong>' + s.count + ' (' + Math.round(s.pct) + '%)</strong></div>';
+    });
+    html += '</div></div>';
+
+    // Right: weekly trend table
+    html += '<div class="ya-trend-wrap"><table class="yb-admin__table ya-trend-table"><thead><tr>' +
+      '<th>' + t('ya_week') + '</th><th>Meta</th><th>' + t('ya_src_website') + '</th><th>' + t('ya_src_other') + '</th><th>Total</th>' +
+      '</tr></thead><tbody>';
+    weekBuckets.forEach(function (b) {
+      html += '<tr><td>' + b.label + '</td><td>' + b.meta + '</td><td>' + b.website + '</td><td>' + b.other + '</td>' +
+        '<td><strong>' + b.total + '</strong></td></tr>';
+    });
+    html += '</tbody></table></div></div>';
+    el.innerHTML = html;
+  }
+
+  /* ── ROW 4: Cohort Health ── */
+  function renderRow4Cohort() {
+    var el = $('ya-row-cohort');
+    if (!el) return;
+    var leads = yaCache.leads || [];
+    var apps = yaCache.applications || [];
+    var funnelDocs = yaCache.funnelDocs || [];
+
+    var cohorts = [
+      { name: '4W Intensive (Apr)', keys: ['4-week', '4w', '4-week-intensive'], capacity: 12 },
+      { name: '4W Vinyasa Plus (Jul)', keys: ['4-week-jul', '4w-jul', 'vinyasa-plus'], capacity: 18 },
+      { name: '8W Semi-Intensive (May-Jun)', keys: ['8-week', '8w', '8-week-semi'], capacity: 16 },
+      { name: '18W Flexible (Aug-Dec)', keys: ['18-week-aug', '18w-aug', '18-week-flexible-aug'], capacity: 24 },
+      { name: '300h Advanced', keys: ['300h', '300-hour', 'advanced'], capacity: 12 }
+    ];
+
+    function matchKeys(val, keys) {
+      if (!val) return false;
+      var v = val.toLowerCase();
+      return keys.some(function (k) { return v.indexOf(k) !== -1; });
     }
 
-    var funnelDocs = [];
-    var conversionDocs = [];
+    var title = el.querySelector('.ya-title');
+    var html = title ? title.outerHTML : '';
+    html += '<div class="yb-admin__table-wrap"><table class="yb-admin__table"><thead><tr>' +
+      '<th>' + t('ya_cohort_program') + '</th>' +
+      '<th>' + t('ya_cohort_cap') + '</th>' +
+      '<th>' + t('ya_cohort_leads') + '</th>' +
+      '<th>' + t('ya_cohort_apps') + '</th>' +
+      '<th>' + t('ya_cohort_enrolled') + '</th>' +
+      '<th>' + t('ya_cohort_fill') + '</th>' +
+      '</tr></thead><tbody>';
 
-    // Fetch lead_funnel collection
-    var funnelQuery = db.collection('lead_funnel');
-    var funnelPromise = funnelQuery.get().then(function (snap) {
-      snap.forEach(function (doc) {
-        var d = doc.data();
-        d._id = doc.id;
-        funnelDocs.push(d);
-      });
-    }).catch(function () {
-      // lead_funnel collection might not exist yet or permissions missing — that's OK
+    cohorts.forEach(function (c) {
+      var lCount = leads.filter(function (l) { return matchKeys(l.ytt_program_type || l.type, c.keys); }).length;
+      var aCount = apps.filter(function (a) { return matchKeys(a.ytt_program_type || a.course_id, c.keys); }).length;
+      var eCount = funnelDocs.filter(function (f) {
+        return f.funnel_stage === 'purchased' && matchKeys(f.programName || f.programId, c.keys);
+      }).length;
+      var fillPct = pct(eCount, c.capacity);
+      var fillColor = fillPct >= 80 ? '#16a34a' : fillPct >= 50 ? '#f75c03' : '#dc2626';
+
+      html += '<tr>' +
+        '<td><strong>' + c.name + '</strong></td>' +
+        '<td>' + c.capacity + '</td>' +
+        '<td>' + lCount + '</td>' +
+        '<td>' + aCount + '</td>' +
+        '<td>' + eCount + '</td>' +
+        '<td><div class="ya-fill-cell">' +
+          '<div class="ya-fill-bar"><div class="ya-fill-bar__inner" style="width:' + Math.min(fillPct, 100) + '%;background:' + fillColor + '"></div></div>' +
+          '<span class="ya-fill-pct" style="color:' + fillColor + '">' + fillPct + '%</span>' +
+        '</div></td>' +
+      '</tr>';
+    });
+    html += '</tbody></table></div>';
+    el.innerHTML = html;
+  }
+
+  /* ── ROW 5: Email & Sequence Performance ── */
+  function renderRow5Email() {
+    var el = $('ya-row-email');
+    if (!el) return;
+    var cut = cutoffDate();
+    var logs = yaCache.emailLogs || [];
+    var bounces = yaCache.emailBounces || [];
+    var tracking = yaCache.emailTracking || [];
+    var sequences = yaCache.sequences || [];
+    var enrollments = yaCache.seqEnrollments || [];
+
+    // Period-filtered email stats
+    var periodLogs = logs.filter(function (e) {
+      if (!cut) return true;
+      var d = toDate(e.sent_at);
+      return d && d >= cut;
     });
 
-    // Fetch ad_conversions collection
-    var convQuery = db.collection('ad_conversions');
-    if (cutoff) {
-      convQuery = convQuery.where('created_at', '>=', cutoff.toISOString());
+    var totalSent = periodLogs.length;
+    var totalOpened = periodLogs.filter(function (e) { return e.status === 'opened'; }).length;
+    var periodBounces = bounces.filter(function (b) {
+      if (!cut) return true;
+      var d = toDate(b.created_at || b.bounced_at);
+      return d && d >= cut;
+    }).length;
+    var periodClicks = tracking.filter(function (t) {
+      if (!cut) return true;
+      var d = toDate(t.clicked_at || t.created_at);
+      return d && d >= cut;
+    }).length;
+
+    var title = el.querySelector('.ya-title');
+    var html = title ? title.outerHTML : '';
+
+    // Mini stat cards
+    html += '<div class="ya-cards ya-cards--mini">' +
+      statCard(fmtNum(totalSent), t('ya_email_sent')) +
+      statCard(pct(totalOpened, totalSent) + '%', t('ya_email_open_rate'), 'green') +
+      statCard(pct(periodBounces, totalSent) + '%', t('ya_email_bounce'), 'red') +
+      statCard(pct(periodClicks, totalSent) + '%', t('ya_email_click_rate'), 'orange') +
+    '</div>';
+
+    // Sequence performance table
+    html += '<h4 class="ya-subtitle">' + t('ya_seq_title') + '</h4>';
+
+    // Build sequence name map
+    var seqNameMap = {};
+    sequences.forEach(function (s) { seqNameMap[s._id] = s.name || s._id; });
+
+    // Group enrollments by sequence_id
+    var seqGroups = {};
+    enrollments.forEach(function (e) {
+      var sid = e.sequence_id;
+      if (!sid) return;
+      if (!seqGroups[sid]) seqGroups[sid] = { active: 0, completed: 0, converted: 0, cancelled: 0, total: 0 };
+      seqGroups[sid].total++;
+      var st = (e.status || 'active').toLowerCase();
+      if (st === 'active') seqGroups[sid].active++;
+      else if (st === 'completed') seqGroups[sid].completed++;
+      else if (st === 'converted') seqGroups[sid].converted++;
+      else if (st === 'cancelled') seqGroups[sid].cancelled++;
+    });
+
+    var seqIds = Object.keys(seqGroups);
+    if (seqIds.length) {
+      html += '<div class="yb-admin__table-wrap"><table class="yb-admin__table"><thead><tr>' +
+        '<th>' + t('ya_seq_name') + '</th><th>' + t('ya_seq_active') + '</th>' +
+        '<th>' + t('ya_seq_completed') + '</th><th>' + t('ya_seq_converted') + '</th>' +
+        '<th>' + t('ya_seq_cancelled') + '</th><th>' + t('ya_seq_completion_rate') + '</th>' +
+        '<th>' + t('ya_seq_conversion_rate') + '</th></tr></thead><tbody>';
+
+      seqIds.forEach(function (sid) {
+        var g = seqGroups[sid];
+        var compRate = pct(g.completed + g.converted, g.total);
+        var convRate = pct(g.converted, g.total);
+        html += '<tr>' +
+          '<td><strong>' + esc(seqNameMap[sid] || sid.substring(0, 12) + '...') + '</strong></td>' +
+          '<td>' + g.active + '</td><td>' + g.completed + '</td>' +
+          '<td><span class="ya-badge ya-badge--green">' + g.converted + '</span></td>' +
+          '<td>' + g.cancelled + '</td>' +
+          '<td>' + compRate + '%</td>' +
+          '<td><strong style="color:#16a34a">' + convRate + '%</strong></td></tr>';
+      });
+      html += '</tbody></table></div>';
+    } else {
+      html += '<p class="yb-admin__empty">' + t('ya_no_data') + '</p>';
     }
-    var convPromise = convQuery.get().then(function (snap) {
-      snap.forEach(function (doc) {
-        var d = doc.data();
-        d._id = doc.id;
-        conversionDocs.push(d);
-      });
-    }).catch(function () {
-      // ad_conversions collection might not exist yet — that's OK
+
+    el.innerHTML = html;
+  }
+
+  /* ── ROW 6: Lead Engagement Summary ── */
+  function renderRow6Engagement() {
+    var el = $('ya-row-engagement');
+    if (!el) return;
+    var leads = yaCache.leads || [];
+    var now = new Date();
+    var fourteenDaysAgo = new Date(); fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    var highEngagement = 0;
+    var scheduleViewers = 0;
+    var reEngaged = 0;
+    var coldLeads = 0;
+
+    leads.forEach(function (l) {
+      var ec = (l.email_engagement && l.email_engagement.total_clicks) || 0;
+      var sp = (l.site_engagement && l.site_engagement.total_pageviews) || 0;
+      if (ec >= 3 && sp >= 3) highEngagement++;
+
+      var sv = (l.schedule_engagement && l.schedule_engagement.total_visits) || 0;
+      if (sv >= 1) scheduleViewers++;
+
+      if (l.re_engaged) reEngaged++;
+
+      var la = toDate(l.last_activity);
+      if (la && la < fourteenDaysAgo) coldLeads++;
+      else if (!la && l.created_at) {
+        var ca = toDate(l.created_at);
+        if (ca && ca < fourteenDaysAgo) coldLeads++;
+      }
     });
 
-    Promise.all([funnelPromise, convPromise]).then(function () {
-      // Filter funnel docs by period
-      var filteredFunnel = funnelDocs;
-      if (cutoff) {
-        filteredFunnel = funnelDocs.filter(function (d) {
-          var ts = d.createdAt;
-          if (ts && ts.toDate) ts = ts.toDate();
-          else if (ts && typeof ts === 'string') ts = new Date(ts);
-          else if (d.cta_timestamp) ts = new Date(d.cta_timestamp);
-          else return true;
-          return ts >= cutoff;
-        });
-      }
+    var title = el.querySelector('.ya-title');
+    var html = title ? title.outerHTML : '';
+    html += '<div class="ya-cards">' +
+      statCard(fmtNum(highEngagement), t('ya_eng_high'), 'green') +
+      statCard(fmtNum(scheduleViewers), t('ya_eng_schedule'), 'orange') +
+      statCard(fmtNum(reEngaged), t('ya_eng_reengaged')) +
+      statCard(fmtNum(coldLeads), t('ya_eng_cold'), 'red') +
+    '</div>';
+    el.innerHTML = html;
+  }
 
-      // Count funnel stages
-      var stages = { cta_click: 0, auth_complete: 0, checkout_opened: 0, purchased: 0, checkout_abandoned: 0 };
-      var productPurchases = {};
-      var totalRevenue = 0;
+  /* ── ROW 7: Revenue & Conversions (preserved logic) ── */
+  function renderRow7Revenue() {
+    var el = $('ya-row-revenue');
+    if (!el) return;
+    var cut = cutoffDate();
+    var funnelDocs = yaCache.funnelDocs || [];
+    var conversionDocs = yaCache.conversionDocs || [];
 
-      filteredFunnel.forEach(function (d) {
-        // Count each stage the user reached
-        if (d.cta_click_at || d.history && d.history.some(function (h) { return h.stage === 'cta_click'; })) stages.cta_click++;
-        if (d.auth_complete_at) stages.auth_complete++;
-        if (d.checkout_opened_at) stages.checkout_opened++;
-        if (d.funnel_stage === 'purchased') {
-          stages.purchased++;
-          // Track by product
-          var pName = d.programName || d.programId || 'Unknown';
-          productPurchases[pName] = (productPurchases[pName] || 0) + 1;
-        }
-        if (d.funnel_stage === 'checkout_abandoned') stages.checkout_abandoned++;
+    var filteredFunnel = funnelDocs;
+    if (cut) {
+      filteredFunnel = funnelDocs.filter(function (d) {
+        var ts = toDate(d.createdAt) || (d.cta_timestamp ? new Date(d.cta_timestamp) : null);
+        return !ts || ts >= cut;
       });
+    }
 
-      // Count conversions from ad_conversions collection
-      var purchaseConversions = conversionDocs.filter(function (c) { return c.conversion_action === 'purchase'; });
-      var leadConversions = conversionDocs.filter(function (c) { return c.conversion_action === 'lead'; });
+    // Count funnel stages
+    var stages = { cta_click: 0, auth_complete: 0, checkout_opened: 0, purchased: 0, checkout_abandoned: 0 };
+    var productPurchases = {};
 
-      // Revenue from ad_conversions
-      purchaseConversions.forEach(function (c) { totalRevenue += (c.value || 0); });
-
-      // Source breakdown
-      var sources = { meta: 0, google: 0, organic: 0 };
-      conversionDocs.forEach(function (c) {
-        if (c.conversion_action !== 'purchase') return;
-        if (c.platform === 'meta') sources.meta++;
-        else if (c.platform === 'google') sources.google++;
-        else sources.organic++;
-      });
-
-      // If no ad_conversions yet, use funnel data
-      var totalPurchases = Math.max(stages.purchased, purchaseConversions.length);
-      var convRate = stages.cta_click > 0 ? Math.round((stages.purchased / stages.cta_click) * 100) : 0;
-
-      // Render stat cards
-      if (purchasesEl) purchasesEl.textContent = totalPurchases;
-      if (revenueEl) revenueEl.textContent = totalRevenue > 0 ? totalRevenue.toLocaleString('da-DK') + ' DKK' : '—';
-      if (leadsEl) leadsEl.textContent = Math.max(stages.cta_click, leadConversions.length);
-      if (rateEl) rateEl.textContent = convRate + '%';
-
-      // Render funnel
-      if (funnelEl) {
-        var funnelStages = [
-          { label: t('conv_funnel_cta'), count: stages.cta_click, color: '#E8E4E0' },
-          { label: t('conv_funnel_auth'), count: stages.auth_complete, color: '#ff9966' },
-          { label: t('conv_funnel_checkout'), count: stages.checkout_opened, color: '#f75c03' },
-          { label: t('conv_funnel_purchased'), count: stages.purchased, color: '#22c55e' },
-          { label: t('conv_funnel_abandoned'), count: stages.checkout_abandoned, color: '#dc2626' }
-        ];
-        var maxCount = Math.max.apply(null, funnelStages.map(function (s) { return s.count; })) || 1;
-
-        funnelEl.innerHTML = funnelStages.map(function (s) {
-          var pct = Math.max(Math.round((s.count / maxCount) * 100), 4);
-          var dropoff = '';
-          return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">' +
-            '<span style="min-width:120px;font-size:13px;color:#6F6A66;text-align:right">' + s.label + '</span>' +
-            '<div style="flex:1;background:#F5F3F0;border-radius:6px;height:28px;overflow:hidden">' +
-              '<div style="width:' + pct + '%;height:100%;background:' + s.color + ';border-radius:6px;display:flex;align-items:center;padding:0 8px;min-width:40px">' +
-                '<span style="font-size:12px;font-weight:700;color:' + (s.color === '#E8E4E0' ? '#0F0F0F' : '#fff') + '">' + s.count + '</span>' +
-              '</div>' +
-            '</div>' +
-          '</div>';
-        }).join('');
+    filteredFunnel.forEach(function (d) {
+      if (d.cta_click_at || (d.history && d.history.some(function (h) { return h.stage === 'cta_click'; }))) stages.cta_click++;
+      if (d.auth_complete_at) stages.auth_complete++;
+      if (d.checkout_opened_at) stages.checkout_opened++;
+      if (d.funnel_stage === 'purchased') {
+        stages.purchased++;
+        var pName = d.programName || d.programId || 'Unknown';
+        productPurchases[pName] = (productPurchases[pName] || 0) + 1;
       }
-
-      // Render products breakdown
-      if (productsEl) {
-        var prodKeys = Object.keys(productPurchases).sort(function (a, b) { return productPurchases[b] - productPurchases[a]; });
-        if (!prodKeys.length) {
-          productsEl.innerHTML = '<p class="yb-admin__empty" style="font-size:13px">' + t('conv_no_data') + '</p>';
-        } else {
-          productsEl.innerHTML = prodKeys.map(function (name) {
-            return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E8E4E0;font-size:13px">' +
-              '<span style="color:#0F0F0F">' + esc(name) + '</span>' +
-              '<span style="font-weight:700;color:#f75c03">' + productPurchases[name] + '</span>' +
-            '</div>';
-          }).join('');
-        }
-      }
-
-      // Render source breakdown
-      if (sourcesEl) {
-        var totalSourced = sources.meta + sources.google + sources.organic;
-        if (!totalSourced) {
-          sourcesEl.innerHTML = '<p class="yb-admin__empty" style="font-size:13px">' + t('conv_no_data') + '</p>';
-        } else {
-          var sourceRows = [
-            { label: t('conv_platform_meta'), count: sources.meta, color: '#1877F2' },
-            { label: t('conv_platform_google'), count: sources.google, color: '#34A853' },
-            { label: t('conv_platform_organic'), count: sources.organic, color: '#6F6A66' }
-          ];
-          sourcesEl.innerHTML = sourceRows.map(function (s) {
-            var pct = Math.round((s.count / totalSourced) * 100);
-            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #E8E4E0;font-size:13px">' +
-              '<span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:' + s.color + ';display:inline-block"></span>' + s.label + '</span>' +
-              '<span style="font-weight:700">' + s.count + ' <span style="color:#6F6A66;font-weight:400">(' + pct + '%)</span></span>' +
-            '</div>';
-          }).join('');
-        }
-      }
-
-      // Render recent conversions
-      if (recentEl) {
-        // Combine funnel purchases + ad_conversions, sorted by time
-        var recentItems = [];
-
-        filteredFunnel.filter(function (d) { return d.funnel_stage === 'purchased'; }).forEach(function (d) {
-          var ts = d.purchased_at;
-          if (ts && ts.toDate) ts = ts.toDate();
-          else if (ts && typeof ts === 'string') ts = new Date(ts);
-          else ts = d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate() : new Date();
-          recentItems.push({
-            type: 'purchase',
-            name: d.programName || d.programId || '—',
-            email: d.email || '—',
-            time: ts,
-            source: 'funnel'
-          });
-        });
-
-        purchaseConversions.forEach(function (c) {
-          recentItems.push({
-            type: 'purchase',
-            name: c.content_name || c.conversion_action,
-            email: c.hashed_email ? '(hashed)' : '—',
-            time: new Date(c.created_at || c.conversion_time),
-            source: c.platform || '—'
-          });
-        });
-
-        // Sort newest first, limit 20
-        recentItems.sort(function (a, b) { return b.time - a.time; });
-        recentItems = recentItems.slice(0, 20);
-
-        if (!recentItems.length) {
-          recentEl.innerHTML = '<p class="yb-admin__empty">' + t('conv_no_data') + '</p>';
-        } else {
-          recentEl.innerHTML = '<table class="yb-admin__table" style="font-size:13px"><thead><tr>' +
-            '<th>Type</th><th>Product</th><th>Email</th><th>Source</th><th>Date</th>' +
-          '</tr></thead><tbody>' +
-          recentItems.map(function (item) {
-            var badge = item.type === 'purchase'
-              ? '<span style="background:#22c55e;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">Purchase</span>'
-              : '<span style="background:#3b82f6;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">Lead</span>';
-            var sourceBadge = item.source === 'meta'
-              ? '<span style="color:#1877F2;font-weight:600">Meta</span>'
-              : item.source === 'google'
-              ? '<span style="color:#34A853;font-weight:600">Google</span>'
-              : '<span style="color:#6F6A66">' + esc(item.source) + '</span>';
-            return '<tr>' +
-              '<td>' + badge + '</td>' +
-              '<td>' + esc(item.name) + '</td>' +
-              '<td style="color:#6F6A66">' + esc(item.email) + '</td>' +
-              '<td>' + sourceBadge + '</td>' +
-              '<td style="color:#6F6A66">' + item.time.toLocaleDateString('da-DK') + ' ' + item.time.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) + '</td>' +
-            '</tr>';
-          }).join('') +
-          '</tbody></table>';
-        }
-      }
-    }).catch(function (err) {
-      console.error('Conversion analytics error:', err);
-      var errMsg = '<p class="yb-admin__empty" style="color:#dc2626">' + t('error_load') + '</p>';
-      if (funnelEl) funnelEl.innerHTML = errMsg;
-      if (productsEl) productsEl.innerHTML = errMsg;
-      if (sourcesEl) sourcesEl.innerHTML = errMsg;
-      if (recentEl) recentEl.innerHTML = errMsg;
-      [purchasesEl, revenueEl, leadsEl, rateEl].forEach(function (el) {
-        if (el) el.textContent = '—';
-      });
+      if (d.funnel_stage === 'checkout_abandoned') stages.checkout_abandoned++;
     });
+
+    // Source breakdown from ad_conversions
+    var filteredConv = conversionDocs;
+    if (cut) {
+      filteredConv = conversionDocs.filter(function (c) {
+        var d = toDate(c.created_at) || (c.created_at ? new Date(c.created_at) : null);
+        return !d || d >= cut;
+      });
+    }
+    var sources = { meta: 0, google: 0, organic: 0 };
+    filteredConv.forEach(function (c) {
+      if (c.conversion_action !== 'purchase') return;
+      if (c.platform === 'meta') sources.meta++;
+      else if (c.platform === 'google') sources.google++;
+      else sources.organic++;
+    });
+
+    var title = el.querySelector('.ya-title');
+    var html = title ? title.outerHTML : '';
+
+    // Purchase funnel
+    html += '<h4 class="ya-subtitle">' + t('conv_funnel_title') + '</h4>';
+    var funnelStages = [
+      { label: t('conv_funnel_cta'), count: stages.cta_click, color: '#E8E4E0', textDark: true },
+      { label: t('conv_funnel_auth'), count: stages.auth_complete, color: '#ff9966' },
+      { label: t('conv_funnel_checkout'), count: stages.checkout_opened, color: '#f75c03' },
+      { label: t('conv_funnel_purchased'), count: stages.purchased, color: '#22c55e' },
+      { label: t('conv_funnel_abandoned'), count: stages.checkout_abandoned, color: '#dc2626' }
+    ];
+    var maxC = Math.max.apply(null, funnelStages.map(function (s) { return s.count; })) || 1;
+
+    html += '<div class="ya-funnel" style="margin-bottom:24px">';
+    funnelStages.forEach(function (s) {
+      var w = Math.max(Math.round((s.count / maxC) * 100), 6);
+      html += '<div class="ya-funnel__row">' +
+        '<span class="ya-funnel__label">' + s.label + '</span>' +
+        '<div class="ya-funnel__track">' +
+          '<div class="ya-funnel__bar" style="width:' + w + '%;background:' + s.color + '">' +
+            '<span class="ya-funnel__count' + (s.textDark ? ' ya-funnel__count--dark' : '') + '">' + s.count + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+
+    // Products + Sources side by side
+    html += '<div class="ya-split">';
+
+    // By product
+    html += '<div><h4 class="ya-subtitle">' + t('conv_by_product') + '</h4>';
+    var prodKeys = Object.keys(productPurchases).sort(function (a, b) { return productPurchases[b] - productPurchases[a]; });
+    if (!prodKeys.length) {
+      html += '<p class="yb-admin__empty" style="font-size:13px">' + t('conv_no_data') + '</p>';
+    } else {
+      prodKeys.forEach(function (name) {
+        html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E8E4E0;font-size:13px">' +
+          '<span>' + esc(name) + '</span><span style="font-weight:700;color:#f75c03">' + productPurchases[name] + '</span></div>';
+      });
+    }
+    html += '</div>';
+
+    // By source
+    html += '<div><h4 class="ya-subtitle">' + t('conv_by_source') + '</h4>';
+    var totalSourced = sources.meta + sources.google + sources.organic;
+    if (!totalSourced) {
+      html += '<p class="yb-admin__empty" style="font-size:13px">' + t('conv_no_data') + '</p>';
+    } else {
+      var srcRows = [
+        { label: 'Meta Ads', count: sources.meta, color: '#1877F2' },
+        { label: 'Google Ads', count: sources.google, color: '#34A853' },
+        { label: t('conv_platform_organic'), count: sources.organic, color: '#6F6A66' }
+      ];
+      srcRows.forEach(function (s) {
+        var p = Math.round((s.count / totalSourced) * 100);
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #E8E4E0;font-size:13px">' +
+          '<span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:' + s.color + ';display:inline-block"></span>' + s.label + '</span>' +
+          '<span style="font-weight:700">' + s.count + ' <span style="color:#6F6A66;font-weight:400">(' + p + '%)</span></span></div>';
+      });
+    }
+    html += '</div></div>';
+
+    // Recent conversions
+    html += '<h4 class="ya-subtitle" style="margin-top:24px">' + t('conv_recent') + '</h4>';
+    var recentItems = [];
+    filteredFunnel.filter(function (d) { return d.funnel_stage === 'purchased'; }).forEach(function (d) {
+      var ts = toDate(d.purchased_at) || toDate(d.updatedAt) || new Date();
+      recentItems.push({ name: d.programName || d.programId || '—', email: d.email || '—', time: ts, source: 'funnel' });
+    });
+    filteredConv.filter(function (c) { return c.conversion_action === 'purchase'; }).forEach(function (c) {
+      recentItems.push({ name: c.content_name || c.conversion_action, email: c.hashed_email ? '(hashed)' : '—', time: new Date(c.created_at || c.conversion_time), source: c.platform || '—' });
+    });
+    recentItems.sort(function (a, b) { return b.time - a.time; });
+    recentItems = recentItems.slice(0, 20);
+
+    if (!recentItems.length) {
+      html += '<p class="yb-admin__empty">' + t('conv_no_data') + '</p>';
+    } else {
+      html += '<div class="yb-admin__table-wrap"><table class="yb-admin__table" style="font-size:13px"><thead><tr>' +
+        '<th>Product</th><th>Email</th><th>Source</th><th>Date</th></tr></thead><tbody>';
+      recentItems.forEach(function (item) {
+        var srcBadge = item.source === 'meta' ? '<span style="color:#1877F2;font-weight:600">Meta</span>'
+          : item.source === 'google' ? '<span style="color:#34A853;font-weight:600">Google</span>'
+          : '<span style="color:#6F6A66">' + esc(item.source) + '</span>';
+        html += '<tr><td>' + esc(item.name) + '</td><td style="color:#6F6A66">' + esc(item.email) + '</td>' +
+          '<td>' + srcBadge + '</td>' +
+          '<td style="color:#6F6A66">' + item.time.toLocaleDateString('da-DK') + ' ' + item.time.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) + '</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    el.innerHTML = html;
   }
 
   // Period filter buttons
@@ -1454,7 +1682,11 @@
       b.classList.remove('yb-admin__btn--active');
     });
     btn.classList.add('yb-admin__btn--active');
-    loadConversionAnalytics();
+    // Re-render period-sensitive rows (cache already populated)
+    renderRow1KPI();
+    renderRow3Sources();
+    renderRow5Email();
+    renderRow7Revenue();
   });
 
   /* ═══════════════════════════════════════

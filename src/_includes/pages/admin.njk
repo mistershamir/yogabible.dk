@@ -357,113 +357,53 @@
          ═══════════════════════════════════ #}
       <div class="yb-admin__tab-panel is-active" data-yb-admin-panel="analytics">
 
-        {# ── SECTION 1: Conversion & Ad Tracking ── #}
-        <div class="yb-admin__view-head">
-          <h2>{{ t.conv_title }}</h2>
-          <p style="color:#6F6A66;margin:4px 0 0">{{ t.conv_subtitle }}</p>
-        </div>
-
-        {# Period filter #}
-        <div style="display:flex;gap:8px;margin:12px 0 16px;flex-wrap:wrap">
-          <button class="yb-admin__btn yb-admin__btn--sm yb-admin__conv-period" data-conv-days="7">{{ t.conv_period_7d }}</button>
-          <button class="yb-admin__btn yb-admin__btn--sm yb-admin__btn--active yb-admin__conv-period" data-conv-days="30">{{ t.conv_period_30d }}</button>
+        {# ── Period Filter ── #}
+        <div class="ya-period">
+          <button class="yb-admin__btn yb-admin__btn--sm yb-admin__btn--active yb-admin__conv-period" data-conv-days="7">{{ t.conv_period_7d }}</button>
+          <button class="yb-admin__btn yb-admin__btn--sm yb-admin__conv-period" data-conv-days="30">{{ t.conv_period_30d }}</button>
           <button class="yb-admin__btn yb-admin__btn--sm yb-admin__conv-period" data-conv-days="90">{{ t.conv_period_90d }}</button>
           <button class="yb-admin__btn yb-admin__btn--sm yb-admin__conv-period" data-conv-days="0">{{ t.conv_period_all }}</button>
         </div>
 
-        {# Conversion stat cards #}
-        <div class="yb-admin__stats-grid">
-          <div class="yb-admin__stat-card">
-            <span class="yb-admin__stat-value" id="yb-conv-purchases">&mdash;</span>
-            <span class="yb-admin__stat-label">{{ t.conv_total_purchases }}</span>
-          </div>
-          <div class="yb-admin__stat-card">
-            <span class="yb-admin__stat-value" id="yb-conv-revenue">&mdash;</span>
-            <span class="yb-admin__stat-label">{{ t.conv_total_revenue }}</span>
-          </div>
-          <div class="yb-admin__stat-card">
-            <span class="yb-admin__stat-value" id="yb-conv-leads">&mdash;</span>
-            <span class="yb-admin__stat-label">{{ t.conv_total_leads }}</span>
-          </div>
-          <div class="yb-admin__stat-card">
-            <span class="yb-admin__stat-value" id="yb-conv-rate">&mdash;</span>
-            <span class="yb-admin__stat-label">{{ t.conv_conversion_rate }}</span>
-          </div>
+        {# ── ROW 1: KPI Stat Cards ── #}
+        <div class="ya-row" id="ya-row-kpi">
+          <div class="ya-skeleton ya-skeleton--cards"></div>
         </div>
 
-        {# Purchase funnel visualization #}
-        <div class="yb-admin__section-divider"></div>
-        <div class="yb-admin__view-head">
-          <h2>{{ t.conv_funnel_title }}</h2>
-        </div>
-        <div id="yb-conv-funnel" style="margin-bottom:24px">
-          <p class="yb-admin__empty">{{ t.loading }}</p>
+        {# ── ROW 2: Lead Pipeline Funnel ── #}
+        <div class="ya-row" id="ya-row-pipeline">
+          <h3 class="ya-title">{{ t.ya_pipeline_title }}</h3>
+          <div class="ya-skeleton ya-skeleton--bars"></div>
         </div>
 
-        {# Conversions by product + by source (side by side) #}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px" class="yb-conv-split">
-          <div>
-            <h3 style="font-size:14px;margin:0 0 12px;color:#0F0F0F">{{ t.conv_by_product }}</h3>
-            <div id="yb-conv-products"><p class="yb-admin__empty">{{ t.loading }}</p></div>
-          </div>
-          <div>
-            <h3 style="font-size:14px;margin:0 0 12px;color:#0F0F0F">{{ t.conv_by_source }}</h3>
-            <div id="yb-conv-sources"><p class="yb-admin__empty">{{ t.loading }}</p></div>
-          </div>
+        {# ── ROW 3: Lead Sources ── #}
+        <div class="ya-row" id="ya-row-sources">
+          <h3 class="ya-title">{{ t.ya_sources_title }}</h3>
+          <div class="ya-skeleton ya-skeleton--split"></div>
         </div>
 
-        {# Recent conversions table #}
-        <div class="yb-admin__section-divider"></div>
-        <div class="yb-admin__view-head">
-          <h2>{{ t.conv_recent }}</h2>
-        </div>
-        <div class="yb-admin__table-wrap">
-          <div id="yb-conv-recent"><p class="yb-admin__empty">{{ t.loading }}</p></div>
+        {# ── ROW 4: Cohort Health ── #}
+        <div class="ya-row" id="ya-row-cohort">
+          <h3 class="ya-title">{{ t.ya_cohort_title }}</h3>
+          <div class="ya-skeleton ya-skeleton--table"></div>
         </div>
 
-        {# ── SECTION 2: Course Enrollment Analytics (existing) ── #}
-        <div class="yb-admin__section-divider" style="margin:32px 0"></div>
-        <div class="yb-admin__view-head">
-          <h2>{{ t.analytics_title }}</h2>
+        {# ── ROW 5: Email & Sequence Performance ── #}
+        <div class="ya-row" id="ya-row-email">
+          <h3 class="ya-title">{{ t.ya_email_title }}</h3>
+          <div class="ya-skeleton ya-skeleton--cards"></div>
         </div>
 
-        {# Stat cards grid #}
-        <div class="yb-admin__stats-grid">
-          <div class="yb-admin__stat-card">
-            <span class="yb-admin__stat-value" id="yb-admin-stat-courses">&mdash;</span>
-            <span class="yb-admin__stat-label">{{ t.analytics_total_courses }}</span>
-          </div>
-          <div class="yb-admin__stat-card">
-            <span class="yb-admin__stat-value" id="yb-admin-stat-enrollments">&mdash;</span>
-            <span class="yb-admin__stat-label">{{ t.analytics_total_enrollments }}</span>
-          </div>
-          <div class="yb-admin__stat-card">
-            <span class="yb-admin__stat-value" id="yb-admin-stat-students">&mdash;</span>
-            <span class="yb-admin__stat-label">{{ t.analytics_active_students }}</span>
-          </div>
-          <div class="yb-admin__stat-card">
-            <span class="yb-admin__stat-value" id="yb-admin-stat-progress">&mdash;</span>
-            <span class="yb-admin__stat-label">{{ t.analytics_avg_progress }}</span>
-          </div>
+        {# ── ROW 6: Lead Engagement ── #}
+        <div class="ya-row" id="ya-row-engagement">
+          <h3 class="ya-title">{{ t.ya_engagement_title }}</h3>
+          <div class="ya-skeleton ya-skeleton--cards"></div>
         </div>
 
-        {# Per-course stats table #}
-        <div class="yb-admin__section-divider"></div>
-        <div class="yb-admin__view-head">
-          <h2>{{ t.analytics_per_course }}</h2>
-        </div>
-        <div class="yb-admin__table-wrap">
-          <table class="yb-admin__table" id="yb-admin-analytics-courses">
-            <thead>
-              <tr>
-                <th>{{ t.title }}</th>
-                <th>{{ t.analytics_enrolled }}</th>
-                <th>{{ t.analytics_avg_progress }}</th>
-                <th>{{ t.toggle_status }}</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+        {# ── ROW 7: Revenue & Conversions (preserved from old dashboard) ── #}
+        <div class="ya-row" id="ya-row-revenue">
+          <h3 class="ya-title">{{ t.ya_revenue_title }}</h3>
+          <div class="ya-skeleton ya-skeleton--bars"></div>
         </div>
 
       </div>{# end analytics tab panel #}

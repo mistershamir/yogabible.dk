@@ -1464,7 +1464,58 @@
     "social_template_saved": "Skabelon gemt!",
     "social_template_use": "Brug",
     "social_template_confirm_delete": "Slet denne skabelon?",
-    "social_save_as_template": "Gem som Skabelon"
+    "social_save_as_template": "Gem som Skabelon",
+
+    "ya_pipeline_title": "Lead Pipeline",
+    "ya_sources_title": "Lead-kilder",
+    "ya_cohort_title": "Hold-status",
+    "ya_email_title": "Email & Sekvens-performance",
+    "ya_engagement_title": "Lead-engagement",
+    "ya_revenue_title": "Omsætning & Konverteringer",
+
+    "ya_kpi_new_leads": "Nye leads",
+    "ya_kpi_open_apps": "Åbne ansøgninger",
+    "ya_kpi_revenue": "Omsætning",
+    "ya_kpi_open_rate": "Email åbningsrate",
+
+    "ya_pipe_new": "Nye",
+    "ya_pipe_contacted": "Kontaktet",
+    "ya_pipe_qualified": "Kvalificeret",
+    "ya_pipe_applied": "Ansøgt",
+    "ya_pipe_accepted": "Accepteret",
+    "ya_pipe_converted": "Konverteret",
+    "ya_pipe_enrolled": "Tilmeldt",
+
+    "ya_src_website": "Hjemmeside",
+    "ya_src_manual": "Manuel",
+    "ya_src_other": "Andet",
+    "ya_week": "Uge",
+
+    "ya_cohort_program": "Program",
+    "ya_cohort_cap": "Kapacitet",
+    "ya_cohort_leads": "Leads",
+    "ya_cohort_apps": "Ansøgninger",
+    "ya_cohort_enrolled": "Tilmeldte",
+    "ya_cohort_fill": "Fyldningsgrad",
+
+    "ya_email_sent": "Emails sendt",
+    "ya_email_open_rate": "Åbningsrate",
+    "ya_email_bounce": "Bounce-rate",
+    "ya_email_click_rate": "Klikrate",
+    "ya_seq_title": "Sekvens-performance",
+    "ya_seq_name": "Sekvens",
+    "ya_seq_active": "Aktiv",
+    "ya_seq_completed": "Fuldført",
+    "ya_seq_converted": "Konverteret",
+    "ya_seq_cancelled": "Annulleret",
+    "ya_seq_completion_rate": "Fuldførelsesrate",
+    "ya_seq_conversion_rate": "Konverteringsrate",
+
+    "ya_eng_high": "Høj aktivitet",
+    "ya_eng_schedule": "Set tidsplan",
+    "ya_eng_reengaged": "Gen-engageret",
+    "ya_eng_cold": "Kolde leads (14+ dage)",
+    "ya_no_data": "Ingen data endnu."
   },
   "en": {
     "page_title": "Administration",
@@ -2931,6 +2982,57 @@
     "social_template_saved": "Template saved!",
     "social_template_use": "Use",
     "social_template_confirm_delete": "Delete this template?",
-    "social_save_as_template": "Save as Template"
+    "social_save_as_template": "Save as Template",
+
+    "ya_pipeline_title": "Lead Pipeline",
+    "ya_sources_title": "Lead Sources",
+    "ya_cohort_title": "Cohort Health",
+    "ya_email_title": "Email & Sequence Performance",
+    "ya_engagement_title": "Lead Engagement",
+    "ya_revenue_title": "Revenue & Conversions",
+
+    "ya_kpi_new_leads": "New Leads",
+    "ya_kpi_open_apps": "Open Applications",
+    "ya_kpi_revenue": "Revenue",
+    "ya_kpi_open_rate": "Email Open Rate",
+
+    "ya_pipe_new": "New",
+    "ya_pipe_contacted": "Contacted",
+    "ya_pipe_qualified": "Qualified",
+    "ya_pipe_applied": "Applied",
+    "ya_pipe_accepted": "Accepted",
+    "ya_pipe_converted": "Converted",
+    "ya_pipe_enrolled": "Enrolled",
+
+    "ya_src_website": "Website",
+    "ya_src_manual": "Manual",
+    "ya_src_other": "Other",
+    "ya_week": "Week",
+
+    "ya_cohort_program": "Program",
+    "ya_cohort_cap": "Capacity",
+    "ya_cohort_leads": "Leads",
+    "ya_cohort_apps": "Applications",
+    "ya_cohort_enrolled": "Enrolled",
+    "ya_cohort_fill": "Fill Rate",
+
+    "ya_email_sent": "Emails Sent",
+    "ya_email_open_rate": "Open Rate",
+    "ya_email_bounce": "Bounce Rate",
+    "ya_email_click_rate": "Click Rate",
+    "ya_seq_title": "Sequence Performance",
+    "ya_seq_name": "Sequence",
+    "ya_seq_active": "Active",
+    "ya_seq_completed": "Completed",
+    "ya_seq_converted": "Converted",
+    "ya_seq_cancelled": "Cancelled",
+    "ya_seq_completion_rate": "Completion Rate",
+    "ya_seq_conversion_rate": "Conversion Rate",
+
+    "ya_eng_high": "High Engagement",
+    "ya_eng_schedule": "Schedule Viewers",
+    "ya_eng_reengaged": "Re-engaged",
+    "ya_eng_cold": "Cold Leads (14+ days)",
+    "ya_no_data": "No data yet."
   }
 }
