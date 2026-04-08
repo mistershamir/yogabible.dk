@@ -770,6 +770,19 @@ async function handleProcess() {
           }
         }
 
+        // ── SMS DISABLED in sequences ─────────────────────────────────────
+        // All sequence SMS is disabled. Only the welcome SMS (sent by
+        // sms-service.js on lead creation) is allowed. Sequence steps
+        // with channel 'sms' or 'both' will only send the email part.
+        // To re-enable: remove this block and uncomment the SMS block below.
+        if (wantsSms && !wantsEmail) {
+          // SMS-only step — skip entirely, advance to next
+          console.log('[sequences] SMS-only step ' + enrollment.current_step + ' for ' + enrollment.lead_id + ' — SMS disabled in sequences, skipping');
+        }
+        wantsSms = false;
+        hasSmsContent = false;
+
+        /* ── DISABLED: Sequence SMS sending ──────────────────────────────
         // Send SMS — with language branching (sms_message_en, sms_message_de)
         if (wantsSms) {
           var selectedSms;
@@ -837,6 +850,7 @@ async function handleProcess() {
             } // end else (not already sent SMS)
           }
         }
+        ── END DISABLED SMS block ──────────────────────────────────── */
 
         // Set accurate step result
         if (emailSent || smsSent) {
