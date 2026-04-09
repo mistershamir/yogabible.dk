@@ -78,8 +78,9 @@
       var roleDetails = d.roleDetails || {};
       var permissions = [];
 
-      if (isSuspended) {
-        // Suspended: strip all permissions, treat as basic member
+      var suspensionExemptRoles = ['admin', 'owner', 'instructor'];
+      if (isSuspended && suspensionExemptRoles.indexOf(role) === -1) {
+        // Suspended: strip permissions for non-privileged roles only
         role = 'member';
         permissions = [];
       } else if (window.YBRoles) {
@@ -126,7 +127,7 @@
         var lastName = reg.lastName || nameParts.slice(1).join(' ') || '';
         var consents = reg.consents || null;
 
-        // Create new Firestore profile
+        // Create new Firestore profile (no role field — reading code defaults to 'member')
         var profileData = {
           uid: user.uid,
           email: user.email,
@@ -134,8 +135,6 @@
           lastName: lastName,
           name: displayName,
           phone: '',
-          role: 'member',
-          roleDetails: {},
           membershipTier: 'free',
           membershipExpiresAt: null,
           mindbodyClientId: null,

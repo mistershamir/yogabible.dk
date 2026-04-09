@@ -516,8 +516,6 @@ exports.handler = async (event) => {
             firstName: appDoc.first_name,
             lastName: appDoc.last_name,
             phone: appDoc.phone,
-            role: 'member',
-            roleDetails: {},
             createdAt: new Date(),
             updatedAt: new Date()
           }, { merge: true });

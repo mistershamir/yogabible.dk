@@ -336,11 +336,17 @@ exports.handler = async (event) => {
                 firstName: app.first_name || '',
                 lastName: app.last_name || '',
                 phone: app.phone || '',
-                role: 'member',
-                roleDetails: {},
                 createdAt: new Date(),
                 updatedAt: new Date()
               }, { merge: true });
+              await db.collection('role_audit').add({
+                uid: firebaseUid,
+                email,
+                previousRole: 'none',
+                newRole: 'member',
+                trigger: 'migrate-applications',
+                created_at: new Date()
+              });
             }
             report.user_docs_created++;
             detail.actions.push('Created Firestore user doc');

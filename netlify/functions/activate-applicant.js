@@ -233,8 +233,11 @@ exports.handler = async function (event) {
       targetDetails.mentorship = true;
     }
 
+    var previousRole = 'none';
+    var actualNewRole = targetRole;
+
     if (!userDoc.exists) {
-      // New user doc
+      // New user doc — safe to set role directly (no existing role to overwrite)
       await userRef.set({
         uid: firebaseUid,
         email: email,
@@ -246,7 +249,7 @@ exports.handler = async function (event) {
         roleDetails: targetDetails,
         createdAt: new Date(),
         updatedAt: new Date()
-      }, { merge: true });
+      });
       report.actions.push('Created user doc with role: ' + targetRole);
     } else {
       // Existing user — merge role (never downgrade)
@@ -255,6 +258,7 @@ exports.handler = async function (event) {
       var currentDetails = existingData.roleDetails || {};
       var currentPriority = getRolePriority(currentRole);
       var targetPriority = getRolePriority(targetRole);
+      previousRole = currentRole;
 
       var finalRole = currentRole;
       var finalDetails = Object.assign({}, currentDetails);
@@ -279,8 +283,10 @@ exports.handler = async function (event) {
 
       if (changed) {
         await userRef.update({ role: finalRole, roleDetails: finalDetails, updatedAt: new Date() });
+        actualNewRole = finalRole;
         report.actions.push('Updated role: ' + currentRole + ' → ' + finalRole);
       } else {
+        actualNewRole = currentRole;
         report.actions.push('Role unchanged: ' + currentRole);
       }
     }
@@ -322,7 +328,9 @@ exports.handler = async function (event) {
     await db.collection('role_audit').add({
       uid: firebaseUid,
       email: email,
-      newRole: targetRole,
+      previousRole: previousRole,
+      newRole: actualNewRole,
+      requestedRole: targetRole,
       newRoleDetails: targetDetails,
       trigger: 'activate-applicant',
       applicationId: applicationId,
