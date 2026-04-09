@@ -171,10 +171,10 @@ async function sendWelcomeSMS(leadData, leadDocId) {
       return { success: true, reason: 'already_sent' };
     }
   } catch (dedupErr) {
-    // BLOCKING — if dedup check fails (e.g. missing Firestore index), do NOT send.
-    // Sending without dedup risks duplicates. Better to skip and fix the index.
-    console.error('[sms] Welcome SMS dedup check FAILED — skipping send to prevent duplicates:', dedupErr.message);
-    return { success: false, reason: 'dedup_check_failed', error: dedupErr.message };
+    // Non-blocking — if dedup check fails (e.g. missing Firestore composite index),
+    // proceed with sending. A duplicate SMS is far better than zero SMS.
+    // The dedup is a safety net, not a gate. Fix the missing index separately.
+    console.error('[sms] Welcome SMS dedup check failed (PROCEEDING with send):', dedupErr.message);
   }
 
   // Log BEFORE send with 'pending' status — prevents dedup gaps if function crashes after send

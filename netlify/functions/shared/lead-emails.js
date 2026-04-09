@@ -224,10 +224,10 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       return { success: true, reason: 'already_sent' };
     }
   } catch (dedupErr) {
-    // BLOCKING — if dedup check fails (e.g. missing Firestore index), do NOT send.
-    // Sending without dedup risks duplicates. Better to skip and fix the index.
-    console.error('[lead-emails] Welcome dedup check FAILED — skipping send to prevent duplicates:', dedupErr.message);
-    return { success: false, reason: 'dedup_check_failed', error: dedupErr.message };
+    // Non-blocking — if dedup check fails (e.g. missing Firestore composite index),
+    // proceed with sending. A duplicate welcome email is far better than zero email.
+    // The dedup is a safety net, not a gate. Fix the missing index separately.
+    console.error('[lead-emails] Welcome dedup check failed (PROCEEDING with send):', dedupErr.message);
   }
 
   try {
