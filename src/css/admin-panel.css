@@ -2742,6 +2742,39 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
 }
 .yb-lead__subtype-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
 
+/* ── Cohort filter row (sub-sub-filter within a program type) ── */
+.yb-lead__cohort-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.3rem 0 0.3rem 0.4rem;
+  border-top: 1px dashed #E8E4E0;
+}
+.yb-lead__cohort-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+.yb-lead__cohort-chip {
+  background: #F5F3F0;
+  border: 1px solid #E8E4E0;
+  border-radius: 16px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  color: #0F0F0F;
+  line-height: 1.3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.yb-lead__cohort-chip:hover { border-color: #f75c03; background: #fff; }
+.yb-lead__cohort-chip.is-active { background: #ff9966; color: #fff; border-color: #ff9966; }
+.yb-lead__cohort-chip .yb-lead__cohort-count {
+  font-size: 0.65rem;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
 /* ── SMS Compose ── */
 .yb-lead__campaign-sms-compose {
   max-width: 500px;

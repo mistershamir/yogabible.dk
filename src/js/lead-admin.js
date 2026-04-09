@@ -84,6 +84,7 @@
   var filterTypes = [];    // multi-select array
   var filterSubType = '';      // client-side sub-filter value
   var filterSubTypeField = ''; // which lead field to match filterSubType against
+  var filterCohort = '';       // cohort-level filter within a program sub-type
   var filterSource = '';
   var filterPriority = '';
   var filterTemperature = '';
@@ -605,7 +606,7 @@
   /* ══════════════════════════════════════════
      RENDER LEAD TABLE
      ══════════════════════════════════════════ */
-  function getFilteredLeads() {
+  function getFilteredLeads(skipCohort) {
     var filtered = leads;
 
     // Hide converted/existing-applicant unless explicitly filtered
@@ -645,6 +646,11 @@
         var prog = (l.program || '').toLowerCase();
         return prog.indexOf(st) !== -1;
       });
+    }
+
+    // Cohort filter — further narrows within a program sub-type
+    if (!skipCohort && filterCohort) {
+      filtered = filtered.filter(function (l) { return matchesCohort(l, filterCohort); });
     }
 
     if (searchTerm) {
@@ -739,6 +745,71 @@
         var fieldAttr = opt.field ? ' data-subtype-field="' + esc(opt.field) + '"' : '';
         return '<button type="button" class="yb-lead__campaign-chip' + active + '"' +
           ' data-subtype="' + esc(opt.match) + '"' + fieldAttr + '>' + esc(opt.label) + '</button>';
+      }).join('');
+    row.hidden = false;
+  }
+
+  // ── Cohort-level filter (tier 3) ──────────────────────────────────────
+
+  var COHORT_OPTIONS = {
+    '4-week': [
+      { id: '4w-apr',      label: 'April' },
+      { id: '4w-jul',      label: 'July' },
+      { id: '4w-jul-dk',   label: 'July DK' },
+      { id: '4w-jul-intl', label: 'July Intl' }
+    ],
+    '18-week':     [{ id: '18w-spring', label: 'Mar–Jun' }],
+    '18-week-aug': [{ id: '18w-autumn', label: 'Aug–Dec' }],
+    '8-week':      [{ id: '8w-mayjun',  label: 'May–Jun' }]
+  };
+
+  function isLeadDK(lead) {
+    var c = (lead.country || '').toUpperCase();
+    return !c || c === 'DK' || c === 'DENMARK' || c === 'DANMARK';
+  }
+
+  function matchesCohort(lead, cohortId) {
+    var ptype = (lead.ytt_program_type || '').toLowerCase();
+    switch (cohortId) {
+      case '4w-apr':      return ptype.indexOf('4-week') !== -1 && ptype.indexOf('4-week-jul') === -1;
+      case '4w-jul':      return ptype.indexOf('4-week-jul') !== -1;
+      case '4w-jul-dk':   return ptype.indexOf('4-week-jul') !== -1 && isLeadDK(lead);
+      case '4w-jul-intl': return ptype.indexOf('4-week-jul') !== -1 && !isLeadDK(lead);
+      case '18w-spring':  return ptype.indexOf('18-week') !== -1 && ptype.indexOf('18-week-aug') === -1;
+      case '18w-autumn':  return ptype.indexOf('18-week-aug') !== -1;
+      case '8w-mayjun':   return ptype.indexOf('8-week') !== -1;
+      default: return true;
+    }
+  }
+
+  function renderCohortFilter() {
+    var row = $('yb-lead-cohort-row');
+    var chipsEl = $('yb-lead-cohort-chips');
+    if (!row || !chipsEl) return;
+
+    var options = filterSubType ? (COHORT_OPTIONS[filterSubType] || null) : null;
+    if (!options || options.length === 0) {
+      row.hidden = true;
+      chipsEl.innerHTML = '';
+      return;
+    }
+
+    // Count leads per cohort from the sub-type-filtered dataset
+    var subFiltered = getFilteredLeads(true); // pass true to skip cohort filter
+    var counts = {};
+    options.forEach(function (opt) { counts[opt.id] = 0; });
+    subFiltered.forEach(function (lead) {
+      options.forEach(function (opt) {
+        if (matchesCohort(lead, opt.id)) counts[opt.id]++;
+      });
+    });
+
+    chipsEl.innerHTML = '<span class="yb-lead__subtype-label">Cohort:</span>' +
+      options.map(function (opt) {
+        var active = filterCohort === opt.id ? ' is-active' : '';
+        return '<button type="button" class="yb-lead__cohort-chip' + active + '"' +
+          ' data-cohort="' + esc(opt.id) + '">' +
+          esc(opt.label) + ' <span class="yb-lead__cohort-count">(' + counts[opt.id] + ')</span></button>';
       }).join('');
     row.hidden = false;
   }
@@ -5133,8 +5204,11 @@
         if (idx !== -1) filterTypes.splice(idx, 1); else filterTypes.push(val);
         filterSubType = '';
         filterSubTypeField = '';
+        filterCohort = '';
         renderLeadFilterChips();
         renderSubTypeFilter(filterTypes.length === 1 ? filterTypes[0] : '');
+        var cohortRow3 = $('yb-lead-cohort-row');
+        if (cohortRow3) cohortRow3.hidden = true;
         loadLeads();
       });
     }
@@ -5150,6 +5224,7 @@
         filterTemperature = '';
         filterSubType = '';
         filterSubTypeField = '';
+        filterCohort = '';
         var sel; // reset compact selects
         sel = $('yb-lead-source-filter'); if (sel) sel.value = '';
         sel = $('yb-lead-priority-filter'); if (sel) sel.value = '';
@@ -5157,6 +5232,8 @@
         renderLeadFilterChips();
         var subtypeRow2 = $('yb-lead-subtype-row');
         if (subtypeRow2) subtypeRow2.hidden = true;
+        var cohortRow2 = $('yb-lead-cohort-row');
+        if (cohortRow2) cohortRow2.hidden = true;
         loadLeads();
       });
     }
@@ -5175,8 +5252,25 @@
           filterSubType = val;
           filterSubTypeField = chip.getAttribute('data-subtype-field') || '';
         }
+        filterCohort = ''; // reset cohort when sub-type changes
         subtypeRow.querySelectorAll('[data-subtype]').forEach(function (c) {
           c.classList.toggle('is-active', c.getAttribute('data-subtype') === filterSubType);
+        });
+        renderCohortFilter();
+        renderLeadView();
+      });
+    }
+
+    // Cohort filter chips
+    var cohortRow = $('yb-lead-cohort-row');
+    if (cohortRow) {
+      cohortRow.addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-cohort]');
+        if (!chip) return;
+        var val = chip.getAttribute('data-cohort');
+        filterCohort = (filterCohort === val) ? '' : val;
+        cohortRow.querySelectorAll('[data-cohort]').forEach(function (c) {
+          c.classList.toggle('is-active', c.getAttribute('data-cohort') === filterCohort);
         });
         renderLeadView();
       });
