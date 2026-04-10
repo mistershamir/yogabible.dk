@@ -23,6 +23,11 @@ exports.handler = async (event) => {
     return jsonResponse(200, { ok: true, catalog, count: catalog.length });
   } catch (error) {
     console.error('Catalog error:', error);
-    return jsonResponse(500, { ok: false, error: 'System error' });
+    return jsonResponse(500, {
+      ok: false,
+      error: 'System error',
+      detail: error && error.message ? error.message : String(error),
+      code: error && error.code ? error.code : undefined
+    });
   }
 };

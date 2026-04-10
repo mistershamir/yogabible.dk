@@ -62,30 +62,49 @@ exports.handler = async function(event) {
         return c.Email && c.Email.toLowerCase() === params.email.toLowerCase();
       });
 
-      if (clients.length > 0) {
-        var client = clients[0];
-        return jsonResponse(200, {
-          found: true,
-          client: {
-            id: client.Id,
-            firstName: client.FirstName,
-            lastName: client.LastName,
-            email: client.Email,
-            phone: client.MobilePhone || client.HomePhone || '',
-            birthDate: client.BirthDate || null,
-            status: client.Status,
-            active: client.Active,
-            membershipName: client.MembershipIcon ? client.MembershipIcon.Name : null,
-            liability: client.Liability ? {
-              isReleased: client.Liability.IsReleased || false,
-              agreementDate: client.Liability.AgreementDate || null,
-              releasedBy: client.Liability.ReleasedBy
-            } : { isReleased: false, agreementDate: null, releasedBy: null }
-          }
+      // Filter to active clients only — archived/deleted clients cannot book or purchase
+      var activeClients = clients.filter(function(c) { return c.Active === true; });
+
+      console.log('[mb-client] Email search:', params.email, 'results:', clients.length, 'active:', activeClients.length);
+
+      if (activeClients.length === 0) {
+        if (clients.length > 0) {
+          // Matches exist but none are active — user has archived account(s) only
+          return jsonResponse(200, { found: false, client: null, reason: 'no_active_client' });
+        }
+        return jsonResponse(200, { found: false, client: null });
+      }
+
+      // Multiple active matches: pick the most recently modified one
+      if (activeClients.length > 1) {
+        console.log('[mb-client] Multiple active clients for', params.email, '— picking most recent LastModifiedDateTime');
+        activeClients.sort(function(a, b) {
+          var ta = a.LastModifiedDateTime ? Date.parse(a.LastModifiedDateTime) : 0;
+          var tb = b.LastModifiedDateTime ? Date.parse(b.LastModifiedDateTime) : 0;
+          return tb - ta;
         });
       }
 
-      return jsonResponse(200, { found: false, client: null });
+      var client = activeClients[0];
+      return jsonResponse(200, {
+        found: true,
+        client: {
+          id: client.Id,
+          firstName: client.FirstName,
+          lastName: client.LastName,
+          email: client.Email,
+          phone: client.MobilePhone || client.HomePhone || '',
+          birthDate: client.BirthDate || null,
+          status: client.Status,
+          active: client.Active,
+          membershipName: client.MembershipIcon ? client.MembershipIcon.Name : null,
+          liability: client.Liability ? {
+            isReleased: client.Liability.IsReleased || false,
+            agreementDate: client.Liability.AgreementDate || null,
+            releasedBy: client.Liability.ReleasedBy
+          } : { isReleased: false, agreementDate: null, releasedBy: null }
+        }
+      });
     } catch (err) {
       console.error('mb-client GET error:', err);
       return jsonResponse(err.status || 500, { error: err.message });
