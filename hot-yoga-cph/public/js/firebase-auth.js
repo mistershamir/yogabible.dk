@@ -122,35 +122,37 @@
     });
   }
 
-  function createMindbodyClient(firstName, lastName, email) {
+  function attemptCreateMindbodyClient(firstName, lastName, email) {
     // ALWAYS check if client exists first to prevent duplicates
-    fetch('/.netlify/functions/mb-client?email=' + encodeURIComponent(email))
+    return fetch('/.netlify/functions/mb-client?email=' + encodeURIComponent(email))
       .then(function(res) { return res.json(); })
       .then(function(data) {
         if (data.found && data.client && data.client.id) {
           // Client already exists in Mindbody — link, don't create duplicate
           var mbId = String(data.client.id);
-          storeMindbodyClientId(mbId);
-          console.log('Mindbody client found (existing):', mbId);
-
-          // Pull name/phone/DOB from existing MB profile into Firestore
           var user = auth.currentUser;
-          if (user) {
-            var updates = {
-              mindbodyClientId: mbId,
-              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            if (data.client.firstName && data.client.lastName) {
-              updates.firstName = data.client.firstName;
-              updates.lastName = data.client.lastName;
-              updates.name = data.client.firstName + ' ' + data.client.lastName;
-              user.updateProfile({ displayName: data.client.firstName + ' ' + data.client.lastName });
-            }
-            if (data.client.phone) updates.phone = data.client.phone;
-            if (data.client.birthDate) updates.dateOfBirth = data.client.birthDate;
-            db.collection('users').doc(user.uid).update(updates);
+          if (!user) return { id: mbId };
+
+          // Pull name/phone/DOB from existing MB profile into Firestore (awaited)
+          var updates = {
+            mindbodyClientId: mbId,
+            mindbodyLinkFailed: firebase.firestore.FieldValue.delete(),
+            mindbodyLinkFailedReason: firebase.firestore.FieldValue.delete(),
+            mindbodyLinkFailedAt: firebase.firestore.FieldValue.delete(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          if (data.client.firstName && data.client.lastName) {
+            updates.firstName = data.client.firstName;
+            updates.lastName = data.client.lastName;
+            updates.name = data.client.firstName + ' ' + data.client.lastName;
+            user.updateProfile({ displayName: data.client.firstName + ' ' + data.client.lastName });
           }
-          return;
+          if (data.client.phone) updates.phone = data.client.phone;
+          if (data.client.birthDate) updates.dateOfBirth = data.client.birthDate;
+          return db.collection('users').doc(user.uid).set(updates, { merge: true }).then(function() {
+            console.log('Mindbody client found (existing):', mbId);
+            return { id: mbId, linked: true };
+          });
         }
 
         // No existing client — create new one
@@ -160,15 +162,50 @@
           body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email })
         }).then(function(res) {
           return res.json().then(function(createData) {
-            if (createData.client && (createData.client.id || createData.client.Id)) {
-              var newId = String(createData.client.id || createData.client.Id);
-              storeMindbodyClientId(newId);
-              console.log('Mindbody client created:', newId);
+            var newId = createData && createData.client && (createData.client.id || createData.client.Id);
+            if (!newId) {
+              throw new Error('mb-client POST returned no client id');
             }
+            return { id: String(newId) };
           });
         });
-      }).catch(function(err) {
-        console.warn('Mindbody client sync failed:', err);
+      });
+  }
+
+  function createMindbodyClient(firstName, lastName, email) {
+    return attemptCreateMindbodyClient(firstName, lastName, email)
+      .catch(function(err) {
+        console.warn('[firebase-auth] createMindbodyClient attempt 1 failed:', err);
+        return new Promise(function(resolve) {
+          setTimeout(function() {
+            attemptCreateMindbodyClient(firstName, lastName, email).then(resolve, function(err2) {
+              console.error('[firebase-auth] createMindbodyClient attempt 2 failed:', err2);
+              resolve({ failed: true, error: err2 });
+            });
+          }, 2000);
+        });
+      })
+      .then(function(result) {
+        if (result && result.id && !result.linked) {
+          storeMindbodyClientId(result.id);
+          console.log('Mindbody client created:', result.id);
+          return result;
+        }
+        if (result && result.linked) {
+          // Existing-client update already persisted the ID
+          return result;
+        }
+        // Both attempts failed — flag the user so admin can follow up
+        var user = auth.currentUser;
+        if (user) {
+          db.collection('users').doc(user.uid).update({
+            mindbodyClientFailed: true,
+            mindbodyClientFailedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }).catch(function(err) {
+            console.warn('[firebase-auth] Could not set mindbodyClientFailed flag:', err);
+          });
+        }
+        return result;
       });
   }
 
@@ -176,36 +213,51 @@
     return fetch('/.netlify/functions/mb-client?email=' + encodeURIComponent(email))
       .then(function(res) { return res.json(); })
       .then(function(data) {
-        if (data.found && data.client && data.client.id) {
-          var mbId = String(data.client.id);
-          var user = auth.currentUser;
-          if (!user) return;
+        var user = auth.currentUser;
+        if (!user) return;
 
-          // Store MB client ID + pull phone/DOB if available and missing locally
+        if (!data.found || !data.client || !data.client.id) {
+          // Existing MB client not found — flag for admin follow-up so the user isn't silently orphaned
+          console.warn('[firebase-auth] No active Mindbody client for', email, 'reason:', data.reason || 'not_found');
+          return db.collection('users').doc(user.uid).update({
+            mindbodyLinkFailed: true,
+            mindbodyLinkFailedReason: data.reason || 'not_found',
+            mindbodyLinkFailedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }).catch(function(err) {
+            console.warn('[firebase-auth] Could not set mindbodyLinkFailed flag:', err);
+          });
+        }
+
+        var mbId = String(data.client.id);
+
+        // Read current profile, then persist MB ID + pulled fields in a single awaited update
+        return db.collection('users').doc(user.uid).get().then(function(doc) {
+          var d = doc.exists ? doc.data() : {};
           var updates = {
             mindbodyClientId: mbId,
+            mindbodyLinkFailed: firebase.firestore.FieldValue.delete(),
+            mindbodyLinkFailedReason: firebase.firestore.FieldValue.delete(),
+            mindbodyLinkFailedAt: firebase.firestore.FieldValue.delete(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
           };
-
-          db.collection('users').doc(user.uid).get().then(function(doc) {
-            var d = doc.exists ? doc.data() : {};
-            // Pull phone from Mindbody if user hasn't set one yet
-            if (!d.phone && data.client.phone) {
-              updates.phone = data.client.phone;
-            }
-            // Pull birthDate from Mindbody if user hasn't set one yet
-            // MB returns ISO datetime (e.g. 1990-03-15T00:00:00) — we extract YYYY-MM-DD
-            // No dd/mm vs mm/dd conflict: both systems use ISO internally
-            if (!d.dateOfBirth && data.client.birthDate) {
-              var bd = data.client.birthDate;
-              if (bd && bd.indexOf('T') !== -1) bd = bd.split('T')[0];
-              if (bd && bd !== '0001-01-01') updates.dateOfBirth = bd;
-            }
-            return db.collection('users').doc(user.uid).update(updates);
+          // Pull phone from Mindbody if user hasn't set one yet
+          if (!d.phone && data.client.phone) {
+            updates.phone = data.client.phone;
+          }
+          // Pull birthDate from Mindbody if user hasn't set one yet
+          // MB returns ISO datetime (e.g. 1990-03-15T00:00:00) — we extract YYYY-MM-DD
+          if (!d.dateOfBirth && data.client.birthDate) {
+            var bd = data.client.birthDate;
+            if (bd && bd.indexOf('T') !== -1) bd = bd.split('T')[0];
+            if (bd && bd !== '0001-01-01') updates.dateOfBirth = bd;
+          }
+          return db.collection('users').doc(user.uid).set(updates, { merge: true }).then(function() {
+            console.log('Linked existing Mindbody client:', mbId);
           });
-
-          console.log('Linked existing Mindbody client:', mbId);
-        }
+        });
+      })
+      .catch(function(err) {
+        console.warn('[firebase-auth] linkExistingMindbodyClient failed:', err);
       });
   }
 

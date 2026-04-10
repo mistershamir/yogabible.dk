@@ -1389,11 +1389,32 @@
 
   // ── 3H: Mindbody Client — find/create + stored card ─────────────────
 
+  function persistMindbodyClientId(clientId) {
+    // Write the resolved MB client ID back to the Firebase user doc so
+    // later sessions (direct booking, member area) don't re-lookup by email.
+    try {
+      if (typeof firebase === 'undefined' || !firebase.auth) return;
+      var user = firebase.auth().currentUser;
+      if (!user || !clientId) return;
+      firebase.firestore().collection('users').doc(user.uid).set({
+        mindbodyClientId: String(clientId),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).catch(function (err) {
+        console.warn('[Checkout Embed] Could not persist mindbodyClientId:', err);
+      });
+    } catch (ex) {
+      console.warn('[Checkout Embed] persistMindbodyClientId error:', ex);
+    }
+  }
+
   function findOrCreateClient(firstName, lastName, email, phone) {
     return fetch(API_BASE + '/mb-client?email=' + encodeURIComponent(email))
       .then(function (res) { return res.json(); })
       .then(function (data) {
-        if (data.found && data.client) return data.client.id;
+        if (data.found && data.client) {
+          persistMindbodyClientId(data.client.id);
+          return data.client.id;
+        }
         // No existing client — create one (triggers MB welcome email)
         return fetch(API_BASE + '/mb-client', {
           method: 'POST',
@@ -1407,7 +1428,10 @@
         })
         .then(function (res) { return res.json(); })
         .then(function (d) {
-          if (d.client) return d.client.id;
+          if (d.client) {
+            persistMindbodyClientId(d.client.id);
+            return d.client.id;
+          }
           throw new Error(t('Kunne ikke oprette kundekonto.', 'Could not create client account.'));
         });
       });

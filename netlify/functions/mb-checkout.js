@@ -86,7 +86,7 @@ exports.handler = async function(event) {
           billingAddress: String(body.payment.billingAddress || ''),
           billingCity: String(body.payment.billingCity || ''),
           billingPostalCode: String(body.payment.billingPostalCode || ''),
-          saveInfo: String(body.payment.saveCard || false)
+          saveInfo: body.payment.saveCard === true ? 'true' : 'false'
         }
       };
     }

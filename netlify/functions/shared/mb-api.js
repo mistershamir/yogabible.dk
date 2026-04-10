@@ -56,20 +56,36 @@ async function getStaffToken() {
  * @returns {Promise<object>} - parsed JSON response
  */
 async function mbFetch(path, options = {}) {
-  const token = await getStaffToken();
-  const headers = {
-    ...getBaseHeaders(),
-    'Authorization': token,
-    ...options.headers
-  };
-
   const url = path.startsWith('http') ? path : `${MB_BASE}${path}`;
-  console.log('[mb-api] ' + (options.method || 'GET') + ' ' + url);
 
-  const res = await fetch(url, {
-    ...options,
-    headers
-  });
+  async function doFetch(token) {
+    const headers = {
+      ...getBaseHeaders(),
+      'Authorization': token,
+      ...options.headers
+    };
+    console.log('[mb-api] ' + (options.method || 'GET') + ' ' + url);
+    return fetch(url, { ...options, headers });
+  }
+
+  let token = await getStaffToken();
+  let res = await doFetch(token);
+
+  // If the cached token was expired/revoked, MB returns 401. Refresh once and retry.
+  if (res.status === 401) {
+    console.log('[mb-api] Token expired, refreshing...');
+    clearTokenCache();
+    token = await getStaffToken();
+    res = await doFetch(token);
+    if (res.status === 401) {
+      const text = await res.text();
+      console.error('[mb-api] Still 401 after token refresh for ' + url + ':', text.substring(0, 500));
+      const error = new Error('Mindbody authentication failed after token refresh for ' + path);
+      error.status = 401;
+      error.data = { rawResponse: text.substring(0, 200) };
+      throw error;
+    }
+  }
 
   // Read response as text first, then try to parse as JSON
   // This prevents cryptic "Unexpected token '<'" errors when MB returns HTML
