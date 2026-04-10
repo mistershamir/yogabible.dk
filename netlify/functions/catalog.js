@@ -16,6 +16,7 @@
 
 const { getDb } = require('./shared/firestore');
 const { optionsResponse } = require('./shared/utils');
+const { SEED_DATA } = require('./catalog-seed');
 
 const CACHE_TTL_MS = 10 * 60 * 1000;   // 10 minutes fresh
 const STALE_TTL_MS = 24 * 60 * 60 * 1000; // 24h stale-if-error fallback
@@ -89,6 +90,22 @@ exports.handler = async (event) => {
         count: cache.catalog.length,
         cached: true,
         stale: true
+      });
+    }
+
+    // 4. Last-resort seed-data fallback — no cache yet and Firestore down.
+    // Use the bundled seed data (same data as catalog-seed.js). May be
+    // slightly out of date vs Firestore admin edits, but keeps the apply
+    // wizard functional during a total Firestore outage.
+    if (Array.isArray(SEED_DATA) && SEED_DATA.length) {
+      console.warn('Catalog: serving bundled seed data — Firestore unavailable:', error.message);
+      const seedActive = SEED_DATA.filter(r => r.active !== false);
+      return cachedResponse(200, {
+        ok: true,
+        catalog: seedActive,
+        count: seedActive.length,
+        cached: false,
+        fallback: 'seed'
       });
     }
 

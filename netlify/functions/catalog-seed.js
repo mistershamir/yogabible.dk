@@ -93,6 +93,11 @@ const SEED_DATA = [
   { course_id: 'BUNDLE-ALL-MAY26', course_name: 'All-In Bundle (3 Courses)', category: 'Bundle', track: 'All-In', cohort_id: 'BUNDLE-ALL-MAY26', cohort_label: 'maj 2026', start_date: '', end_date: '', capacity: 12, waitlist_enabled: true, active: true, external_only: false, external_url: '', payment_url_full: 'https://clients.mindbodyonline.com/classic/ws?studioid=574883&stype=40&prodid=128', payment_url_deposit: '', price_full: 5865, currency: 'DKK', deposit_amount: '', allow_deposit: false, allow_instalments: true, max_instalments: 0, notes: 'Includes 1-month pass (value 1399 kr)', sort_key: '133', open_status: 'Open' }
 ];
 
+// Exposed so the public catalog endpoint can use it as a last-resort
+// fallback when Firestore is unreachable or rate-limited. The apply
+// wizard still loads even during a Firestore outage.
+exports.SEED_DATA = SEED_DATA;
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
   if (event.httpMethod !== 'POST') {
