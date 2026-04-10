@@ -67,7 +67,11 @@ async function findOrCreateMBClient({ email, firstName, lastName, phone }) {
 // Auto Role Assignment
 // =========================================================================
 
-const ROLE_PRIORITY = ['member', 'student', 'trainee', 'teacher', 'marketing', 'admin'];
+// Ordering: lowest → highest priority.
+// Must stay in sync with src/js/course-admin.js ROLE_PRIORITY
+// and netlify/functions/applications.js protectedRoles.
+// `owner` and `instructor` are NEVER automatically downgraded by application flows.
+const ROLE_PRIORITY = ['member', 'student', 'trainee', 'teacher', 'marketing', 'instructor', 'admin', 'owner'];
 
 function getRolePriority(role) {
   const idx = ROLE_PRIORITY.indexOf(role);

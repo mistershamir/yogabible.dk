@@ -114,9 +114,18 @@ exports.handler = async (event) => {
       const userDoc = await userRef.get();
       const existingRole = userDoc.exists ? (userDoc.data().role || 'member') : 'member';
 
-      // Only upgrade role, never downgrade (don't overwrite teacher/admin with trainee)
-      const rolePriority = { member: 0, student: 1, trainee: 2, teacher: 3, marketing: 4, admin: 5 };
-      if ((rolePriority[role] || 0) >= (rolePriority[existingRole] || 0)) {
+      // Only upgrade role, never downgrade (don't overwrite teacher/instructor/admin/owner with trainee).
+      // Must stay in sync with src/js/course-admin.js ROLE_PRIORITY.
+      // NOTE: previously missing `owner` and `instructor` meant those roles returned
+      // `undefined` → 0 and could be silently overwritten by any incoming role.
+      const rolePriority = { member: 0, student: 1, trainee: 2, teacher: 3, marketing: 4, instructor: 5, admin: 6, owner: 7 };
+      const incomingPriority = rolePriority[role];
+      const existingPriority = rolePriority[existingRole];
+      // Use nullish coalescing so legitimate 0 (member) doesn't get clobbered,
+      // and unknown roles default to -1 (never overwrite a known role).
+      const safeIncoming = incomingPriority !== undefined ? incomingPriority : -1;
+      const safeExisting = existingPriority !== undefined ? existingPriority : -1;
+      if (safeIncoming >= safeExisting) {
         await userRef.set({
           role: role,
           roleDetails: roleDetails,

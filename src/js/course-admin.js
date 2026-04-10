@@ -32,6 +32,45 @@
   var usersLoaded = false;
   var analyticsLoaded = false;
 
+  /* ═══════════════════════════════════════
+     ROLE PROTECTION
+     Shared between saveUserRole + bulkUserRole.
+     Ordering: lowest → highest priority.
+     Must stay in sync with netlify/functions/apply.js ROLE_PRIORITY
+     and netlify/functions/applications.js protectedRoles.
+     ═══════════════════════════════════════ */
+  var ROLE_PRIORITY = ['member', 'student', 'trainee', 'teacher', 'marketing', 'instructor', 'admin', 'owner'];
+  var PROTECTED_ROLES = ['admin', 'owner', 'instructor'];
+
+  function getRolePriority(role) {
+    var idx = ROLE_PRIORITY.indexOf(role);
+    return idx === -1 ? 0 : idx;
+  }
+
+  function isProtectedRole(role) {
+    return PROTECTED_ROLES.indexOf(role) !== -1;
+  }
+
+  // Writes an audit entry to the unified `role_audit` collection.
+  // Returns a promise.
+  function logRoleAudit(entry) {
+    var currentAuthUser = firebase.auth().currentUser;
+    var doc = {
+      uid: entry.uid,
+      email: entry.email || null,
+      previousRole: entry.previousRole || 'member',
+      previousDetails: entry.previousDetails || {},
+      newRole: entry.newRole || 'member',
+      newDetails: entry.newDetails || {},
+      trigger: entry.trigger || 'admin_manual',
+      source: entry.source || 'admin_panel',
+      actor_uid: currentAuthUser ? currentAuthUser.uid : 'unknown',
+      actor_email: currentAuthUser ? currentAuthUser.email : 'unknown',
+      created_at: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    return db.collection('role_audit').add(doc);
+  }
+
   // User management enhanced state
   var userSearchTerm = '';
   var userFilterRole = '';
@@ -2025,31 +2064,112 @@
       if (teacherTypeSelect && teacherTypeSelect.value) roleDetails.teacherType = teacherTypeSelect.value;
     }
 
-    var previousRole = state.userDetail ? (state.userDetail.role || 'member') : 'member';
-    var previousDetails = state.userDetail ? (state.userDetail.roleDetails || {}) : {};
+    toast(lang === 'da' ? 'Henter aktuel rolle…' : 'Loading current role…');
 
-    toast(t('saving'));
-    db.collection('users').doc(uid).update({
-      role: newRole,
-      roleDetails: roleDetails,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(function() {
-      // Audit log
-      db.collection('role_changes').add({
-        userId: uid,
-        action: 'role_change',
-        previousRole: previousRole,
-        previousDetails: previousDetails,
-        newRole: newRole,
-        newDetails: roleDetails,
-        source: 'admin_manual',
-        changedBy: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'unknown',
-        changedAt: firebase.firestore.FieldValue.serverTimestamp()
+    // Re-fetch the current role from Firestore — never trust state.userDetail cache
+    db.collection('users').doc(uid).get().then(function (doc) {
+      if (!doc.exists) {
+        toast(lang === 'da' ? 'Bruger ikke fundet' : 'User not found', true);
+        return;
+      }
+
+      var data = doc.data() || {};
+      var previousRole = data.role || 'member';
+      var previousDetails = data.roleDetails || {};
+      var userEmail = data.email || '(no email)';
+
+      // Priority check — block protected role downgrades without explicit confirmation
+      var currentPriority = getRolePriority(previousRole);
+      var newPriority = getRolePriority(newRole);
+      var isProtected = isProtectedRole(previousRole);
+      var isDowngrade = currentPriority > newPriority;
+
+      if (isProtected && previousRole !== newRole) {
+        var warnLines = [];
+        if (lang === 'da') {
+          warnLines.push('⚠️  ADVARSEL: Du er ved at ændre en BESKYTTET rolle.');
+          warnLines.push('');
+          warnLines.push('Bruger: ' + userEmail);
+          warnLines.push('Nuværende rolle: ' + previousRole + '  (beskyttet)');
+          warnLines.push('Ny rolle: ' + newRole);
+          warnLines.push('');
+          warnLines.push('Skriv præcis følgende for at bekræfte:');
+        } else {
+          warnLines.push('⚠️  WARNING: You are changing a PROTECTED role.');
+          warnLines.push('');
+          warnLines.push('User: ' + userEmail);
+          warnLines.push('Current role: ' + previousRole + '  (protected)');
+          warnLines.push('New role: ' + newRole);
+          warnLines.push('');
+          warnLines.push('Type exactly the following to confirm:');
+        }
+        warnLines.push('');
+        warnLines.push('  I understand this will downgrade admin users');
+
+        var confirmText = prompt(warnLines.join('\n'), '');
+        if (confirmText !== 'I understand this will downgrade admin users') {
+          toast(lang === 'da' ? 'Annulleret' : 'Cancelled', true);
+          return;
+        }
+      } else if (isDowngrade) {
+        var msg = lang === 'da'
+          ? 'Du er ved at nedgradere ' + userEmail + ' fra "' + previousRole + '" til "' + newRole + '". Fortsæt?'
+          : 'You are about to downgrade ' + userEmail + ' from "' + previousRole + '" to "' + newRole + '". Proceed?';
+        if (!confirm(msg)) {
+          toast(lang === 'da' ? 'Annulleret' : 'Cancelled');
+          return;
+        }
+      }
+
+      toast(t('saving'));
+      var currentAuthUser = firebase.auth().currentUser;
+      var actorUid = currentAuthUser ? currentAuthUser.uid : 'unknown';
+      var actorEmail = currentAuthUser ? currentAuthUser.email : 'unknown';
+      var serverTs = firebase.firestore.FieldValue.serverTimestamp();
+
+      db.collection('users').doc(uid).update({
+        role: newRole,
+        roleDetails: roleDetails,
+        updatedAt: serverTs
+      }).then(function () {
+        // Unified audit log (role_audit) — matches netlify functions
+        db.collection('role_audit').add({
+          uid: uid,
+          email: userEmail,
+          previousRole: previousRole,
+          previousDetails: previousDetails,
+          newRole: newRole,
+          newDetails: roleDetails,
+          trigger: 'admin_manual',
+          source: 'admin_panel',
+          actor_uid: actorUid,
+          actor_email: actorEmail,
+          wasProtected: isProtected,
+          wasDowngrade: isDowngrade,
+          created_at: serverTs
+        }).catch(function (err) { console.error('[saveUserRole] audit write failed:', err); });
+
+        // Legacy role_changes log kept for backwards compatibility with older tooling
+        db.collection('role_changes').add({
+          userId: uid,
+          action: 'role_change',
+          previousRole: previousRole,
+          previousDetails: previousDetails,
+          newRole: newRole,
+          newDetails: roleDetails,
+          source: 'admin_manual',
+          changedBy: actorUid,
+          changedAt: serverTs
+        }).catch(function (err) { console.error('[saveUserRole] legacy audit write failed:', err); });
+
+        toast(t('role_saved'));
+      }).catch(function (err) {
+        console.error('Role save error:', err);
+        toast(err.message || t('error_save'), true);
       });
-      toast(t('role_saved'));
-    }).catch(function(err) {
-      console.error('Role save error:', err);
-      toast(err.message || t('error_save'), true);
+    }).catch(function (err) {
+      console.error('[saveUserRole] fetch failed:', err);
+      toast((lang === 'da' ? 'Kunne ikke hente bruger: ' : 'Failed to load user: ') + err.message, true);
     });
   }
 
@@ -2380,10 +2500,11 @@
     // Body
     html += '<div class="yb-bulk-role-modal__body">';
 
-    // Role select
+    // Role select — placeholder first so accidental clicks can't silently default to 'member'
     html += '<div class="yb-admin__field">';
     html += '<label>' + esc(t('role_label')) + '</label>';
     html += '<select id="yb-bulk-role-select" class="yb-admin__select">';
+    html += '<option value="" selected disabled>' + (lang === 'da' ? '— vælg rolle —' : '— choose role —') + '</option>';
     VALID_ROLES.forEach(function(r) {
       html += '<option value="' + r + '">' + esc(R.getRoleLabel(r, lang)) + '</option>';
     });
@@ -2495,7 +2616,11 @@
     // Apply handler
     document.getElementById('yb-bulk-role-apply').addEventListener('click', function() {
       var newRole = roleSelect.value;
-      if (VALID_ROLES.indexOf(newRole) === -1) { toast(t('users_invalid_role'), true); return; }
+      // Empty placeholder or invalid role → refuse
+      if (!newRole || VALID_ROLES.indexOf(newRole) === -1) {
+        toast(lang === 'da' ? 'Vælg en rolle først' : 'Please choose a role first', true);
+        return;
+      }
 
       // Build roleDetails
       var roleDetails = {};
@@ -2522,35 +2647,176 @@
         if (tt && tt.value) roleDetails.teacherType = tt.value;
       }
 
-      // Batch update
-      var batch = db.batch();
-      selectedUserIds.forEach(function (id) {
-        batch.update(db.collection('users').doc(id), {
-          role: newRole,
-          roleDetails: roleDetails,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      // Freeze the selection snapshot so UI changes during the confirmation flow don't affect us
+      var targetIds = Array.from(selectedUserIds);
+      if (targetIds.length === 0) return;
+
+      toast(lang === 'da' ? 'Henter aktuelle roller…' : 'Loading current roles…');
+
+      // Re-fetch each user's CURRENT role from Firestore — never trust state.users cache
+      // This guards against stale UI state where a user's role was updated in another tab.
+      var fetches = targetIds.map(function (id) {
+        return db.collection('users').doc(id).get().then(function (doc) {
+          if (!doc.exists) {
+            return { id: id, missing: true };
+          }
+          var data = doc.data() || {};
+          return {
+            id: id,
+            missing: false,
+            email: data.email || '(no email)',
+            displayName: [data.firstName, data.lastName].filter(Boolean).join(' ') || data.displayName || '',
+            currentRole: data.role || 'member',
+            currentDetails: data.roleDetails || {}
+          };
+        }).catch(function (err) {
+          console.error('[bulkUserRole] fetch failed for', id, err);
+          return { id: id, missing: true, error: err.message };
         });
       });
 
-      toast(t('saving'));
-      closeModal();
+      Promise.all(fetches).then(function (rows) {
+        var valid = rows.filter(function (r) { return !r.missing; });
+        var missing = rows.filter(function (r) { return r.missing; });
 
-      batch.commit().then(function () {
-        state.users.forEach(function (u) {
-          if (selectedUserIds.has(u.id)) {
-            u.role = newRole;
-            u.roleDetails = roleDetails;
-          }
+        if (valid.length === 0) {
+          toast(lang === 'da' ? 'Ingen gyldige brugere fundet' : 'No valid users found', true);
+          return;
+        }
+
+        var newPriority = getRolePriority(newRole);
+
+        var protectedHits = valid.filter(function (r) { return isProtectedRole(r.currentRole); });
+        var downgrades = valid.filter(function (r) { return getRolePriority(r.currentRole) > newPriority; });
+        var upgradesOrSame = valid.filter(function (r) { return getRolePriority(r.currentRole) <= newPriority; });
+
+        // Step 1: Always show the list of affected users for confirmation
+        var lines = [];
+        if (lang === 'da') {
+          lines.push('Du er ved at ændre rolle til "' + newRole + '" for ' + valid.length + ' bruger(e):');
+        } else {
+          lines.push('You are about to change role to "' + newRole + '" for ' + valid.length + ' user(s):');
+        }
+        lines.push('');
+        valid.forEach(function (r) {
+          var nameSuffix = r.displayName ? ' (' + r.displayName + ')' : '';
+          lines.push('  • ' + r.email + nameSuffix + '  —  ' + (lang === 'da' ? 'nuværende: ' : 'current: ') + r.currentRole);
         });
-        selectedUserIds.clear();
-        selectAllUsers = false;
-        renderUserTable();
-        renderUserStats(state.users);
-        updateUserBulkBar();
-        toast(t('saved'));
+        if (missing.length) {
+          lines.push('');
+          lines.push((lang === 'da' ? 'Bemærk: ' : 'Note: ') + missing.length + (lang === 'da' ? ' bruger(e) kunne ikke hentes og springes over.' : ' user(s) could not be loaded and will be skipped.'));
+        }
+        lines.push('');
+        lines.push(lang === 'da' ? 'Fortsæt?' : 'Proceed?');
+
+        if (!confirm(lines.join('\n'))) {
+          toast(lang === 'da' ? 'Annulleret' : 'Cancelled');
+          return;
+        }
+
+        // Step 2: If ANY protected roles or downgrades are involved, require a SECOND explicit confirmation
+        if (protectedHits.length > 0 || downgrades.length > 0) {
+          var warnLines = [];
+          if (lang === 'da') {
+            warnLines.push('⚠️  ADVARSEL: Denne handling vil nedgradere privilegerede brugere.');
+          } else {
+            warnLines.push('⚠️  WARNING: This action will downgrade privileged users.');
+          }
+          warnLines.push('');
+
+          if (protectedHits.length > 0) {
+            warnLines.push(lang === 'da'
+              ? 'Beskyttede roller der nedgraderes (' + protectedHits.length + '):'
+              : 'Protected roles being downgraded (' + protectedHits.length + '):');
+            protectedHits.forEach(function (r) {
+              warnLines.push('  🛡  ' + r.email + '  —  ' + r.currentRole + ' → ' + newRole);
+            });
+            warnLines.push('');
+          }
+
+          var nonProtectedDowngrades = downgrades.filter(function (r) { return !isProtectedRole(r.currentRole); });
+          if (nonProtectedDowngrades.length > 0) {
+            warnLines.push(lang === 'da'
+              ? 'Andre nedgraderinger (' + nonProtectedDowngrades.length + '):'
+              : 'Other downgrades (' + nonProtectedDowngrades.length + '):');
+            nonProtectedDowngrades.forEach(function (r) {
+              warnLines.push('  ↓  ' + r.email + '  —  ' + r.currentRole + ' → ' + newRole);
+            });
+            warnLines.push('');
+          }
+
+          warnLines.push(lang === 'da'
+            ? 'Skriv præcis følgende for at bekræfte:'
+            : 'Type exactly the following to confirm:');
+          warnLines.push('');
+          warnLines.push('  I understand this will downgrade admin users');
+
+          var confirmText = prompt(warnLines.join('\n'), '');
+          if (confirmText !== 'I understand this will downgrade admin users') {
+            toast(lang === 'da' ? 'Annulleret — bekræftelsestekst matchede ikke' : 'Cancelled — confirmation text did not match', true);
+            return;
+          }
+        }
+
+        // Step 3: Build the batch — for every user, write BOTH the user update and a role_audit entry
+        var batch = db.batch();
+        var currentAuthUser = firebase.auth().currentUser;
+        var actorUid = currentAuthUser ? currentAuthUser.uid : 'unknown';
+        var actorEmail = currentAuthUser ? currentAuthUser.email : 'unknown';
+        var serverTs = firebase.firestore.FieldValue.serverTimestamp();
+
+        valid.forEach(function (r) {
+          // User update
+          batch.update(db.collection('users').doc(r.id), {
+            role: newRole,
+            roleDetails: roleDetails,
+            updatedAt: serverTs
+          });
+          // Audit entry (one per user) — written atomically with the update
+          var auditRef = db.collection('role_audit').doc();
+          batch.set(auditRef, {
+            uid: r.id,
+            email: r.email,
+            previousRole: r.currentRole,
+            previousDetails: r.currentDetails || {},
+            newRole: newRole,
+            newDetails: roleDetails,
+            trigger: 'admin_bulk',
+            source: 'admin_bulk',
+            actor_uid: actorUid,
+            actor_email: actorEmail,
+            wasProtected: isProtectedRole(r.currentRole),
+            wasDowngrade: getRolePriority(r.currentRole) > newPriority,
+            batch_size: valid.length,
+            created_at: serverTs
+          });
+        });
+
+        toast(t('saving'));
+        closeModal();
+
+        batch.commit().then(function () {
+          var updatedIds = {};
+          valid.forEach(function (r) { updatedIds[r.id] = true; });
+          state.users.forEach(function (u) {
+            if (updatedIds[u.id]) {
+              u.role = newRole;
+              u.roleDetails = roleDetails;
+            }
+          });
+          selectedUserIds.clear();
+          selectAllUsers = false;
+          renderUserTable();
+          renderUserStats(state.users);
+          updateUserBulkBar();
+          toast(t('saved') + ' (' + valid.length + ')');
+        }).catch(function (err) {
+          console.error('[bulkUserRole] batch commit failed:', err);
+          toast(t('error_save') + ': ' + err.message, true);
+        });
       }).catch(function (err) {
-        console.error(err);
-        toast(t('error_save') + ': ' + err.message, true);
+        console.error('[bulkUserRole] fetch failed:', err);
+        toast((lang === 'da' ? 'Kunne ikke hente brugere: ' : 'Failed to load users: ') + err.message, true);
       });
     });
   }

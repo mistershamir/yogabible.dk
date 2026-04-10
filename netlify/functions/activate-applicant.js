@@ -19,7 +19,10 @@ const { jsonResponse, optionsResponse, detectYTTProgramType } = require('./share
 const { mbFetch } = require('./shared/mb-api');
 const { sendCustomEmail } = require('./shared/email-service');
 
-const ROLE_PRIORITY = ['member', 'student', 'trainee', 'teacher', 'marketing', 'admin'];
+// Ordering: lowest → highest priority.
+// Must stay in sync with src/js/course-admin.js ROLE_PRIORITY
+// and netlify/functions/applications.js protectedRoles.
+const ROLE_PRIORITY = ['member', 'student', 'trainee', 'teacher', 'marketing', 'instructor', 'admin', 'owner'];
 
 function getRolePriority(role) {
   var idx = ROLE_PRIORITY.indexOf(role);
