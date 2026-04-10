@@ -3536,7 +3536,9 @@
 
     async function loadCatalog(){
       try{
-        var data = await getJSON("/.netlify/functions/catalog?v=" + Date.now());
+        // No cache-buster — the endpoint sets its own Cache-Control so the
+        // CDN can serve the catalog without hitting Firestore on every page view.
+        var data = await getJSON("/.netlify/functions/catalog");
         if(!data || data.ok !== true) throw new Error("catalog not ok");
         catalog = data.catalog || [];
         buildMaps();
