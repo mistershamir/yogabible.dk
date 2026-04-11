@@ -1008,9 +1008,19 @@
 
   function addChatMessage(name, text, isSelf) {
     if (!chatMessages) return;
+    // Build nodes with textContent rather than innerHTML so untrusted
+    // DataChannel payloads can never inject markup into the viewer DOM.
     var div = document.createElement('div');
     div.className = 'yb-live-chat__msg';
-    div.innerHTML = '<span class="yb-live-chat__msg-name" style="' + (isSelf ? 'color:#FFFCF9' : '') + '">' + esc(name) + '</span><span class="yb-live-chat__msg-text">' + esc(text) + '</span>';
+    var nameSpan = document.createElement('span');
+    nameSpan.className = 'yb-live-chat__msg-name';
+    if (isSelf) nameSpan.style.color = '#FFFCF9';
+    nameSpan.textContent = String(name == null ? '' : name);
+    var textSpan = document.createElement('span');
+    textSpan.className = 'yb-live-chat__msg-text';
+    textSpan.textContent = String(text == null ? '' : text);
+    div.appendChild(nameSpan);
+    div.appendChild(textSpan);
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }

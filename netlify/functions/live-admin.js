@@ -51,18 +51,24 @@ exports.handler = async function (event) {
   var action = params.action || '';
 
   try {
-    // ── Public endpoints ──
+    // ── Public endpoints (optional auth for permission filtering) ──
     if (action === 'schedule') return handleSchedule(event);
     if (action === 'recordings') return handleRecordings(event);
 
-    // ── Teacher endpoints ──
-    if (action === 'set-live') return handleSetLive(event);
-
-    // ── Admin endpoints ──
     if (event.httpMethod !== 'GET' && event.httpMethod !== 'POST') {
       return jsonResponse(405, { ok: false, error: 'Method not allowed' });
     }
 
+    // ── Teacher-or-admin endpoints ──
+    // Auth MUST be verified before dispatch so an authed-but-unauthorized user
+    // (e.g. a trainee) cannot flip sessions to live.
+    if (action === 'set-live') {
+      var teacherUser = await requireAuth(event, ['teacher', 'admin']);
+      if (teacherUser.error) return teacherUser.error;
+      return handleSetLive(event, teacherUser);
+    }
+
+    // ── Admin-only endpoints ──
     var user = await requireAuth(event, ['admin']);
     if (user.error) return user.error;
 
@@ -270,10 +276,8 @@ async function handleBulkUpdate(event, user) {
 // ═══════════════════════════════════════════════════════
 // Teacher: Set session to live (when going live via LiveKit)
 // ═══════════════════════════════════════════════════════
-async function handleSetLive(event) {
-  var user = await requireAuth(event, ['teacher', 'admin']);
-  if (user.error) return user.error;
-
+async function handleSetLive(event, user) {
+  // Auth is verified by the dispatcher in exports.handler before this runs.
   var body = JSON.parse(event.body || '{}');
   var sessionId = body.sessionId;
   var livekitRoom = body.livekitRoom;

@@ -37,7 +37,10 @@ const UNMATCHED_COLLECTION = 'live-unmatched-recordings';
  * @see https://docs.mux.com/guides/listen-for-webhooks#verify-webhook-signatures
  */
 function verifySignature(rawBody, signatureHeader, secret) {
-  if (!secret) return true; // Skip verification if no secret configured (dev)
+  if (!secret) {
+    console.error('[mux-webhook] MUX_WEBHOOK_SECRET not set — rejecting request');
+    return false;
+  }
   if (!signatureHeader) return false;
 
   var parts = {};
@@ -71,7 +74,7 @@ exports.handler = async function (event) {
   var signature = event.headers['mux-signature'] || '';
   var rawBody = event.body || '';
 
-  if (secret && !verifySignature(rawBody, signature, secret)) {
+  if (!verifySignature(rawBody, signature, secret)) {
     console.error('[mux-webhook] Invalid signature');
     return jsonResponse(401, { error: 'Invalid signature' });
   }
@@ -400,14 +403,12 @@ async function handleAssetReady(assetData) {
     });
     console.log('[mux-webhook] Session', matched.id, 'now has recording', recordingPlaybackId);
 
-    // Trigger AI processing (transcription + summary + quiz)
-    // Skip if already processing (retranscribe or previous webhook may have started it)
-    var aiStatus = matched.aiStatus;
-    if (aiStatus === 'processing' || aiStatus === 'transcribing' ||
-        aiStatus === 'uploading_subtitles' || aiStatus === 'generating_summary') {
-      console.log('[mux-webhook] Session', matched.id, 'already has aiStatus:', aiStatus,
-        '— skipping duplicate AI trigger');
-    } else {
+    // Trigger AI processing (transcription + summary + quiz).
+    // Atomically claim the processing slot via a Firestore transaction
+    // to prevent two concurrent webhook deliveries from both triggering
+    // transcription for the same asset.
+    var claimed = await claimAiProcessingSlot(matched.id);
+    if (claimed) {
       triggerAiProcessing(matched.id, assetData.id);
     }
   } else {
@@ -459,14 +460,12 @@ async function reconcileUnmatchedRecordings(liveStreamId, sessionId) {
       recordingAssetId: rec.recordingAssetId || null
     });
 
-    // Trigger AI processing for reconciled recording (skip if already running)
+    // Trigger AI processing for reconciled recording. Atomic claim via
+    // Firestore transaction prevents duplicate transcription if the
+    // non-reconcile path in handleAssetReady already claimed the slot.
     if (rec.recordingAssetId) {
-      var sessDoc = await getDoc(COLLECTION, sessionId);
-      var sessAiStatus = sessDoc && sessDoc.aiStatus;
-      if (sessAiStatus === 'processing' || sessAiStatus === 'transcribing' ||
-          sessAiStatus === 'uploading_subtitles' || sessAiStatus === 'generating_summary') {
-        console.log('[mux-webhook] Session', sessionId, 'already processing (aiStatus:', sessAiStatus, ') — skipping reconcile AI trigger');
-      } else {
+      var reconciledClaim = await claimAiProcessingSlot(sessionId);
+      if (reconciledClaim) {
         triggerAiProcessing(sessionId, rec.recordingAssetId);
       }
     }
@@ -486,6 +485,50 @@ async function reconcileUnmatchedRecordings(liveStreamId, sessionId) {
 /* ══════════════════════════════════════════════════════════════
    AI PROCESSING — trigger transcription + summary + quiz
    ══════════════════════════════════════════════════════════════ */
+
+/**
+ * Atomically claim the AI processing slot for a session.
+ * Uses a Firestore transaction to read aiStatus + set it to 'processing'
+ * in a single atomic operation, so two concurrent webhook deliveries can't
+ * both trigger transcription for the same asset.
+ *
+ * Returns true if this caller won the race and should proceed to trigger
+ * processing; false if another caller is already handling it.
+ */
+async function claimAiProcessingSlot(sessionId) {
+  var BUSY_STATUSES = [
+    'processing', 'preparing_audio', 'transcribing',
+    'uploading_subtitles', 'generating_summary', 'translating', 'complete'
+  ];
+  try {
+    var db = getDb();
+    var ref = db.collection(COLLECTION).doc(sessionId);
+    return await db.runTransaction(async function (tx) {
+      var snap = await tx.get(ref);
+      if (!snap.exists) {
+        console.log('[mux-webhook] claimAiProcessingSlot: session', sessionId, 'does not exist');
+        return false;
+      }
+      var current = snap.data().aiStatus;
+      if (current && BUSY_STATUSES.indexOf(current) !== -1) {
+        console.log('[mux-webhook] claimAiProcessingSlot: session', sessionId,
+          'already has aiStatus:', current, '— skipping duplicate AI trigger');
+        return false;
+      }
+      tx.update(ref, {
+        aiStatus: 'processing',
+        aiError: null,
+        updated_at: new Date().toISOString()
+      });
+      return true;
+    });
+  } catch (err) {
+    console.error('[mux-webhook] claimAiProcessingSlot error:', err.message);
+    // Fail safe: if we can't claim the slot, don't trigger — better to miss
+    // a transcription than to run it twice.
+    return false;
+  }
+}
 
 /**
  * Fire-and-forget call to ai-process-recording function.

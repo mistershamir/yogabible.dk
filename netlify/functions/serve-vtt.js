@@ -26,7 +26,11 @@ exports.handler = async function (event) {
   var secret = params.secret || '';
   var expected = process.env.AI_INTERNAL_SECRET || '';
 
-  if (expected && secret !== expected) {
+  if (!expected) {
+    console.error('[serve-vtt] AI_INTERNAL_SECRET not set — rejecting request');
+    return { statusCode: 401, body: 'Unauthorized' };
+  }
+  if (secret !== expected) {
     return { statusCode: 401, body: 'Unauthorized' };
   }
 

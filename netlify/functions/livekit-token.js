@@ -230,19 +230,35 @@ async function handleCreateRoom(event) {
   // Room name derived from session ID for consistency
   var roomName = 'yb-live-' + sessionId;
 
-  // Auto-close any previous room for this session (prevents zombie rooms)
+  // Auto-close any previous room for this session (prevents zombie rooms).
+  // Every step is awaited sequentially so the cleanup is fully complete
+  // before we create a new room + egress. Without this, LiveKit may still
+  // be propagating the delete when the new room is created, and the new
+  // egress can race against the stale teardown.
   if (session.livekitRoom && session.livekitRoom !== roomName) {
     try {
       var oldEgresses = await livekitApi('ListEgress', { room_name: session.livekitRoom }, 'livekit.Egress');
       var oldItems = oldEgresses.items || oldEgresses.egresses || [];
       for (var oe = 0; oe < oldItems.length; oe++) {
         var oeid = oldItems[oe].egress_id || oldItems[oe].egressId;
-        if (oeid) try { await livekitApi('StopEgress', { egress_id: oeid }, 'livekit.Egress'); } catch (e) {}
+        if (!oeid) continue;
+        try {
+          await livekitApi('StopEgress', { egress_id: oeid }, 'livekit.Egress');
+          console.log('[livekit-token] Stopped old egress:', oeid);
+        } catch (stopErr) {
+          // Log but continue — egress may already be stopping. We still
+          // need to await the rest of the cleanup sequence.
+          console.warn('[livekit-token] Failed to stop old egress', oeid, ':', stopErr.message);
+        }
       }
       await livekitApi('DeleteRoom', { room: session.livekitRoom });
+      // Brief settle delay so LiveKit propagates the deletion before we
+      // create the new room. Prevents a race where the fresh egress
+      // attaches to a room that's about to disappear.
+      await new Promise(function (r) { setTimeout(r, 500); });
       console.log('[livekit-token] Auto-closed previous room:', session.livekitRoom);
     } catch (cleanupErr) {
-      console.log('[livekit-token] Previous room cleanup skipped:', cleanupErr.message);
+      console.warn('[livekit-token] Previous room cleanup error (continuing):', cleanupErr.message);
     }
   }
 
@@ -303,7 +319,11 @@ async function handleCreateRoom(event) {
         }
       }
     } catch (checkErr) {
-      console.log('[livekit-token] Could not check existing egresses:', checkErr.message);
+      // Fail safe: if we can't verify whether an egress already exists,
+      // assume one does. Better to miss a recording than to create a
+      // duplicate that costs money and corrupts the Firestore doc.
+      console.error('[livekit-token] ListEgress failed, skipping new egress creation to prevent duplicates:', checkErr.message);
+      hasActiveEgress = true;
     }
 
     if (hasActiveEgress) {

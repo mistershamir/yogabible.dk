@@ -26,8 +26,12 @@ exports.handler = async function (event) {
   var expected = process.env.AI_INTERNAL_SECRET || '';
   var mode = params.mode || 'transcript-only';
 
-  // Auth
-  if (expected && secret !== expected) {
+  // Auth — reject when secret is not configured (fail closed, not open)
+  if (!expected) {
+    console.error('[deepgram-webhook] AI_INTERNAL_SECRET not set — rejecting request');
+    return jsonResponse(401, { ok: false, error: 'Unauthorized' });
+  }
+  if (secret !== expected) {
     return jsonResponse(401, { ok: false, error: 'Unauthorized' });
   }
 

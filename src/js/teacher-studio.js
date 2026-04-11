@@ -1641,9 +1641,20 @@
   function addTeacherChatMessage(name, text, isSelf) {
     if (!teacherChatPanel) createTeacherChat();
     if (!teacherChatMessages) return;
+    // Build nodes with textContent rather than innerHTML so untrusted
+    // DataChannel payloads can never inject markup into the teacher DOM.
     var div = document.createElement('div');
     div.className = 'yts-chat__msg';
-    div.innerHTML = '<span class="yts-chat__msg-name" style="' + (isSelf ? 'color:#FFFCF9' : '') + '">' + esc(name) + '</span> <span class="yts-chat__msg-text">' + esc(text) + '</span>';
+    var nameSpan = document.createElement('span');
+    nameSpan.className = 'yts-chat__msg-name';
+    if (isSelf) nameSpan.style.color = '#FFFCF9';
+    nameSpan.textContent = String(name == null ? '' : name);
+    var textSpan = document.createElement('span');
+    textSpan.className = 'yts-chat__msg-text';
+    textSpan.textContent = String(text == null ? '' : text);
+    div.appendChild(nameSpan);
+    div.appendChild(document.createTextNode(' '));
+    div.appendChild(textSpan);
     teacherChatMessages.appendChild(div);
     teacherChatMessages.scrollTop = teacherChatMessages.scrollHeight;
   }
