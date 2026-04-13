@@ -10,7 +10,7 @@
  *
  * Configured in netlify.toml:
  *   [functions."social-schedule"]
- *     schedule = "*/5 * * * *"
+ *     schedule = "every 5 minutes"
  */
 
 const { getDb, serverTimestamp } = require('./shared/firestore');
@@ -27,10 +27,9 @@ const POSTS_COLLECTION = 'social_posts';
 const ACCOUNTS_COLLECTION = 'social_accounts';
 
 exports.handler = async (event) => {
-  const db = getDb();
-  const now = new Date();
-
   try {
+    const db = getDb();
+    const now = new Date();
     // Query posts that are scheduled/approved and due for publishing
     let snap;
     try {

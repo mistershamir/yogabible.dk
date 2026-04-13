@@ -10,7 +10,7 @@
  *
  * Configured in netlify.toml:
  *   [functions."social-notifications"]
- *     schedule = "0 */2 * * *"
+ *     schedule = "every 2 hours"
  */
 
 const https = require('https');
@@ -26,12 +26,11 @@ exports.handler = async () => {
     return jsonResponse(200, { ok: true, skipped: true });
   }
 
-  const db = getDb();
-  const now = new Date();
-  const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-  const alerts = [];
-
   try {
+    const db = getDb();
+    const now = new Date();
+    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+    const alerts = [];
     // 1. Check for failed posts in the last 2 hours
     let failedSnap;
     try {

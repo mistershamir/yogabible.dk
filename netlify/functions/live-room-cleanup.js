@@ -92,6 +92,7 @@ async function livekitApi(method, body, service) {
 async function muxFetch(path, method, body) {
   var MUX_TOKEN_ID = process.env.MUX_TOKEN_ID;
   var MUX_TOKEN_SECRET = process.env.MUX_TOKEN_SECRET;
+  if (!MUX_TOKEN_ID || !MUX_TOKEN_SECRET) throw new Error('MUX_TOKEN_ID and MUX_TOKEN_SECRET must be set');
   var auth = Buffer.from(MUX_TOKEN_ID + ':' + MUX_TOKEN_SECRET).toString('base64');
 
   var opts = {

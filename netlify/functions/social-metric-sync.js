@@ -4,7 +4,7 @@
  *
  * Configured in netlify.toml:
  *   [functions."social-metric-sync"]
- *     schedule = "0 */6 * * *"
+ *     schedule = "every 6 hours"
  */
 
 const { getDb, serverTimestamp } = require('./shared/firestore');
@@ -18,11 +18,10 @@ const ACCOUNTS_COLLECTION = 'social_accounts';
 const ANALYTICS_COLLECTION = 'social_analytics';
 
 exports.handler = async (event) => {
-  const db = getDb();
-  const since = new Date();
-  since.setDate(since.getDate() - 30);
-
   try {
+    const db = getDb();
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
     // Load connected accounts
     const accountsSnap = await db.collection(ACCOUNTS_COLLECTION).get();
     const accounts = {};

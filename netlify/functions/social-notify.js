@@ -9,7 +9,7 @@
  *
  * Configured in netlify.toml:
  *   [functions."social-notify"]
- *     schedule = "*/15 * * * *"
+ *     schedule = "every 15 minutes"
  */
 
 const https = require('https');
@@ -26,10 +26,9 @@ exports.handler = async () => {
     return jsonResponse(200, { ok: true, skipped: true, reason: 'Telegram not configured' });
   }
 
-  const db = getDb();
-  let sent = 0;
-
   try {
+    const db = getDb();
+    let sent = 0;
     // ── 1. Posts pending review ──────────────────────────────────
     const pendingSnap = await db.collection(POSTS_COLLECTION)
       .where('status', '==', 'pending_review')

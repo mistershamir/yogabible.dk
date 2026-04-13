@@ -25,9 +25,8 @@ const AUTO_RECYCLE_MIN_DAYS_OLD = 30;
 const MAX_RECYCLE_COUNT = 3; // Don't recycle the same post more than 3 times
 
 exports.handler = async () => {
-  const db = getDb();
-
   try {
+    const db = getDb();
     const now = new Date();
     let recycled = 0;
     let suggested = 0;
