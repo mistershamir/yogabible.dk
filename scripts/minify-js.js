@@ -1,7 +1,7 @@
 /**
  * Post-build JS + CSS + HTML minification
  * Minifies all .js files in _site/js/ using Terser,
- * all .css files in _site/css/ using basic regex minification,
+ * all .css files in _site/css/ using cssnano (PostCSS),
  * and all .html files in _site/ using html-minifier-terser.
  * Run after Eleventy build: node scripts/minify-js.js
  */
@@ -11,20 +11,12 @@ const fs = require('fs');
 const path = require('path');
 let htmlMinifier;
 try { htmlMinifier = require('html-minifier-terser'); } catch (e) { /* optional */ }
+let postcss, cssnano;
+try { postcss = require('postcss'); cssnano = require('cssnano'); } catch (e) { /* optional */ }
 
 const SITE_DIR = path.join(__dirname, '..', '_site');
 const JS_DIR = path.join(SITE_DIR, 'js');
 const CSS_DIR = path.join(SITE_DIR, 'css');
-
-function minifyCSS(code) {
-  return code
-    .replace(/\/\*[\s\S]*?\*\//g, '')       // Remove comments
-    .replace(/\s*([{}:;,>~+])\s*/g, '$1')   // Remove spaces around selectors/props
-    .replace(/;\}/g, '}')                     // Remove trailing semicolons
-    .replace(/\n+/g, '')                      // Remove newlines
-    .replace(/\s{2,}/g, ' ')                  // Collapse whitespace
-    .trim();
-}
 
 async function run() {
   let totalSaved = 0;
@@ -56,20 +48,29 @@ async function run() {
     }
   }
 
-  // Minify CSS
+  // Minify CSS with cssnano
   if (fs.existsSync(CSS_DIR)) {
-    console.log('\nCSS minification:');
+    console.log('\nCSS minification (cssnano):');
     const cssFiles = fs.readdirSync(CSS_DIR).filter(f => f.endsWith('.css'));
-    for (const file of cssFiles) {
-      const filePath = path.join(CSS_DIR, file);
-      const code = fs.readFileSync(filePath, 'utf8');
-      const originalSize = Buffer.byteLength(code);
-      const minified = minifyCSS(code);
-      fs.writeFileSync(filePath, minified);
-      const newSize = Buffer.byteLength(minified);
-      const saved = originalSize - newSize;
-      totalSaved += saved;
-      console.log(`  ${file}: ${originalSize} → ${newSize} (−${((saved / originalSize) * 100).toFixed(0)}%)`);
+    if (postcss && cssnano) {
+      const processor = postcss([cssnano({ preset: 'default' })]);
+      for (const file of cssFiles) {
+        const filePath = path.join(CSS_DIR, file);
+        const code = fs.readFileSync(filePath, 'utf8');
+        const originalSize = Buffer.byteLength(code);
+        try {
+          const result = await processor.process(code, { from: filePath, to: filePath });
+          fs.writeFileSync(filePath, result.css);
+          const newSize = Buffer.byteLength(result.css);
+          const saved = originalSize - newSize;
+          totalSaved += saved;
+          console.log(`  ${file}: ${originalSize} → ${newSize} (−${((saved / originalSize) * 100).toFixed(0)}%)`);
+        } catch (err) {
+          console.warn(`  ${file}: cssnano failed — ${err.message}`);
+        }
+      }
+    } else {
+      console.log('  skipped (cssnano not installed)');
     }
   }
 

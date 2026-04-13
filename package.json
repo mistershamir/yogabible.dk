@@ -7,8 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
+    "prebuild": "rm -rf _site/css _site/js",
     "build": "npx @11ty/eleventy",
-    "postbuild": "node scripts/minify-js.js && node scripts/purge-css.js && node scripts/critical-css.js && node scripts/seo-validator.js",
+    "postbuild": "node scripts/minify-js.js && node scripts/purge-css.js && node scripts/optimize-images.js && node scripts/critical-css.js && node scripts/hash-assets.js && node scripts/seo-validator.js",
     "seo": "node scripts/seo-validator.js",
     "seo:strict": "node scripts/seo-validator.js --strict",
     "start": "npx @11ty/eleventy --serve",
@@ -20,7 +21,9 @@
   "type": "commonjs",
   "devDependencies": {
     "@11ty/eleventy": "^3.1.2",
+    "cssnano": "^7.1.4",
     "html-minifier-terser": "^7.2.0",
+    "postcss": "^8.5.9",
     "terser": "^5.46.0"
   },
   "dependencies": {
