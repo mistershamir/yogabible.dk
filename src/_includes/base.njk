@@ -72,11 +72,13 @@
   <!-- Auth Modal -->
   {% include "modal-auth.njk" %}
 
+  {% if needsCheckout or needsFirebase %}
   <!-- Checkout Modal -->
   {% include "modal-checkout.njk" %}
 
   <!-- Checkout Flow Modal (multi-step) -->
   {% include "modal-checkout-flow.njk" %}
+  {% endif %}
 
   <!-- Appointment Booking Modal (Calendly replacement) -->
   {% include "modal-appointment.njk" %}
@@ -103,23 +105,32 @@
   {% include "cookies.njk" %}
   <script src="/js/cookies.js" defer></script>
 
+  {% if needsFirebase %}
   <!-- Firebase SDK (compat for broad browser support) -->
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js" defer></script>
+  {% else %}
+  <!-- Lazy Firebase loader — loads SDK on first auth/checkout interaction -->
+  <script>(function(){var d=false,l=false;function o(c){if(d){c&&c();return}if(l)return;l=true;var u=['https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js','https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js','https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js','/js/roles-permissions.js','/js/firebase-auth.js'],i=0;(function n(){if(i>=u.length){d=true;c&&setTimeout(c,50);return}var s=document.createElement('script');s.src=u[i++];s.onload=n;s.onerror=n;document.body.appendChild(s)})()}window.loadFirebase=o;document.addEventListener('click',function(e){if(window.firebase)return;var t=e.target.closest('[data-checkout-product],[data-yb-login],.yb-auth-btn,.ycf-trigger');if(t){e.preventDefault();e.stopImmediatePropagation();o(function(){t.click()})}},true)})();</script>
+  {% endif %}
 
   <!-- Scripts (deferred for faster paint) -->
   <script src="/js/header.js" defer></script>
   <script src="/js/main.js" defer></script>
   <script src="/js/footer.js" defer></script>
+  {% if needsFirebase %}
   <script src="/js/roles-permissions.js" defer></script>
   <script src="/js/firebase-auth.js" defer></script>
+  {% endif %}
   <script src="/js/appointment-booking.js" defer></script>
   {% if includePhotoBooking %}<script src="/js/photo-booking.js" defer></script>{% endif %}
+  {% if needsCheckout %}
   <script src="/js/ytt-funnel.js" defer></script>
   <script src="/js/checkout-flow.js" defer></script>
-  <script src="/js/workshop-browser.js" defer></script>
   <script src="/js/mindbody.js" defer></script>
+  {% endif %}
+  <script src="/js/workshop-browser.js" defer></script>
   {% if includeScheduleModal %}
     <script src="/js/modal-200ytt.js" defer></script>
   {% endif %}

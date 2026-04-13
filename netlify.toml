@@ -1,5 +1,5 @@
 [build]
-  command = "node scripts/write-firebase-key.js && npx @11ty/eleventy && node scripts/minify-js.js && node scripts/critical-css.js && node scripts/seo-validator.js"
+  command = "node scripts/write-firebase-key.js && npx @11ty/eleventy && node scripts/minify-js.js && node scripts/purge-css.js && node scripts/critical-css.js && node scripts/seo-validator.js"
   publish = "_site"
   functions = "netlify/functions"
 
