@@ -208,7 +208,9 @@
     "hero_tagline": "Yoga Bible · Ansøgning",
     "hero_trust1": "200+ Uddannede Yogalærere",
     "hero_trust2": "Siden 2014",
-    "hero_trust3": "Yoga Alliance RYS"
+    "hero_trust3": "Yoga Alliance RYS",
+    "nudge_text": "Ikke klar til at ansøge endnu? Snak med os først — det er gratis og uforpligtende.",
+    "nudge_btn": "Book et Gratis Infomøde"
   },
   "en": {
     "hero_badge": "Applications open",
@@ -419,6 +421,8 @@
     "hero_tagline": "Yoga Bible · Application",
     "hero_trust1": "200+ Trained Yoga Teachers",
     "hero_trust2": "Since 2014",
-    "hero_trust3": "Yoga Alliance RYS"
+    "hero_trust3": "Yoga Alliance RYS",
+    "nudge_text": "Not ready to apply yet? Talk to us first — it's free and no obligation.",
+    "nudge_btn": "Book a Free Info Session"
   }
 }

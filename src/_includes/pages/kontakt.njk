@@ -159,10 +159,11 @@
      ═══════════════════════════════════════════════════════════════ -->
 <div style="text-align:center;padding:2.5rem 1rem 0;">
   <p style="color:#6F6A66;font-size:0.95rem;margin-bottom:0.75rem;">
-    {% if lang == 'en' %}Prefer to talk in person? Book a free, no-obligation info session at our studio.{% else %}Foretrækker du at tale personligt? Book et gratis og uforpligtende infomøde i vores studie.{% endif %}
+    {{ t.nudge_text }}
   </p>
-  <a class="yb-btn yb-btn--primary" href="{% if lang == 'en' %}/en/kontakt?booking=info-session{% else %}/kontakt?booking=info-session{% endif %}" data-open-booking="info-session">
-    &#127963; {% if lang == 'en' %}Book a Free Info Session{% else %}Book et Gratis Infomøde{% endif %}
+  {% set lp = "/en" if lang == "en" else "" %}
+  <a class="yb-btn yb-btn--primary" href="{{ lp }}/kontakt?booking=info-session" data-open-booking="info-session">
+    &#127963; {{ t.nudge_btn }}
   </a>
 </div>
 
@@ -308,10 +309,10 @@
 
   if (!form) return;
 
-  var MSG_ANTISPAM = form.getAttribute('data-msg-antispam') || 'Udfyld venligst anti-spam korrekt (skriv: NAMASTE).';
-  var MSG_WAIT = form.getAttribute('data-msg-wait') || 'Vent venligst et \u00f8jeblik og pr\u00f8v igen.';
-  var MSG_SENDING = form.getAttribute('data-msg-sending') || 'Sender\u2026';
-  var MSG_SUBMIT = form.getAttribute('data-msg-submit') || 'Send henvendelse';
+  var MSG_ANTISPAM = form.getAttribute('data-msg-antispam') || 'Please enter the anti-spam word correctly (type: NAMASTE).';
+  var MSG_WAIT = form.getAttribute('data-msg-wait') || 'Please wait a moment and try again.';
+  var MSG_SENDING = form.getAttribute('data-msg-sending') || 'Sending\u2026';
+  var MSG_SUBMIT = form.getAttribute('data-msg-submit') || 'Send';
 
   var loadTime = Date.now();
   if (tsField) tsField.value = loadTime;

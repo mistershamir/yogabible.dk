@@ -147,10 +147,10 @@
 {# ── Quick booking nudge before form ── #}
 <div style="text-align:center;margin-bottom:2rem;">
   <p style="color:#6F6A66;font-size:0.95rem;margin-bottom:0.75rem;">
-    {% if lang == 'en' %}Not ready to apply yet? Talk to us first — it's free and no obligation.{% else %}Ikke klar til at ansøge endnu? Snak med os først — det er gratis og uforpligtende.{% endif %}
+    {{ t.nudge_text }}
   </p>
-  <a class="yb-btn yb-btn--outline" href="{% if lang == 'en' %}/en/apply?booking=info-session{% else %}/ansog?booking=info-session{% endif %}" data-open-booking="info-session" style="font-size:0.9rem;">
-    &#127963; {% if lang == 'en' %}Book a Free Info Session{% else %}Book et Gratis Infomøde{% endif %}
+  <a class="yb-btn yb-btn--outline" href="{{ lp }}/{% if lang == 'en' %}apply{% else %}ansog{% endif %}?booking=info-session" data-open-booking="info-session" style="font-size:0.9rem;">
+    &#127963; {{ t.nudge_btn }}
   </a>
 </div>
 

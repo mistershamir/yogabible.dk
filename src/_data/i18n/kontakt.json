@@ -70,7 +70,9 @@
 
     "js_antispam_error": "Udfyld venligst anti-spam korrekt (skriv: NAMASTE).",
     "js_wait_error": "Vent venligst et øjeblik og prøv igen.",
-    "js_sending": "Sender…"
+    "js_sending": "Sender…",
+    "nudge_text": "Foretrækker du at tale personligt? Book et gratis og uforpligtende infomøde i vores studie.",
+    "nudge_btn": "Book et Gratis Infomøde"
   },
   "en": {
     "hero_tagline": "Yoga Bible · Contact",
@@ -143,6 +145,8 @@
 
     "js_antispam_error": "Please enter the anti-spam word correctly (type: NAMASTE).",
     "js_wait_error": "Please wait a moment and try again.",
-    "js_sending": "Sending…"
+    "js_sending": "Sending…",
+    "nudge_text": "Prefer to talk in person? Book a free, no-obligation info session at our studio.",
+    "nudge_btn": "Book a Free Info Session"
   }
 }
