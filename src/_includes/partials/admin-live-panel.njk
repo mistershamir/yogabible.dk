@@ -115,11 +115,25 @@
       </div>
     </div>
 
+    {# Bulk — Programs #}
+    <div class="yb-admin__field" style="margin-bottom:0.75rem">
+      <label style="font-weight:600;font-size:0.82rem">{{ t.live_field_programs or "Programs" }}</label>
+      <div id="yb-la-bulk-programs-container" class="yb-la-pill-container">
+        <span style="color:#6F6A66;font-size:0.8rem">Loading catalogue…</span>
+      </div>
+    </div>
+
     {# Bulk — Cohorts #}
-    <div class="yb-admin__field" style="margin-bottom:1rem">
-      <label for="yb-la-bulk-cohorts" style="font-weight:600;font-size:0.82rem">{{ t.live_field_cohorts }}</label>
-      <input type="text" id="yb-la-bulk-cohorts" placeholder="{{ t.live_cohorts_hint }}">
-      <p style="font-size:0.75rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_cohorts_help }}</p>
+    <div class="yb-admin__field" style="margin-bottom:0.75rem">
+      <label style="font-weight:600;font-size:0.82rem">{{ t.live_field_cohorts or "Cohorts" }}</label>
+      <div id="yb-la-bulk-cohorts-container" class="yb-la-pill-container">
+        <span style="color:#6F6A66;font-size:0.8rem">Select a program first</span>
+      </div>
+    </div>
+
+    {# Bulk access summary #}
+    <div id="yb-la-bulk-access-summary" style="font-size:0.8rem;color:#6F6A66;background:#F5F3F0;padding:0.5rem 0.75rem;border-radius:8px;margin-bottom:1rem">
+      Visible to: everyone (no restrictions)
     </div>
 
     <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-bulk-access-apply">&#10003; {{ t.live_bulk_apply }}</button>
@@ -265,12 +279,33 @@
       </div>
     </div>
 
-    {# Cohort restriction #}
+    {# Program restriction (catalogue-driven pills) #}
     <div class="yb-admin__field">
-      <label for="yb-la-cohorts">{{ t.live_field_cohorts }}</label>
-      <input type="text" id="yb-la-cohorts" placeholder="{{ t.live_cohorts_hint }}">
-      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_cohorts_help }}</p>
+      <label>{{ t.live_field_programs or "Program Restriction" }}</label>
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 0.5rem">{{ t.live_programs_help or "Select which programs can access this session. Leave empty for no program restriction." }}</p>
+      <div id="yb-la-programs-container" class="yb-la-pill-container">
+        <span style="color:#6F6A66;font-size:0.8rem">Loading catalogue…</span>
+      </div>
     </div>
+
+    {# Cohort restriction (catalogue-driven pills, shown after program selection) #}
+    <div class="yb-admin__field">
+      <label>{{ t.live_field_cohorts or "Cohort Restriction" }}</label>
+      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 0.5rem">{{ t.live_cohorts_help_new or "Select specific cohorts. Only shown after picking a program. Leave empty to allow all cohorts of the selected programs." }}</p>
+      <div id="yb-la-cohorts-container" class="yb-la-pill-container">
+        <span style="color:#6F6A66;font-size:0.8rem">Select a program first</span>
+      </div>
+    </div>
+
+    {# Access summary preview #}
+    <div class="yb-admin__field">
+      <div id="yb-la-access-summary" style="font-size:0.8rem;color:#6F6A66;background:#F5F3F0;padding:0.5rem 0.75rem;border-radius:8px">
+        Visible to: everyone (no restrictions)
+      </div>
+    </div>
+
+    {# Legacy hidden cohorts field for backwards compat #}
+    <input type="hidden" id="yb-la-cohorts" value="">
 
     {# Stream Type #}
     <div class="yb-admin__field">

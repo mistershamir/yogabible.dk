@@ -13,6 +13,13 @@
   var liveSelectedIds = new Set();
   var API = '/.netlify/functions/live-admin';
 
+  // ── Catalogue data (fetched once, cached) ──
+  var catalogData = null;       // raw array from /.netlify/functions/catalog
+  var catalogPrograms = [];     // [{ course_id, course_name, category }] unique programs
+  var catalogCohortMap = {};    // course_id → [{ cohort_id, cohort_label, buildId }]
+  var catalogLoading = false;
+  var catalogLoaded = false;
+
   /* ══════════════════════════════════════════
      HELPERS
      ══════════════════════════════════════════ */
@@ -87,6 +94,214 @@
     if (access.roles && access.roles.length) parts.push(access.roles.join(', '));
     if (access.permissions && access.permissions.length) parts.push(access.permissions.join(', '));
     return parts.join(' · ') || '—';
+  }
+
+  /* ══════════════════════════════════════════
+     CATALOGUE
+     ══════════════════════════════════════════ */
+
+  /**
+   * Derive the cohort suffix from a course_id.
+   * Must match activate-applicant.js buildCohortId() format exactly.
+   */
+  /**
+   * Derive the cohort suffix from a course_id.
+   * Must match activate-applicant.js buildCohortId() format:
+   *   buildCohortId appends suffix based on ytt_program_type:
+   *     '18-week'    → '-18W'
+   *     '4-week'     → '-4W'
+   *     '8-week'     → '-8W'
+   *     '300h'       → '-300H'
+   *     '4-week-jul' → '' (no suffix — known gap in buildCohortId)
+   *   Non-YTT courses have no ytt_program_type → no suffix.
+   */
+  function cohortSuffixFromCourseId(courseId) {
+    if (!courseId) return '';
+    var c = courseId.toUpperCase();
+    if (c.indexOf('YTT200-18W') === 0) return '-18W';
+    // Vinyasa Plus: ytt_program_type is '4-week-jul' → no suffix in buildCohortId
+    if (c === 'YTT200-4W-VP') return '';
+    if (c.indexOf('YTT200-4W') === 0) return '-4W';
+    if (c.indexOf('YTT200-8W') === 0) return '-8W';
+    if (c.indexOf('YTT300') === 0) return '-300H';
+    if (c.indexOf('YTT500') === 0) return '-500H';
+    // Non-YTT courses: no ytt_program_type → no suffix
+    return '';
+  }
+
+  function fetchCatalog(callback) {
+    if (catalogLoaded && catalogData) { if (callback) callback(); return; }
+    if (catalogLoading) return;
+    catalogLoading = true;
+
+    fetch('/.netlify/functions/catalog')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        catalogLoading = false;
+        if (!data.ok || !data.catalog) {
+          console.warn('[live-admin] Catalog fetch failed:', data.error);
+          catalogLoaded = true;
+          if (callback) callback();
+          return;
+        }
+        catalogData = data.catalog;
+        buildCatalogMaps();
+        catalogLoaded = true;
+        if (callback) callback();
+      })
+      .catch(function (err) {
+        catalogLoading = false;
+        catalogLoaded = true;
+        console.error('[live-admin] Catalog fetch error:', err);
+        if (callback) callback();
+      });
+  }
+
+  function buildCatalogMaps() {
+    var seen = {};
+    catalogPrograms = [];
+    catalogCohortMap = {};
+
+    for (var i = 0; i < catalogData.length; i++) {
+      var row = catalogData[i];
+      if (!row.course_id || !row.active) continue;
+
+      // Unique programs
+      if (!seen[row.course_id]) {
+        seen[row.course_id] = true;
+        catalogPrograms.push({
+          course_id: row.course_id,
+          course_name: row.course_name || row.course_id,
+          category: row.category || ''
+        });
+      }
+
+      // Cohorts per program
+      if (!catalogCohortMap[row.course_id]) catalogCohortMap[row.course_id] = [];
+      var suffix = cohortSuffixFromCourseId(row.course_id);
+      var buildId = (row.cohort_id || '') + suffix;
+      catalogCohortMap[row.course_id].push({
+        cohort_id: row.cohort_id || '',
+        cohort_label: row.cohort_label || row.cohort_id || '',
+        buildId: buildId
+      });
+    }
+
+    // Sort programs by category then name
+    var catOrder = { Education: 0, Course: 1, Bundle: 2, Mentorship: 3 };
+    catalogPrograms.sort(function (a, b) {
+      var ca = catOrder[a.category] !== undefined ? catOrder[a.category] : 9;
+      var cb = catOrder[b.category] !== undefined ? catOrder[b.category] : 9;
+      if (ca !== cb) return ca - cb;
+      return a.course_name.localeCompare(b.course_name);
+    });
+  }
+
+  /* ── Pill rendering helpers ── */
+
+  function renderProgramPills(containerId, selectedIds) {
+    var container = $(containerId);
+    if (!container) return;
+    if (!catalogPrograms.length) {
+      container.innerHTML = '<span style="color:#6F6A66;font-size:0.8rem">Loading catalogue…</span>';
+      return;
+    }
+
+    var html = '';
+    var lastCat = '';
+    for (var i = 0; i < catalogPrograms.length; i++) {
+      var p = catalogPrograms[i];
+      // Category header
+      if (p.category !== lastCat) {
+        if (lastCat) html += '<br>';
+        html += '<span style="font-size:0.7rem;font-weight:600;color:#6F6A66;display:block;margin:0.4rem 0 0.2rem">' + esc(p.category) + '</span>';
+        lastCat = p.category;
+      }
+      var isActive = selectedIds.indexOf(p.course_id) !== -1;
+      html += '<button type="button" class="yb-la-prog-pill' + (isActive ? ' yb-la-pill--active' : '') + '" data-course-id="' + esc(p.course_id) + '">' +
+        esc(p.course_name) +
+        ' <span style="font-size:0.7rem;opacity:0.7">(' + esc(p.course_id) + ')</span>' +
+        '</button> ';
+    }
+    container.innerHTML = html;
+  }
+
+  function renderCohortPills(containerId, selectedPrograms, selectedCohorts) {
+    var container = $(containerId);
+    if (!container) return;
+
+    if (!selectedPrograms || !selectedPrograms.length) {
+      container.innerHTML = '<span style="color:#6F6A66;font-size:0.8rem">Select a program first</span>';
+      return;
+    }
+
+    var html = '';
+    for (var pi = 0; pi < selectedPrograms.length; pi++) {
+      var progId = selectedPrograms[pi];
+      var cohorts = catalogCohortMap[progId] || [];
+      if (!cohorts.length) continue;
+
+      // Find program name
+      var progName = progId;
+      for (var j = 0; j < catalogPrograms.length; j++) {
+        if (catalogPrograms[j].course_id === progId) { progName = catalogPrograms[j].course_name; break; }
+      }
+      html += '<span style="font-size:0.7rem;font-weight:600;color:#6F6A66;display:block;margin:0.4rem 0 0.2rem">' + esc(progName) + '</span>';
+
+      for (var ci = 0; ci < cohorts.length; ci++) {
+        var c = cohorts[ci];
+        var isActive = selectedCohorts.indexOf(c.buildId) !== -1;
+        html += '<button type="button" class="yb-la-cohort-pill' + (isActive ? ' yb-la-pill--active' : '') + '" data-build-id="' + esc(c.buildId) + '">' +
+          esc(c.cohort_label) +
+          ' <span style="font-size:0.65rem;opacity:0.6">(' + esc(c.buildId) + ')</span>' +
+          '</button> ';
+      }
+    }
+    if (!html) {
+      html = '<span style="color:#6F6A66;font-size:0.8rem">No cohorts found for selected programs</span>';
+    }
+    container.innerHTML = html;
+  }
+
+  function getSelectedProgramIds(containerId) {
+    var pills = document.querySelectorAll('#' + containerId + ' .yb-la-prog-pill.yb-la-pill--active');
+    var ids = [];
+    for (var i = 0; i < pills.length; i++) {
+      ids.push(pills[i].getAttribute('data-course-id'));
+    }
+    return ids;
+  }
+
+  function getSelectedCohortBuildIds(containerId) {
+    var pills = document.querySelectorAll('#' + containerId + ' .yb-la-cohort-pill.yb-la-pill--active');
+    var ids = [];
+    for (var i = 0; i < pills.length; i++) {
+      ids.push(pills[i].getAttribute('data-build-id'));
+    }
+    return ids;
+  }
+
+  function updateAccessSummary(summaryId, programContainerId, cohortContainerId) {
+    var el = $(summaryId);
+    if (!el) return;
+
+    var progs = getSelectedProgramIds(programContainerId);
+    var cohorts = getSelectedCohortBuildIds(cohortContainerId);
+
+    // Gather selected roles
+    var isForm = programContainerId === 'yb-la-programs-container';
+    var roleCbs = document.querySelectorAll(isForm ? '.yb-la-role-cb' : '.yb-la-bulk-role-cb');
+    var roles = [];
+    for (var i = 0; i < roleCbs.length; i++) {
+      if (roleCbs[i].checked) roles.push(roleCbs[i].value);
+    }
+
+    var parts = [];
+    if (roles.length) parts.push(roles.join(', '));
+    if (progs.length) parts.push('in ' + progs.join(', '));
+    if (cohorts.length) parts.push('cohort ' + cohorts.join(', '));
+
+    el.textContent = parts.length ? 'Visible to: ' + parts.join(' ') : 'Visible to: everyone (no restrictions)';
   }
 
   /* ══════════════════════════════════════════
@@ -216,7 +431,18 @@
     $('yb-la-recording-id').value = (item && item.recordingPlaybackId) || '';
     $('yb-la-recurrence').value = (item && item.recurrence && item.recurrence.type) || 'none';
     $('yb-la-recurrence-end').value = (item && item.recurrence && item.recurrence.endDate) || '';
-    $('yb-la-cohorts').value = (item && item.cohorts && item.cohorts.length) ? item.cohorts.join(', ') : '';
+    // Program & cohort pills (catalogue-driven)
+    var itemPrograms = (item && item.programs) || [];
+    var itemCohorts = (item && item.cohorts) || [];
+    fetchCatalog(function () {
+      renderProgramPills('yb-la-programs-container', itemPrograms);
+      renderCohortPills('yb-la-cohorts-container', itemPrograms, itemCohorts);
+      updateAccessSummary('yb-la-access-summary', 'yb-la-programs-container', 'yb-la-cohorts-container');
+    });
+
+    // Legacy cohort text field (hidden, kept for backwards compat display)
+    var legacyCohort = $('yb-la-cohorts');
+    if (legacyCohort) legacyCohort.value = (item && item.cohorts && item.cohorts.length) ? item.cohorts.join(', ') : '';
 
     // Stream type (migrate from old interactive boolean)
     var streamTypeSel = $('yb-la-stream-type');
@@ -345,13 +571,9 @@
       access: { roles: roles, permissions: perms }
     };
 
-    // Cohort restriction
-    var cohortsStr = ($('yb-la-cohorts') ? $('yb-la-cohorts').value : '').trim();
-    if (cohortsStr) {
-      data.cohorts = cohortsStr.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
-    } else {
-      data.cohorts = [];
-    }
+    // Programs & cohorts from pill selectors
+    data.programs = getSelectedProgramIds('yb-la-programs-container');
+    data.cohorts = getSelectedCohortBuildIds('yb-la-cohorts-container');
 
     // Stream type + co-teachers + meeting URL
     var streamTypeSel = $('yb-la-stream-type');
@@ -875,11 +1097,12 @@
     for (var i = 0; i < permCbs.length; i++) {
       if (permCbs[i].checked) perms.push(permCbs[i].value);
     }
-    var cohortsStr = ($('yb-la-bulk-cohorts') ? $('yb-la-bulk-cohorts').value : '').trim();
-    var cohorts = cohortsStr ? cohortsStr.split(',').map(function (s) { return s.trim(); }).filter(Boolean) : [];
+    var programs = getSelectedProgramIds('yb-la-bulk-programs-container');
+    var cohorts = getSelectedCohortBuildIds('yb-la-bulk-cohorts-container');
 
     return {
       access: { roles: roles, permissions: perms },
+      programs: programs,
       cohorts: cohorts
     };
   }
@@ -1001,7 +1224,15 @@
 
       // ── Bulk actions for live list ──
       btn = e.target.closest('[data-action="live-bulk-access"]');
-      if (btn) { toggleBulkAccessPanel(); return; }
+      if (btn) {
+        toggleBulkAccessPanel();
+        // Ensure catalog is loaded for bulk panel pills
+        fetchCatalog(function () {
+          renderProgramPills('yb-la-bulk-programs-container', []);
+          renderCohortPills('yb-la-bulk-cohorts-container', [], []);
+        });
+        return;
+      }
 
       btn = e.target.closest('[data-action="live-bulk-access-close"]');
       if (btn) { var p = $('yb-live-bulk-access-panel'); if (p) p.hidden = true; return; }
@@ -1068,6 +1299,47 @@
     ['yb-la-mb-filter-program', 'yb-la-mb-filter-instructor', 'yb-la-mb-filter-session-type', 'yb-la-mb-filter-day'].forEach(function (id) {
       var el = $(id);
       if (el) el.addEventListener('change', renderMbTable);
+    });
+
+    // ── Program / Cohort pill click delegation ──
+    document.addEventListener('click', function (e) {
+      var pill;
+
+      // Program pill toggle (form or bulk)
+      pill = e.target.closest('.yb-la-prog-pill');
+      if (pill) {
+        e.preventDefault();
+        pill.classList.toggle('yb-la-pill--active');
+        // Determine which container context (form vs bulk)
+        var isFormCtx = pill.closest('#yb-la-programs-container');
+        var isBulkCtx = pill.closest('#yb-la-bulk-programs-container');
+        if (isFormCtx) {
+          var selProgs = getSelectedProgramIds('yb-la-programs-container');
+          var selCohorts = getSelectedCohortBuildIds('yb-la-cohorts-container');
+          renderCohortPills('yb-la-cohorts-container', selProgs, selCohorts);
+          updateAccessSummary('yb-la-access-summary', 'yb-la-programs-container', 'yb-la-cohorts-container');
+        } else if (isBulkCtx) {
+          var bSelProgs = getSelectedProgramIds('yb-la-bulk-programs-container');
+          var bSelCohorts = getSelectedCohortBuildIds('yb-la-bulk-cohorts-container');
+          renderCohortPills('yb-la-bulk-cohorts-container', bSelProgs, bSelCohorts);
+          updateAccessSummary('yb-la-bulk-access-summary', 'yb-la-bulk-programs-container', 'yb-la-bulk-cohorts-container');
+        }
+        return;
+      }
+
+      // Cohort pill toggle
+      pill = e.target.closest('.yb-la-cohort-pill');
+      if (pill) {
+        e.preventDefault();
+        pill.classList.toggle('yb-la-pill--active');
+        var isFormCtx2 = pill.closest('#yb-la-cohorts-container');
+        if (isFormCtx2) {
+          updateAccessSummary('yb-la-access-summary', 'yb-la-programs-container', 'yb-la-cohorts-container');
+        } else {
+          updateAccessSummary('yb-la-bulk-access-summary', 'yb-la-bulk-programs-container', 'yb-la-bulk-cohorts-container');
+        }
+        return;
+      }
     });
 
     // AI language tab switcher
@@ -1153,6 +1425,7 @@
       btn.addEventListener('click', function () {
         if (btn.getAttribute('data-yb-admin-tab') === 'live' && !loaded) {
           loadItems();
+          fetchCatalog();
         }
       });
     });

@@ -8519,3 +8519,46 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   .yb-social__design-toolbar { flex-direction: row; width: 100%; border-right: none; border-bottom: 1px solid #E8E4E0; }
   .yb-social__design-sidebar { width: 100%; border-left: none; border-top: 1px solid #E8E4E0; max-height: 200px; }
 }
+
+/* ═══════════════════════════════════════════════════════
+   Live Admin — Program / Cohort Pill Selectors
+   ═══════════════════════════════════════════════════════ */
+.yb-la-pill-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: flex-start;
+}
+
+.yb-la-prog-pill,
+.yb-la-cohort-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid #E8E4E0;
+  border-radius: 999px;
+  background: #fff;
+  color: #0F0F0F;
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.yb-la-prog-pill:hover,
+.yb-la-cohort-pill:hover {
+  border-color: #f75c03;
+  background: #FFF5EE;
+}
+
+.yb-la-pill--active {
+  background: #f75c03 !important;
+  color: #fff !important;
+  border-color: #f75c03 !important;
+}
+
+.yb-la-pill--active span {
+  opacity: 0.85 !important;
+}

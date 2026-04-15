@@ -30,7 +30,7 @@ const ALLOWED_FIELDS = [
   'muxPlaybackId', 'muxStreamKey', 'muxLiveStreamId',
   'recordingPlaybackId', 'recordingAssetId',
   'liveStartedAt', 'liveEndedAt',
-  'status', 'recurrence', 'access', 'cohorts',
+  'status', 'recurrence', 'access', 'programs', 'cohorts',
   'streamSource', 'livekitRoom', 'interactive', 'streamType', 'coTeachers', 'meetingUrl',
   'aiSummary', 'aiQuiz', 'aiSummaryLang'
 ];
@@ -333,13 +333,32 @@ async function handleSchedule(event) {
 
   console.log('[live-admin] schedule: after date filter:', items.length, 'items remain');
 
-  // If user authenticated, filter by their permissions + cohort
   if (user) {
+    // Authenticated: filter by their permissions + cohort + programs
     var userPerms = await getUserPermissionsWithCohort(user);
     items = items.filter(function (item) {
-      return hasAccess(item.access, user.role, userPerms, item.cohorts);
+      return hasAccess(item.access, user.role, userPerms, item.cohorts, item.programs, user);
     });
     console.log('[live-admin] schedule: after access filter (' + user.role + '):', items.length, 'items remain');
+  } else {
+    // FIX 7: Anonymous users only see unrestricted sessions
+    items = items.filter(function (item) {
+      var hasPrograms = item.programs && item.programs.length > 0;
+      var hasCohorts = item.cohorts && item.cohorts.length > 0;
+      var hasRoles = item.access && item.access.roles && item.access.roles.length > 0;
+      var hasPerms = item.access && item.access.permissions && item.access.permissions.length > 0;
+
+      // If any restriction is set, hide from anonymous
+      if (hasPrograms || hasCohorts) return false;
+
+      // If access specifies only default roles (trainee/teacher/admin) with live-streaming,
+      // these are restricted sessions — hide from anonymous
+      if (hasRoles || hasPerms) return false;
+
+      // No restrictions at all → public session
+      return true;
+    });
+    console.log('[live-admin] schedule: anonymous filter:', items.length, 'public items');
   }
 
   return jsonResponse(200, { ok: true, items: items });
@@ -368,10 +387,10 @@ async function handleRecordings(event) {
   }).slice(0, 50);
   console.log('[live-admin] recordings: with recording:', items.length);
 
-  // Filter by permissions + cohort
+  // Filter by permissions + cohort + programs
   var userPermsWithCohort = await getUserPermissionsWithCohort(user);
   items = items.filter(function (item) {
-    return hasAccess(item.access, user.role, userPermsWithCohort, item.cohorts);
+    return hasAccess(item.access, user.role, userPermsWithCohort, item.cohorts, item.programs, user);
   });
   console.log('[live-admin] recordings: after access filter (' + user.role + '):', items.length);
 
@@ -399,9 +418,9 @@ function getUserPermissions(role) {
  * Get user permissions including cohort from Firestore roleDetails.
  */
 async function getUserPermissionsWithCohort(user) {
-  var perms = getUserPermissions(user.role);
+  var perms = getUserPermissions(user.role).slice(); // copy base
 
-  // Fetch roleDetails from Firestore to get cohort
+  // Fetch roleDetails from Firestore to get cohort, program, courses, etc.
   try {
     const { getDb: getDbFn } = require('./shared/firestore');
     var db = getDbFn();
@@ -409,20 +428,54 @@ async function getUserPermissionsWithCohort(user) {
     if (userDoc.exists) {
       var data = userDoc.data();
       var roleDetails = data.roleDetails || {};
-      if (roleDetails.cohort) {
-        perms = perms.slice();
-        perms.push('cohort:' + roleDetails.cohort);
+
+      // FIX 6: Multi-cohort support — handle string or array
+      var cohorts = roleDetails.cohort;
+      if (cohorts) {
+        if (typeof cohorts === 'string') cohorts = [cohorts];
+        for (var ci = 0; ci < cohorts.length; ci++) {
+          if (perms.indexOf('cohort:' + cohorts[ci]) === -1) {
+            perms.push('cohort:' + cohorts[ci]);
+          }
+        }
       }
+
+      // Program materials permission
       if (roleDetails.program) {
-        perms = perms.indexOf('materials:' + roleDetails.program) === -1
-          ? perms.concat(['materials:' + roleDetails.program])
-          : perms;
+        if (perms.indexOf('materials:' + roleDetails.program) === -1) {
+          perms.push('materials:' + roleDetails.program);
+        }
       }
+
+      // Method permission
       if (roleDetails.method) {
-        perms = perms.indexOf('method:' + roleDetails.method) === -1
-          ? perms.concat(['method:' + roleDetails.method])
-          : perms;
+        if (perms.indexOf('method:' + roleDetails.method) === -1) {
+          perms.push('method:' + roleDetails.method);
+        }
       }
+
+      // FIX 5: Course type permissions (server parity with client)
+      if (roleDetails.courseTypes && Array.isArray(roleDetails.courseTypes)) {
+        for (var cti = 0; cti < roleDetails.courseTypes.length; cti++) {
+          var cp = 'course:' + roleDetails.courseTypes[cti];
+          if (perms.indexOf(cp) === -1) perms.push(cp);
+        }
+      }
+
+      // FIX 5: Teacher type permission
+      if (roleDetails.teacherType) {
+        var tp = 'teacher:' + roleDetails.teacherType;
+        if (perms.indexOf(tp) === -1) perms.push(tp);
+      }
+
+      // FIX 5: Mentorship permission
+      if (roleDetails.mentorship) {
+        if (perms.indexOf('mentorship') === -1) perms.push('mentorship');
+      }
+
+      // FIX 4: Derive program IDs for program-level access checking
+      // Store on user object for hasAccess() to use
+      user._programIds = deriveProgramIds(user.role, roleDetails);
     }
   } catch (err) {
     console.error('[live-admin] Failed to fetch roleDetails:', err.message);
@@ -432,28 +485,99 @@ async function getUserPermissionsWithCohort(user) {
 }
 
 /**
+ * Derive which catalog program IDs (course_id) a user belongs to,
+ * based on their role and roleDetails.
+ */
+function deriveProgramIds(role, roleDetails) {
+  var ids = [];
+  roleDetails = roleDetails || {};
+
+  if (role === 'trainee' || role === 'teacher' || role === 'admin') {
+    // Map program + method to catalog course_id
+    var prog = roleDetails.program || '';
+    var method = roleDetails.method || '';
+
+    if (prog === '200h' || prog === '100h') {
+      if (method === 'vinyasa') {
+        ids.push('YTT200-4W-VP');
+      }
+      // All 200h trainees match all 200h formats
+      ids.push('YTT200-4W', 'YTT200-18W', 'YTT200-8W');
+    }
+    if (prog === '300h') ids.push('YTT300-ADV');
+    if (prog === '500h') ids.push('YTT300-ADV', 'YTT200-4W', 'YTT200-18W', 'YTT200-8W');
+  }
+
+  // Teachers get all YTT programs
+  if (role === 'teacher' || role === 'admin') {
+    ['YTT200-4W', 'YTT200-4W-VP', 'YTT200-18W', 'YTT200-8W', 'YTT300-ADV'].forEach(function (p) {
+      if (ids.indexOf(p) === -1) ids.push(p);
+    });
+  }
+
+  // Course students
+  if (roleDetails.courseTypes && Array.isArray(roleDetails.courseTypes)) {
+    var courseMap = {
+      inversions: 'INV-4W',
+      splits: 'SPL-4W',
+      backbends: 'BB-4W'
+    };
+    for (var i = 0; i < roleDetails.courseTypes.length; i++) {
+      var mapped = courseMap[roleDetails.courseTypes[i]];
+      if (mapped && ids.indexOf(mapped) === -1) ids.push(mapped);
+    }
+  }
+
+  return ids;
+}
+
+/**
  * Check if a user has access to a live schedule item.
  * @param {object} access - { roles: [], permissions: [] }
  * @param {string} role - User's role
  * @param {string[]} userPerms - User's computed permissions
  * @param {string[]} cohorts - Item's required cohorts (optional)
  */
-function hasAccess(access, role, userPerms, cohorts) {
-  if (!access && (!cohorts || !cohorts.length)) return true;
+/**
+ * Check if a user has access to a live schedule item.
+ * @param {object} access - { roles: [], permissions: [] }
+ * @param {string} role - User's role
+ * @param {string[]} userPerms - User's computed permissions
+ * @param {string[]} cohorts - Item's required cohorts (buildCohortId format)
+ * @param {string[]} programs - Item's required program IDs (course_id from catalogue)
+ * @param {object} user - Full user object (may have user._programIds)
+ */
+function hasAccess(access, role, userPerms, cohorts, programs, user) {
+  var hasPrograms = programs && programs.length > 0;
+  var hasCohorts = cohorts && cohorts.length > 0;
+  var hasAccessObj = !!access;
+
+  // No restrictions at all → open session
+  if (!hasAccessObj && !hasCohorts && !hasPrograms) return true;
+  // Admin always passes
   if (role === 'admin') return true;
 
-  // If the item has cohort restrictions, user must match at least one
-  if (cohorts && cohorts.length > 0) {
+  // FIX 4: Program check — if session has programs, user must match at least one
+  if (hasPrograms) {
+    var userProgramIds = (user && user._programIds) || [];
+    var hasProgram = programs.some(function (p) {
+      return userProgramIds.indexOf(p) !== -1;
+    });
+    if (!hasProgram) return false;
+  }
+
+  // Cohort check — if session has cohorts, user must match at least one
+  if (hasCohorts) {
     var hasCohort = cohorts.some(function (c) {
       return userPerms.indexOf('cohort:' + c) !== -1;
     });
     if (!hasCohort) return false;
   }
 
-  // If no access object, cohort check was enough
-  if (!access) return true;
+  // If we only had program/cohort restrictions (no access object), those checks are enough
+  if (!hasAccessObj) return true;
 
-  // Check roles
+  // Check roles (OR with permissions)
   if (access.roles && access.roles.length > 0) {
     if (access.roles.indexOf(role) !== -1) return true;
   }
