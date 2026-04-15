@@ -214,7 +214,7 @@
         '<td>' +
           '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="el-view" data-list-id="' + list.id + '">View</button> ' +
           '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="el-edit" data-list-id="' + list.id + '">Edit</button> ' +
-          '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="el-delete-list" data-list-id="' + list.id + '" style="color:#ef5350;">Delete</button>' +
+          '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="el-delete-list" data-list-id="' + list.id + '" style="color:#dc2626;">Delete</button>' +
         '</td>' +
       '</tr>';
     }).join('');
@@ -314,7 +314,7 @@
         '<td>' + (tags || '—') + '</td>' +
         '<td>' +
           '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="el-tag-contact" data-contact-id="' + c.id + '">Tag</button> ' +
-          '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="el-delete-contact" data-contact-id="' + c.id + '" style="color:#ef5350;">Del</button>' +
+          '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="el-delete-contact" data-contact-id="' + c.id + '" style="color:#dc2626;">Del</button>' +
         '</td>' +
       '</tr>';
     }).join('');
@@ -1031,7 +1031,7 @@
       var clickRate = tracking.click_rate || 0;
       var date = (c.sentAt || c.createdAt || '').substring(0, 16).replace('T', ' ');
       var typeLabel = c.type === 'sms' ? '<span style="background:#e1f5fe;color:#0277bd;padding:2px 8px;border-radius:10px;font-size:11px;">SMS</span>'
-        : '<span style="background:#fce4ec;color:#c62828;padding:2px 8px;border-radius:10px;font-size:11px;">Email</span>';
+        : '<span style="background:#fce4ec;color:#dc2626;padding:2px 8px;border-radius:10px;font-size:11px;">Email</span>';
 
       html += '<tr>' +
         '<td><a href="#" data-action="el-view-campaign" data-campaign-id="' + c.id + '" style="color:#f75c03;font-weight:600;">' + esc(c.subject || '(no subject)') + '</a></td>' +
@@ -1331,7 +1331,7 @@
 
           $('yb-el-mb-results-stats').innerHTML =
             '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (data.totalMbClients || 0) + '</span><span class="yb-admin__stat-label">Total MB Clients</span></div>' +
-            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value" style="color:#2E7D32;">' + (data.imported || 0) + '</span><span class="yb-admin__stat-label">New Contacts</span></div>' +
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value" style="color:#16a34a;">' + (data.imported || 0) + '</span><span class="yb-admin__stat-label">New Contacts</span></div>' +
             '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (data.updated || 0) + '</span><span class="yb-admin__stat-label">Updated</span></div>' +
             '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value" style="color:#6F6A66;">' + (data.skipped || 0) + '</span><span class="yb-admin__stat-label">Skipped</span></div>';
 
@@ -1486,7 +1486,7 @@
 
           $('yb-el-ls-results-stats').innerHTML =
             '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (data.totalLeads || 0) + '</span><span class="yb-admin__stat-label">Total Leads</span></div>' +
-            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value" style="color:#2E7D32;">' + (data.imported || 0) + '</span><span class="yb-admin__stat-label">New Contacts</span></div>' +
+            '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value" style="color:#16a34a;">' + (data.imported || 0) + '</span><span class="yb-admin__stat-label">New Contacts</span></div>' +
             '<div class="yb-admin__stat-card"><span class="yb-admin__stat-value">' + (data.updated || 0) + '</span><span class="yb-admin__stat-label">Updated</span></div>';
 
           $('yb-el-ls-sync-btn').disabled = false;

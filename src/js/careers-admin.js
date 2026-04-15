@@ -89,7 +89,7 @@
     { value: 'Interviewed',      label: 'Interviewed',      color: '#DCEDC8', text: '#33691E', icon: '\ud83d\udcac' },
     { value: 'Trial Scheduled',  label: 'Trial Scheduled',  color: '#e8daef', text: '#6c3483', icon: '\ud83d\udcc5' },
     { value: 'Offered',          label: 'Offered',          color: '#cce5ff', text: '#004085', icon: '\ud83c\udf89' },
-    { value: 'Hired',            label: 'Hired',            color: '#d4edda', text: '#155724', icon: '\u2705' },
+    { value: 'Hired',            label: 'Hired',            color: '#dcfce7', text: '#16a34a', icon: '\u2705' },
     { value: 'On Hold',          label: 'On Hold',          color: '#FFF9C4', text: '#F57F17', icon: '\u23f8\ufe0f' },
     { value: 'Rejected',         label: 'Rejected',         color: '#f8d7da', text: '#721c24', icon: '\ud83d\udc4e' },
     { value: 'Withdrawn',        label: 'Withdrawn',        color: '#ECEFF1', text: '#546E7F', icon: '\u21a9\ufe0f' }
@@ -446,7 +446,7 @@
       c.files.forEach(function (f) {
         if (f.filename) {
           filesHtml += '<li style="font-size:0.85rem">' + esc(f.filename) +
-            ' <span style="color:#888">(' + f.kind + ')</span></li>';
+            ' <span style="color:#6F6A66">(' + f.kind + ')</span></li>';
         }
       });
       filesHtml += '</ul></div>';
@@ -511,7 +511,7 @@
       c.files.forEach(function (f) {
         if (f.filename) {
           filesHtml += '<li style="font-size:0.9rem">📎 ' + esc(f.filename) +
-            ' <span style="color:#888">(' + f.kind + ')</span></li>';
+            ' <span style="color:#6F6A66">(' + f.kind + ')</span></li>';
         }
       });
       filesHtml += '</ul></div>';

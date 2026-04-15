@@ -99,17 +99,17 @@
 
   {# Role editor #}
   <div class="yb-admin__section-divider"></div>
-  <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.role_title }}</h3>
+  <h3 class="yb-admin__detail-heading">{{ t.role_title }}</h3>
   <div id="yb-admin-user-role-editor"></div>
 
   {# Enrollments #}
   <div class="yb-admin__section-divider"></div>
   <div class="yb-admin__view-head">
-    <h3 style="font-size:0.95rem;font-weight:700">{{ t.users_enrollments }}</h3>
+    <h3 class="yb-admin__detail-heading">{{ t.users_enrollments }}</h3>
     <button class="yb-btn yb-btn--primary yb-btn--sm" data-action="user-enroll-toggle">+ {{ t.users_enroll_course }}</button>
   </div>
   <div id="yb-admin-user-enroll-form-wrap" hidden>
-    <div class="yb-admin__enroll-form" style="margin-bottom:1rem">
+    <div class="yb-admin__enroll-form">
       <select id="yb-admin-user-enroll-course" class="yb-admin__select">
         <option value="">{{ t.users_enroll_select }}</option>
       </select>
@@ -120,17 +120,17 @@
 
   {# Progress #}
   <div class="yb-admin__section-divider"></div>
-  <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.users_progress_title }}</h3>
+  <h3 class="yb-admin__detail-heading">{{ t.users_progress_title }}</h3>
   <div id="yb-admin-user-progress"></div>
 
   {# Consents #}
   <div class="yb-admin__section-divider"></div>
-  <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.users_consents_title }}</h3>
+  <h3 class="yb-admin__detail-heading">{{ t.users_consents_title }}</h3>
   <div id="yb-admin-user-consents"></div>
 
   {# Invoices #}
   <div class="yb-admin__section-divider"></div>
-  <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">{{ t.users_invoices_title }}</h3>
+  <h3 class="yb-admin__detail-heading">{{ t.users_invoices_title }}</h3>
   <div id="yb-admin-user-invoices"></div>
 
   {# Notes #}

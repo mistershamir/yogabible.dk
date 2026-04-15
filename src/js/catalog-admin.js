@@ -152,7 +152,7 @@
       html += '<tr class="yb-admin__group-row"><td colspan="8" style="background:#F5F3F0;font-weight:700;padding:0.5rem 0.75rem;border-top:2px solid #E8E4E0">' + esc(courseId) + ' \u2014 ' + esc(items[0].course_name || '') + '</td></tr>';
       items.forEach(function (item) {
         var checked = selectedCatalogIds[item.id] ? ' checked' : '';
-        var activeLabel = item.active ? '<span style="color:#22c55e">&#9679;</span> ' + t('catalog_active') : '<span style="color:#6F6A66">&#9675;</span> ' + t('catalog_inactive');
+        var activeLabel = item.active ? '<span style="color:#16a34a">&#9679;</span> ' + t('catalog_active') : '<span style="color:#6F6A66">&#9675;</span> ' + t('catalog_inactive');
         html += '<tr>'
           + '<td class="yb-lead__th-cb"><input type="checkbox" class="yb-catalog-row-cb" data-id="' + item.id + '"' + checked + '></td>'
           + '<td>' + esc(item.course_name || '') + '</td>'

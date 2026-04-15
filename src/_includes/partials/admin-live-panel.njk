@@ -37,14 +37,14 @@
   {# Bulk access settings panel (hidden until "Set Access" clicked) #}
   <div id="yb-live-bulk-access-panel" class="yb-admin__form yb-live__bulk-access" hidden>
     <div class="yb-live__bulk-access-header">
-      <strong style="font-size:0.9rem">{{ t.live_bulk_set_access }}</strong>
+      <strong class="yb-la__bulk-title">{{ t.live_bulk_set_access }}</strong>
       <button type="button" class="yb-admin__icon-btn" data-action="live-bulk-access-close" title="Close">&times;</button>
     </div>
 
     {# Bulk — Role checkboxes #}
-    <div class="yb-admin__field" style="margin-bottom:1rem">
-      <label style="font-weight:600;font-size:0.82rem">{{ t.live_field_access_roles }}</label>
-      <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.35rem">
+    <div class="yb-admin__field yb-la__field--md">
+      <label class="yb-la__field-label">{{ t.live_field_access_roles }}</label>
+      <div class="yb-admin__form-row yb-la__checkbox-group--spaced">
         <label class="yb-admin__checkbox-label"><input type="checkbox" value="member" class="yb-la-bulk-role-cb"> Member</label>
         <label class="yb-admin__checkbox-label"><input type="checkbox" value="trainee" class="yb-la-bulk-role-cb" checked> Trainee</label>
         <label class="yb-admin__checkbox-label"><input type="checkbox" value="student" class="yb-la-bulk-role-cb"> Student</label>
@@ -54,12 +54,12 @@
     </div>
 
     {# Bulk — Permission checkboxes (same groups as form) #}
-    <div class="yb-admin__field" style="margin-bottom:1rem">
-      <label style="font-weight:600;font-size:0.82rem">{{ t.live_field_access_perms }}</label>
-      <div style="margin-top:0.5rem">
+    <div class="yb-admin__field yb-la__field--md">
+      <label class="yb-la__field-label">{{ t.live_field_access_perms }}</label>
+      <div class="yb-la__perm-wrap">
         <div class="yb-live__perm-group">
           <span class="yb-live__perm-group-label">{{ t.live_perm_group_base }}</span>
-          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <div class="yb-admin__form-row yb-la__checkbox-group">
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="live-streaming" class="yb-la-bulk-perm-cb" checked> Live Streaming</label>
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="recordings" class="yb-la-bulk-perm-cb"> Recordings</label>
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="gated-content" class="yb-la-bulk-perm-cb"> Gated Content</label>
@@ -67,7 +67,7 @@
         </div>
         <div class="yb-live__perm-group">
           <span class="yb-live__perm-group-label">{{ t.live_perm_group_materials }}</span>
-          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <div class="yb-admin__form-row yb-la__checkbox-group">
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:100h" class="yb-la-bulk-perm-cb"> 100h</label>
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:200h" class="yb-la-bulk-perm-cb"> 200h</label>
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:300h" class="yb-la-bulk-perm-cb"> 300h</label>
@@ -76,14 +76,14 @@
         </div>
         <div class="yb-live__perm-group">
           <span class="yb-live__perm-group-label">{{ t.live_perm_group_methods }}</span>
-          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <div class="yb-admin__form-row yb-la__checkbox-group">
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:triangle" class="yb-la-bulk-perm-cb"> Triangle</label>
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:vinyasa" class="yb-la-bulk-perm-cb"> Vinyasa</label>
           </div>
         </div>
         <div class="yb-live__perm-group">
           <span class="yb-live__perm-group-label">{{ t.live_perm_group_courses }}</span>
-          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <div class="yb-admin__form-row yb-la__checkbox-group">
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:inversions" class="yb-la-bulk-perm-cb"> Inversions</label>
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:splits" class="yb-la-bulk-perm-cb"> Splits</label>
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:backbends" class="yb-la-bulk-perm-cb"> Backbends</label>
@@ -94,7 +94,7 @@
         </div>
         <div class="yb-live__perm-group">
           <span class="yb-live__perm-group-label">{{ t.live_perm_group_teacher }}</span>
-          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <div class="yb-admin__form-row yb-la__checkbox-group">
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:vinyasa" class="yb-la-bulk-perm-cb"> Vinyasa</label>
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:yin" class="yb-la-bulk-perm-cb"> Yin</label>
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hot" class="yb-la-bulk-perm-cb"> Hot Yoga</label>
@@ -108,7 +108,7 @@
         </div>
         <div class="yb-live__perm-group">
           <span class="yb-live__perm-group-label">{{ t.live_perm_group_other }}</span>
-          <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+          <div class="yb-admin__form-row yb-la__checkbox-group">
             <label class="yb-admin__checkbox-label"><input type="checkbox" value="mentorship" class="yb-la-bulk-perm-cb"> Mentorship</label>
           </div>
         </div>
@@ -116,23 +116,23 @@
     </div>
 
     {# Bulk — Programs #}
-    <div class="yb-admin__field" style="margin-bottom:0.75rem">
-      <label style="font-weight:600;font-size:0.82rem">{{ t.live_field_programs or "Programs" }}</label>
+    <div class="yb-admin__field yb-la__field--sm">
+      <label class="yb-la__field-label">{{ t.live_field_programs or "Programs" }}</label>
       <div id="yb-la-bulk-programs-container" class="yb-la-pill-container">
-        <span style="color:#6F6A66;font-size:0.8rem">Loading catalogue…</span>
+        <span class="yb-la__loading-text">Loading catalogue…</span>
       </div>
     </div>
 
     {# Bulk — Cohorts #}
-    <div class="yb-admin__field" style="margin-bottom:0.75rem">
-      <label style="font-weight:600;font-size:0.82rem">{{ t.live_field_cohorts or "Cohorts" }}</label>
+    <div class="yb-admin__field yb-la__field--sm">
+      <label class="yb-la__field-label">{{ t.live_field_cohorts or "Cohorts" }}</label>
       <div id="yb-la-bulk-cohorts-container" class="yb-la-pill-container">
-        <span style="color:#6F6A66;font-size:0.8rem">Select a program first</span>
+        <span class="yb-la__loading-text">Select a program first</span>
       </div>
     </div>
 
     {# Bulk access summary #}
-    <div id="yb-la-bulk-access-summary" style="font-size:0.8rem;color:#6F6A66;background:#F5F3F0;padding:0.5rem 0.75rem;border-radius:8px;margin-bottom:1rem">
+    <div id="yb-la-bulk-access-summary" class="yb-la__access-summary yb-la__access-summary--spaced">
       Visible to: everyone (no restrictions)
     </div>
 
@@ -168,8 +168,8 @@
 
   <form id="yb-live-admin-form" class="yb-admin__form" autocomplete="off">
     <input type="hidden" id="yb-la-id">
-    <div id="yb-la-id-display" style="display:none;margin-bottom:12px;font-size:13px;color:#6F6A66;">
-      Session ID: <code id="yb-la-id-text" style="user-select:all;cursor:pointer;background:#F5F3F0;padding:2px 6px;border-radius:4px;"></code>
+    <div id="yb-la-id-display" class="yb-la__id-display">
+      Session ID: <code id="yb-la-id-text" class="yb-la__id-code"></code>
     </div>
 
     {# Source selector #}
@@ -282,24 +282,24 @@
     {# Program restriction (catalogue-driven pills) #}
     <div class="yb-admin__field">
       <label>{{ t.live_field_programs or "Program Restriction" }}</label>
-      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 0.5rem">{{ t.live_programs_help or "Select which programs can access this session. Leave empty for no program restriction." }}</p>
+      <p class="yb-la__help-text">{{ t.live_programs_help or "Select which programs can access this session. Leave empty for no program restriction." }}</p>
       <div id="yb-la-programs-container" class="yb-la-pill-container">
-        <span style="color:#6F6A66;font-size:0.8rem">Loading catalogue…</span>
+        <span class="yb-la__loading-text">Loading catalogue…</span>
       </div>
     </div>
 
     {# Cohort restriction (catalogue-driven pills, shown after program selection) #}
     <div class="yb-admin__field">
       <label>{{ t.live_field_cohorts or "Cohort Restriction" }}</label>
-      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 0.5rem">{{ t.live_cohorts_help_new or "Select specific cohorts. Only shown after picking a program. Leave empty to allow all cohorts of the selected programs." }}</p>
+      <p class="yb-la__help-text">{{ t.live_cohorts_help_new or "Select specific cohorts. Only shown after picking a program. Leave empty to allow all cohorts of the selected programs." }}</p>
       <div id="yb-la-cohorts-container" class="yb-la-pill-container">
-        <span style="color:#6F6A66;font-size:0.8rem">Select a program first</span>
+        <span class="yb-la__loading-text">Select a program first</span>
       </div>
     </div>
 
     {# Access summary preview #}
     <div class="yb-admin__field">
-      <div id="yb-la-access-summary" style="font-size:0.8rem;color:#6F6A66;background:#F5F3F0;padding:0.5rem 0.75rem;border-radius:8px">
+      <div id="yb-la-access-summary" class="yb-la__access-summary">
         Visible to: everyone (no restrictions)
       </div>
     </div>
@@ -316,28 +316,28 @@
         <option value="meet">{{ t.live_stream_meet or "Google Meet — external video meeting" }}</option>
         <option value="panel">{{ t.live_stream_panel or "Panel — multiple teachers stream together" }}</option>
       </select>
-      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_stream_type_help or "Defines who can publish video/audio in this session" }}</p>
+      <p class="yb-la__form-hint">{{ t.live_stream_type_help or "Defines who can publish video/audio in this session" }}</p>
     </div>
 
     {# Meeting URL (for Google Meet / external meeting links) #}
-    <div class="yb-admin__field" id="yb-la-meeting-url-field" style="display:none">
+    <div class="yb-admin__field yb-la__hidden-field" id="yb-la-meeting-url-field">
       <label for="yb-la-meeting-url">{{ t.live_field_meeting_url or "Meeting URL" }}</label>
       <input type="url" id="yb-la-meeting-url" placeholder="https://meet.google.com/abc-defg-hij">
-      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_meeting_url_help or "Paste your Google Meet, Zoom, or other meeting link here" }}</p>
+      <p class="yb-la__form-hint">{{ t.live_meeting_url_help or "Paste your Google Meet, Zoom, or other meeting link here" }}</p>
     </div>
 
     {# Co-teachers (only for panel sessions) #}
-    <div class="yb-admin__field" id="yb-la-coteachers-field" style="display:none">
+    <div class="yb-admin__field yb-la__hidden-field" id="yb-la-coteachers-field">
       <label for="yb-la-coteachers">{{ t.live_field_coteachers or "Co-teachers (emails)" }}</label>
       <input type="text" id="yb-la-coteachers" placeholder="{{ t.live_coteachers_hint or "teacher1@yogabible.dk, teacher2@yogabible.dk" }}">
-      <p style="font-size:0.8rem;color:#6F6A66;margin:0.25rem 0 0">{{ t.live_coteachers_help or "Comma-separated emails. These teachers can also Go Live for this session." }}</p>
+      <p class="yb-la__form-hint">{{ t.live_coteachers_help or "Comma-separated emails. These teachers can also Go Live for this session." }}</p>
     </div>
 
     {# Access: Roles #}
     <div class="yb-admin__field">
       <label>{{ t.live_field_access_roles }}</label>
-      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 0.5rem">{{ t.live_access_hint_roles }}</p>
-      <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:1rem">
+      <p class="yb-la__help-text">{{ t.live_access_hint_roles }}</p>
+      <div class="yb-admin__form-row yb-la__checkbox-group--roles">
         <label class="yb-admin__checkbox-label"><input type="checkbox" value="member" class="yb-la-role-cb"> Member</label>
         <label class="yb-admin__checkbox-label"><input type="checkbox" value="trainee" class="yb-la-role-cb" checked> Trainee</label>
         <label class="yb-admin__checkbox-label"><input type="checkbox" value="student" class="yb-la-role-cb"> Student</label>
@@ -349,12 +349,12 @@
     {# Access: Permissions — grouped checkboxes #}
     <div class="yb-admin__field">
       <label>{{ t.live_field_access_perms }}</label>
-      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 0.5rem">{{ t.live_access_hint_perms }}</p>
+      <p class="yb-la__help-text">{{ t.live_access_hint_perms }}</p>
 
       {# Base permissions #}
-      <div style="margin-bottom:0.6rem">
-        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_base }}</span>
-        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+      <div class="yb-la__perm-section">
+        <span class="yb-la__group-label">{{ t.live_perm_group_base }}</span>
+        <div class="yb-admin__form-row yb-la__checkbox-group">
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="live-streaming" class="yb-la-perm-cb" checked> Live Streaming</label>
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="recordings" class="yb-la-perm-cb"> Recordings</label>
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="gated-content" class="yb-la-perm-cb"> Gated Content</label>
@@ -362,9 +362,9 @@
       </div>
 
       {# Materials (Program) #}
-      <div style="margin-bottom:0.6rem">
-        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_materials }}</span>
-        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+      <div class="yb-la__perm-section">
+        <span class="yb-la__group-label">{{ t.live_perm_group_materials }}</span>
+        <div class="yb-admin__form-row yb-la__checkbox-group">
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:100h" class="yb-la-perm-cb"> 100h</label>
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:200h" class="yb-la-perm-cb"> 200h</label>
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:300h" class="yb-la-perm-cb"> 300h</label>
@@ -373,18 +373,18 @@
       </div>
 
       {# Method #}
-      <div style="margin-bottom:0.6rem">
-        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_methods }}</span>
-        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+      <div class="yb-la__perm-section">
+        <span class="yb-la__group-label">{{ t.live_perm_group_methods }}</span>
+        <div class="yb-admin__form-row yb-la__checkbox-group">
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:triangle" class="yb-la-perm-cb"> Triangle</label>
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:vinyasa" class="yb-la-perm-cb"> Vinyasa</label>
         </div>
       </div>
 
       {# Courses #}
-      <div style="margin-bottom:0.6rem">
-        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_courses }}</span>
-        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+      <div class="yb-la__perm-section">
+        <span class="yb-la__group-label">{{ t.live_perm_group_courses }}</span>
+        <div class="yb-admin__form-row yb-la__checkbox-group">
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:inversions" class="yb-la-perm-cb"> Inversions</label>
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:splits" class="yb-la-perm-cb"> Splits</label>
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:backbends" class="yb-la-perm-cb"> Backbends</label>
@@ -395,9 +395,9 @@
       </div>
 
       {# Teacher Type #}
-      <div style="margin-bottom:0.6rem">
-        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_teacher }}</span>
-        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+      <div class="yb-la__perm-section">
+        <span class="yb-la__group-label">{{ t.live_perm_group_teacher }}</span>
+        <div class="yb-admin__form-row yb-la__checkbox-group">
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:vinyasa" class="yb-la-perm-cb"> Vinyasa</label>
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:yin" class="yb-la-perm-cb"> Yin</label>
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hot" class="yb-la-perm-cb"> Hot Yoga</label>
@@ -412,8 +412,8 @@
 
       {# Other #}
       <div>
-        <span style="font-size:0.75rem;font-weight:600;color:#6F6A66">{{ t.live_perm_group_other }}</span>
-        <div class="yb-admin__form-row" style="flex-wrap:wrap;gap:0.75rem;margin-top:0.25rem">
+        <span class="yb-la__group-label">{{ t.live_perm_group_other }}</span>
+        <div class="yb-admin__form-row yb-la__checkbox-group">
           <label class="yb-admin__checkbox-label"><input type="checkbox" value="mentorship" class="yb-la-perm-cb"> Mentorship</label>
         </div>
       </div>
@@ -421,17 +421,17 @@
 
     {# ── AI Content (summary + quiz) — shown only for ended sessions with recordings ── #}
     <div id="yb-la-ai-section" hidden>
-      <hr style="border:none;border-top:1px solid #E8E4E0;margin:1.5rem 0">
-      <h3 style="font-size:1rem;margin:0 0 0.25rem">AI-genereret indhold</h3>
-      <p style="font-size:0.8rem;color:#6F6A66;margin:0 0 1rem">Rediger summary og quiz genereret af AI. Ændringer gemmes når du trykker Gem.</p>
+      <hr class="yb-la__ai-divider">
+      <h3 class="yb-la__ai-heading">AI-genereret indhold</h3>
+      <p class="yb-la__ai-desc">Rediger summary og quiz genereret af AI. Ændringer gemmes når du trykker Gem.</p>
 
       {# AI Status indicator #}
-      <div class="yb-admin__form-row" style="margin-bottom:1rem">
-        <div class="yb-admin__field" style="flex:0 0 auto">
+      <div class="yb-admin__form-row yb-la__ai-status-row">
+        <div class="yb-admin__field yb-la__ai-status-field">
           <label>AI Status</label>
-          <span id="yb-la-ai-status" style="display:inline-block;padding:0.25rem 0.75rem;border-radius:20px;font-size:0.8rem;font-weight:600;background:#E8E4E0;color:#6F6A66">—</span>
+          <span id="yb-la-ai-status" class="yb-la__ai-status">—</span>
         </div>
-        <div class="yb-admin__field" style="flex:0 0 auto;align-self:flex-end">
+        <div class="yb-admin__field yb-la__ai-status-field--end">
           <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-la-ai-reprocess-btn" title="Re-run AI on this session's transcript">
             ↻ Reprocess AI
           </button>
@@ -439,41 +439,41 @@
       </div>
 
       {# Language tabs for AI content #}
-      <div style="display:flex;gap:0;margin-bottom:1rem">
-        <button type="button" id="yb-la-ai-tab-da" class="yb-btn yb-btn--sm" style="border-radius:8px 0 0 8px;min-width:60px" onclick="window._aiLangTab && window._aiLangTab('da')">DA</button>
-        <button type="button" id="yb-la-ai-tab-en" class="yb-btn yb-btn--outline yb-btn--sm" style="border-radius:0 8px 8px 0;min-width:60px" onclick="window._aiLangTab && window._aiLangTab('en')">EN</button>
+      <div class="yb-la__lang-tabs">
+        <button type="button" id="yb-la-ai-tab-da" class="yb-btn yb-btn--sm yb-la__lang-tab yb-la__lang-tab--left" data-action="live-ai-lang" data-lang="da">DA</button>
+        <button type="button" id="yb-la-ai-tab-en" class="yb-btn yb-btn--outline yb-btn--sm yb-la__lang-tab yb-la__lang-tab--right" data-action="live-ai-lang" data-lang="en">EN</button>
       </div>
 
       {# Summary DA #}
       <div class="yb-admin__field yb-la-ai-lang-da">
         <label for="yb-la-ai-summary-da">Summary DA (HTML)</label>
-        <textarea id="yb-la-ai-summary-da" rows="10" style="font-family:monospace;font-size:0.8rem;white-space:pre-wrap;line-height:1.4" placeholder="<p>AI-genereret opsummering...</p>"></textarea>
+        <textarea id="yb-la-ai-summary-da" rows="10" class="yb-la__mono-block" placeholder="<p>AI-genereret opsummering...</p>"></textarea>
       </div>
       {# Summary EN #}
       <div class="yb-admin__field yb-la-ai-lang-en" hidden>
         <label for="yb-la-ai-summary-en">Summary EN (HTML)</label>
-        <textarea id="yb-la-ai-summary-en" rows="10" style="font-family:monospace;font-size:0.8rem;white-space:pre-wrap;line-height:1.4" placeholder="<p>AI-generated summary...</p>"></textarea>
+        <textarea id="yb-la-ai-summary-en" rows="10" class="yb-la__mono-block" placeholder="<p>AI-generated summary...</p>"></textarea>
       </div>
 
       {# Summary preview toggle #}
-      <div style="margin-bottom:1rem">
+      <div class="yb-la__preview-wrap">
         <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-la-ai-preview-btn">Preview summary</button>
-        <div id="yb-la-ai-preview" hidden style="margin-top:0.75rem;padding:1rem;background:#FFFCF9;border:1px solid #E8E4E0;border-radius:8px;font-size:0.9rem;line-height:1.6"></div>
+        <div id="yb-la-ai-preview" hidden class="yb-la__preview-box"></div>
       </div>
 
       {# Quiz DA #}
       <div class="yb-admin__field yb-la-ai-lang-da">
         <label for="yb-la-ai-quiz-da">Quiz DA (JSON array)</label>
-        <textarea id="yb-la-ai-quiz-da" rows="12" style="font-family:monospace;font-size:0.8rem;white-space:pre-wrap;line-height:1.4" placeholder='[{"question":"...","type":"multiple","options":["A","B","C","D"],"correct":0,"explanation":"..."}]'></textarea>
+        <textarea id="yb-la-ai-quiz-da" rows="12" class="yb-la__mono-block" placeholder='[{"question":"...","type":"multiple","options":["A","B","C","D"],"correct":0,"explanation":"..."}]'></textarea>
       </div>
       {# Quiz EN #}
       <div class="yb-admin__field yb-la-ai-lang-en" hidden>
         <label for="yb-la-ai-quiz-en">Quiz EN (JSON array)</label>
-        <textarea id="yb-la-ai-quiz-en" rows="12" style="font-family:monospace;font-size:0.8rem;white-space:pre-wrap;line-height:1.4" placeholder='[{"question":"...","type":"multiple","options":["A","B","C","D"],"correct":0,"explanation":"..."}]'></textarea>
+        <textarea id="yb-la-ai-quiz-en" rows="12" class="yb-la__mono-block" placeholder='[{"question":"...","type":"multiple","options":["A","B","C","D"],"correct":0,"explanation":"..."}]'></textarea>
       </div>
 
       {# Quiz validation #}
-      <div id="yb-la-ai-quiz-error" style="color:#ff453a;font-size:0.8rem;margin-top:-0.5rem;margin-bottom:1rem" hidden></div>
+      <div id="yb-la-ai-quiz-error" class="yb-la__error-text" hidden></div>
 
       {# Hidden legacy fields for backward compat #}
       <textarea id="yb-la-ai-summary" hidden></textarea>
@@ -495,7 +495,7 @@
   </div>
 
   {# Date range + fetch #}
-  <div class="yb-admin__form-row" style="margin-bottom:1rem">
+  <div class="yb-admin__form-row yb-la__import-row">
     <div class="yb-admin__field">
       <label for="yb-la-mb-start">{{ t.live_field_start }}</label>
       <input type="date" id="yb-la-mb-start">
@@ -504,14 +504,14 @@
       <label for="yb-la-mb-end">{{ t.live_field_end }}</label>
       <input type="date" id="yb-la-mb-end">
     </div>
-    <div class="yb-admin__field" style="align-self:flex-end">
+    <div class="yb-admin__field yb-la__import-action">
       <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-mb-fetch" id="yb-la-mb-fetch-btn">{{ t.live_mb_fetch_btn }}</button>
     </div>
   </div>
 
   {# Search + Filters (populated dynamically after fetch) #}
   <div class="yb-lead__filter-bar" id="yb-la-mb-filters" hidden>
-    <input type="text" id="yb-la-mb-search" placeholder="{{ t.live_mb_search }}" class="yb-lead__search-input" style="min-width:220px">
+    <input type="text" id="yb-la-mb-search" placeholder="{{ t.live_mb_search }}" class="yb-lead__search-input yb-la__import-search">
     <select id="yb-la-mb-filter-program" class="yb-admin__select yb-lead__filter">
       <option value="">{{ t.live_mb_filter_program }}</option>
     </select>

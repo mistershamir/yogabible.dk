@@ -1104,6 +1104,11 @@
 }
 
 /* ── Users Tab ── */
+.yb-admin__detail-heading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
 .yb-admin__user-toolbar {
   display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;
 }
@@ -3996,6 +4001,158 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
 
 
 /* ═══════════════════════════════════════════════════════════
+   ADMIN APPOINTMENTS — Booking Links & Modal (yb-appt-*)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Booking links container ── */
+.yb-appt__booking-links {
+  margin-bottom: 1.5rem;
+  border: 1px solid #E8E4E0;
+  border-radius: 12px;
+  background: #FFFCF9;
+}
+
+/* ── Booking links summary toggle ── */
+.yb-appt__booking-summary {
+  padding: 14px 20px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+}
+
+/* ── Info text within summary ── */
+.yb-appt__booking-info {
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: #6F6A66;
+  margin-left: auto;
+}
+
+/* ── Grid of booking type cards ── */
+.yb-appt__booking-grid {
+  padding: 0 20px 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+/* ── Individual booking type card ── */
+.yb-appt__booking-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* ── Booking card icon ── */
+.yb-appt__booking-icon {
+  font-size: 1.2rem;
+}
+
+/* ── Booking card text wrapper ── */
+.yb-appt__booking-text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Booking card label ── */
+.yb-appt__booking-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* ── Inline code/URL display ── */
+.yb-appt__code-snippet {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Copy link button ── */
+.yb-appt__copy-btn {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  padding: 6px 12px;
+}
+.yb-appt__copy-btn svg {
+  margin-right: 4px;
+  vertical-align: -1px;
+}
+
+/* ── Modal form container ── */
+.yb-appt__modal-box {
+  max-width: 520px;
+}
+
+/* ── Modal form body ── */
+.yb-appt__modal-body {
+  padding: 20px 24px;
+}
+
+/* ── Form section with bottom margin ── */
+.yb-appt__form-section {
+  margin-bottom: 16px;
+}
+
+/* ── Contact search relative wrapper ── */
+.yb-appt__field-relative {
+  position: relative;
+}
+
+/* ── Contact search hint text ── */
+.yb-appt__field-hint {
+  color: #6F6A66;
+  margin-top: 4px;
+  display: block;
+}
+
+/* ── Notification settings row ── */
+.yb-appt__notification-row {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: #F5F3F0;
+  border-radius: 8px;
+}
+.yb-appt__notification-row p {
+  margin: 0 0 8px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #6F6A66;
+}
+
+/* ── Notification checkboxes flex container ── */
+.yb-appt__checkbox-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Checkbox + label pairs ── */
+.yb-appt__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ── Form actions with top margin ── */
+.yb-appt__form-actions {
+  margin-top: 16px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
    ADMIN APPOINTMENTS — Calendar View (yb-appt-*)
    ═══════════════════════════════════════════════════════════ */
 
@@ -5774,6 +5931,255 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   .yb-doc__seed-header { flex-direction: column; align-items: stretch; }
   .yb-doc__seed-actions { width: 100%; }
   .yb-doc__seed-actions .yb-btn { flex: 1; text-align: center; }
+}
+
+/* ── Document Panel: extracted inline styles ── */
+.yb-doc__list-title {
+  margin: 0;
+  font-size: 1.3rem;
+}
+.yb-doc__seed-section {
+  border: 1px solid var(--yb-border, #e5e0db);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+.yb-doc__seed-title {
+  margin: 0 0 0.15rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.yb-doc__seed-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--yb-muted, #6F6A66);
+}
+.yb-doc__seed-title-wrap {
+  flex: 1;
+  min-width: 200px;
+}
+.yb-doc__seed-preview {
+  display: none;
+  padding: 0.75rem 1.25rem 1rem;
+}
+.yb-doc__seed-status {
+  font-size: 0.82rem;
+  margin-top: 0.6rem;
+  display: none;
+}
+.yb-doc__search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+}
+.yb-doc__search-icon {
+  position: absolute;
+  left: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--yb-muted, #6F6A66);
+  pointer-events: none;
+}
+.yb-doc__search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.1rem;
+  border: 1px solid var(--yb-border, #e5e0db);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+.yb-doc__search-input:focus {
+  outline: none;
+  border-color: var(--yb-brand, #f75c03);
+  box-shadow: 0 0 0 2px rgba(247, 92, 3, 0.12);
+}
+.yb-doc__filter-cats {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.yb-doc__permission-select {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--yb-border, #e5e0db);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  background: #fff;
+  color: #0F0F0F;
+  min-height: 44px;
+}
+.yb-doc__permission-select:focus {
+  outline: none;
+  border-color: var(--yb-brand, #f75c03);
+  box-shadow: 0 0 0 2px rgba(247, 92, 3, 0.12);
+}
+.yb-doc__result-count {
+  font-size: 0.78rem;
+  color: var(--yb-muted, #6F6A66);
+  margin: 0 0 0.75rem;
+}
+.yb-doc__back-link {
+  color: var(--yb-brand, #f75c03);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.yb-doc__back-link:hover {
+  text-decoration: underline;
+}
+.yb-doc__back-wrap {
+  margin-bottom: 1.5rem;
+}
+.yb-doc__active-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--yb-light-bg, #F5F3F0);
+  border-radius: 12px;
+}
+.yb-doc__active-toggle .yb-toggle {
+  margin: 0;
+}
+.yb-doc__active-label {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.yb-doc__active-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--yb-muted, #6F6A66);
+}
+.yb-doc__form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.yb-doc__form-input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--yb-brand, #f75c03);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+.yb-doc__form-input:focus {
+  outline: none;
+  border-color: var(--yb-brand, #f75c03);
+  box-shadow: 0 0 0 2px rgba(247, 92, 3, 0.12);
+}
+.yb-doc__form-textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--yb-brand, #f75c03);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.yb-doc__form-textarea:focus {
+  outline: none;
+  border-color: var(--yb-brand, #f75c03);
+  box-shadow: 0 0 0 2px rgba(247, 92, 3, 0.12);
+}
+.yb-doc__form-select {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--yb-brand, #f75c03);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: #fff;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+.yb-doc__form-select:focus {
+  outline: none;
+  border-color: var(--yb-brand, #f75c03);
+  box-shadow: 0 0 0 2px rgba(247, 92, 3, 0.12);
+}
+.yb-doc__url-input {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--yb-brand, #f75c03);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+.yb-doc__url-input:focus {
+  outline: none;
+  border-color: var(--yb-brand, #f75c03);
+  box-shadow: 0 0 0 2px rgba(247, 92, 3, 0.12);
+}
+.yb-doc__url-hint {
+  font-size: 0.75rem;
+  color: var(--yb-muted, #6F6A66);
+}
+.yb-doc__url-section {
+  margin-bottom: 1rem;
+}
+.yb-doc__gdrive-hint {
+  display: none;
+  margin-top: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  background: #e8f4fd;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #1a73e8;
+}
+.yb-doc__fieldset {
+  border: 1px solid var(--yb-border, #e5e0db);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  margin: 0;
+}
+.yb-doc__legend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--yb-muted, #6F6A66);
+  padding: 0 0.25rem;
+}
+.yb-doc__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.yb-doc__checkbox-label:last-child {
+  margin-bottom: 0;
+}
+.yb-doc__perm-section {
+  margin-bottom: 1.5rem;
+}
+.yb-doc__perm-label {
+  margin-bottom: 0.5rem;
+}
+.yb-doc__perm-hint {
+  font-size: 0.75rem;
+  color: var(--yb-muted, #6F6A66);
+  margin: 0.5rem 0 0;
+}
+.yb-doc__progress-text {
+  font-size: 0.75rem;
+  color: var(--yb-muted, #6F6A66);
+}
+.yb-doc__browse-btn {
+  white-space: nowrap;
+}
+.yb-doc__btn-icon {
+  vertical-align: middle;
+  margin-right: 0.2rem;
 }
 
 /* ── Live Panel Responsive ── */
@@ -8564,4 +8970,274 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 
 .yb-la-pill--active span {
   opacity: 0.85 !important;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Live Admin — Extracted Inline Styles
+   ═══════════════════════════════════════════════════════ */
+
+/* Help / description paragraphs */
+.yb-la__help-text {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  margin: 0 0 0.5rem;
+}
+
+/* Form field hint text (below inputs) */
+.yb-la__form-hint {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  margin: 0.25rem 0 0;
+}
+
+/* Permission group labels */
+.yb-la__group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6F6A66;
+}
+
+/* Field labels for bulk/form sections (bold, slightly larger) */
+.yb-la__field-label {
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+/* Flex-wrapped checkbox containers */
+.yb-la__checkbox-group {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Checkbox group with larger gap (roles) */
+.yb-la__checkbox-group--roles {
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Checkbox group with small top margin (bulk roles) */
+.yb-la__checkbox-group--spaced {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+/* Loading / placeholder text in pill containers */
+.yb-la__loading-text {
+  color: #6F6A66;
+  font-size: 0.8rem;
+}
+
+/* Access summary info box */
+.yb-la__access-summary {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  background: #F5F3F0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+}
+
+/* Access summary with bottom margin (bulk panel) */
+.yb-la__access-summary--spaced {
+  margin-bottom: 1rem;
+}
+
+/* Bulk access header title */
+.yb-la__bulk-title {
+  font-size: 0.9rem;
+}
+
+/* Field spacing for form sections */
+.yb-la__field--md {
+  margin-bottom: 1rem;
+}
+
+.yb-la__field--sm {
+  margin-bottom: 0.75rem;
+}
+
+/* Permission group container */
+.yb-la__perm-section {
+  margin-bottom: 0.6rem;
+}
+
+/* Permissions wrapper with top margin */
+.yb-la__perm-wrap {
+  margin-top: 0.5rem;
+}
+
+/* Session ID display (hidden by default) */
+.yb-la__id-display {
+  display: none;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #6F6A66;
+}
+
+/* Session ID code (copyable) */
+.yb-la__id-code {
+  user-select: all;
+  cursor: pointer;
+  background: #F5F3F0;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* AI section divider */
+.yb-la__ai-divider {
+  border: none;
+  border-top: 1px solid #E8E4E0;
+  margin: 1.5rem 0;
+}
+
+/* AI section heading */
+.yb-la__ai-heading {
+  font-size: 1rem;
+  margin: 0 0 0.25rem;
+}
+
+/* AI section description */
+.yb-la__ai-desc {
+  font-size: 0.8rem;
+  color: #6F6A66;
+  margin: 0 0 1rem;
+}
+
+/* AI status row */
+.yb-la__ai-status-row {
+  margin-bottom: 1rem;
+}
+
+/* AI status field (auto-width) */
+.yb-la__ai-status-field {
+  flex: 0 0 auto;
+}
+
+/* AI status field aligned to bottom */
+.yb-la__ai-status-field--end {
+  flex: 0 0 auto;
+  align-self: flex-end;
+}
+
+/* AI processing status badge */
+.yb-la__ai-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #E8E4E0;
+  color: #6F6A66;
+}
+
+/* Monospace content blocks (summary/quiz textareas) */
+.yb-la__mono-block {
+  font-family: monospace;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+/* Language tab container */
+.yb-la__lang-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1rem;
+}
+
+/* Language tab buttons */
+.yb-la__lang-tab {
+  min-width: 60px;
+}
+
+/* Left tab variant */
+.yb-la__lang-tab--left {
+  border-radius: 8px 0 0 8px;
+}
+
+/* Right tab variant */
+.yb-la__lang-tab--right {
+  border-radius: 0 8px 8px 0;
+}
+
+/* Summary preview container */
+.yb-la__preview-wrap {
+  margin-bottom: 1rem;
+}
+
+/* Summary preview box */
+.yb-la__preview-box {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* Quiz validation error text */
+.yb-la__error-text {
+  color: #dc2626;
+  font-size: 0.8rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Meeting URL / co-teachers fields (hidden by default) */
+.yb-la__hidden-field {
+  display: none;
+}
+
+/* MB import section row spacing */
+.yb-la__import-row {
+  margin-bottom: 1rem;
+}
+
+/* MB import fetch button alignment */
+.yb-la__import-action {
+  align-self: flex-end;
+}
+
+/* MB import search input */
+.yb-la__import-search {
+  min-width: 220px;
+}
+
+/* Pill category header (JS-generated) */
+.yb-la__pill-category {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6F6A66;
+  display: block;
+  margin: 0.4rem 0 0.2rem;
+}
+
+/* Pill ID suffix (JS-generated) */
+.yb-la__pill-id {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+/* Cohort pill ID suffix (slightly smaller) */
+.yb-la__pill-id--sm {
+  font-size: 0.65rem;
+  opacity: 0.6;
+}
+
+/* Table cell small text */
+.yb-la__td-sm {
+  font-size: 0.75rem;
+}
+
+/* Already imported row */
+.yb-la__row-imported {
+  opacity: 0.5;
+}
+
+/* Already imported label */
+.yb-la__imported-label {
+  font-size: 0.7rem;
+  color: #6F6A66;
 }

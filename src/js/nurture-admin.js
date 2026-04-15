@@ -70,14 +70,14 @@
 
   // ── Pipeline Stages ──────────────────────────────────────────────────────
   var PIPELINE_STAGES = [
-    { key: 'New', label: 'New', color: '#3498db' },
-    { key: 'Contacted', label: 'Contacted', color: '#9b59b6' },
-    { key: 'No Answer', label: 'No Answer', color: '#95a5a6' },
-    { key: 'Follow-up', label: 'Follow-up', color: '#e67e22' },
-    { key: 'Engaged', label: 'Engaged', color: '#2ecc71' },
-    { key: 'Qualified', label: 'Qualified', color: '#1abc9c' },
-    { key: 'Negotiating', label: 'Negotiating', color: '#f39c12' },
-    { key: 'Converted', label: 'Converted', color: '#27ae60' }
+    { key: 'New', label: 'New', color: '#2563eb' },
+    { key: 'Contacted', label: 'Contacted', color: '#7c3aed' },
+    { key: 'No Answer', label: 'No Answer', color: '#6F6A66' },
+    { key: 'Follow-up', label: 'Follow-up', color: '#f75c03' },
+    { key: 'Engaged', label: 'Engaged', color: '#16a34a' },
+    { key: 'Qualified', label: 'Qualified', color: '#16a34a' },
+    { key: 'Negotiating', label: 'Negotiating', color: '#f75c03' },
+    { key: 'Converted', label: 'Converted', color: '#16a34a' }
   ];
 
   function renderPipeline(leads) {

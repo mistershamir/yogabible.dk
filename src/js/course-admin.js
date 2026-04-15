@@ -1264,7 +1264,7 @@
       { key: 'qualified', label: t('ya_pipe_qualified'), color: '#ff9966' },
       { key: 'applied', label: t('ya_pipe_applied'), color: '#f75c03' },
       { key: 'accepted', label: t('ya_pipe_accepted'), color: '#d94f02' },
-      { key: 'converted', label: t('ya_pipe_converted'), color: '#22c55e' },
+      { key: 'converted', label: t('ya_pipe_converted'), color: '#16a34a' },
       { key: 'enrolled', label: t('ya_pipe_enrolled'), color: '#16a34a' }
     ];
 
@@ -1641,7 +1641,7 @@
       { label: t('conv_funnel_cta'), count: stages.cta_click, color: '#E8E4E0', textDark: true },
       { label: t('conv_funnel_auth'), count: stages.auth_complete, color: '#ff9966' },
       { label: t('conv_funnel_checkout'), count: stages.checkout_opened, color: '#f75c03' },
-      { label: t('conv_funnel_purchased'), count: stages.purchased, color: '#22c55e' },
+      { label: t('conv_funnel_purchased'), count: stages.purchased, color: '#16a34a' },
       { label: t('conv_funnel_abandoned'), count: stages.checkout_abandoned, color: '#dc2626' }
     ];
     var maxC = Math.max.apply(null, funnelStages.map(function (s) { return s.count; })) || 1;

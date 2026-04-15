@@ -203,7 +203,7 @@
     var container = $(containerId);
     if (!container) return;
     if (!catalogPrograms.length) {
-      container.innerHTML = '<span style="color:#6F6A66;font-size:0.8rem">Loading catalogue…</span>';
+      container.innerHTML = '<span class="yb-la__loading-text">Loading catalogue…</span>';
       return;
     }
 
@@ -214,13 +214,13 @@
       // Category header
       if (p.category !== lastCat) {
         if (lastCat) html += '<br>';
-        html += '<span style="font-size:0.7rem;font-weight:600;color:#6F6A66;display:block;margin:0.4rem 0 0.2rem">' + esc(p.category) + '</span>';
+        html += '<span class="yb-la__pill-category">' + esc(p.category) + '</span>';
         lastCat = p.category;
       }
       var isActive = selectedIds.indexOf(p.course_id) !== -1;
       html += '<button type="button" class="yb-la-prog-pill' + (isActive ? ' yb-la-pill--active' : '') + '" data-course-id="' + esc(p.course_id) + '">' +
         esc(p.course_name) +
-        ' <span style="font-size:0.7rem;opacity:0.7">(' + esc(p.course_id) + ')</span>' +
+        ' <span class="yb-la__pill-id">(' + esc(p.course_id) + ')</span>' +
         '</button> ';
     }
     container.innerHTML = html;
@@ -231,7 +231,7 @@
     if (!container) return;
 
     if (!selectedPrograms || !selectedPrograms.length) {
-      container.innerHTML = '<span style="color:#6F6A66;font-size:0.8rem">Select a program first</span>';
+      container.innerHTML = '<span class="yb-la__loading-text">Select a program first</span>';
       return;
     }
 
@@ -246,19 +246,19 @@
       for (var j = 0; j < catalogPrograms.length; j++) {
         if (catalogPrograms[j].course_id === progId) { progName = catalogPrograms[j].course_name; break; }
       }
-      html += '<span style="font-size:0.7rem;font-weight:600;color:#6F6A66;display:block;margin:0.4rem 0 0.2rem">' + esc(progName) + '</span>';
+      html += '<span class="yb-la__pill-category">' + esc(progName) + '</span>';
 
       for (var ci = 0; ci < cohorts.length; ci++) {
         var c = cohorts[ci];
         var isActive = selectedCohorts.indexOf(c.buildId) !== -1;
         html += '<button type="button" class="yb-la-cohort-pill' + (isActive ? ' yb-la-pill--active' : '') + '" data-build-id="' + esc(c.buildId) + '">' +
           esc(c.cohort_label) +
-          ' <span style="font-size:0.65rem;opacity:0.6">(' + esc(c.buildId) + ')</span>' +
+          ' <span class="yb-la__pill-id--sm">(' + esc(c.buildId) + ')</span>' +
           '</button> ';
       }
     }
     if (!html) {
-      html = '<span style="color:#6F6A66;font-size:0.8rem">No cohorts found for selected programs</span>';
+      html = '<span class="yb-la__loading-text">No cohorts found for selected programs</span>';
     }
     container.innerHTML = html;
   }
@@ -379,7 +379,7 @@
       html += '<td>' + fmtDate(item.startDateTime) + '</td>';
       html += '<td>' + sourceBadge(item.source) + '</td>';
       html += '<td>' + esc(item.instructor || '—') + '</td>';
-      html += '<td style="font-size:0.75rem">' + esc(accessLabel(item.access)) + '</td>';
+      html += '<td class="yb-la__td-sm">' + esc(accessLabel(item.access)) + '</td>';
       html += '<td>';
       html += '<button class="yb-admin__icon-btn" data-action="live-edit" data-id="' + item.id + '" title="' + t('edit') + '">&#9998;</button> ';
       html += '<button class="yb-admin__icon-btn yb-admin__icon-btn--danger" data-action="live-delete" data-id="' + item.id + '" title="' + t('delete') + '">&#128465;</button>';
@@ -398,8 +398,8 @@
   function toggleStreamTypeFields(type) {
     var coTeachersField = $('yb-la-coteachers-field');
     var meetingUrlField = $('yb-la-meeting-url-field');
-    if (coTeachersField) coTeachersField.style.display = type === 'panel' ? '' : 'none';
-    if (meetingUrlField) meetingUrlField.style.display = type === 'meet' ? '' : 'none';
+    if (coTeachersField) { if (type === 'panel') coTeachersField.classList.remove('yb-la__hidden-field'); else coTeachersField.classList.add('yb-la__hidden-field'); }
+    if (meetingUrlField) { if (type === 'meet') meetingUrlField.classList.remove('yb-la__hidden-field'); else meetingUrlField.classList.add('yb-la__hidden-field'); }
   }
 
   var streamTypeSelect = $('yb-la-stream-type');
@@ -507,7 +507,7 @@
         var statusEl = $('yb-la-ai-status');
         var st = item.aiStatus || 'none';
         statusEl.textContent = st === 'translating' ? 'translating' : st;
-        statusEl.style.background = st === 'complete' ? '#34c759' : st === 'processing' || st === 'preparing_audio' || st === 'transcribing' || st === 'generating_summary' || st === 'translating' || st === 'captions_requested' ? '#ff9500' : st === 'error' ? '#ff453a' : '#E8E4E0';
+        statusEl.style.background = st === 'complete' ? '#16a34a' : st === 'processing' || st === 'preparing_audio' || st === 'transcribing' || st === 'generating_summary' || st === 'translating' || st === 'captions_requested' ? '#f75c03' : st === 'error' ? '#dc2626' : '#E8E4E0';
         statusEl.style.color = st === 'none' ? '#6F6A66' : '#fff';
         // Default to DA tab
         if (window._aiLangTab) window._aiLangTab('da');
@@ -826,13 +826,13 @@
       var isSelected = mbSelectedIdxs.has(origIdx);
       var alreadyImported = !!importedMbIds[cls.id];
 
-      html += '<tr' + (alreadyImported ? ' style="opacity:0.5"' : '') + '>';
+      html += '<tr' + (alreadyImported ? ' class="yb-la__row-imported"' : '') + '>';
       html += '<td><input type="checkbox" class="yb-la-mb-cb" data-idx="' + origIdx + '"' + (isSelected ? ' checked' : '') + '></td>';
-      html += '<td><strong>' + esc(cls.name) + '</strong>' + (alreadyImported ? ' <span style="font-size:0.7rem;color:#6F6A66">(' + t('live_mb_already_imported') + ')</span>' : '') + '</td>';
+      html += '<td><strong>' + esc(cls.name) + '</strong>' + (alreadyImported ? ' <span class="yb-la__imported-label">(' + t('live_mb_already_imported') + ')</span>' : '') + '</td>';
       html += '<td>' + fmtDate(cls.startDateTime) + '</td>';
       html += '<td>' + esc(cls.instructor) + '</td>';
-      html += '<td style="font-size:0.75rem">' + esc(cls.programName) + '</td>';
-      html += '<td style="font-size:0.75rem">' + esc(cls.sessionTypeName || '') + '</td>';
+      html += '<td class="yb-la__td-sm">' + esc(cls.programName) + '</td>';
+      html += '<td class="yb-la__td-sm">' + esc(cls.sessionTypeName || '') + '</td>';
       html += '<td>';
       if (!alreadyImported) {
         html += '<button class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-mb-import-one" data-idx="' + origIdx + '">+ Import</button>';
@@ -935,13 +935,13 @@
         if (btn) {
           var row = btn.closest('tr');
           if (row) {
-            row.style.opacity = '0.5';
+            row.classList.add('yb-la__row-imported');
             // Add "already imported" label next to the title
             var titleCell = row.querySelectorAll('td')[1];
             if (titleCell && titleCell.querySelector('strong')) {
               titleCell.querySelector('strong').insertAdjacentHTML(
                 'afterend',
-                ' <span style="font-size:0.7rem;color:#6F6A66">(' + esc(t('live_mb_already_imported')) + ')</span>'
+                ' <span class="yb-la__imported-label">(' + esc(t('live_mb_already_imported')) + ')</span>'
               );
             }
           }
@@ -1245,6 +1245,13 @@
 
       btn = e.target.closest('[data-action="live-bulk-deselect"]');
       if (btn) { deselectAllLive(); return; }
+
+      btn = e.target.closest('[data-action="live-ai-lang"]');
+      if (btn) {
+        var lang = btn.getAttribute('data-lang');
+        if (window._aiLangTab) window._aiLangTab(lang);
+        return;
+      }
     });
 
     // Form submit
@@ -1352,8 +1359,8 @@
       for (var j = 0; j < enEls.length; j++) enEls[j].hidden = lang !== 'en';
       var tabDa = $('yb-la-ai-tab-da');
       var tabEn = $('yb-la-ai-tab-en');
-      if (tabDa) { tabDa.className = lang === 'da' ? 'yb-btn yb-btn--sm' : 'yb-btn yb-btn--outline yb-btn--sm'; tabDa.style.borderRadius = '8px 0 0 8px'; tabDa.style.minWidth = '60px'; }
-      if (tabEn) { tabEn.className = lang === 'en' ? 'yb-btn yb-btn--sm' : 'yb-btn yb-btn--outline yb-btn--sm'; tabEn.style.borderRadius = '0 8px 8px 0'; tabEn.style.minWidth = '60px'; }
+      if (tabDa) { tabDa.className = (lang === 'da' ? 'yb-btn yb-btn--sm' : 'yb-btn yb-btn--outline yb-btn--sm') + ' yb-la__lang-tab yb-la__lang-tab--left'; }
+      if (tabEn) { tabEn.className = (lang === 'en' ? 'yb-btn yb-btn--sm' : 'yb-btn yb-btn--outline yb-btn--sm') + ' yb-la__lang-tab yb-la__lang-tab--right'; }
       // Hide preview on tab switch
       var previewEl = $('yb-la-ai-preview');
       if (previewEl) previewEl.hidden = true;
@@ -1403,7 +1410,7 @@
                 $('yb-la-ai-quiz').value = r.item.aiQuiz ? formatJsonStr(r.item.aiQuiz) : '';
                 var statusEl = $('yb-la-ai-status');
                 statusEl.textContent = 'complete';
-                statusEl.style.background = '#34c759';
+                statusEl.style.background = '#16a34a';
                 statusEl.style.color = '#fff';
               }
             });

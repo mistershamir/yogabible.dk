@@ -296,7 +296,7 @@
     { value: 'Strongly Interested', label: 'Strongly Interested', color: '#FFF9C4', text: '#F57F17', icon: '\u2B50' },
     { value: 'Qualified', label: 'Qualified', color: '#B3E5FC', text: '#01579B', icon: '\u2705' },
     { value: 'Negotiating', label: 'Negotiating', color: '#FFE0B2', text: '#E65100', icon: '\ud83e\udd1d' },
-    { value: 'Converted', label: 'Converted', color: '#d4edda', text: '#155724', icon: '\ud83c\udf89' },
+    { value: 'Converted', label: 'Converted', color: '#dcfce7', text: '#16a34a', icon: '\ud83c\udf89' },
     { value: 'Existing Applicant', label: 'Existing Applicant', color: '#cce5ff', text: '#004085', icon: '\ud83d\udcc4' },
     { value: 'On Hold', label: 'On Hold', color: '#FFF9C4', text: '#F57F17', icon: '\u23f8\ufe0f' },
     { value: 'Interested In Next Round', label: 'Interested In Next Round', color: '#E0F2F1', text: '#00695C', icon: '\ud83d\udcc5' },
@@ -348,12 +348,12 @@
   var APP_STATUSES = [
     { value: 'Pending', label: 'Pending', color: '#fff3cd', text: '#856404', icon: '\u23f3' },
     { value: 'Under Review', label: 'Under Review', color: '#d1ecf1', text: '#0c5460', icon: '\ud83d\udd0d' },
-    { value: 'Approved', label: 'Approved', color: '#d4edda', text: '#155724', icon: '\u2705' },
+    { value: 'Approved', label: 'Approved', color: '#dcfce7', text: '#16a34a', icon: '\u2705' },
     { value: 'Enrolled', label: 'Enrolled', color: '#cce5ff', text: '#004085', icon: '\ud83c\udf93' },
     { value: 'Waitlisted', label: 'Waitlisted', color: '#FFE0B2', text: '#E65100', icon: '\ud83d\udccb' },
     { value: 'Rejected', label: 'Rejected', color: '#f8d7da', text: '#721c24', icon: '\u274c' },
     { value: 'Withdrawn', label: 'Withdrawn', color: '#ECEFF1', text: '#546E7F', icon: '\u21a9\ufe0f' },
-    { value: 'Completed', label: 'Completed', color: '#E8F5E9', text: '#2E7D32', icon: '\ud83c\udfc6' }
+    { value: 'Completed', label: 'Completed', color: '#dcfce7', text: '#16a34a', icon: '\ud83c\udfc6' }
   ];
 
   /* ══════════════════════════════════════════
@@ -459,9 +459,9 @@
     if (!d) return '#6F6A66';
     var date = d.toDate ? d.toDate() : new Date(d);
     var days = Math.floor((Date.now() - date.getTime()) / 86400000);
-    if (days > 14) return '#EF5350';
+    if (days > 14) return '#dc2626';
     if (days > 7) return '#FF9800';
-    return '#4CAF50';
+    return '#16a34a';
   }
 
   /* ══════════════════════════════════════════
@@ -891,7 +891,7 @@
 
     // 📧 Engaged — opened 2+ emails
     if ((ee.total_opens || 0) >= 2) {
-      flags.push({ emoji: '\ud83d\udce7', label: 'Engaged', color: '#2E7D32', title: 'Opened ' + ee.total_opens + ' emails' });
+      flags.push({ emoji: '\ud83d\udce7', label: 'Engaged', color: '#16a34a', title: 'Opened ' + ee.total_opens + ' emails' });
     }
 
     // 🔄 Returning — revisited site after form
@@ -976,7 +976,7 @@
         var seMaxScroll = 0;
         for (var sk in sePages) { if (sePages[sk].max_scroll > seMaxScroll) seMaxScroll = sePages[sk].max_scroll; }
         if (se.total_visits >= 3 && seMaxScroll >= 75) {
-          schedBadge = ' <span class="yb-lead__sched-badge" style="color:#155724" title="Viewed schedule ' + se.total_visits + 'x, scrolled ' + seMaxScroll + '%">\ud83d\udcc5\ud83d\udd25</span>';
+          schedBadge = ' <span class="yb-lead__sched-badge" style="color:#16a34a" title="Viewed schedule ' + se.total_visits + 'x, scrolled ' + seMaxScroll + '%">\ud83d\udcc5\ud83d\udd25</span>';
         } else if (se.total_visits >= 2 || seMaxScroll >= 50) {
           schedBadge = ' <span class="yb-lead__sched-badge" style="color:#856404" title="Viewed schedule ' + se.total_visits + 'x, scrolled ' + seMaxScroll + '%">\ud83d\udcc5</span>';
         } else {
@@ -991,7 +991,7 @@
         var opens = ee.total_opens || 0;
         var clicks = ee.total_clicks || 0;
         if (clicks >= 3) {
-          emailBadge = ' <span style="color:#155724" title="' + opens + ' opens, ' + clicks + ' clicks">\u2709\ufe0f\ud83d\udd25</span>';
+          emailBadge = ' <span style="color:#16a34a" title="' + opens + ' opens, ' + clicks + ' clicks">\u2709\ufe0f\ud83d\udd25</span>';
         } else if (clicks >= 1 || opens >= 3) {
           emailBadge = ' <span style="color:#856404" title="' + opens + ' opens, ' + clicks + ' clicks">\u2709\ufe0f</span>';
         }
@@ -1034,7 +1034,7 @@
       if (heatLevel >= 2) {
         var fires = '';
         for (var hi = 0; hi < heatLevel; hi++) fires += '\ud83d\udd25';
-        var heatColor = heatLevel >= 4 ? '#d32f2f' : heatLevel >= 3 ? '#f57c00' : '#fbc02d';
+        var heatColor = heatLevel >= 4 ? '#dc2626' : heatLevel >= 3 ? '#f57c00' : '#fbc02d';
         var heatTitle = 'Heat ' + heatLevel + '/5';
         if (l.form_score) heatTitle += ' \u00b7 Form: ' + l.form_score + '/7';
         var _ee = l.email_engagement || {};
@@ -1117,7 +1117,7 @@
     var lcColor = lcRecencyColor(l.last_contact);
 
     var appBadge = l.application_id
-      ? '<span class="yb-lead__app-badge--inline" style="color:#155724">\u2713 App</span>'
+      ? '<span class="yb-lead__app-badge--inline" style="color:#16a34a">\u2713 App</span>'
       : '<span style="color:#6F6A66">\u2014</span>';
 
     // Status options for inline dropdown
@@ -1614,7 +1614,7 @@
     var detailFlags = computeStatusFlags(l);
     if (detailHeat >= 2 || detailFlags.length > 0 || l.form_score) {
       html += '<div class="yb-lead__section-card">';
-      html += '<h4 class="yb-lead__card-title" style="color:#d32f2f;">LEAD INTELLIGENCE</h4>';
+      html += '<h4 class="yb-lead__card-title" style="color:#dc2626;">LEAD INTELLIGENCE</h4>';
 
       // Heat score visual
       var heatFires = '';
@@ -1637,7 +1637,7 @@
         html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">';
         detailFlags.forEach(function (f) {
           html += '<span class="yb-lead__badge" style="background:' +
-            (f.color === '#2E7D32' ? '#E8F5E9' : f.color === '#1565C0' ? '#E3F2FD' :
+            (f.color === '#16a34a' ? '#dcfce7' : f.color === '#1565C0' ? '#E3F2FD' :
              f.color === '#6A1B9A' ? '#F3E5F5' : f.color === '#E65100' ? '#FFF3E0' :
              f.color === '#9e9e9e' ? '#F5F5F5' : '#FFF3E0') +
             ';color:' + f.color + ';padding:4px 10px;font-size:.78rem;">' +
@@ -1683,7 +1683,7 @@
     if (l.accommodation && l.accommodation !== 'No') {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">' + t('leads_accommodation') + '</span>' +
-        '<span class="yb-lead__card-value"><span class="yb-lead__badge" style="background:#E8F5E9;color:#2E7D32">\ud83c\udfe0 ' + esc(l.accommodation) + '</span></span>' +
+        '<span class="yb-lead__card-value"><span class="yb-lead__badge" style="background:#dcfce7;color:#16a34a">\ud83c\udfe0 ' + esc(l.accommodation) + '</span></span>' +
       '</div>';
     }
     if (l.housing_months) {
@@ -1767,7 +1767,7 @@
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">' + t('leads_application_id') + '</span>' +
         '<span class="yb-lead__card-value">' +
-          '<span class="yb-lead__badge" style="background:#d4edda;color:#155724">' + esc(l.application_id) + '</span> ' +
+          '<span class="yb-lead__badge" style="background:#dcfce7;color:#16a34a">' + esc(l.application_id) + '</span> ' +
           '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="view-linked-app" data-app-id="' + esc(l.application_id) + '">View Application \u2192</button>' +
         '</span>' +
       '</div>';
@@ -1810,7 +1810,7 @@
           // Engagement level badges
           var level = '';
           if (visits >= 3 && scroll >= 75) {
-            level = '<span class="yb-lead__badge" style="background:#d4edda;color:#155724;margin-left:6px;">🔥 High</span>';
+            level = '<span class="yb-lead__badge" style="background:#dcfce7;color:#16a34a;margin-left:6px;">🔥 High</span>';
           } else if (visits >= 2 || scroll >= 50) {
             level = '<span class="yb-lead__badge" style="background:#FFF3CD;color:#856404;margin-left:6px;">📊 Medium</span>';
           } else {
@@ -1843,7 +1843,7 @@
       if (ee.welcome_opened) {
         html += '<div class="yb-lead__card-row">' +
           '<span class="yb-lead__card-label">\u2709\ufe0f Welcome Email</span>' +
-          '<span class="yb-lead__card-value" style="color:#2E7D32;font-weight:600;">Opened' +
+          '<span class="yb-lead__card-value" style="color:#16a34a;font-weight:600;">Opened' +
             (ee.welcome_clicked ? ' + Clicked' : '') +
           '</span></div>';
       }
@@ -1851,7 +1851,7 @@
       if (typeof ee.time_to_first_open_min === 'number') {
         var ttfo = ee.time_to_first_open_min;
         var ttfoText = ttfo < 60 ? ttfo + ' min' : Math.round(ttfo / 60) + 'h ' + (ttfo % 60) + 'm';
-        var ttfoColor = ttfo <= 30 ? '#2E7D32' : ttfo <= 120 ? '#f57c00' : '#6F6A66';
+        var ttfoColor = ttfo <= 30 ? '#16a34a' : ttfo <= 120 ? '#f57c00' : '#6F6A66';
         html += '<div class="yb-lead__card-row">' +
           '<span class="yb-lead__card-label">\u23f1 Time to First Open</span>' +
           '<span class="yb-lead__card-value" style="color:' + ttfoColor + ';font-weight:600;">' + ttfoText + '</span>' +
@@ -1945,7 +1945,7 @@
       }
       // Post-lead key page flags
       var keyPageBadges = [];
-      if (ste.schedule_revisits) keyPageBadges.push({ bg: '#E8F5E9', color: '#2E7D32', text: '\ud83d\udcc5 Schedule (' + ste.schedule_revisits + 'x)' });
+      if (ste.schedule_revisits) keyPageBadges.push({ bg: '#dcfce7', color: '#16a34a', text: '\ud83d\udcc5 Schedule (' + ste.schedule_revisits + 'x)' });
       if (ste.accommodation_visited) keyPageBadges.push({ bg: '#FFF3E0', color: '#E65100', text: '\ud83c\udfe0 Accommodation' });
       if (ste.prep_phase_page_visited) keyPageBadges.push({ bg: '#FCE4EC', color: '#C62828', text: '\ud83d\udcb0 Checkout page' });
       if (ste.consultation_booking_clicked) keyPageBadges.push({ bg: '#E0F7FA', color: '#00695C', text: '\ud83d\udcc6 Booking' });
@@ -2089,7 +2089,7 @@
       var heatFires = '';
       var hScore = l.lead_heat || 0;
       for (var hfi = 0; hfi < 5; hfi++) heatFires += hfi < hScore ? '\ud83d\udd25' : '\u2b1c';
-      html += '<h4 class="yb-lead__card-title" style="color:#d32f2f;">' + heatFires + ' PRE-LEAD JOURNEY (Heat ' + hScore + '/5)</h4>';
+      html += '<h4 class="yb-lead__card-title" style="color:#dc2626;">' + heatFires + ' PRE-LEAD JOURNEY (Heat ' + hScore + '/5)</h4>';
 
       // Summary line
       var summaryParts = [];
@@ -2107,7 +2107,7 @@
 
       // Key page badges
       if (plj.viewed_schedule) {
-        html += '<span class="yb-lead__badge" style="background:#E8F5E9;color:#2E7D32;margin-right:6px;">\ud83d\udcc5 Schedule</span>';
+        html += '<span class="yb-lead__badge" style="background:#dcfce7;color:#16a34a;margin-right:6px;">\ud83d\udcc5 Schedule</span>';
       }
       if (plj.viewed_accommodation) {
         html += '<span class="yb-lead__badge" style="background:#FFF3E0;color:#E65100;margin-right:6px;">\ud83c\udfe0 Accommodation</span>';
@@ -2258,7 +2258,7 @@
     // Admin actions: archive (soft delete) or restore
     if (currentUserRole === 'admin') {
       if (currentLead.archived === true) {
-        html += '<button class="yb-btn yb-btn--outline yb-btn--sm" style="color:#4CAF50;border-color:#4CAF50" data-action="restore-lead" data-id="' + currentLeadId + '">\u21a9\ufe0f ' + t('leads_restore') + '</button>';
+        html += '<button class="yb-btn yb-btn--outline yb-btn--sm" style="color:#16a34a;border-color:#16a34a" data-action="restore-lead" data-id="' + currentLeadId + '">\u21a9\ufe0f ' + t('leads_restore') + '</button>';
       } else {
         html += '<button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="delete-lead" data-id="' + currentLeadId + '">\ud83d\uddd1 ' + t('leads_archive') + '</button>';
       }

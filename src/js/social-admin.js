@@ -185,15 +185,15 @@
     var ts = connectedAt ? (connectedAt.seconds ? connectedAt.seconds * 1000 : (connectedAt._seconds ? connectedAt._seconds * 1000 : new Date(connectedAt).getTime())) : 0;
 
     if (info.type === 'never') {
-      return '<span style="color:#27ae60;font-size:11px">&#10003; ' + info.label + '</span>';
+      return '<span style="color:#16a34a;font-size:11px">&#10003; ' + info.label + '</span>';
     }
 
     if (info.type === 'auto') {
       var hasRefresh = !!account.refreshToken;
       if (hasRefresh) {
-        return '<span style="color:#27ae60;font-size:11px">&#10003; ' + info.label + '</span>';
+        return '<span style="color:#16a34a;font-size:11px">&#10003; ' + info.label + '</span>';
       }
-      return '<span style="color:#e67e22;font-size:11px">&#9888; No refresh token — will expire</span>';
+      return '<span style="color:#f75c03;font-size:11px">&#9888; No refresh token — will expire</span>';
     }
 
     if (info.type === 'expires' && ts) {
@@ -202,17 +202,17 @@
       var daysLeft = Math.ceil((expiresAt - now) / (24 * 60 * 60 * 1000));
 
       if (daysLeft <= 0) {
-        return '<span style="color:#e74c3c;font-size:11px">&#10007; Token expired — reconnect needed</span>';
+        return '<span style="color:#dc2626;font-size:11px">&#10007; Token expired — reconnect needed</span>';
       } else if (daysLeft <= 7) {
-        return '<span style="color:#e74c3c;font-size:11px">&#9888; Expires in ' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + ' — renew soon!</span>';
+        return '<span style="color:#dc2626;font-size:11px">&#9888; Expires in ' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + ' — renew soon!</span>';
       } else if (daysLeft <= 14) {
-        return '<span style="color:#e67e22;font-size:11px">&#9888; Expires in ' + daysLeft + ' days</span>';
+        return '<span style="color:#f75c03;font-size:11px">&#9888; Expires in ' + daysLeft + ' days</span>';
       }
       return '<span style="color:#6F6A66;font-size:11px">&#128336; Expires in ' + daysLeft + ' days</span>';
     }
 
     if (account.lastError) {
-      return '<span style="color:#e74c3c;font-size:11px">&#10007; Error: ' + account.lastError + '</span>';
+      return '<span style="color:#dc2626;font-size:11px">&#10007; Error: ' + account.lastError + '</span>';
     }
 
     return '<span style="color:#6F6A66;font-size:11px">' + (info.label || '') + '</span>';
@@ -1614,7 +1614,7 @@
   // ── Content Pillar Distribution ───────────────────────────────
 
   var PILLAR_CONFIG = {
-    educational:   { label: 'Educational',       icon: '📚', target: 40, color: '#4CAF50' },
+    educational:   { label: 'Educational',       icon: '📚', target: 40, color: '#16a34a' },
     social_proof:  { label: 'Social Proof',      icon: '🌟', target: 25, color: '#FF9800' },
     lifestyle:     { label: 'Lifestyle',         icon: '🌿', target: 20, color: '#2196F3' },
     promotional:   { label: 'Promotional',       icon: '🎯', target: 15, color: '#E91E63' },
@@ -3141,7 +3141,7 @@
         '<strong>' + escapeHtml(tpl.name) + '</strong>' +
         '<div style="display:flex;gap:6px">' +
         '<button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="social-template-use" data-id="' + tpl.id + '">' + t('social_template_use') + '</button>' +
-        '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-template-delete" data-id="' + tpl.id + '" style="color:#c00">&times;</button>' +
+        '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="social-template-delete" data-id="' + tpl.id + '" style="color:#dc2626">&times;</button>' +
         '</div>' +
         '</div>' +
         '<p class="yb-social__template-caption">' + escapeHtml(caption) + '</p>' +
@@ -3245,7 +3245,7 @@
     var platformColors = { instagram: '#E1306C', facebook: '#1877F2', tiktok: '#000000', linkedin: '#0A66C2' };
     var html = '';
     comps.forEach(function (c) {
-      var color = platformColors[c.platform] || '#888';
+      var color = platformColors[c.platform] || '#6F6A66';
       html += '<div class="yb-social__competitor-card">' +
         '<div class="yb-social__competitor-header">' +
         (c.profilePicture ? '<img src="' + c.profilePicture + '" class="yb-social__competitor-avatar" alt="">' : '<div class="yb-social__competitor-avatar-placeholder" style="background:' + color + '">' + (c.handle || '?').charAt(0).toUpperCase() + '</div>') +
@@ -3285,7 +3285,7 @@
     var html = '<div class="yb-social__comp-bars">';
     comps.forEach(function (c) {
       var pct = Math.round(((c.followerCount || 0) / maxFollowers) * 100);
-      var color = platformColors[c.platform] || '#888';
+      var color = platformColors[c.platform] || '#6F6A66';
       html += '<div class="yb-social__comp-bar-row">' +
         '<span class="yb-social__comp-bar-label">' + escapeHtml(c.name) + '</span>' +
         '<div class="yb-social__comp-bar-track"><div class="yb-social__comp-bar-fill" style="width:' + pct + '%;background:' + color + '">' + fmtNum(c.followerCount) + '</div></div>' +
@@ -3532,7 +3532,7 @@
     var platformColors = { instagram: '#E1306C', facebook: '#1877F2', tiktok: '#000000', linkedin: '#0A66C2' };
     var html = '';
     tests.forEach(function (test) {
-      var color = platformColors[test.platform] || '#888';
+      var color = platformColors[test.platform] || '#6F6A66';
       var statusClass = test.status === 'completed' ? 'yb-social__ab-status--completed' : 'yb-social__ab-status--active';
       html += '<div class="yb-social__ab-card" data-action="social-ab-detail" data-id="' + test.id + '">' +
         '<div class="yb-social__ab-card-header">' +
@@ -3649,7 +3649,7 @@
 
     var body = $('yb-social-ab-modal-body');
     var platformColors = { instagram: '#E1306C', facebook: '#1877F2', tiktok: '#000000', linkedin: '#0A66C2' };
-    var color = platformColors[test.platform] || '#888';
+    var color = platformColors[test.platform] || '#6F6A66';
 
     var html = '<div class="yb-social__ab-detail">';
     html += '<div class="yb-social__ab-detail-meta">' +
@@ -3693,7 +3693,7 @@
 
     // Delete
     html += '<div style="margin-top:16px;text-align:right">' +
-      '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" style="color:#c00" data-action="social-ab-delete" data-id="' + id + '">' + t('social_delete') + '</button>' +
+      '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" style="color:#dc2626" data-action="social-ab-delete" data-id="' + id + '">' + t('social_delete') + '</button>' +
       '</div>';
 
     html += '</div>';

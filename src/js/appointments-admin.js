@@ -54,13 +54,13 @@
      STATUS HELPERS
      ══════════════════════════════════════════ */
   var STATUS_COLORS = {
-    confirmed: '#4CAF50',
+    confirmed: '#16a34a',
     pending_request: '#f59e0b',
     awaiting_client: '#3b82f6',
     rescheduled: '#f75c03',
-    completed: '#2E7D32',
-    cancelled: '#999',
-    'no-show': '#d32f2f'
+    completed: '#16a34a',
+    cancelled: '#6F6A66',
+    'no-show': '#dc2626'
   };
 
   var STATUS_ICONS = {
@@ -91,7 +91,7 @@
   }
 
   function getStatusBadge(status) {
-    var color = STATUS_COLORS[status] || '#999';
+    var color = STATUS_COLORS[status] || '#6F6A66';
     var icon = STATUS_ICONS[status] || '';
     return '<span class="yb-lead__status-badge" style="background:' + color + '15;color:' + color + ';border:1px solid ' + color + '33;padding:3px 10px;border-radius:20px;font-size:12px;white-space:nowrap;">' + icon + ' ' + getStatusLabel(status) + '</span>';
   }
@@ -250,7 +250,7 @@
       '<div class="yb-lead__stat-number">' + monthCount + '</div>' +
       '<div class="yb-lead__stat-label">' + t('appt_stats_month') + '</div></div>' +
       '<div class="yb-lead__stat-card" data-filter-date="cancelled" style="cursor:pointer;">' +
-      '<div class="yb-lead__stat-number" style="color:#d32f2f;">' + cancelledCount + '</div>' +
+      '<div class="yb-lead__stat-number" style="color:#dc2626;">' + cancelledCount + '</div>' +
       '<div class="yb-lead__stat-label">' + t('appt_stats_cancelled') + '</div></div>';
 
     // Click handlers for stat cards
@@ -314,7 +314,7 @@
     if (countEl) countEl.textContent = filtered.length + ' ' + (isDa() ? 'aftaler' : 'appointments');
 
     if (filtered.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:#999;">' + t('appt_no_appointments') + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:#6F6A66;">' + t('appt_no_appointments') + '</td></tr>';
       return;
     }
 
@@ -327,11 +327,11 @@
         '<td class="yb-lead__td-chevron">&#9656;</td>' +
         '<td><strong>' + formatDate(appt.date) + '</strong>' + (isToday(appt.date) ? ' <span style="color:#f75c03;font-size:11px;font-weight:bold;">' + t('appt_today').toUpperCase() + '</span>' : '') + '</td>' +
         '<td style="font-weight:bold;font-size:15px;">' + esc(appt.time || '') + '</td>' +
-        '<td>' + esc(appt.client_name || '') + '<br><span style="color:#999;font-size:12px;">' + esc(appt.client_email || '') + '</span>' + (appt.client_phone ? '<br><a href="tel:' + esc(appt.client_phone) + '" class="yb-appt__phone-link" onclick="event.stopPropagation()">' + esc(appt.client_phone) + '</a>' : '') + '</td>' +
+        '<td>' + esc(appt.client_name || '') + '<br><span style="color:#6F6A66;font-size:12px;">' + esc(appt.client_email || '') + '</span>' + (appt.client_phone ? '<br><a href="tel:' + esc(appt.client_phone) + '" class="yb-appt__phone-link" onclick="event.stopPropagation()">' + esc(appt.client_phone) + '</a>' : '') + '</td>' +
         '<td>' + (TYPE_ICONS[appt.type] || '') + ' ' + getTypeLabel(appt.type) + '</td>' +
         '<td>' + (appt.duration || 30) + ' ' + t('appt_min') + '</td>' +
         '<td>' + getStatusBadge(appt.status) + '</td>' +
-        '<td style="color:#999;font-size:12px;">' + esc(appt.source || '—') + '</td>' +
+        '<td style="color:#6F6A66;font-size:12px;">' + esc(appt.source || '—') + '</td>' +
         '<td><button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-view" data-id="' + appt.id + '" style="white-space:nowrap;">&#128065; ' + (isDa() ? 'Vis' : 'View') + '</button></td>' +
         '</tr>';
     });
@@ -415,7 +415,7 @@
             '</div>';
         });
         if (dayAppts.length > 3) {
-          html += '<div style="font-size:10px;color:#999;padding:0 6px;">+' + (dayAppts.length - 3) + ' ' + (isDa() ? 'mere' : 'more') + '</div>';
+          html += '<div style="font-size:10px;color:#6F6A66;padding:0 6px;">+' + (dayAppts.length - 3) + ' ' + (isDa() ? 'mere' : 'more') + '</div>';
         }
       }
 
@@ -481,20 +481,20 @@
     var locationLabel = a.location === 'online' ? 'Online' : (isDa() ? 'Christianshavn, Torvegade 66, 1400 København K' : 'Christianshavn, Torvegade 66, 1400 Copenhagen');
 
     el.innerHTML = '<div class="yb-lead__detail-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;padding:20px;background:#F5F3F0;border-radius:8px;margin-bottom:16px;">' +
-      '<div><span style="color:#999;font-size:12px;">' + t('appt_col_date') + '</span><br><strong>' + formatDate(a.date) + '</strong></div>' +
-      '<div><span style="color:#999;font-size:12px;">' + t('appt_col_time') + '</span><br><strong style="font-size:18px;">' + esc(a.time) + '</strong></div>' +
-      '<div><span style="color:#999;font-size:12px;">' + t('appt_col_type') + '</span><br>' + (TYPE_ICONS[a.type] || '') + ' ' + getTypeLabel(a.type) + '</div>' +
-      '<div><span style="color:#999;font-size:12px;">' + t('appt_col_duration') + '</span><br>' + (a.duration || 30) + ' ' + t('appt_min') + '</div>' +
-      '<div><span style="color:#999;font-size:12px;">' + t('appt_col_status') + '</span><br>' + getStatusBadge(a.status) + '</div>' +
-      '<div><span style="color:#999;font-size:12px;">' + t('appt_new_location') + '</span><br>' + esc(locationLabel) + '</div>' +
-      '<div><span style="color:#999;font-size:12px;">' + t('appt_col_client') + '</span><br><strong>' + esc(a.client_name) + '</strong></div>' +
-      '<div><span style="color:#999;font-size:12px;">Email</span><br><a href="mailto:' + esc(a.client_email) + '" style="color:#f75c03;">' + esc(a.client_email) + '</a></div>' +
-      (a.client_phone ? '<div><span style="color:#999;font-size:12px;">' + t('appt_new_phone') + '</span><br><a href="tel:' + esc(a.client_phone) + '" style="color:#f75c03;">' + esc(a.client_phone) + '</a></div>' : '') +
-      (a.source ? '<div><span style="color:#999;font-size:12px;">' + t('appt_col_source') + '</span><br>' + esc(a.source) + '</div>' : '') +
-      (a.message ? '<div style="grid-column:1/-1;"><span style="color:#999;font-size:12px;">' + (isDa() ? 'Besked' : 'Message') + '</span><br>' + esc(a.message) + '</div>' : '') +
-      (a.rescheduled_from ? '<div style="grid-column:1/-1;"><span style="color:#999;font-size:12px;">' + (isDa() ? 'Flyttet fra' : 'Rescheduled from') + '</span><br><span style="text-decoration:line-through;">' + esc(a.rescheduled_from) + '</span></div>' : '') +
-      (a.preferred_slots && a.preferred_slots.length ? '<div style="grid-column:1/-1;"><span style="color:#999;font-size:12px;">' + (isDa() ? 'Foretrukne tidspunkter' : 'Preferred times') + '</span><br>' + a.preferred_slots.map(function(s, i) { return '<span style="display:inline-block;background:#FFF8F0;border:1px solid #f75c03;border-radius:6px;padding:2px 8px;margin:2px 4px 2px 0;font-size:13px;">' + (i + 1) + '. ' + s.date + ' kl. ' + s.time + '</span>'; }).join('') + '</div>' : '') +
-      (a.location_pref ? '<div><span style="color:#999;font-size:12px;">' + (isDa() ? 'Ønsket lokation' : 'Preferred location') + '</span><br>' + esc(a.location_pref) + '</div>' : '') +
+      '<div><span style="color:#6F6A66;font-size:12px;">' + t('appt_col_date') + '</span><br><strong>' + formatDate(a.date) + '</strong></div>' +
+      '<div><span style="color:#6F6A66;font-size:12px;">' + t('appt_col_time') + '</span><br><strong style="font-size:18px;">' + esc(a.time) + '</strong></div>' +
+      '<div><span style="color:#6F6A66;font-size:12px;">' + t('appt_col_type') + '</span><br>' + (TYPE_ICONS[a.type] || '') + ' ' + getTypeLabel(a.type) + '</div>' +
+      '<div><span style="color:#6F6A66;font-size:12px;">' + t('appt_col_duration') + '</span><br>' + (a.duration || 30) + ' ' + t('appt_min') + '</div>' +
+      '<div><span style="color:#6F6A66;font-size:12px;">' + t('appt_col_status') + '</span><br>' + getStatusBadge(a.status) + '</div>' +
+      '<div><span style="color:#6F6A66;font-size:12px;">' + t('appt_new_location') + '</span><br>' + esc(locationLabel) + '</div>' +
+      '<div><span style="color:#6F6A66;font-size:12px;">' + t('appt_col_client') + '</span><br><strong>' + esc(a.client_name) + '</strong></div>' +
+      '<div><span style="color:#6F6A66;font-size:12px;">Email</span><br><a href="mailto:' + esc(a.client_email) + '" style="color:#f75c03;">' + esc(a.client_email) + '</a></div>' +
+      (a.client_phone ? '<div><span style="color:#6F6A66;font-size:12px;">' + t('appt_new_phone') + '</span><br><a href="tel:' + esc(a.client_phone) + '" style="color:#f75c03;">' + esc(a.client_phone) + '</a></div>' : '') +
+      (a.source ? '<div><span style="color:#6F6A66;font-size:12px;">' + t('appt_col_source') + '</span><br>' + esc(a.source) + '</div>' : '') +
+      (a.message ? '<div style="grid-column:1/-1;"><span style="color:#6F6A66;font-size:12px;">' + (isDa() ? 'Besked' : 'Message') + '</span><br>' + esc(a.message) + '</div>' : '') +
+      (a.rescheduled_from ? '<div style="grid-column:1/-1;"><span style="color:#6F6A66;font-size:12px;">' + (isDa() ? 'Flyttet fra' : 'Rescheduled from') + '</span><br><span style="text-decoration:line-through;">' + esc(a.rescheduled_from) + '</span></div>' : '') +
+      (a.preferred_slots && a.preferred_slots.length ? '<div style="grid-column:1/-1;"><span style="color:#6F6A66;font-size:12px;">' + (isDa() ? 'Foretrukne tidspunkter' : 'Preferred times') + '</span><br>' + a.preferred_slots.map(function(s, i) { return '<span style="display:inline-block;background:#FFF8F0;border:1px solid #f75c03;border-radius:6px;padding:2px 8px;margin:2px 4px 2px 0;font-size:13px;">' + (i + 1) + '. ' + s.date + ' kl. ' + s.time + '</span>'; }).join('') + '</div>' : '') +
+      (a.location_pref ? '<div><span style="color:#6F6A66;font-size:12px;">' + (isDa() ? 'Ønsket lokation' : 'Preferred location') + '</span><br>' + esc(a.location_pref) + '</div>' : '') +
       '</div>';
   }
 
@@ -532,10 +532,10 @@
       html += '<div id="yb-appt-suggest-form" hidden style="background:#F5F3F0;border-radius:10px;padding:16px;margin-bottom:12px;">';
       html += '<p style="margin:0 0 10px;font-weight:700;">' + (isDa() ? 'Foreslå alternativ tid' : 'Suggest Alternative Time') + '</p>';
       html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">';
-      html += '<div><label style="font-size:12px;color:#999;">' + (isDa() ? 'Dato' : 'Date') + '</label><input type="date" id="yb-appt-suggest-date-field" style="width:100%;padding:8px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;"></div>';
-      html += '<div><label style="font-size:12px;color:#999;">' + (isDa() ? 'Tid' : 'Time') + '</label><input type="time" id="yb-appt-suggest-time-field" style="width:100%;padding:8px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;"></div>';
+      html += '<div><label style="font-size:12px;color:#6F6A66;">' + (isDa() ? 'Dato' : 'Date') + '</label><input type="date" id="yb-appt-suggest-date-field" style="width:100%;padding:8px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;"></div>';
+      html += '<div><label style="font-size:12px;color:#6F6A66;">' + (isDa() ? 'Tid' : 'Time') + '</label><input type="time" id="yb-appt-suggest-time-field" style="width:100%;padding:8px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;"></div>';
       html += '</div>';
-      html += '<div style="margin-bottom:8px;"><label style="font-size:12px;color:#999;">' + (isDa() ? 'Besked til klienten' : 'Message to client') + '</label><textarea id="yb-appt-suggest-msg-field" rows="2" style="width:100%;padding:8px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;" placeholder="' + (isDa() ? 'Valgfri besked...' : 'Optional message...') + '"></textarea></div>';
+      html += '<div style="margin-bottom:8px;"><label style="font-size:12px;color:#6F6A66;">' + (isDa() ? 'Besked til klienten' : 'Message to client') + '</label><textarea id="yb-appt-suggest-msg-field" rows="2" style="width:100%;padding:8px;border:1px solid #E8E4E0;border-radius:8px;font-family:inherit;font-size:14px;" placeholder="' + (isDa() ? 'Valgfri besked...' : 'Optional message...') + '"></textarea></div>';
       html += '<div style="display:flex;gap:8px;"><button class="yb-btn yb-btn--primary yb-btn--sm" data-action="appt-send-suggestion">' + (isDa() ? 'Send forslag' : 'Send Suggestion') + '</button>';
       html += '<button class="yb-btn yb-btn--outline yb-btn--sm" data-action="appt-cancel-suggest">' + (isDa() ? 'Annuller' : 'Cancel') + '</button></div>';
       html += '</div>';
@@ -924,14 +924,14 @@
 
     var notes = currentAppt._notes || [];
     if (notes.length === 0) {
-      el.innerHTML = '<p style="color:#999;font-size:13px;">' + (isDa() ? 'Ingen noter endnu.' : 'No notes yet.') + '</p>';
+      el.innerHTML = '<p style="color:#6F6A66;font-size:13px;">' + (isDa() ? 'Ingen noter endnu.' : 'No notes yet.') + '</p>';
       return;
     }
 
     var html = '';
     notes.forEach(function (n) {
       html += '<div class="yb-lead__note-item" style="padding:8px 0;border-bottom:1px solid #E8E4E0;">' +
-        '<span style="font-size:12px;color:#999;">' + (n.date || '') + '</span>' +
+        '<span style="font-size:12px;color:#6F6A66;">' + (n.date || '') + '</span>' +
         '<p style="margin:4px 0;">' + esc(n.text) + '</p></div>';
     });
     el.innerHTML = html;

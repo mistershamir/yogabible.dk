@@ -107,7 +107,7 @@
     { value: 'Strongly Interested', label: 'Strongly Interested', color: '#FFF9C4', text: '#F57F17' },
     { value: 'Qualified', label: 'Qualified', color: '#B3E5FC', text: '#01579B' },
     { value: 'Negotiating', label: 'Negotiating', color: '#FFE0B2', text: '#E65100' },
-    { value: 'Converted', label: 'Converted', color: '#d4edda', text: '#155724' },
+    { value: 'Converted', label: 'Converted', color: '#dcfce7', text: '#16a34a' },
     { value: 'Existing Applicant', label: 'Existing Applicant', color: '#cce5ff', text: '#004085' },
     { value: 'On Hold', label: 'On Hold', color: '#FFF9C4', text: '#F57F17' },
     { value: 'Interested In Next Round', label: 'Interested In Next Round', color: '#E0F2F1', text: '#00695C' },
@@ -442,7 +442,7 @@
             (seq.active ? 'Pause' : 'Activate') +
           '</button> ' +
           '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="seq-duplicate" data-seq-id="' + seq.id + '">Duplicate</button> ' +
-          '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="seq-delete" data-seq-id="' + seq.id + '" style="color:#ef5350;">Delete</button>' +
+          '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="seq-delete" data-seq-id="' + seq.id + '" style="color:#dc2626;">Delete</button>' +
         '</div>' +
       '</div>';
     });
@@ -564,12 +564,12 @@
     var dateStr = closes.toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' });
 
     if (diff > 0) {
-      el.innerHTML = '<span style="color:#155724;font-weight:600;">&#9679;</span> ' +
-        '<span style="color:#155724;">Enrollment open</span> — closes in <strong>' + days + ' day' + (days !== 1 ? 's' : '') + '</strong> (' + dateStr + ')';
+      el.innerHTML = '<span style="color:#16a34a;font-weight:600;">&#9679;</span> ' +
+        '<span style="color:#16a34a;">Enrollment open</span> — closes in <strong>' + days + ' day' + (days !== 1 ? 's' : '') + '</strong> (' + dateStr + ')';
     } else {
       var agoD = Math.abs(days);
-      el.innerHTML = '<span style="color:#c62828;font-weight:600;">&#9679;</span> ' +
-        '<span style="color:#c62828;">Enrollment closed</span> since ' + dateStr + ' (' + agoD + ' day' + (agoD !== 1 ? 's' : '') + ' ago)';
+      el.innerHTML = '<span style="color:#dc2626;font-weight:600;">&#9679;</span> ' +
+        '<span style="color:#dc2626;">Enrollment closed</span> since ' + dateStr + ' (' + agoD + ' day' + (agoD !== 1 ? 's' : '') + ' ago)';
     }
   }
 
@@ -582,7 +582,7 @@
     var dateStr = closes.toLocaleDateString('da-DK', { day: 'numeric', month: 'short' });
 
     if (diff > 0) {
-      return '<span class="yb-seq__badge" style="background:#d4edda;color:#155724;font-size:11px;">Closes ' + dateStr + ' (' + days + 'd)</span>';
+      return '<span class="yb-seq__badge" style="background:#dcfce7;color:#16a34a;font-size:11px;">Closes ' + dateStr + ' (' + days + 'd)</span>';
     } else {
       return '<span class="yb-seq__badge" style="background:#f8d7da;color:#721c24;font-size:11px;">Closed ' + dateStr + '</span>';
     }
@@ -722,7 +722,7 @@
             '<div class="yb-seq__step-actions">' +
               (isFirst ? '' : '<button type="button" class="yb-btn yb-btn--outline yb-btn--xs" data-action="seq-step-up" data-step-idx="' + idx + '" title="Move up">&uarr;</button> ') +
               (isLast ? '' : '<button type="button" class="yb-btn yb-btn--outline yb-btn--xs" data-action="seq-step-down" data-step-idx="' + idx + '" title="Move down">&darr;</button> ') +
-              '<button type="button" class="yb-btn yb-btn--outline yb-btn--xs" data-action="seq-step-remove" data-step-idx="' + idx + '" style="color:#ef5350;" title="Remove">&times;</button>' +
+              '<button type="button" class="yb-btn yb-btn--outline yb-btn--xs" data-action="seq-step-remove" data-step-idx="' + idx + '" style="color:#dc2626;" title="Remove">&times;</button>' +
             '</div>' +
           '</div>' +
 
@@ -1030,7 +1030,7 @@
     } else if (enrollment.status === 'paused') {
       html += '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="seq-enroll-resume" data-enroll-id="' + enrollment.id + '">Resume</button> ';
     }
-    html += '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="seq-enroll-remove" data-enroll-id="' + enrollment.id + '" style="color:#ef5350;">Remove</button>';
+    html += '<button class="yb-btn yb-btn--outline yb-btn--xs" data-action="seq-enroll-remove" data-enroll-id="' + enrollment.id + '" style="color:#dc2626;">Remove</button>';
     return html;
   }
 

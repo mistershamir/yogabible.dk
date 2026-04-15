@@ -1712,10 +1712,10 @@
     btn.disabled = false;
     if (ok) {
       btn.textContent = '✓ ' + okText;
-      btn.style.cssText = 'background:#4CAF50;color:#fff;border-color:#4CAF50;transition:background 0.2s,color 0.2s';
+      btn.style.cssText = 'background:#16a34a;color:#fff;border-color:#16a34a;transition:background 0.2s,color 0.2s';
     } else {
       btn.textContent = '✗ ' + failText;
-      btn.style.cssText = 'background:#ef5350;color:#fff;border-color:#ef5350;transition:background 0.2s,color 0.2s';
+      btn.style.cssText = 'background:#dc2626;color:#fff;border-color:#dc2626;transition:background 0.2s,color 0.2s';
     }
     setTimeout(function () {
       btn.textContent = origText;
@@ -1921,7 +1921,7 @@
             if (resultEl) {
               resultEl.style.display = 'block';
               if (d.ok) {
-                resultEl.innerHTML = '<span style="color:#27ae60;font-weight:600;">Enrolled ' + (d.enrolled || leadIds.length) + ' leads into sequence.</span>';
+                resultEl.innerHTML = '<span style="color:#16a34a;font-weight:600;">Enrolled ' + (d.enrolled || leadIds.length) + ' leads into sequence.</span>';
               } else {
                 resultEl.innerHTML = '<span style="color:#C62828;">Error: ' + esc(d.error || 'Unknown') + '</span>';
                 enrollBtn.disabled = false;

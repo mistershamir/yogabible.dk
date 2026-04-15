@@ -29,7 +29,7 @@
       document.body.appendChild(el);
     }
     el.textContent = msg;
-    el.style.background = isError ? '#dc3545' : '#0F0F0F';
+    el.style.background = isError ? '#dc2626' : '#0F0F0F';
     el.style.color = '#fff';
     el.style.opacity = '1';
     clearTimeout(el._timer);
@@ -146,7 +146,7 @@
         // Main info
         '<div style="flex:1;min-width:0">' +
           '<div style="font-weight:600;font-size:0.9rem;margin-bottom:0.2rem">' + esc(title) +
-            (isActive ? '' : ' <span style="font-size:0.72rem;color:#dc3545;font-weight:400">(' + esc(t('doc_inactive_badge')) + ')</span>') +
+            (isActive ? '' : ' <span style="font-size:0.72rem;color:#dc2626;font-weight:400">(' + esc(t('doc_inactive_badge')) + ')</span>') +
           '</div>' +
           '<div style="display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap;margin-bottom:' + (desc ? '0.2rem' : '0') + '">' +
             '<span style="display:inline-block;padding:0.1rem 0.45rem;border-radius:4px;background:rgba(247,92,3,0.1);color:var(--yb-brand,#f75c03);font-size:0.7rem;font-weight:600">' + esc(catLabel) + '</span>' +
@@ -159,7 +159,7 @@
         '<div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0">' +
           toggleSwitch +
           '<button class="yb-btn yb-btn--outline yb-btn--small" data-action="edit-doc" data-id="' + esc(d.id) + '">' + esc(t('edit')) + '</button>' +
-          '<button class="yb-btn yb-btn--outline yb-btn--small" data-action="delete-doc" data-id="' + esc(d.id) + '" style="color:#dc3545;border-color:#dc3545">&#x1F5D1;</button>' +
+          '<button class="yb-btn yb-btn--outline yb-btn--small" data-action="delete-doc" data-id="' + esc(d.id) + '" style="color:#dc2626;border-color:#dc2626">&#x1F5D1;</button>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -347,7 +347,7 @@
       renderBrowser();
     }).catch(function(err) {
       console.error('Browser load error:', err);
-      container.innerHTML = '<div class="yb-doc-browser__empty" style="color:#dc3545">' + esc(t('error_load')) + '</div>';
+      container.innerHTML = '<div class="yb-doc-browser__empty" style="color:#dc2626">' + esc(t('error_load')) + '</div>';
     });
   }
 
@@ -555,7 +555,7 @@
         renderSeedTable(data.materials);
       }).catch(function(err) {
         console.error('[seed check] Error:', err);
-        if (seedStatus) { seedStatus.textContent = t('doc_seed_err'); seedStatus.style.color = '#dc3545'; seedStatus.style.display = ''; }
+        if (seedStatus) { seedStatus.textContent = t('doc_seed_err'); seedStatus.style.color = '#dc2626'; seedStatus.style.display = ''; }
       }).finally(function() {
         seedPreviewBtn.disabled = false;
         seedPreviewBtn.textContent = t('doc_seed_preview');
@@ -587,7 +587,7 @@
         setTimeout(loadDocuments, 1200);
       }).catch(function(err) {
         console.error('[seed] Error:', err);
-        if (seedStatus) { seedStatus.textContent = t('doc_seed_err'); seedStatus.style.color = '#dc3545'; seedStatus.style.display = ''; }
+        if (seedStatus) { seedStatus.textContent = t('doc_seed_err'); seedStatus.style.color = '#dc2626'; seedStatus.style.display = ''; }
         seedBtn.disabled = false;
         seedBtn.textContent = t('doc_seed_btn');
       });

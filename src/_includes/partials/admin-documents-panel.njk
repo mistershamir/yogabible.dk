@@ -8,17 +8,17 @@
 
   {# ── Header ── #}
   <div class="yb-doc__header">
-    <h2 style="margin:0;font-size:1.3rem">{{ t.doc_title }}</h2>
+    <h2 class="yb-doc__list-title">{{ t.doc_title }}</h2>
     <button class="yb-btn yb-btn--primary yb-btn--small" data-action="new-doc">+ {{ t.doc_new }}</button>
   </div>
 
   {# ── Seed box ── #}
-  <div style="border:1px solid var(--yb-border,#E8E4E0);border-radius:12px;margin-bottom:1.25rem;overflow:hidden">
+  <div class="yb-doc__seed-section">
     {# Header row #}
     <div class="yb-doc__seed-header">
-      <div style="flex:1;min-width:200px">
-        <p style="margin:0 0 0.15rem;font-size:0.85rem;font-weight:600">{{ t.doc_seed_title }}</p>
-        <p style="margin:0;font-size:0.75rem;color:var(--yb-muted,#6F6A66)">{{ t.doc_seed_hint }}</p>
+      <div class="yb-doc__seed-title-wrap">
+        <p class="yb-doc__seed-title">{{ t.doc_seed_title }}</p>
+        <p class="yb-doc__seed-hint">{{ t.doc_seed_hint }}</p>
       </div>
       <div class="yb-doc__seed-actions">
         <button class="yb-btn yb-btn--outline yb-btn--small" id="yb-doc-seed-preview-btn" type="button">
@@ -30,27 +30,26 @@
       </div>
     </div>
     {# Preview table — shown after "Check status" #}
-    <div id="yb-doc-seed-preview" style="display:none;padding:0.75rem 1.25rem 1rem">
+    <div id="yb-doc-seed-preview" class="yb-doc__seed-preview">
       <div id="yb-doc-seed-table"></div>
-      <div id="yb-doc-seed-status" style="font-size:0.82rem;margin-top:0.6rem;display:none"></div>
+      <div id="yb-doc-seed-status" class="yb-doc__seed-status"></div>
     </div>
   </div>
 
   {# ── Search + Filters ── #}
   <div class="yb-doc__filter-bar">
-    <div style="position:relative;flex:1;min-width:180px">
-      <svg style="position:absolute;left:0.65rem;top:50%;transform:translateY(-50%);color:var(--yb-muted,#6F6A66);pointer-events:none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="yb-doc-search" placeholder="{{ t.doc_search }}"
-             style="width:100%;padding:0.5rem 0.75rem 0.5rem 2.1rem;border:1px solid var(--yb-border,#E8E4E0);border-radius:10px;font-family:inherit;font-size:0.85rem">
+    <div class="yb-doc__search-wrap">
+      <svg class="yb-doc__search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="yb-doc-search" class="yb-doc__search-input" placeholder="{{ t.doc_search }}">
     </div>
-    <div id="yb-doc-filter-cats" style="display:flex;gap:0.35rem;flex-wrap:wrap">
+    <div id="yb-doc-filter-cats" class="yb-doc__filter-cats">
       <button class="yb-doc-filter-chip is-active" data-filter-cat="all">{{ t.doc_filter_all }}</button>
       <button class="yb-doc-filter-chip" data-filter-cat="manual">{{ t.doc_cat_manual }}</button>
       <button class="yb-doc-filter-chip" data-filter-cat="workbook">{{ t.doc_cat_workbook }}</button>
       <button class="yb-doc-filter-chip" data-filter-cat="reference">{{ t.doc_cat_reference }}</button>
       <button class="yb-doc-filter-chip" data-filter-cat="schedule">{{ t.doc_cat_schedule }}</button>
     </div>
-    <select id="yb-doc-filter-perm" style="padding:0.45rem 0.6rem;border:1px solid var(--yb-border,#E8E4E0);border-radius:10px;font-family:inherit;font-size:0.82rem;background:#fff;color:#0F0F0F">
+    <select id="yb-doc-filter-perm" class="yb-doc__permission-select">
       <option value="all">{{ t.doc_filter_all_prog }}</option>
       <option value="materials:100h">100h</option>
       <option value="materials:200h">200h</option>
@@ -62,7 +61,7 @@
   </div>
 
   {# ── Result count ── #}
-  <p id="yb-doc-count" style="font-size:0.78rem;color:var(--yb-muted,#6F6A66);margin:0 0 0.75rem"></p>
+  <p id="yb-doc-count" class="yb-doc__result-count"></p>
 
   {# ── List ── #}
   <div id="yb-doc-list-container"></div>
@@ -70,66 +69,61 @@
 
 {# ── Form View (create / edit) ── #}
 <div class="yb-admin__view" id="yb-doc-v-form" hidden>
-  <div style="margin-bottom:1.5rem">
-    <a href="#" data-action="back-docs" style="color:var(--yb-brand, #f75c03);text-decoration:none;font-size:0.85rem">&larr; {{ t.back }}</a>
+  <div class="yb-doc__back-wrap">
+    <a href="#" data-action="back-docs" class="yb-doc__back-link">&larr; {{ t.back }}</a>
   </div>
 
   <form id="yb-doc-form" autocomplete="off">
     <input type="hidden" id="yb-doc-id">
 
     {# Active toggle ── top of form #}
-    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;padding:0.75rem 1rem;background:var(--yb-light-bg,#F5F3F0);border-radius:10px">
-      <label class="yb-toggle" style="margin:0">
+    <div class="yb-doc__active-toggle">
+      <label class="yb-toggle">
         <input type="checkbox" id="yb-doc-active" checked>
         <span class="yb-toggle__track"></span>
       </label>
       <div>
-        <p style="margin:0;font-size:0.85rem;font-weight:600">{{ t.doc_field_active }}</p>
-        <p style="margin:0;font-size:0.75rem;color:var(--yb-muted,#6F6A66)">{{ t.doc_field_active_hint }}</p>
+        <p class="yb-doc__active-label">{{ t.doc_field_active }}</p>
+        <p class="yb-doc__active-hint">{{ t.doc_field_active_hint }}</p>
       </div>
     </div>
 
     {# Title DA / EN #}
     <div class="yb-doc__form-grid">
       <div>
-        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_title_da }}</label>
-        <input type="text" id="yb-doc-title-da" required
-               style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem">
+        <label class="yb-doc__form-label">{{ t.doc_field_title_da }}</label>
+        <input type="text" id="yb-doc-title-da" class="yb-doc__form-input" required>
       </div>
       <div>
-        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_title_en }}</label>
-        <input type="text" id="yb-doc-title-en" required
-               style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem">
+        <label class="yb-doc__form-label">{{ t.doc_field_title_en }}</label>
+        <input type="text" id="yb-doc-title-en" class="yb-doc__form-input" required>
       </div>
     </div>
 
     {# Description DA / EN #}
     <div class="yb-doc__form-grid">
       <div>
-        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_desc_da }}</label>
-        <textarea id="yb-doc-desc-da" rows="2"
-                  style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem;resize:vertical"></textarea>
+        <label class="yb-doc__form-label">{{ t.doc_field_desc_da }}</label>
+        <textarea id="yb-doc-desc-da" class="yb-doc__form-textarea" rows="2"></textarea>
       </div>
       <div>
-        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_desc_en }}</label>
-        <textarea id="yb-doc-desc-en" rows="2"
-                  style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem;resize:vertical"></textarea>
+        <label class="yb-doc__form-label">{{ t.doc_field_desc_en }}</label>
+        <textarea id="yb-doc-desc-en" class="yb-doc__form-textarea" rows="2"></textarea>
       </div>
     </div>
 
     {# Document URL — accepts Google Drive or Cloudinary #}
-    <div style="margin-bottom:1rem">
-      <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_url }}</label>
+    <div class="yb-doc__url-section">
+      <label class="yb-doc__form-label">{{ t.doc_field_url }}</label>
       <div class="yb-doc__url-row">
-        <input type="url" id="yb-doc-url" required placeholder="https://drive.google.com/file/d/... or https://yogabible.b-cdn.net/..."
-               style="flex:1;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem">
-        <button type="button" class="yb-btn yb-btn--outline yb-btn--small" data-action="toggle-browser" style="white-space:nowrap">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:0.2rem"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <input type="url" id="yb-doc-url" class="yb-doc__url-input" required placeholder="https://drive.google.com/file/d/... or https://yogabible.b-cdn.net/...">
+        <button type="button" class="yb-btn yb-btn--outline yb-btn--small yb-doc__browse-btn" data-action="toggle-browser">
+          <svg class="yb-doc__btn-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
           {{ t.doc_browse }}
         </button>
       </div>
-      <span style="font-size:0.75rem;color:var(--yb-muted,#6F6A66)">{{ t.doc_field_url_hint }}</span>
-      <div id="yb-doc-gdrive-hint" style="display:none;margin-top:0.4rem;padding:0.5rem 0.75rem;background:#e8f4fd;border-radius:8px;font-size:0.75rem;color:#1a73e8">
+      <span class="yb-doc__url-hint">{{ t.doc_field_url_hint }}</span>
+      <div id="yb-doc-gdrive-hint" class="yb-doc__gdrive-hint">
         <strong>Google Drive:</strong> {{ t.doc_gdrive_reminder }}
       </div>
     </div>
@@ -141,7 +135,7 @@
         <input type="text" id="yb-doc-browser-search" class="yb-doc-browser__search"
                placeholder="{{ t.doc_browser_search }}">
         <label class="yb-btn yb-btn--primary yb-btn--small yb-doc-browser__upload-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:0.2rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <svg class="yb-doc__btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           {{ t.doc_browser_upload }}
           <input type="file" id="yb-doc-browser-file" accept=".pdf" hidden>
         </label>
@@ -151,16 +145,15 @@
         <div class="yb-doc-browser__progress-bar">
           <div class="yb-doc-browser__progress-fill" id="yb-doc-progress-fill"></div>
         </div>
-        <span id="yb-doc-progress-text" style="font-size:0.75rem;color:var(--yb-muted,#6F6A66)"></span>
+        <span id="yb-doc-progress-text" class="yb-doc__progress-text"></span>
       </div>
     </div>
 
     {# Category + Order row #}
     <div class="yb-doc__form-grid">
       <div>
-        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_category }}</label>
-        <select id="yb-doc-category"
-                style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem;background:#fff">
+        <label class="yb-doc__form-label">{{ t.doc_field_category }}</label>
+        <select id="yb-doc-category" class="yb-doc__form-select">
           <option value="manual">{{ t.doc_cat_manual }}</option>
           <option value="workbook">{{ t.doc_cat_workbook }}</option>
           <option value="reference">{{ t.doc_cat_reference }}</option>
@@ -168,42 +161,41 @@
         </select>
       </div>
       <div>
-        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem">{{ t.doc_field_order }}</label>
-        <input type="number" id="yb-doc-order" value="1" min="0"
-               style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--yb-brand,#f75c03);border-radius:12px;font-family:inherit;font-size:0.9rem">
+        <label class="yb-doc__form-label">{{ t.doc_field_order }}</label>
+        <input type="number" id="yb-doc-order" class="yb-doc__form-input" value="1" min="0">
       </div>
     </div>
 
     {# Permissions — Program + Method checkboxes #}
-    <div style="margin-bottom:1.5rem">
-      <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.5rem">{{ t.doc_field_permissions }}</label>
+    <div class="yb-doc__perm-section">
+      <label class="yb-doc__form-label yb-doc__perm-label">{{ t.doc_field_permissions }}</label>
       <div class="yb-doc__perm-grid">
-        <fieldset style="border:1px solid var(--yb-border,#E8E4E0);border-radius:12px;padding:0.75rem 1rem;margin:0">
-          <legend style="font-size:0.75rem;font-weight:600;color:var(--yb-muted,#6F6A66);padding:0 0.25rem">{{ t.doc_perm_program }}</legend>
-          <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;font-size:0.85rem;cursor:pointer">
+        <fieldset class="yb-doc__fieldset">
+          <legend class="yb-doc__legend">{{ t.doc_perm_program }}</legend>
+          <label class="yb-doc__checkbox-label">
             <input type="checkbox" id="yb-doc-perm-100h" value="materials:100h"> 100-Hour
           </label>
-          <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;font-size:0.85rem;cursor:pointer">
+          <label class="yb-doc__checkbox-label">
             <input type="checkbox" id="yb-doc-perm-200h" value="materials:200h"> 200-Hour
           </label>
-          <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;font-size:0.85rem;cursor:pointer">
+          <label class="yb-doc__checkbox-label">
             <input type="checkbox" id="yb-doc-perm-300h" value="materials:300h"> 300-Hour
           </label>
-          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer">
+          <label class="yb-doc__checkbox-label">
             <input type="checkbox" id="yb-doc-perm-500h" value="materials:500h"> 500-Hour
           </label>
         </fieldset>
-        <fieldset style="border:1px solid var(--yb-border,#E8E4E0);border-radius:12px;padding:0.75rem 1rem;margin:0">
-          <legend style="font-size:0.75rem;font-weight:600;color:var(--yb-muted,#6F6A66);padding:0 0.25rem">{{ t.doc_perm_method }}</legend>
-          <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;font-size:0.85rem;cursor:pointer">
+        <fieldset class="yb-doc__fieldset">
+          <legend class="yb-doc__legend">{{ t.doc_perm_method }}</legend>
+          <label class="yb-doc__checkbox-label">
             <input type="checkbox" id="yb-doc-perm-triangle" value="method:triangle"> Triangle Method
           </label>
-          <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer">
+          <label class="yb-doc__checkbox-label">
             <input type="checkbox" id="yb-doc-perm-vinyasa" value="method:vinyasa"> Vinyasa Plus
           </label>
         </fieldset>
       </div>
-      <p style="font-size:0.75rem;color:var(--yb-muted,#6F6A66);margin:0.5rem 0 0">
+      <p class="yb-doc__perm-hint">
         {{ t.doc_perm_none }}
       </p>
     </div>
