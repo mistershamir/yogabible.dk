@@ -252,7 +252,7 @@ async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate
     for (const { id, record, isApp } of chunk) {
       if (!record.email) { results.skipped++; continue; }
       if (!isApp && record.unsubscribed) { results.skipped++; continue; }
-      if (!isApp && record.email_bounced) { results.skipped++; continue; }
+      if (record.email_bounced) { results.skipped++; continue; }
 
       const vars = {
         first_name: record.first_name || '',
@@ -282,20 +282,35 @@ async function sendBulkViaResend(recipients, { subjectTemplate, bodyHtmlTemplate
 
     try {
       // Send the whole batch in one API call
-      await resendPost('/emails/batch', messages);
+      const batchResponse = await resendPost('/emails/batch', messages);
 
-      // Update Firestore + log — don't let these failures block the count
-      for (const { id, isApp, email, subject } of meta) {
-        try {
-          const collection = isApp ? 'applications' : 'leads';
-          const updates = { updated_at: new Date() };
-          if (!isApp) updates.last_contact = new Date();
-          await db.collection(collection).doc(id).update(updates);
-          await logResendEmail({ to: email, subject, leadId: isApp ? null : id, messageId: null, campaignId });
-        } catch (logErr) {
-          console.error('[resend] Post-send update error for', id, ':', logErr.message);
+      // Resend batch returns { data: [{ id: "msg_..." }, ...] }
+      // Individual entries may have { id: null } or be missing on failure
+      const responseData = (batchResponse && batchResponse.data) || [];
+
+      for (let j = 0; j < meta.length; j++) {
+        const { id, isApp, email, subject } = meta[j];
+        const itemResult = responseData[j];
+
+        // Check per-recipient status: a valid id means success
+        if (itemResult && itemResult.id) {
+          try {
+            const collection = isApp ? 'applications' : 'leads';
+            const updates = { updated_at: new Date() };
+            if (!isApp) updates.last_contact = new Date();
+            await db.collection(collection).doc(id).update(updates);
+            await logResendEmail({ to: email, subject, leadId: isApp ? null : id, messageId: itemResult.id, campaignId });
+          } catch (logErr) {
+            console.error('[resend] Post-send update error for', id, ':', logErr.message);
+          }
+          results.sent++;
+        } else {
+          // Individual recipient failed within the batch
+          const errMsg = (itemResult && itemResult.error) || 'Resend rejected this recipient';
+          console.error('[resend] Per-recipient failure for', email, ':', errMsg);
+          results.failed++;
+          results.errors.push({ id: email, error: errMsg });
         }
-        results.sent++;
       }
     } catch (batchErr) {
       console.error('[resend] Batch send error:', batchErr.message);

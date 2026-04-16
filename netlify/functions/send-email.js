@@ -73,7 +73,7 @@ exports.handler = async (event) => {
     const record = doc.data();
     if (!record.email) return jsonResponse(400, { ok: false, error: (isApp ? 'Application' : 'Lead') + ' has no email' });
     if (!isApp && record.unsubscribed) return jsonResponse(400, { ok: false, error: 'Lead is unsubscribed' });
-    if (!isApp && record.email_bounced) return jsonResponse(400, { ok: false, error: 'Lead email has bounced — skipping to protect sender reputation' });
+    if (record.email_bounced) return jsonResponse(400, { ok: false, error: (isApp ? 'Application' : 'Lead') + ' email has bounced — skipping to protect sender reputation' });
 
     const vars = {
       first_name: record.first_name || '',
@@ -288,7 +288,7 @@ async function handleBulkGmail(payload, source, campaignId) {
       const record = doc.data();
       if (!record.email) { results.skipped++; continue; }
       if (!isApp && record.unsubscribed) { results.skipped++; continue; }
-      if (!isApp && record.email_bounced) { results.skipped++; continue; }
+      if (record.email_bounced) { results.skipped++; continue; }
 
       const vars = {
         first_name: record.first_name || '',

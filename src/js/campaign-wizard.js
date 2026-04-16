@@ -1501,9 +1501,64 @@
   /* ══════════════════════════════════════════
      SEND LOGIC
      ══════════════════════════════════════════ */
+
+  // ── Confirmation modal before bulk send ─────────────────────────────────
+  function showSendConfirmation(recipients, isSMS, onConfirm) {
+    var contactField = isSMS ? 'phone' : 'email';
+    var total = recipients.length;
+    var provider = isSMS ? 'SMS (GatewayAPI)' : (campaignState.provider === 'resend' ? 'Resend' : 'Gmail SMTP');
+    var campaignName = isSMS ? (campaignState.smsTemplateId || 'Custom SMS') : (campaignState.emailSubject || 'Custom email');
+    var previewList = recipients.slice(0, 3).map(function (r) { return esc(r[contactField] || r.first_name || r.id); });
+
+    var overlay = document.createElement('div');
+    overlay.id = 'yb-campaign-confirm-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,15,15,0.5);z-index:10001;display:flex;align-items:center;justify-content:center;';
+
+    var previewHtml = previewList.map(function (p) { return '<li style="padding:2px 0;color:#0F0F0F;">' + p + '</li>'; }).join('');
+    if (total > 3) previewHtml += '<li style="padding:2px 0;color:#6F6A66;">… and ' + (total - 3) + ' more</li>';
+
+    overlay.innerHTML = '<div style="background:#FFFCF9;border-radius:16px;max-width:420px;width:90%;padding:28px 24px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">' +
+      '<h3 style="margin:0 0 16px;font-size:18px;color:#0F0F0F;">Confirm bulk ' + (isSMS ? 'SMS' : 'email') + '</h3>' +
+      '<div style="display:flex;gap:12px;margin-bottom:16px;">' +
+        '<div style="flex:1;background:#F5F3F0;border-radius:10px;padding:12px;text-align:center;">' +
+          '<div style="font-size:28px;font-weight:700;color:#f75c03;">' + total + '</div>' +
+          '<div style="font-size:12px;color:#6F6A66;">recipients</div>' +
+        '</div>' +
+        '<div style="flex:1;background:#F5F3F0;border-radius:10px;padding:12px;text-align:center;">' +
+          '<div style="font-size:13px;font-weight:600;color:#0F0F0F;word-break:break-word;">' + esc(provider) + '</div>' +
+          '<div style="font-size:12px;color:#6F6A66;">provider</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-bottom:12px;">' +
+        '<div style="font-size:12px;color:#6F6A66;margin-bottom:4px;">Campaign</div>' +
+        '<div style="font-size:13px;color:#0F0F0F;word-break:break-word;">' + esc(campaignName) + '</div>' +
+      '</div>' +
+      '<div style="margin-bottom:20px;">' +
+        '<div style="font-size:12px;color:#6F6A66;margin-bottom:4px;">Preview</div>' +
+        '<ul style="margin:0;padding:0 0 0 16px;font-size:13px;">' + previewHtml + '</ul>' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
+        '<button type="button" id="yb-campaign-confirm-cancel" style="padding:10px 20px;border-radius:10px;border:1px solid #E8E4E0;background:transparent;color:#0F0F0F;font-size:14px;cursor:pointer;">Cancel</button>' +
+        '<button type="button" id="yb-campaign-confirm-go" style="padding:10px 20px;border-radius:10px;border:none;background:#f75c03;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Yes, send to ' + total + ' recipients</button>' +
+      '</div>' +
+    '</div>';
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('yb-campaign-confirm-cancel').addEventListener('click', function () {
+      overlay.remove();
+    });
+    document.getElementById('yb-campaign-confirm-go').addEventListener('click', function () {
+      overlay.remove();
+      onConfirm();
+    });
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) overlay.remove();
+    });
+  }
+
   function sendAll() {
     if (campaignState.sending) return;
-    campaignState.sending = true;
 
     // Track sent recipients across retries — skip anyone already sent to
     if (!campaignState._sentRecipientIds) campaignState._sentRecipientIds = new Set();
@@ -1515,10 +1570,18 @@
     var total = recipients.length;
 
     if (total === 0 && allSelected.length > 0) {
-      campaignState.sending = false;
       if (typeof bridge !== 'undefined' && bridge.toast) bridge.toast('All recipients already sent — nothing to retry');
       return;
     }
+
+    // Show confirmation dialog — only proceed on explicit admin approval
+    showSendConfirmation(recipients, isSMS, function () {
+      executeSend(recipients, total, isSMS);
+    });
+  }
+
+  function executeSend(recipients, total, isSMS) {
+    campaignState.sending = true;
 
     // Show progress bar + disable send button
     var progressEl = $('yb-campaign-progress');
@@ -1631,20 +1694,38 @@
     }).then(function (responses) {
       // Merge results from leads + apps + lists responses
       var merged = { sent: 0, failed: 0, skipped: 0, errors: [] };
+      // Collect failed email addresses so we can leave those recipients retryable
+      var failedEmails = new Set();
       responses.forEach(function (data) {
         if (data.results) {
           merged.sent += data.results.sent || 0;
           merged.failed += data.results.failed || 0;
           merged.skipped += data.results.skipped || 0;
-          if (data.results.errors) merged.errors = merged.errors.concat(data.results.errors);
+          if (data.results.errors) {
+            merged.errors = merged.errors.concat(data.results.errors);
+            data.results.errors.forEach(function (e) {
+              if (e.id) failedEmails.add(String(e.id).toLowerCase());
+            });
+          }
         } else if (!data.ok) {
           merged.failed += grandTotal;
           merged.errors.push({ id: 'batch', error: data.error || 'Unknown error' });
         }
       });
 
-      // Mark all recipients as sent so retries skip them
-      recipients.forEach(function (r) { campaignState._sentRecipientIds.add(r.id); });
+      // Only mark successfully sent recipients — leave failed ones retryable
+      if (merged.failed === 0 && merged.errors.length === 0) {
+        // All succeeded — mark everyone
+        recipients.forEach(function (r) { campaignState._sentRecipientIds.add(r.id); });
+      } else {
+        // Partial success — only mark recipients whose email is not in the failed set
+        recipients.forEach(function (r) {
+          var email = String(r.email || '').toLowerCase();
+          if (!failedEmails.has(email)) {
+            campaignState._sentRecipientIds.add(r.id);
+          }
+        });
+      }
 
       campaignState.sending = false;
       campaignState.results = merged;

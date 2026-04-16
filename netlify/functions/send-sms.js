@@ -88,7 +88,16 @@ async function handleBulkSMS(payload, source) {
       // Dedup: skip if we already sent to this phone number in this batch
       const doc = await db.collection(collection).doc(id).get();
       if (doc.exists) {
-        const phone = normalizePhone(doc.data().phone);
+        const record = doc.data();
+
+        // Skip unsubscribed leads/applications
+        if (record.unsubscribed || record.sms_unsubscribed) {
+          console.log('[sms-bulk] Skipping unsubscribed lead:', id);
+          results.skipped++;
+          continue;
+        }
+
+        const phone = normalizePhone(record.phone);
         if (phone) {
           if (seenPhones.has(phone)) {
             results.skipped++;
