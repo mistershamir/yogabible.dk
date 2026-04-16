@@ -85,6 +85,10 @@
   var filterSubType = '';      // client-side sub-filter value
   var filterSubTypeField = ''; // which lead field to match filterSubType against
   var filterCohort = '';       // cohort-level filter within a program sub-type
+
+  // Catalog-driven filter data (loaded from /.netlify/functions/catalog)
+  var catalogData = null;      // raw catalog array
+  var catalogLoaded = false;
   var filterSource = '';
   var filterPriority = '';
   var filterTemperature = '';
@@ -705,16 +709,17 @@
   }
 
   // Sub-type definitions per lead type.
-  // `field` = which lead property to match against (defaults to 'program' text if omitted).
-  var SUB_TYPE_OPTIONS = {
+  // Hardcoded fallback — used if catalog fetch fails
+  var FALLBACK_SUB_TYPE_OPTIONS = {
     ytt: [
-      { label: '18W Spring',   match: '18-week', field: 'ytt_program_type' },
-      { label: '18W Autumn',   match: '18-week-aug', field: 'ytt_program_type' },
-      { label: '8W Semi',      match: '8-week',  field: 'ytt_program_type' },
-      { label: '4W Intensive', match: '4-week',  field: 'ytt_program_type' },
-      { label: '300h Adv.',    match: '300h',    field: 'ytt_program_type' },
-      { label: '50h Specialty',match: '50h',     field: 'ytt_program_type' },
-      { label: '30h Module',   match: '30h',     field: 'ytt_program_type' }
+      { label: '18W Spring',        match: '18-week',     field: 'ytt_program_type' },
+      { label: '18W Autumn',        match: '18-week-aug', field: 'ytt_program_type' },
+      { label: '8W Semi',           match: '8-week',      field: 'ytt_program_type' },
+      { label: '4W Intensive',      match: '4-week',      field: 'ytt_program_type' },
+      { label: '4W Vinyasa Plus',   match: '4-week-jul',  field: 'ytt_program_type' },
+      { label: '300h Adv.',         match: '300h',        field: 'ytt_program_type' },
+      { label: '50h Specialty',     match: '50h',         field: 'ytt_program_type' },
+      { label: '30h Module',        match: '30h',         field: 'ytt_program_type' }
     ],
     course: [
       { label: 'Inversions', match: 'inversion', field: 'program' },
@@ -726,6 +731,105 @@
       { label: '3-Course All-In', match: 'all-in',   field: 'program' }
     ]
   };
+
+  // Map catalog course_id → lead ytt_program_type value
+  var CATALOG_TO_LEAD_MAP = {
+    'YTT200-18W':    '18-week',
+    'YTT200-4W':     '4-week',
+    'YTT200-4W-VP':  '4-week-jul',
+    'YTT200-8W':     '8-week',
+    'YTT300-ADV':    '300h',
+    'INV-4W':        'inversion',
+    'SPL-4W':        'split',
+    'BB-4W':         'backbend'
+  };
+
+  // Build sub-type options from catalog data
+  function buildSubTypeOptions(catalog) {
+    if (!catalog || catalog.length === 0) return FALLBACK_SUB_TYPE_OPTIONS;
+
+    var ytt = [];
+    var course = [];
+    var bundle = [];
+    var seenYtt = {};
+    var seenCourse = {};
+    var seenBundle = {};
+
+    catalog.forEach(function (item) {
+      if (!item.active) return;
+      var cid = item.course_id || '';
+      var cat = (item.category || '').toLowerCase();
+      var track = item.track || '';
+      var matchVal = CATALOG_TO_LEAD_MAP[cid] || '';
+
+      if (cat === 'education' && matchVal && !seenYtt[matchVal]) {
+        seenYtt[matchVal] = true;
+        // Build a short label from the track name
+        var label = track.replace(/ Yoga Teacher Training/i, '').replace(/Weeks?/i, 'W').replace(/\s+/g, ' ').trim();
+        if (!label) label = cid;
+        ytt.push({ label: label, match: matchVal, field: 'ytt_program_type' });
+      }
+      if (cat === 'course' && matchVal && !seenCourse[matchVal]) {
+        seenCourse[matchVal] = true;
+        var clabel = track === 'Course' ? cid.replace(/-4W$/, '').replace('INV', 'Inversions').replace('SPL', 'Splits').replace('BB', 'Backbends') : track;
+        course.push({ label: clabel, match: matchVal, field: 'program' });
+      }
+      if (cat === 'bundle') {
+        var btype = /All-In|all-in/i.test(track) ? 'all-in' : '2-course';
+        if (!seenBundle[btype]) {
+          seenBundle[btype] = true;
+          bundle.push({ label: btype === 'all-in' ? '3-Course All-In' : '2-Course', match: btype, field: 'program' });
+        }
+      }
+    });
+
+    // Always include 50h/30h even if not in catalog (legacy program types)
+    if (!seenYtt['50h'])  ytt.push({ label: '50h Specialty', match: '50h',  field: 'ytt_program_type' });
+    if (!seenYtt['30h'])  ytt.push({ label: '30h Module',    match: '30h',  field: 'ytt_program_type' });
+
+    return {
+      ytt: ytt.length > 0 ? ytt : FALLBACK_SUB_TYPE_OPTIONS.ytt,
+      course: course.length > 0 ? course : FALLBACK_SUB_TYPE_OPTIONS.course,
+      bundle: bundle.length > 0 ? bundle : FALLBACK_SUB_TYPE_OPTIONS.bundle
+    };
+  }
+
+  // Build cohort options from catalog data
+  function buildCohortOptions(catalog) {
+    if (!catalog || catalog.length === 0) return FALLBACK_COHORT_OPTIONS;
+
+    var result = {};
+    catalog.forEach(function (item) {
+      if (!item.active) return;
+      var cid = item.course_id || '';
+      var matchVal = CATALOG_TO_LEAD_MAP[cid] || '';
+      if (!matchVal) return;
+
+      var cohortLabel = item.cohort_label || '';
+      var cohortId = item.cohort_id || '';
+      if (!cohortLabel || !cohortId) return;
+
+      if (!result[matchVal]) result[matchVal] = [];
+      // Avoid duplicate cohort entries
+      var exists = result[matchVal].some(function (c) { return c.id === cohortId; });
+      if (!exists) {
+        result[matchVal].push({ id: cohortId, label: cohortLabel });
+      }
+    });
+
+    // For 4-week, also add DK/Intl splits for July cohorts
+    if (result['4-week-jul']) {
+      result['4-week-jul'].forEach(function (c) {
+        if (!result['4-week-jul-splits']) result['4-week-jul-splits'] = [];
+        result['4-week-jul-splits'].push({ id: c.id + '-dk', label: c.label + ' DK' });
+        result['4-week-jul-splits'].push({ id: c.id + '-intl', label: c.label + ' Intl' });
+      });
+    }
+
+    return result;
+  }
+
+  var SUB_TYPE_OPTIONS = FALLBACK_SUB_TYPE_OPTIONS;
 
   function renderSubTypeFilter(type) {
     var row = $('yb-lead-subtype-row');
@@ -751,17 +855,24 @@
 
   // ── Cohort-level filter (tier 3) ──────────────────────────────────────
 
-  var COHORT_OPTIONS = {
+  var FALLBACK_COHORT_OPTIONS = {
     '4-week': [
       { id: '4w-apr',      label: 'April' },
       { id: '4w-jul',      label: 'July' },
       { id: '4w-jul-dk',   label: 'July DK' },
       { id: '4w-jul-intl', label: 'July Intl' }
     ],
+    '4-week-jul': [
+      { id: '4w-vp-jul',      label: 'July' },
+      { id: '4w-vp-jul-dk',   label: 'July DK' },
+      { id: '4w-vp-jul-intl', label: 'July Intl' }
+    ],
     '18-week':     [{ id: '18w-spring', label: 'Mar–Jun' }],
     '18-week-aug': [{ id: '18w-autumn', label: 'Aug–Dec' }],
     '8-week':      [{ id: '8w-mayjun',  label: 'May–Jun' }]
   };
+
+  var COHORT_OPTIONS = FALLBACK_COHORT_OPTIONS;
 
   function isLeadDK(lead) {
     var c = (lead.country || '').toUpperCase();
@@ -770,6 +881,8 @@
 
   function matchesCohort(lead, cohortId) {
     var ptype = (lead.ytt_program_type || '').toLowerCase();
+
+    // Legacy hardcoded cohort matching (always works, even without catalog)
     switch (cohortId) {
       case '4w-apr':      return ptype.indexOf('4-week') !== -1 && ptype.indexOf('4-week-jul') === -1;
       case '4w-jul':      return ptype.indexOf('4-week-jul') !== -1;
@@ -778,8 +891,34 @@
       case '18w-spring':  return ptype.indexOf('18-week') !== -1 && ptype.indexOf('18-week-aug') === -1;
       case '18w-autumn':  return ptype.indexOf('18-week-aug') !== -1;
       case '8w-mayjun':   return ptype.indexOf('8-week') !== -1;
-      default: return true;
     }
+
+    // DK/Intl splits for catalog-driven cohorts
+    if (cohortId.endsWith('-dk')) {
+      var base = cohortId.replace(/-dk$/, '');
+      return matchesCohortBase(lead, base) && isLeadDK(lead);
+    }
+    if (cohortId.endsWith('-intl')) {
+      var base2 = cohortId.replace(/-intl$/, '');
+      return matchesCohortBase(lead, base2) && !isLeadDK(lead);
+    }
+
+    // Catalog-driven: match cohort_id directly on lead if set
+    if (lead.cohort_id && lead.cohort_id === cohortId) return true;
+    if (lead.cohort_label) {
+      // Try matching by cohort_label text in case cohort_id isn't set
+      var opts = COHORT_OPTIONS[filterSubType] || [];
+      var opt = opts.find ? opts.find(function (o) { return o.id === cohortId; }) : null;
+      if (opt && lead.cohort_label === opt.label) return true;
+    }
+
+    // Generic: if the cohort matches the sub-type, include it
+    return matchesCohortBase(lead, cohortId);
+  }
+
+  function matchesCohortBase(lead, cohortId) {
+    // Check if lead's cohort_id matches
+    return lead.cohort_id === cohortId;
   }
 
   function renderCohortFilter() {
@@ -3111,6 +3250,19 @@
   }
 
   function toggleSelectAll() {
+    if (!selectAll) {
+      // About to select all — warn if not all leads are loaded
+      var dbTotal = totalLeadCount !== null ? totalLeadCount : leads.length;
+      var loadedCount = leads.length;
+      if (dbTotal > loadedCount) {
+        showSelectAllWarning(loadedCount, dbTotal);
+        return;
+      }
+    }
+    doToggleSelectAll();
+  }
+
+  function doToggleSelectAll() {
     selectAll = !selectAll;
     var filtered = getFilteredLeads();
     if (selectAll) {
@@ -3120,6 +3272,27 @@
     }
     renderLeadView();
     updateBulkBar();
+  }
+
+  function showSelectAllWarning(loaded, total) {
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,15,15,0.5);z-index:10001;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = '<div style="background:#FFFCF9;border-radius:16px;max-width:400px;width:90%;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">' +
+      '<h3 style="margin:0 0 12px;font-size:16px;color:#0F0F0F;">Not all leads loaded</h3>' +
+      '<p style="margin:0 0 16px;font-size:14px;color:#6F6A66;">You have <strong>' + total + '</strong> leads total but only <strong>' + loaded + '</strong> are loaded. Select-all will only select the ' + loaded + ' loaded leads.</p>' +
+      '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
+        '<button type="button" id="yb-selall-cancel" style="padding:8px 16px;border-radius:10px;border:1px solid #E8E4E0;background:transparent;color:#0F0F0F;font-size:13px;cursor:pointer;">Cancel</button>' +
+        '<button type="button" id="yb-selall-continue" style="padding:8px 16px;border-radius:10px;border:none;background:#f75c03;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Continue with ' + loaded + '</button>' +
+      '</div>' +
+    '</div>';
+    document.body.appendChild(overlay);
+
+    document.getElementById('yb-selall-cancel').addEventListener('click', function () { overlay.remove(); });
+    document.getElementById('yb-selall-continue').addEventListener('click', function () {
+      overlay.remove();
+      doToggleSelectAll();
+    });
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
   }
 
   function toggleSelectLead(leadId) {
@@ -5591,6 +5764,29 @@
     }
   }
 
+  // ── Load catalog data for dynamic filters ───────────────────────────
+  function loadCatalogData() {
+    fetch('/.netlify/functions/catalog')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok && data.catalog && data.catalog.length > 0) {
+          catalogData = data.catalog;
+          catalogLoaded = true;
+          SUB_TYPE_OPTIONS = buildSubTypeOptions(catalogData);
+          COHORT_OPTIONS = buildCohortOptions(catalogData);
+          // Re-render filters if a sub-type is active
+          if (filterSubType) {
+            renderSubTypeFilter(filterTypes.length === 1 ? filterTypes[0] : 'ytt');
+            renderCohortFilter();
+          }
+          console.log('[lead-admin] Catalog loaded:', catalogData.length, 'entries → dynamic filters active');
+        }
+      })
+      .catch(function (err) {
+        console.warn('[lead-admin] Catalog fetch failed, using hardcoded filters:', err.message);
+      });
+  }
+
   function initLeadAdmin() {
     T = window._ybAdminT || {};
 
@@ -5631,6 +5827,9 @@
     firebase.auth().onAuthStateChanged(function (u) {
       if (u && currentUserRole === 'user') resolveRole(u);
     });
+
+    // Load catalog data for dynamic filters (non-blocking)
+    loadCatalogData();
 
     createModals();
     bindLeadEvents();
@@ -5737,6 +5936,8 @@
       { value: '30h', label: '30h Module' }
     ],
     subTypeOptions: SUB_TYPE_OPTIONS,
+    getCatalog: function () { return catalogData; },
+    isCatalogLoaded: function () { return catalogLoaded; },
 
     // Called by campaign wizard when a campaign send completes
     onCampaignSent: function (type, results) {

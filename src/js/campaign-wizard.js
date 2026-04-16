@@ -83,7 +83,11 @@
     listContacts: [],           // loaded contact records from selected lists
     selectedListIds: new Set(), // which lists to include in campaign (legacy, used by send)
     listsLoaded: false,
-    listContactsLoaded: false
+    listContactsLoaded: false,
+
+    // Catalog-driven filter chips (loaded from bridge or /catalog)
+    catalogSubtypes: null,      // built from catalog for 200H sub-options
+    catalogCohorts: null        // built from catalog cohort_labels
   };
 
   /* ══════════════════════════════════════════
@@ -161,6 +165,65 @@
   }
 
   /* ══════════════════════════════════════════
+     CATALOG-DRIVEN FILTER CHIPS
+     ══════════════════════════════════════════ */
+  var CATALOG_TRACK_MAP = {
+    'YTT200-18W': '18w', 'YTT200-4W': '4w', 'YTT200-4W-VP': '4w-vp',
+    'YTT200-8W': '8w', 'YTT300-ADV': '300h',
+    'INV-4W': 'inversions', 'SPL-4W': 'splits', 'BB-4W': 'backbends'
+  };
+
+  function buildCatalogSubtypeChips(catalog) {
+    if (!catalog || catalog.length === 0) return null;
+    var chips = [];
+    var seen = {};
+    catalog.forEach(function (item) {
+      if (!item.active || (item.category || '').toLowerCase() !== 'education') return;
+      var chipId = CATALOG_TRACK_MAP[item.course_id];
+      if (!chipId || seen[chipId]) return;
+      seen[chipId] = true;
+      var label = (item.track || '').replace(/ Yoga Teacher Training/i, '').replace(/Weeks?/i, 'W').replace(/\s+/g, ' ').trim();
+      chips.push({ id: chipId, label: label || chipId });
+    });
+    return chips.length > 0 ? chips : null;
+  }
+
+  function buildCatalogCohortChips(catalog) {
+    if (!catalog || catalog.length === 0) return null;
+    // Group cohort_labels by subtype chip ID
+    var result = {};
+    catalog.forEach(function (item) {
+      if (!item.active) return;
+      var chipId = CATALOG_TRACK_MAP[item.course_id];
+      if (!chipId || !item.cohort_label || !item.cohort_id) return;
+      if (!result[chipId]) result[chipId] = [];
+      var exists = result[chipId].some(function (c) { return c.id === item.cohort_id; });
+      if (!exists) result[chipId].push({ id: item.cohort_id, label: item.cohort_label });
+    });
+    return Object.keys(result).length > 0 ? result : null;
+  }
+
+  function loadCatalogForWizard() {
+    // Try bridge first (lead-admin may have already loaded it)
+    if (bridge && bridge.isCatalogLoaded && bridge.isCatalogLoaded()) {
+      var cat = bridge.getCatalog();
+      campaignState.catalogSubtypes = buildCatalogSubtypeChips(cat);
+      campaignState.catalogCohorts = buildCatalogCohortChips(cat);
+      return;
+    }
+    // Otherwise fetch directly
+    fetch('/.netlify/functions/catalog')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok && data.catalog) {
+          campaignState.catalogSubtypes = buildCatalogSubtypeChips(data.catalog);
+          campaignState.catalogCohorts = buildCatalogCohortChips(data.catalog);
+        }
+      })
+      .catch(function () { /* fall back to hardcoded chips */ });
+  }
+
+  /* ══════════════════════════════════════════
      PROGRAM MATCHING (ported from old system)
      ══════════════════════════════════════════ */
   function matchesProgramType(lead, programId) {
@@ -198,7 +261,8 @@
     var sub = String(lead.subcategories || '').toLowerCase();
 
     // 200H subtypes
-    if (subtypeId === '4w') return /\b4.?(uge|week)/i.test(prog) || yttSub === '4-week' || yttSub === '4w';
+    if (subtypeId === '4w') return (/\b4.?(uge|week)/i.test(prog) || yttSub === '4-week' || yttSub === '4w') && yttSub !== '4-week-jul';
+    if (subtypeId === '4w-vp') return yttSub === '4-week-jul' || /vinyasa\s*plus/i.test(prog);
     if (subtypeId === '8w') return /\b8.?(uge|week)/i.test(prog) || yttSub === '8-week' || yttSub === '8w';
     if (subtypeId === '18w') return /\b18.?(uge|week)/i.test(prog) || yttSub === '18-week' || yttSub === '18w';
     if (subtypeId === 'weekday') return /hverdag|weekday/i.test(prog);
@@ -502,9 +566,12 @@
     var f = campaignState.filters;
     var html = '';
 
-    // Search
-    html += '<div class="yb-lead__campaign-filter-section">' +
-      '<input type="text" class="yb-lead__campaign-email-search" placeholder="' + esc(t('campaign_filter_search')) + '" id="yb-campaign-' + campaignState.type + '-filter-search" value="' + esc(campaignState.searchTerm) + '">' +
+    // Search — with clear button when a search term is active
+    var hasSearch = campaignState.searchTerm && campaignState.searchTerm.length > 0;
+    html += '<div class="yb-lead__campaign-filter-section" style="position:relative;">' +
+      '<input type="text" class="yb-lead__campaign-email-search' + (hasSearch ? ' has-search-active' : '') + '" placeholder="' + esc(t('campaign_filter_search')) + '" id="yb-campaign-' + campaignState.type + '-filter-search" value="' + esc(campaignState.searchTerm) + '"' +
+      (hasSearch ? ' style="border-color:#f75c03;box-shadow:0 0 0 2px rgba(247,92,3,0.15);"' : '') + '>' +
+      (hasSearch ? '<button type="button" data-action="campaign-clear-search" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:#f75c03;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;line-height:20px;text-align:center;cursor:pointer;" title="Clear search">\u00d7</button>' : '') +
       '</div>';
 
     // Data source
@@ -579,13 +646,14 @@
       { id: '300h', label: t('campaign_filter_program_300h') }
     ], f.programs, 'programs');
 
-    // 200H sub-options
+    // 200H sub-options — use catalog-driven chips if available
     html += '<div class="yb-lead__campaign-suboptions' + (f.programs.indexOf('200h') !== -1 ? ' is-open' : '') + '" data-suboptions="200h">';
-    html += buildChipGroup([
+    var yttSubChips = campaignState.catalogSubtypes || [
       { id: '4w', label: t('campaign_filter_program_4w') },
       { id: '8w', label: t('campaign_filter_program_8w') },
       { id: '18w', label: t('campaign_filter_program_18w') }
-    ], f.subtypes, 'subtypes');
+    ];
+    html += buildChipGroup(yttSubChips, f.subtypes, 'subtypes');
     // Route sub-options (under 18w)
     html += '<div class="yb-lead__campaign-suboptions' + (f.subtypes.indexOf('18w') !== -1 ? ' is-open' : '') + '" data-suboptions="18w">';
     html += buildChipGroup([
@@ -643,17 +711,29 @@
       { id: 'weekend', label: t('campaign_filter_track_weekend') }
     ], f.tracks, 'tracks');
 
-    // Cohort — dynamically populated from loaded applications
+    // Cohort — merge catalog cohorts + application cohorts
     var cohortChips = [];
+    var seenCohorts = {};
+    // First: add catalog-driven cohorts (most complete)
+    if (campaignState.catalogCohorts) {
+      Object.keys(campaignState.catalogCohorts).forEach(function (key) {
+        campaignState.catalogCohorts[key].forEach(function (c) {
+          if (!seenCohorts[c.id]) {
+            seenCohorts[c.id] = true;
+            cohortChips.push({ id: c.id, label: c.label });
+          }
+        });
+      });
+    }
+    // Then: add any cohorts from applications not already covered
     try {
       var allApps = (bridge && bridge.getApplications) ? (bridge.getApplications() || []) : [];
-      var seenCohorts = {};
       allApps.forEach(function (a) {
         var cl = a.cohort_label || '';
         if (cl && !seenCohorts[cl]) { seenCohorts[cl] = true; cohortChips.push({ id: cl, label: cl }); }
       });
-      cohortChips.sort(function (a, b) { return a.label.localeCompare(b.label); });
     } catch (e) { /* ignore */ }
+    cohortChips.sort(function (a, b) { return a.label.localeCompare(b.label); });
     if (cohortChips.length > 0) {
       html += buildChipSection('campaign_filter_cohort', cohortChips, f.cohorts, 'cohorts');
     }
@@ -1645,8 +1725,20 @@
   // sends in Resend batch API calls (100/request). Much faster than looping.
   // Also sends to selected email lists (via listIds).
   function sendAllViaResend(recipients, total) {
-    var leadIds = recipients.filter(function (l) { return l._source === 'lead' || l._source === 'career'; }).map(function (l) { return l.id; });
-    var appIds = recipients.filter(function (l) { return l._source === 'app'; }).map(function (l) { return l.id; });
+    var leads = recipients.filter(function (l) { return l._source === 'lead' || l._source === 'career'; });
+    var apps = recipients.filter(function (l) { return l._source === 'app'; });
+
+    // Dedup: if same email is both a lead and an application, prefer the lead
+    var leadEmails = new Set();
+    leads.forEach(function (l) { if (l.email) leadEmails.add(l.email.toLowerCase()); });
+    apps = apps.filter(function (a) {
+      if (a.email && leadEmails.has(a.email.toLowerCase())) return false;
+      return true;
+    });
+
+    var leadIds = leads.map(function (l) { return l.id; });
+    var appIds = apps.map(function (l) { return l.id; });
+
     // Derive list IDs from selected list contacts in the recipient pool
     var listContactRecipients = recipients.filter(function (l) { return l._source === 'list'; });
     var listIdSet = {};
@@ -2590,6 +2682,12 @@
       if (action === 'campaign-send-all') { sendAll(); return; }
 
       // Clear filters
+      if (action === 'campaign-clear-search') {
+        campaignState.searchTerm = '';
+        switchTab('recipients');
+        return;
+      }
+
       if (action === 'campaign-clear-filters') {
         campaignState.filters = {
           source: 'all', statuses: [], programs: [], subtypes: [], routes: [],
@@ -3049,6 +3147,7 @@
 
     T = bridge.getTranslations() || {};
     bindEvents();
+    loadCatalogForWizard();
     console.log('[campaign-wizard] Initialized');
     return true;
   }
