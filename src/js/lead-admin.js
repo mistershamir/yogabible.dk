@@ -4367,6 +4367,127 @@
      APPLICATION — EDIT FIELDS FORM
      ══════════════════════════════════════════ */
 
+  /* ── Catalogue-driven Program / Cohort helpers ──
+     Uses live `catalogData` loaded by loadCatalogData(). Replaces the
+     legacy hardcoded COURSE_CATALOG flow.
+  */
+
+  // Human-friendly category display names + sort order for optgroups.
+  var CATALOG_CATEGORY_ORDER = ['Education', 'Course', 'Mentorship'];
+
+  // Maps legacy ytt_program_type strings to the new catalogue course_id.
+  function mapLegacyYTTToCourseId(yttProgramType) {
+    switch ((yttProgramType || '').toLowerCase()) {
+      case '18-week': return 'YTT200-18W';
+      case '8-week': return 'YTT200-8W';
+      case '4-week': return 'YTT200-4W';
+      case '4-week-jul': return 'YTT200-4W-VP';
+      case '300h': return 'YTT300-ADV';
+      default: return '';
+    }
+  }
+
+  // Method is derived from course_id, mirrors activate-applicant.mapYTTToMethod.
+  function deriveMethodFromCourseId(courseId) {
+    if (!courseId) return '';
+    var c = String(courseId).toUpperCase();
+    if (c === 'YTT200-4W-VP') return 'Vinyasa Plus';
+    if (c.indexOf('YTT200') === 0) return 'Triangle Method';
+    return ''; // 300h has no fixed method; courses / mentorship have none
+  }
+
+  function getCatalogEntriesByCourseId(courseId) {
+    if (!Array.isArray(catalogData) || !courseId) return [];
+    return catalogData.filter(function (row) { return row.course_id === courseId && row.active; });
+  }
+
+  function getCatalogTrackForCourseId(courseId) {
+    var rows = getCatalogEntriesByCourseId(courseId);
+    for (var i = 0; i < rows.length; i++) { if (rows[i].track) return rows[i].track; }
+    return '';
+  }
+
+  function populateProgramDropdown(currentCourseId) {
+    var sel = $('yb-app-edit-course-id');
+    if (!sel) return;
+
+    // Group unique course_ids by category
+    var byCategory = {};
+    var seen = {};
+    (catalogData || []).forEach(function (row) {
+      if (!row.course_id || !row.active) return;
+      if (row.category === 'Bundle') return; // bundles are payment packages, not programs
+      if (seen[row.course_id]) return;
+      seen[row.course_id] = true;
+      var cat = row.category || 'Other';
+      if (!byCategory[cat]) byCategory[cat] = [];
+      byCategory[cat].push({ course_id: row.course_id, course_name: row.course_name || row.course_id });
+    });
+
+    var html = '<option value="">---</option>';
+    var matched = false;
+    CATALOG_CATEGORY_ORDER.concat(Object.keys(byCategory).filter(function (c) {
+      return CATALOG_CATEGORY_ORDER.indexOf(c) === -1;
+    })).forEach(function (cat) {
+      var entries = byCategory[cat];
+      if (!entries || !entries.length) return;
+      entries.sort(function (a, b) { return a.course_name.localeCompare(b.course_name); });
+      html += '<optgroup label="' + esc(cat) + '">';
+      entries.forEach(function (p) {
+        var isMatch = currentCourseId === p.course_id;
+        if (isMatch) matched = true;
+        html += '<option value="' + esc(p.course_id) + '"' + (isMatch ? ' selected' : '') + '>' +
+          esc(p.course_name) + ' (' + esc(p.course_id) + ')</option>';
+      });
+      html += '</optgroup>';
+    });
+
+    // Preserve unknown course_ids so admin can still see them
+    if (currentCourseId && !matched) {
+      html += '<option value="' + esc(currentCourseId) + '" selected>' + esc(currentCourseId) + ' (unknown)</option>';
+    }
+    sel.innerHTML = html;
+  }
+
+  function populateCohortDropdownForCourseId(courseId, currentCohortId) {
+    var sel = $('yb-app-edit-cohort-id');
+    if (!sel) return;
+    if (!courseId) {
+      sel.innerHTML = '<option value="">Select a program first</option>';
+      sel.disabled = true;
+      return;
+    }
+    var rows = getCatalogEntriesByCourseId(courseId);
+    var html = '<option value="">---</option>';
+    var matched = false;
+    rows.sort(function (a, b) {
+      return String(b.cohort_id || '').localeCompare(String(a.cohort_id || ''));
+    });
+    rows.forEach(function (row) {
+      if (!row.cohort_id) return;
+      var isMatch = currentCohortId === row.cohort_id;
+      if (isMatch) matched = true;
+      html += '<option value="' + esc(row.cohort_id) +
+        '" data-cohort-label="' + esc(row.cohort_label || row.cohort_id) + '"' +
+        (isMatch ? ' selected' : '') + '>' +
+        esc(row.cohort_label || row.cohort_id) + '</option>';
+    });
+    if (currentCohortId && !matched) {
+      html += '<option value="' + esc(currentCohortId) + '" selected>' + esc(currentCohortId) + ' (unknown)</option>';
+    }
+    sel.innerHTML = html;
+    sel.disabled = false;
+  }
+
+  function refreshAppEditDerivedFields() {
+    var progSel = $('yb-app-edit-course-id');
+    var courseId = progSel ? progSel.value : '';
+    var methodEl = $('yb-app-edit-method-display');
+    if (methodEl) methodEl.value = deriveMethodFromCourseId(courseId) || '';
+    var trackEl = $('yb-app-edit-track');
+    if (trackEl) trackEl.value = getCatalogTrackForCourseId(courseId) || '';
+  }
+
   function renderAppEditForm() {
     if (!currentApp) return;
     var a = currentApp;
@@ -4376,54 +4497,13 @@
     el = $('yb-app-edit-email'); if (el) el.value = a.email || '';
     el = $('yb-app-edit-phone'); if (el) el.value = a.phone || '';
     el = $('yb-app-edit-program-type'); if (el) el.value = a.program_type || '';
-    el = $('yb-app-edit-track'); if (el) el.value = a.track || '';
 
-    // Populate course and cohort dropdowns from catalog
-    populateCourseDropdown(a.program_type || a.type || '', a.course_name || '');
-    populateCohortDropdown(a.program_type || a.type || '', a.course_name || '', a.cohort_label || a.cohort || '');
-  }
+    // Backwards compatibility: infer course_id from legacy ytt_program_type
+    var courseId = a.course_id || mapLegacyYTTToCourseId(a.ytt_program_type) || '';
 
-  function populateCourseDropdown(programType, currentValue) {
-    var sel = $('yb-app-edit-course-name');
-    if (!sel) return;
-    var courses = COURSE_CATALOG[programType] || [];
-    var html = '<option value="">---</option>';
-    var matched = false;
-    courses.forEach(function (c) {
-      var displayName = catalogName(c);
-      // Match against both DA and EN names (stored value could be either)
-      var isMatch = (currentValue === c.name_da || currentValue === c.name_en);
-      if (isMatch) matched = true;
-      html += '<option value="' + esc(displayName) + '" data-course-id="' + c.id + '"' + (isMatch ? ' selected' : '') + '>' + esc(displayName) + '</option>';
-    });
-    // Preserve non-catalog values with a "(custom)" fallback
-    if (currentValue && !matched) {
-      html += '<option value="' + esc(currentValue) + '" selected>' + esc(currentValue) + ' (custom)</option>';
-    }
-    sel.innerHTML = html;
-  }
-
-  function populateCohortDropdown(programType, courseName, currentValue) {
-    var sel = $('yb-app-edit-cohort-label');
-    if (!sel) return;
-    var courses = COURSE_CATALOG[programType] || [];
-    // Match course against both DA and EN names
-    var course = courses.find(function (c) { return c.name_da === courseName || c.name_en === courseName || catalogName(c) === courseName; });
-    var cohorts = course ? course.cohorts : [];
-    var html = '<option value="">---</option>';
-    var matched = false;
-    cohorts.forEach(function (co) {
-      var displayLabel = cohortLabel(co);
-      // Match against both DA and EN labels
-      var isMatch = (currentValue === co.label_da || currentValue === co.label_en);
-      if (isMatch) matched = true;
-      html += '<option value="' + esc(displayLabel) + '"' + (isMatch ? ' selected' : '') + '>' + esc(displayLabel) + '</option>';
-    });
-    // Preserve non-catalog values
-    if (currentValue && !matched) {
-      html += '<option value="' + esc(currentValue) + '" selected>' + esc(currentValue) + ' (custom)</option>';
-    }
-    sel.innerHTML = html;
+    populateProgramDropdown(courseId);
+    populateCohortDropdownForCourseId(courseId, a.cohort_id || '');
+    refreshAppEditDerivedFields();
   }
 
   function populateCohortFilter() {
@@ -4448,21 +4528,46 @@
     var btn = saveBtnStart(formEl);
 
     var updates = {};
-    var fields = [
+    var simpleFields = [
       { id: 'yb-app-edit-first-name', key: 'first_name' },
       { id: 'yb-app-edit-last-name', key: 'last_name' },
       { id: 'yb-app-edit-email', key: 'email' },
       { id: 'yb-app-edit-phone', key: 'phone' },
-      { id: 'yb-app-edit-program-type', key: 'program_type' },
-      { id: 'yb-app-edit-track', key: 'track' },
-      { id: 'yb-app-edit-course-name', key: 'course_name' },
-      { id: 'yb-app-edit-cohort-label', key: 'cohort_label' }
+      { id: 'yb-app-edit-program-type', key: 'program_type' }
     ];
-
-    fields.forEach(function (f) {
+    simpleFields.forEach(function (f) {
       var el = $(f.id);
       if (el) updates[f.key] = el.value.trim();
     });
+
+    // Catalogue-driven fields: course_id drives course_name, method, track.
+    var courseIdEl = $('yb-app-edit-course-id');
+    var cohortIdEl = $('yb-app-edit-cohort-id');
+    var courseId = courseIdEl ? courseIdEl.value.trim() : '';
+    updates.course_id = courseId;
+
+    // Derive course_name + track from the catalogue entry matching (course_id, cohort_id).
+    if (courseId) {
+      var rows = getCatalogEntriesByCourseId(courseId);
+      if (rows.length) {
+        updates.course_name = rows[0].course_name || '';
+        var trackVal = getCatalogTrackForCourseId(courseId);
+        if (trackVal) updates.track = trackVal;
+      }
+    } else {
+      updates.course_name = '';
+      updates.track = '';
+    }
+
+    // Cohort: store both cohort_id and cohort_label (read label from data-attr)
+    if (cohortIdEl && cohortIdEl.value) {
+      updates.cohort_id = cohortIdEl.value.trim();
+      var opt = cohortIdEl.options[cohortIdEl.selectedIndex];
+      updates.cohort_label = opt ? (opt.getAttribute('data-cohort-label') || '') : '';
+    } else {
+      updates.cohort_id = '';
+      updates.cohort_label = '';
+    }
 
     updates.updated_at = firebase.firestore.FieldValue.serverTimestamp();
 
@@ -5479,19 +5584,12 @@
       });
     }
 
-    // Cascading dropdowns for app edit form (program type → course → cohort)
-    var appEditProgramType = $('yb-app-edit-program-type');
-    if (appEditProgramType) {
-      appEditProgramType.addEventListener('change', function () {
-        populateCourseDropdown(appEditProgramType.value, '');
-        populateCohortDropdown(appEditProgramType.value, '', '');
-      });
-    }
-    var appEditCourseName = $('yb-app-edit-course-name');
-    if (appEditCourseName) {
-      appEditCourseName.addEventListener('change', function () {
-        var progType = $('yb-app-edit-program-type');
-        populateCohortDropdown(progType ? progType.value : '', appEditCourseName.value, '');
+    // Cascading dropdowns for app edit form: program (course_id) → cohort + method + track
+    var appEditCourseId = $('yb-app-edit-course-id');
+    if (appEditCourseId) {
+      appEditCourseId.addEventListener('change', function () {
+        populateCohortDropdownForCourseId(appEditCourseId.value, '');
+        refreshAppEditDerivedFields();
       });
     }
 
@@ -5778,6 +5876,10 @@
           if (filterSubType) {
             renderSubTypeFilter(filterTypes.length === 1 ? filterTypes[0] : 'ytt');
             renderCohortFilter();
+          }
+          // Refresh app edit form if an application is already open
+          if (currentApp && $('yb-app-edit-course-id')) {
+            renderAppEditForm();
           }
           console.log('[lead-admin] Catalog loaded:', catalogData.length, 'entries → dynamic filters active');
         }

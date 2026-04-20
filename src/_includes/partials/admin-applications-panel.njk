@@ -158,24 +158,25 @@
         </select>
       </div>
       <div class="yb-admin__field">
+        <label for="yb-app-edit-course-id">Program</label>
+        <select id="yb-app-edit-course-id" class="yb-admin__select">
+          <option value="">---</option>
+        </select>
+        <small style="color:#6F6A66;font-size:0.7rem">Catalogue-driven. Stored as course_id.</small>
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-app-edit-method-display">Method</label>
+        <input type="text" id="yb-app-edit-method-display" class="yb-admin__select" readonly placeholder="—" style="background:#F5F3F0;color:#6F6A66">
+      </div>
+      <div class="yb-admin__field">
+        <label for="yb-app-edit-cohort-id">Cohort</label>
+        <select id="yb-app-edit-cohort-id" class="yb-admin__select" disabled>
+          <option value="">Select a program first</option>
+        </select>
+      </div>
+      <div class="yb-admin__field">
         <label for="yb-app-edit-track">{{ t.apps_col_track }}</label>
-        <select id="yb-app-edit-track" class="yb-admin__select">
-          <option value="">---</option>
-          <option value="weekday">Weekday</option>
-          <option value="weekend">Weekend</option>
-        </select>
-      </div>
-      <div class="yb-admin__field">
-        <label for="yb-app-edit-course-name">{{ t.apps_col_course }}</label>
-        <select id="yb-app-edit-course-name" class="yb-admin__select">
-          <option value="">---</option>
-        </select>
-      </div>
-      <div class="yb-admin__field">
-        <label for="yb-app-edit-cohort-label">Cohort</label>
-        <select id="yb-app-edit-cohort-label" class="yb-admin__select">
-          <option value="">---</option>
-        </select>
+        <input type="text" id="yb-app-edit-track" class="yb-admin__select" readonly placeholder="—" style="background:#F5F3F0;color:#6F6A66">
       </div>
     </div>
     <div class="yb-admin__form-actions">
