@@ -175,8 +175,17 @@
         </select>
       </div>
       <div class="yb-admin__field">
-        <label for="yb-app-edit-track">{{ t.apps_col_track }}</label>
-        <input type="text" id="yb-app-edit-track" class="yb-admin__select" readonly placeholder="—" style="background:#F5F3F0;color:#6F6A66">
+        <label for="yb-app-edit-format">Format</label>
+        <input type="text" id="yb-app-edit-format" class="yb-admin__select" readonly placeholder="—" style="background:#F5F3F0;color:#6F6A66">
+      </div>
+      <div class="yb-admin__field" id="yb-app-edit-schedule-track-wrap" style="display:none">
+        <label for="yb-app-edit-schedule-track">Schedule Track</label>
+        <select id="yb-app-edit-schedule-track" class="yb-admin__select">
+          <option value="">---</option>
+          <option value="weekday">Weekday</option>
+          <option value="weekend">Weekend</option>
+        </select>
+        <small style="color:#6F6A66;font-size:0.7rem">18-week Flexible only — stored as <code>track</code>.</small>
       </div>
     </div>
     <div class="yb-admin__form-actions">

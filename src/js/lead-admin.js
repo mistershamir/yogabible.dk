@@ -3768,7 +3768,23 @@
         '<span class="yb-lead__card-value">' + esc(displayLocalized(a.cohort_label || a.cohort)) + '</span>' +
       '</div>';
     }
-    if (a.track) {
+    // Format (catalogue-derived, e.g. "18 Weeks Flexible")
+    var detailFormat = getCatalogTrackForCourseId(detailCourseId);
+    if (detailFormat) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Format</span>' +
+        '<span class="yb-lead__card-value">' + esc(detailFormat) + '</span>' +
+      '</div>';
+    }
+    // Schedule Track — only show when it's an actual weekday/weekend selection
+    var scheduleTrack = normaliseScheduleTrack(a.track);
+    if (scheduleTrack) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Schedule Track</span>' +
+        '<span class="yb-lead__card-value">' + esc(scheduleTrack === 'weekday' ? 'Weekday' : 'Weekend') + '</span>' +
+      '</div>';
+    } else if (a.track && !detailFormat) {
+      // Legacy unstructured track value that's not a schedule track and no catalogue format — show as-is
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">Track</span>' +
         '<span class="yb-lead__card-value">' + esc(displayTrack(a.track)) + '</span>' +
@@ -4488,13 +4504,35 @@
     sel.disabled = false;
   }
 
+  // Normalise legacy/apply-form track strings ("Hverdagsprogram", "Weekend program", …)
+  // to the canonical weekday/weekend values used by the admin dropdown.
+  function normaliseScheduleTrack(raw) {
+    if (!raw) return '';
+    var s = String(raw).toLowerCase();
+    if (s.indexOf('hverdag') !== -1 || s.indexOf('weekday') !== -1) return 'weekday';
+    if (s.indexOf('weekend') !== -1) return 'weekend';
+    return '';
+  }
+
+  function courseHasScheduleTrack(courseId) {
+    // 18-week Flexible is the only program with parallel weekday/weekend tracks.
+    return String(courseId || '').toUpperCase() === 'YTT200-18W';
+  }
+
   function refreshAppEditDerivedFields() {
     var progSel = $('yb-app-edit-course-id');
     var courseId = progSel ? progSel.value : '';
     var methodEl = $('yb-app-edit-method-display');
     if (methodEl) methodEl.value = deriveMethodFromCourseId(courseId) || '';
-    var trackEl = $('yb-app-edit-track');
-    if (trackEl) trackEl.value = getCatalogTrackForCourseId(courseId) || '';
+    var formatEl = $('yb-app-edit-format');
+    if (formatEl) formatEl.value = getCatalogTrackForCourseId(courseId) || '';
+
+    // Schedule Track — only visible for 18-week. Clear when hidden to avoid stale writes.
+    var wrap = $('yb-app-edit-schedule-track-wrap');
+    var stSel = $('yb-app-edit-schedule-track');
+    var hasSchedule = courseHasScheduleTrack(courseId);
+    if (wrap) wrap.style.display = hasSchedule ? '' : 'none';
+    if (stSel && !hasSchedule) stSel.value = '';
   }
 
   function renderAppEditForm() {
@@ -4513,6 +4551,12 @@
     populateProgramDropdown(courseId);
     populateCohortDropdownForCourseId(courseId, a.cohort_id || '');
     refreshAppEditDerivedFields();
+
+    // Schedule Track: pre-populate from legacy a.track (weekday/weekend only)
+    var stSel = $('yb-app-edit-schedule-track');
+    if (stSel && courseHasScheduleTrack(courseId)) {
+      stSel.value = normaliseScheduleTrack(a.track) || '';
+    }
   }
 
   function populateCohortFilter() {
@@ -4555,16 +4599,24 @@
     var courseId = courseIdEl ? courseIdEl.value.trim() : '';
     updates.course_id = courseId;
 
-    // Derive course_name + track from the catalogue entry matching (course_id, cohort_id).
+    // Derive course_name from the catalogue. Do NOT write catalogue format
+    // into `track` — that field holds the user-chosen schedule track
+    // (weekday/weekend) from the apply form.
     if (courseId) {
       var rows = getCatalogEntriesByCourseId(courseId);
       if (rows.length) {
         updates.course_name = rows[0].course_name || '';
-        var trackVal = getCatalogTrackForCourseId(courseId);
-        if (trackVal) updates.track = trackVal;
       }
     } else {
       updates.course_name = '';
+    }
+
+    // Schedule Track (weekday/weekend) — stored as application.track.
+    // Only applies to 18-week Flexible; cleared for other programs.
+    var stSel = $('yb-app-edit-schedule-track');
+    if (courseHasScheduleTrack(courseId)) {
+      updates.track = stSel ? stSel.value : '';
+    } else {
       updates.track = '';
     }
 
