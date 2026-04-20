@@ -42,6 +42,11 @@
   }
 
   async function getToken() {
+    if (window.getAuthToken) {
+      var t = await window.getAuthToken();
+      if (!t) { toast('Not authenticated', true); return null; }
+      return t;
+    }
     var user = firebase.auth().currentUser;
     if (!user) { toast('Not authenticated', true); return null; }
     return user.getIdToken();

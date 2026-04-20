@@ -3996,13 +3996,21 @@
   }
 
   /* ═══════════════════════════════════════
-     BOOTSTRAP
+     BOOTSTRAP — gated on firebaseReady to avoid race with lazy SDK load
      ═══════════════════════════════════════ */
-  var checkInterval = setInterval(function () {
-    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
-      clearInterval(checkInterval);
-      init();
-    }
-  }, 100);
+  if (window.firebaseReady) {
+    window.firebaseReady.then(init);
+  } else {
+    // Fallback for load-order edge cases — poll briefly.
+    var checkInterval = setInterval(function () {
+      if (window.firebaseReady) {
+        clearInterval(checkInterval);
+        window.firebaseReady.then(init);
+      } else if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+        clearInterval(checkInterval);
+        init();
+      }
+    }, 100);
+  }
 
 })();

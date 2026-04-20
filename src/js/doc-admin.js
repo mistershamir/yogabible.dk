@@ -604,21 +604,31 @@
   var fileInput = $('yb-doc-browser-file');
   if (fileInput) fileInput.addEventListener('change', function() { if (fileInput.files.length) uploadFile(fileInput.files[0]); fileInput.value = ''; });
 
-  // ── Init ──
-  var initInterval = setInterval(function() {
-    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
-      clearInterval(initInterval);
-      db = firebase.firestore();
-      var panel = document.querySelector('[data-yb-admin-panel="documents"]');
-      if (panel) {
-        var observer = new MutationObserver(function() {
-          if (panel.classList.contains('is-active') || !panel.hidden) { loadDocuments(); observer.disconnect(); }
-        });
-        observer.observe(panel, { attributes: true, attributeFilter: ['class', 'hidden'] });
-        if (panel.classList.contains('is-active')) loadDocuments();
-      }
+  // ── Init — gated on firebaseReady ──
+  function initDocAdmin() {
+    db = firebase.firestore();
+    var panel = document.querySelector('[data-yb-admin-panel="documents"]');
+    if (panel) {
+      var observer = new MutationObserver(function() {
+        if (panel.classList.contains('is-active') || !panel.hidden) { loadDocuments(); observer.disconnect(); }
+      });
+      observer.observe(panel, { attributes: true, attributeFilter: ['class', 'hidden'] });
+      if (panel.classList.contains('is-active')) loadDocuments();
     }
-  }, 100);
+  }
+  if (window.firebaseReady) {
+    window.firebaseReady.then(initDocAdmin);
+  } else {
+    var initInterval = setInterval(function() {
+      if (window.firebaseReady) {
+        clearInterval(initInterval);
+        window.firebaseReady.then(initDocAdmin);
+      } else if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+        clearInterval(initInterval);
+        initDocAdmin();
+      }
+    }, 100);
+  }
 
   console.log('✅ Document Admin loaded');
 })();

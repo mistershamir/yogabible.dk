@@ -963,12 +963,19 @@
     });
   }
 
-  // Bootstrap
-  var checkInterval = setInterval(function () {
-    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
-      clearInterval(checkInterval);
-      initCareersAdmin();
-    }
-  }, 100);
+  // Bootstrap — gated on firebaseReady
+  if (window.firebaseReady) {
+    window.firebaseReady.then(initCareersAdmin);
+  } else {
+    var checkInterval = setInterval(function () {
+      if (window.firebaseReady) {
+        clearInterval(checkInterval);
+        window.firebaseReady.then(initCareersAdmin);
+      } else if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+        clearInterval(checkInterval);
+        initCareersAdmin();
+      }
+    }, 100);
+  }
 
 })();

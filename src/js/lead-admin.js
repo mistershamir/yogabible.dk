@@ -5924,21 +5924,35 @@
   }
 
   // ── Load catalog data for dynamic filters ───────────────────────────
+  // Cache: module-level, 5-min TTL. Dedupes in-flight requests.
+  var _catalogFetchedAt = 0;
+  var _catalogInFlight = null;
+  var CATALOG_TTL_MS = 5 * 60 * 1000;
+
   function loadCatalogData() {
-    fetch('/.netlify/functions/catalog')
+    // Cache hit within TTL? Skip refetch.
+    if (catalogLoaded && catalogData && (Date.now() - _catalogFetchedAt) < CATALOG_TTL_MS) return;
+    // Dedup concurrent callers.
+    if (_catalogInFlight) return _catalogInFlight;
+
+    // 10s timeout so the UI doesn't hang forever on a stalled request.
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timeoutId = setTimeout(function () { if (controller) controller.abort(); }, 10000);
+
+    _catalogInFlight = fetch('/.netlify/functions/catalog', controller ? { signal: controller.signal } : {})
       .then(function (r) { return r.json(); })
       .then(function (data) {
+        clearTimeout(timeoutId);
         if (data.ok && data.catalog && data.catalog.length > 0) {
           catalogData = data.catalog;
           catalogLoaded = true;
+          _catalogFetchedAt = Date.now();
           SUB_TYPE_OPTIONS = buildSubTypeOptions(catalogData);
           COHORT_OPTIONS = buildCohortOptions(catalogData);
-          // Re-render filters if a sub-type is active
           if (filterSubType) {
             renderSubTypeFilter(filterTypes.length === 1 ? filterTypes[0] : 'ytt');
             renderCohortFilter();
           }
-          // Refresh app edit form if an application is already open
           if (currentApp && $('yb-app-edit-course-id')) {
             renderAppEditForm();
           }
@@ -5946,8 +5960,12 @@
         }
       })
       .catch(function (err) {
+        clearTimeout(timeoutId);
         console.warn('[lead-admin] Catalog fetch failed, using hardcoded filters:', err.message);
-      });
+      })
+      .then(function () { _catalogInFlight = null; });
+
+    return _catalogInFlight;
   }
 
   function initLeadAdmin() {
@@ -6111,12 +6129,19 @@
     }
   };
 
-  // Bootstrap
-  var checkInterval = setInterval(function () {
-    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
-      clearInterval(checkInterval);
-      initLeadAdmin();
-    }
-  }, 100);
+  // Bootstrap — gated on firebaseReady
+  if (window.firebaseReady) {
+    window.firebaseReady.then(initLeadAdmin);
+  } else {
+    var checkInterval = setInterval(function () {
+      if (window.firebaseReady) {
+        clearInterval(checkInterval);
+        window.firebaseReady.then(initLeadAdmin);
+      } else if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+        clearInterval(checkInterval);
+        initLeadAdmin();
+      }
+    }, 100);
+  }
 
 })();

@@ -15,6 +15,9 @@
   function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
   function getToken() {
+    if (window.getAuthToken) {
+      return window.getAuthToken().then(function (t) { return t || ''; });
+    }
     if (window.firebase && firebase.auth) {
       var u = firebase.auth().currentUser;
       if (u) return u.getIdToken();

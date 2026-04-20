@@ -33,8 +33,19 @@
   // Global user state (role, permissions, profile data)
   window._ybUser = null;
 
+  // Ready promise — resolves on first onAuthStateChanged fire (even if user is null).
+  // Admin/tab scripts should `window.firebaseReady.then(({user, db, auth}) => ...)`
+  // before making any Firestore or getIdToken calls, to eliminate race conditions.
+  var _fbReadyResolve;
+  window.firebaseReady = new Promise(function(resolve) { _fbReadyResolve = resolve; });
+  var _fbReadyFired = false;
+
   auth.onAuthStateChanged(function(user) {
     currentUser = user;
+    if (!_fbReadyFired) {
+      _fbReadyFired = true;
+      _fbReadyResolve({ user: user, db: db, auth: auth });
+    }
     updateHeaderUI(user);
     handleContentGating(user);
 
@@ -461,6 +472,18 @@
   // Expose globally
   window.openYBAuthModal = openAuthModal;
   window.closeYBAuthModal = closeAuthModal;
+
+  // Null-safe token helper — never throws, returns null if no signed-in user.
+  // Awaits firebaseReady so callers don't hit a race where Firebase isn't init yet.
+  window.getAuthToken = function() {
+    return window.firebaseReady.then(function(ctx) {
+      if (!ctx || !ctx.user) return null;
+      return ctx.user.getIdToken().catch(function(err) {
+        console.warn('[firebase-auth] getIdToken failed:', err);
+        return null;
+      });
+    });
+  };
 
   // Expose role reload so other scripts (apply form) can trigger it after submission
   window.ybReloadUserRole = function() {

@@ -525,12 +525,19 @@
     });
   }
 
-  // Bootstrap
-  var checkInterval = setInterval(function () {
-    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
-      clearInterval(checkInterval);
-      initCatalogAdmin();
-    }
-  }, 100);
+  // Bootstrap — gated on firebaseReady
+  if (window.firebaseReady) {
+    window.firebaseReady.then(initCatalogAdmin);
+  } else {
+    var checkInterval = setInterval(function () {
+      if (window.firebaseReady) {
+        clearInterval(checkInterval);
+        window.firebaseReady.then(initCatalogAdmin);
+      } else if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+        clearInterval(checkInterval);
+        initCatalogAdmin();
+      }
+    }, 100);
+  }
 
 })();

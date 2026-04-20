@@ -48,10 +48,17 @@
   }
 
   function getAuthToken() {
-    if (!window.firebase || !firebase.auth || !firebase.auth().currentUser) {
-      return Promise.reject(new Error(isDa ? 'Du er ikke logget ind.' : 'You are not signed in.'));
-    }
-    return firebase.auth().currentUser.getIdToken();
+    // Await firebaseReady via shared helper — eliminates race where
+    // Firebase init hasn't fired onAuthStateChanged yet.
+    var p = window.getAuthToken ? window.getAuthToken() : Promise.resolve(
+      (window.firebase && firebase.auth && firebase.auth().currentUser)
+        ? firebase.auth().currentUser.getIdToken()
+        : null
+    );
+    return Promise.resolve(p).then(function (token) {
+      if (!token) throw new Error(isDa ? 'Du er ikke logget ind.' : 'You are not signed in.');
+      return token;
+    });
   }
 
   function apiCall(body) {

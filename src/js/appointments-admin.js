@@ -1319,33 +1319,31 @@
   function init() {
     T = window._ybAdminT || {};
 
-    // Wait for Firebase Auth to be ready (we use the API, not client-side Firestore)
-    var checkInterval = setInterval(function () {
-      if (typeof firebase !== 'undefined' && firebase.auth) {
-        clearInterval(checkInterval);
-
-        firebase.auth().onAuthStateChanged(function (user) {
-          if (user) {
-            window._ybFirebaseUser = user;
-            // Load on tab click
-            document.querySelectorAll('[data-yb-admin-tab="appointments"]').forEach(function (btn) {
-              btn.addEventListener('click', function () {
-                if (!apptLoaded) loadAppointments();
-              });
+    // Gated on firebaseReady — no polling, no race with lazy SDK load.
+    var ready = window.firebaseReady || Promise.resolve();
+    ready.then(function () {
+      if (typeof firebase === 'undefined' || !firebase.auth) return;
+      firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+          window._ybFirebaseUser = user;
+          // Load on tab click
+          document.querySelectorAll('[data-yb-admin-tab="appointments"]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              if (!apptLoaded) loadAppointments();
             });
-            // CRM tabs on profile page (marketing/admin)
-            document.querySelectorAll('[data-yb-tab="crm-appointments"]').forEach(function (btn) {
-              btn.addEventListener('click', function () {
-                if (!apptLoaded) loadAppointments();
-              });
+          });
+          // CRM tabs on profile page (marketing/admin)
+          document.querySelectorAll('[data-yb-tab="crm-appointments"]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              if (!apptLoaded) loadAppointments();
             });
-            initEventListeners();
-            initContactSearch();
-            initBookingLinksCopy();
-          }
-        });
-      }
-    }, 200);
+          });
+          initEventListeners();
+          initContactSearch();
+          initBookingLinksCopy();
+        }
+      });
+    });
   }
 
   // Start

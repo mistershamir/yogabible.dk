@@ -38,6 +38,10 @@
   }
 
   function getToken() {
+    // Prefer shared null-safe helper that awaits firebaseReady
+    if (window.getAuthToken) {
+      return window.getAuthToken().then(function(t) { return t || ''; });
+    }
     if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
       return firebase.auth().currentUser.getIdToken();
     }
@@ -2219,10 +2223,17 @@
     bindEvents();
   }
 
-  var checkInterval = setInterval(function () {
-    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
-      clearInterval(checkInterval);
-      init();
-    }
-  }, 100);
+  if (window.firebaseReady) {
+    window.firebaseReady.then(init);
+  } else {
+    var checkInterval = setInterval(function () {
+      if (window.firebaseReady) {
+        clearInterval(checkInterval);
+        window.firebaseReady.then(init);
+      } else if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+        clearInterval(checkInterval);
+        init();
+      }
+    }, 100);
+  }
 })();

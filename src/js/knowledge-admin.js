@@ -43,6 +43,12 @@
   }
 
   function getAuthToken() {
+    if (window.getAuthToken) {
+      return window.getAuthToken().then(function (t) {
+        if (!t) throw new Error('Not authenticated');
+        return t;
+      });
+    }
     return firebase.auth().currentUser.getIdToken();
   }
 
