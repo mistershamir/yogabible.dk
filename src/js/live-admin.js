@@ -1616,34 +1616,24 @@
   /* ══════════════════════════════════════════
      AI BACKFILL
      ══════════════════════════════════════════ */
-  function getInternalSecret() {
-    var cached = sessionStorage.getItem('yb_ai_secret') || '';
-    if (cached) return cached;
-    var entered = prompt('Enter AI_INTERNAL_SECRET:');
-    if (entered) sessionStorage.setItem('yb_ai_secret', entered);
-    return entered || '';
-  }
-
+  // Backfill endpoint accepts a Firebase admin ID token, so no secret prompt.
   function backfillFetch(method, queryString, body) {
-    var secret = getInternalSecret();
-    if (!secret) return Promise.reject(new Error('Secret required'));
     var url = '/.netlify/functions/backfill-ai-recordings' + (queryString ? '?' + queryString : '');
-    var opts = {
-      method: method || 'GET',
-      headers: {
-        'X-Internal-Secret': secret,
-        'Content-Type': 'application/json'
-      }
-    };
-    if (body) opts.body = JSON.stringify(body);
-    return fetch(url, opts).then(function (r) {
-      return r.json().then(function (json) {
-        if (!r.ok) {
-          // Invalidate cached secret on 401
-          if (r.status === 401) sessionStorage.removeItem('yb_ai_secret');
-          throw new Error(json.error || ('HTTP ' + r.status));
+    return getToken().then(function (token) {
+      if (!token) throw new Error('Not authenticated');
+      var opts = {
+        method: method || 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
         }
-        return json;
+      };
+      if (body) opts.body = JSON.stringify(body);
+      return fetch(url, opts).then(function (r) {
+        return r.json().then(function (json) {
+          if (!r.ok) throw new Error(json.error || ('HTTP ' + r.status));
+          return json;
+        });
       });
     });
   }
@@ -2168,48 +2158,47 @@
       }
     });
 
-    // AI reprocess button
+    // AI reprocess button — calls admin-authed proxy, which fires the background function.
+    // Background functions return 202 immediately and run up to 15 min async.
     var reprocessBtn = $('yb-la-ai-reprocess-btn');
     if (reprocessBtn) reprocessBtn.addEventListener('click', function () {
       var id = $('yb-la-id').value;
       if (!id) return;
       if (!confirm('Re-run AI processing on this session? This will overwrite the current summary and quiz.')) return;
       reprocessBtn.disabled = true;
-      reprocessBtn.textContent = '↻ Processing...';
-      // Call ai-backfill reprocess endpoint
-      var secret = prompt('Enter AI_INTERNAL_SECRET:');
-      if (!secret) { reprocessBtn.disabled = false; reprocessBtn.textContent = '↻ Reprocess AI'; return; }
-      fetch('/.netlify/functions/ai-backfill?reprocess=' + id + '&secret=' + encodeURIComponent(secret))
-        .then(function (r) { return r.json(); })
-        .then(function (res) {
-          if (res.ok) {
-            toast('AI reprocessed successfully (' + res.lang + ')');
-            // Reload the item to get fresh AI content
-            apiFetch('get', { params: { id: id } }).then(function (r) {
-              if (r.ok && r.item) {
-                $('yb-la-ai-summary-da').value = r.item.aiSummary_da || r.item.aiSummary || '';
-                $('yb-la-ai-summary-en').value = r.item.aiSummary_en || r.item.aiSummary || '';
-                $('yb-la-ai-quiz-da').value = r.item.aiQuiz_da ? formatJsonStr(r.item.aiQuiz_da) : (r.item.aiQuiz ? formatJsonStr(r.item.aiQuiz) : '');
-                $('yb-la-ai-quiz-en').value = r.item.aiQuiz_en ? formatJsonStr(r.item.aiQuiz_en) : (r.item.aiQuiz ? formatJsonStr(r.item.aiQuiz) : '');
-                $('yb-la-ai-summary').value = r.item.aiSummary || '';
-                $('yb-la-ai-quiz').value = r.item.aiQuiz ? formatJsonStr(r.item.aiQuiz) : '';
-                var statusEl = $('yb-la-ai-status');
-                statusEl.textContent = 'complete';
-                statusEl.style.background = '#16a34a';
-                statusEl.style.color = '#fff';
-              }
-            });
-          } else {
-            toast(res.error || 'Reprocess failed', true);
-          }
-          reprocessBtn.disabled = false;
-          reprocessBtn.textContent = '↻ Reprocess AI';
-        })
-        .catch(function (err) {
-          toast('Reprocess error: ' + err.message, true);
-          reprocessBtn.disabled = false;
-          reprocessBtn.textContent = '↻ Reprocess AI';
+      reprocessBtn.textContent = '↻ Starting...';
+      getToken().then(function (token) {
+        if (!token) throw new Error('Not authenticated');
+        return fetch('/.netlify/functions/ai-reprocess-proxy', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ sessionId: id, action: 'reprocess' })
         });
+      }).then(function (r) {
+        return r.json().then(function (json) { return { status: r.status, body: json }; });
+      }).then(function (res) {
+        if (res.status === 202 || res.body.ok) {
+          toast('AI processing started. This may take 10-15 minutes.');
+          // Flip the status badge to Processing immediately so the admin sees feedback.
+          var statusEl = $('yb-la-ai-status');
+          if (statusEl) {
+            statusEl.textContent = 'processing';
+            statusEl.style.background = '#f75c03';
+            statusEl.style.color = '#fff';
+          }
+        } else {
+          toast(res.body.error || 'Reprocess failed', true);
+        }
+        reprocessBtn.disabled = false;
+        reprocessBtn.textContent = '↻ Reprocess AI';
+      }).catch(function (err) {
+        toast('Reprocess error: ' + err.message, true);
+        reprocessBtn.disabled = false;
+        reprocessBtn.textContent = '↻ Reprocess AI';
+      });
     });
 
     // Tab listener — lazy load on first visit

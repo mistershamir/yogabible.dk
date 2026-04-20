@@ -26,6 +26,7 @@
 const https = require('https');
 const { getCollection, getDb, updateDoc } = require('./shared/firestore');
 const { jsonResponse } = require('./shared/utils');
+const { requireAuth } = require('./shared/auth');
 
 const COLLECTION = 'live-schedule';
 const UNMATCHED_COLLECTION = 'live-unmatched-recordings';
@@ -33,16 +34,25 @@ const STAGGER_MS = 8000;
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 10;
 
-function isAuthorized(event) {
+// Accept either (a) the AI_INTERNAL_SECRET via header/query (CLI usage) OR
+// (b) a Firebase ID token with role=admin (browser admin panel usage).
+// Returns { ok: true } on success, { ok: false, response } with an error response otherwise.
+async function authorize(event) {
   var expected = process.env.AI_INTERNAL_SECRET || '';
-  if (!expected) return false;
   var header = event.headers['x-internal-secret'] || event.headers['X-Internal-Secret'] || '';
-  // Also accept as query param for convenience (CLI curl etc.)
   if (!header) {
     var params = event.queryStringParameters || {};
     header = params.secret || '';
   }
-  return header === expected;
+  if (expected && header === expected) return { ok: true };
+
+  // Fall back to admin token auth for browser-based admin panel.
+  var authHeader = event.headers.authorization || event.headers.Authorization || '';
+  if (authHeader) {
+    var authResult = await requireAuth(event, ['admin']);
+    if (!authResult.error) return { ok: true };
+  }
+  return { ok: false, response: jsonResponse(401, { ok: false, error: 'Unauthorized — admin auth or X-Internal-Secret required' }) };
 }
 
 function corsHeaders() {
@@ -60,9 +70,8 @@ function optionsResponse() {
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
 
-  if (!isAuthorized(event)) {
-    return jsonResponse(401, { ok: false, error: 'Unauthorized — X-Internal-Secret required' });
-  }
+  var auth = await authorize(event);
+  if (!auth.ok) return auth.response;
 
   var params = event.queryStringParameters || {};
   var action = params.action || '';
