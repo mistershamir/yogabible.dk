@@ -1268,6 +1268,27 @@
   var muxBrowserAssets = [];
   var muxBrowserCursor = null;
   var muxBrowserLoading = false;
+  var muxSessionStart = null;   // Date object or null
+  var muxSort = 'recent';       // 'match' | 'recent' | 'duration-desc' | 'duration-asc'
+  var muxPlayerScriptLoaded = false;
+  var muxPlayerScriptLoading = null;
+  var muxActivePlayerCard = null;
+
+  function ensureMuxPlayerScript() {
+    if (muxPlayerScriptLoaded) return Promise.resolve();
+    if (muxPlayerScriptLoading) return muxPlayerScriptLoading;
+    muxPlayerScriptLoading = new Promise(function (resolve) {
+      var existing = document.querySelector('script[data-mux-player]');
+      if (existing) { muxPlayerScriptLoaded = true; resolve(); return; }
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@mux/mux-player';
+      s.setAttribute('data-mux-player', '1');
+      s.onload = function () { muxPlayerScriptLoaded = true; resolve(); };
+      s.onerror = function () { muxPlayerScriptLoading = null; resolve(); };
+      document.head.appendChild(s);
+    });
+    return muxPlayerScriptLoading;
+  }
 
   function openMuxBrowser() {
     var modal = $('yb-la-mux-modal');
@@ -1275,12 +1296,77 @@
     modal.hidden = false;
     muxBrowserCursor = null;
     muxBrowserAssets = [];
+    muxActivePlayerCard = null;
+
+    // Capture session startDateTime from form, if set
+    var startInput = $('yb-la-start');
+    var v = startInput ? (startInput.value || '').trim() : '';
+    muxSessionStart = v ? new Date(v) : null;
+    if (muxSessionStart && isNaN(muxSessionStart.getTime())) muxSessionStart = null;
+
+    // Default sort: match if we have a session date, else recent
+    muxSort = muxSessionStart ? 'match' : 'recent';
+    var sortSel = $('yb-la-mux-sort');
+    if (sortSel) {
+      // Hide "Best match" option if no session date
+      var matchOpt = sortSel.querySelector('option[value="match"]');
+      if (matchOpt) matchOpt.disabled = !muxSessionStart;
+      sortSel.value = muxSort;
+    }
+
+    // Kick off script preload so the first play is instant
+    ensureMuxPlayerScript();
     loadMuxAssets();
   }
 
   function closeMuxBrowser() {
     var modal = $('yb-la-mux-modal');
     if (modal) modal.hidden = true;
+    muxActivePlayerCard = null;
+  }
+
+  function muxAssetMatch(asset) {
+    if (!muxSessionStart || !asset.created_at) return null;
+    var created = new Date(asset.created_at);
+    if (isNaN(created.getTime())) return null;
+    var diffMin = Math.round((created.getTime() - muxSessionStart.getTime()) / 60000);
+    var absMin = Math.abs(diffMin);
+    var tier = null;
+    if (absMin < 120) tier = 'likely';
+    else if (absMin < 1440) tier = 'sameday';
+    return { diffMin: diffMin, absMin: absMin, tier: tier };
+  }
+
+  function fmtDelta(diffMin) {
+    var abs = Math.abs(diffMin);
+    var dir = diffMin >= 0 ? 'after session start' : 'before session start';
+    if (abs < 60) return abs + ' minute' + (abs === 1 ? '' : 's') + ' ' + dir;
+    var hrs = Math.round(abs / 60 * 10) / 10;
+    if (abs < 1440) return hrs + ' hour' + (hrs === 1 ? '' : 's') + ' ' + dir;
+    var days = Math.round(abs / 1440 * 10) / 10;
+    return days + ' day' + (days === 1 ? '' : 's') + ' ' + dir;
+  }
+
+  function sortedMuxAssets() {
+    var arr = muxBrowserAssets.slice();
+    if (muxSort === 'match' && muxSessionStart) {
+      arr.sort(function (a, b) {
+        var ma = muxAssetMatch(a); var mb = muxAssetMatch(b);
+        var aa = ma ? ma.absMin : Infinity;
+        var bb = mb ? mb.absMin : Infinity;
+        return aa - bb;
+      });
+    } else if (muxSort === 'duration-desc') {
+      arr.sort(function (a, b) { return (b.duration || 0) - (a.duration || 0); });
+    } else if (muxSort === 'duration-asc') {
+      arr.sort(function (a, b) { return (a.duration || 0) - (b.duration || 0); });
+    } else {
+      // recent (default from API is already recent-first, but re-sort for safety)
+      arr.sort(function (a, b) {
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      });
+    }
+    return arr;
   }
 
   function fmtDuration(seconds) {
@@ -1343,19 +1429,57 @@
       body.innerHTML = '<p class="yb-la__loading-text">No recordings found for this time range.</p>';
       return;
     }
+    var sorted = sortedMuxAssets();
+    var bestId = null;
+    if (muxSessionStart) {
+      var best = null;
+      for (var k = 0; k < sorted.length; k++) {
+        var m = muxAssetMatch(sorted[k]);
+        if (m && m.tier === 'likely' && (!best || m.absMin < best.absMin)) {
+          best = m; bestId = sorted[k].id || sorted[k].playback_id;
+        }
+      }
+    }
     var html = '<div class="yb-la__mux-asset-grid">';
-    for (var i = 0; i < muxBrowserAssets.length; i++) {
-      var a = muxBrowserAssets[i];
+    for (var i = 0; i < sorted.length; i++) {
+      var a = sorted[i];
       var playbackId = a.playback_id || '';
       var thumb = playbackId ? 'https://image.mux.com/' + playbackId + '/thumbnail.jpg?width=320&height=180&fit_mode=smartcrop' : '';
-      html += '<div class="yb-la__mux-asset-card">';
+      var match = muxAssetMatch(a);
+      var cardId = a.id || playbackId;
+      var isBest = bestId && cardId === bestId;
+      var cls = 'yb-la__mux-asset-card' + (isBest ? ' yb-la__mux-asset-card--best' : '');
+      html += '<div class="' + cls + '" data-card-id="' + esc(cardId) + '">';
+
+      // Thumbnail wrapper with play button overlay
+      html += '<div class="yb-la__mux-thumb-wrap">';
       if (thumb) {
         html += '<img class="yb-la__mux-asset-thumb" src="' + esc(thumb) + '" alt="" loading="lazy">';
       } else {
         html += '<div class="yb-la__mux-asset-thumb yb-la__mux-asset-thumb--empty">No thumbnail</div>';
       }
+      if (playbackId) {
+        html += '<button type="button" class="yb-la__mux-play-btn" data-action="live-mux-play" ' +
+          'data-playback-id="' + esc(playbackId) + '" data-card-id="' + esc(cardId) + '" aria-label="Preview recording">' +
+          '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>' +
+          '</button>';
+      }
+      // Match badge
+      if (match && match.tier === 'likely') {
+        html += '<span class="yb-la__mux-match-badge yb-la__mux-match-badge--likely">Likely Match</span>';
+      } else if (match && match.tier === 'sameday') {
+        html += '<span class="yb-la__mux-match-badge yb-la__mux-match-badge--sameday">Same Day</span>';
+      }
+      html += '</div>';
+
+      // Inline player container (hidden by default)
+      html += '<div class="yb-la__mux-player-slot" data-player-slot="' + esc(cardId) + '" hidden></div>';
+
       html += '<div class="yb-la__mux-asset-meta">';
       html += '<div class="yb-la__mux-asset-date">' + esc(fmtAssetDate(a.created_at)) + '</div>';
+      if (match) {
+        html += '<div class="yb-la__mux-asset-delta">' + esc(fmtDelta(match.diffMin)) + '</div>';
+      }
       html += '<div class="yb-la__mux-asset-row"><span>Duration</span><strong>' + esc(fmtDuration(a.duration)) + '</strong></div>';
       if (a.resolution) html += '<div class="yb-la__mux-asset-row"><span>Resolution</span><strong>' + esc(a.resolution) + '</strong></div>';
       html += '<div class="yb-la__mux-asset-ids">';
@@ -1371,6 +1495,43 @@
     }
     html += '</div>';
     body.innerHTML = html;
+  }
+
+  function muxPlayAsset(cardId, playbackId) {
+    var body = $('yb-la-mux-modal-body');
+    if (!body) return;
+    // Close any currently active player
+    if (muxActivePlayerCard && muxActivePlayerCard !== cardId) {
+      muxClosePlayer(muxActivePlayerCard);
+    }
+    if (muxActivePlayerCard === cardId) {
+      muxClosePlayer(cardId);
+      return;
+    }
+    var slot = body.querySelector('[data-player-slot="' + CSS.escape(cardId) + '"]');
+    var wrap = body.querySelector('.yb-la__mux-asset-card[data-card-id="' + CSS.escape(cardId) + '"] .yb-la__mux-thumb-wrap');
+    if (!slot) return;
+    ensureMuxPlayerScript().then(function () {
+      slot.innerHTML = '<div class="yb-la__mux-player-inner">' +
+        '<mux-player playback-id="' + esc(playbackId) + '" stream-type="on-demand" ' +
+        'style="--media-object-fit:cover;aspect-ratio:16/9;width:100%;display:block;border-radius:8px;overflow:hidden;"></mux-player>' +
+        '<button type="button" class="yb-la__mux-player-close" data-action="live-mux-close-player" ' +
+        'data-card-id="' + esc(cardId) + '" aria-label="Close player">&times;</button>' +
+        '</div>';
+      slot.hidden = false;
+      if (wrap) wrap.hidden = true;
+      muxActivePlayerCard = cardId;
+    });
+  }
+
+  function muxClosePlayer(cardId) {
+    var body = $('yb-la-mux-modal-body');
+    if (!body) return;
+    var slot = body.querySelector('[data-player-slot="' + CSS.escape(cardId) + '"]');
+    var wrap = body.querySelector('.yb-la__mux-asset-card[data-card-id="' + CSS.escape(cardId) + '"] .yb-la__mux-thumb-wrap');
+    if (slot) { slot.innerHTML = ''; slot.hidden = true; }
+    if (wrap) wrap.hidden = false;
+    if (muxActivePlayerCard === cardId) muxActivePlayerCard = null;
   }
 
   function selectMuxAsset(playbackId, assetId, createdAt) {
@@ -1742,6 +1903,18 @@
         selectMuxAsset(btn.getAttribute('data-playback-id'), btn.getAttribute('data-asset-id'), btn.getAttribute('data-created-at'));
         return;
       }
+
+      btn = e.target.closest('[data-action="live-mux-play"]');
+      if (btn) {
+        muxPlayAsset(btn.getAttribute('data-card-id'), btn.getAttribute('data-playback-id'));
+        return;
+      }
+
+      btn = e.target.closest('[data-action="live-mux-close-player"]');
+      if (btn) {
+        muxClosePlayer(btn.getAttribute('data-card-id'));
+        return;
+      }
     });
 
     // Mux date filter + load more
@@ -1749,7 +1922,14 @@
     if (muxDateFilter) muxDateFilter.addEventListener('change', function () {
       muxBrowserCursor = null;
       muxBrowserAssets = [];
+      muxActivePlayerCard = null;
       loadMuxAssets();
+    });
+    var muxSortSel = $('yb-la-mux-sort');
+    if (muxSortSel) muxSortSel.addEventListener('change', function () {
+      muxSort = muxSortSel.value || 'recent';
+      muxActivePlayerCard = null;
+      renderMuxAssets();
     });
     var muxLoadMore = $('yb-la-mux-load-more');
     if (muxLoadMore) muxLoadMore.addEventListener('click', function () { loadMuxAssets(); });

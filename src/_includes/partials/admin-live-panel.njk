@@ -597,6 +597,12 @@
     <div class="yb-la__mux-modal-head">
       <h3 class="yb-la__mux-modal-title">Browse Mux Recordings</h3>
       <div class="yb-la__mux-modal-controls">
+        <select id="yb-la-mux-sort" class="yb-admin__select yb-la__mux-sort-select" aria-label="Sort recordings">
+          <option value="match">Best match for session</option>
+          <option value="recent" selected>Most recent</option>
+          <option value="duration-desc">Duration (longest first)</option>
+          <option value="duration-asc">Duration (shortest first)</option>
+        </select>
         <select id="yb-la-mux-date-filter" class="yb-admin__select">
           <option value="7">Last 7 days</option>
           <option value="30" selected>Last 30 days</option>

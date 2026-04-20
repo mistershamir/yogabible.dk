@@ -9472,6 +9472,106 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   margin-top: 0.25rem;
 }
 
+/* Highlighted best-match card */
+.yb-la__mux-asset-card--best {
+  border: 2px solid #f75c03;
+  box-shadow: 0 4px 14px rgba(247, 92, 3, 0.18);
+}
+
+/* Thumbnail wrap + play button overlay */
+.yb-la__mux-thumb-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.yb-la__mux-play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: transform 0.15s, background 0.15s;
+  opacity: 0.92;
+}
+.yb-la__mux-play-btn svg { margin-left: 2px; }
+.yb-la__mux-play-btn:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  background: rgba(0, 0, 0, 0.7);
+  opacity: 1;
+}
+
+/* Match badges */
+.yb-la__mux-match-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.yb-la__mux-match-badge--likely {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.yb-la__mux-match-badge--sameday {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.yb-la__mux-asset-delta {
+  font-size: 0.72rem;
+  color: #6F6A66;
+  font-style: italic;
+}
+
+/* Inline player slot */
+.yb-la__mux-player-slot { width: 100%; }
+.yb-la__mux-player-slot[hidden] { display: none; }
+.yb-la__mux-player-inner {
+  position: relative;
+  max-width: 480px;
+  width: 100%;
+}
+.yb-la__mux-player-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.yb-la__mux-player-close:hover { background: rgba(0, 0, 0, 0.85); }
+
+/* Sort select pill style */
+.yb-la__mux-sort-select {
+  border-radius: 999px;
+}
+
 /* ═══════════════════════════════════════════════════════
    Live Admin — AI Status Badge + Backfill Modal
    ═══════════════════════════════════════════════════════ */
