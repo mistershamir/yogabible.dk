@@ -103,6 +103,111 @@
   }
 
   /* ═══════════════════════════════════════
+     COURSE CATALOGUE (for user role editor)
+     ═══════════════════════════════════════ */
+  var usersCatalogData = null;
+  var usersCatalogLoaded = false;
+  var usersCatalogLoading = null;
+
+  function fetchUsersCatalog() {
+    if (usersCatalogLoaded) return Promise.resolve(usersCatalogData);
+    if (usersCatalogLoading) return usersCatalogLoading;
+    usersCatalogLoading = fetch('/.netlify/functions/catalog')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        usersCatalogData = (data && data.ok && Array.isArray(data.catalog)) ? data.catalog : [];
+        usersCatalogLoaded = true;
+        usersCatalogLoading = null;
+        return usersCatalogData;
+      })
+      .catch(function (err) {
+        console.warn('[course-admin] catalog fetch failed:', err.message);
+        usersCatalogData = [];
+        usersCatalogLoaded = true;
+        usersCatalogLoading = null;
+        return usersCatalogData;
+      });
+    return usersCatalogLoading;
+  }
+
+  // Cohort suffix mirrors activate-applicant.buildCohortId & live-admin.cohortSuffixFromCourseId.
+  function cohortSuffixForCourseId(courseId) {
+    if (!courseId) return '';
+    var c = String(courseId).toUpperCase();
+    if (c.indexOf('YTT200-18W') === 0) return '-18W';
+    if (c === 'YTT200-4W-VP') return '';
+    if (c.indexOf('YTT200-4W') === 0) return '-4W';
+    if (c.indexOf('YTT200-8W') === 0) return '-8W';
+    if (c.indexOf('YTT300') === 0) return '-300H';
+    if (c.indexOf('YTT500') === 0) return '-500H';
+    return '';
+  }
+
+  function deriveProgramFromCourseId(courseId) {
+    if (!courseId) return '';
+    var c = String(courseId).toUpperCase();
+    if (c.indexOf('YTT100') === 0) return '100h';
+    if (c.indexOf('YTT200') === 0) return '200h';
+    if (c.indexOf('YTT300') === 0) return '300h';
+    if (c.indexOf('YTT500') === 0) return '500h';
+    return '';
+  }
+
+  function deriveMethodFromCourseId(courseId) {
+    if (!courseId) return '';
+    var c = String(courseId).toUpperCase();
+    if (c === 'YTT200-4W-VP') return 'vinyasa';
+    if (c.indexOf('YTT200-4W') === 0) return 'triangle';
+    if (c.indexOf('YTT200-8W') === 0) return 'triangle';
+    if (c.indexOf('YTT200-18W') === 0) return 'triangle';
+    if (c.indexOf('YTT300') === 0) return ''; // overridable — depends on specialization
+    return '';
+  }
+
+  function isMethodDerivable(courseId) {
+    if (!courseId) return false;
+    var c = String(courseId).toUpperCase();
+    return c.indexOf('YTT300') !== 0; // everything except 300h has a fixed method
+  }
+
+  function getEducationPrograms() {
+    if (!usersCatalogData) return [];
+    var seen = {}; var out = [];
+    for (var i = 0; i < usersCatalogData.length; i++) {
+      var row = usersCatalogData[i];
+      if (!row.course_id || !row.active) continue;
+      if (row.category !== 'Education') continue;
+      if (seen[row.course_id]) continue;
+      seen[row.course_id] = true;
+      out.push({ course_id: row.course_id, course_name: row.course_name || row.course_id });
+    }
+    out.sort(function (a, b) { return a.course_name.localeCompare(b.course_name); });
+    return out;
+  }
+
+  function getCohortsForCourseId(courseId) {
+    if (!usersCatalogData || !courseId) return [];
+    var out = [];
+    var suffix = cohortSuffixForCourseId(courseId);
+    for (var i = 0; i < usersCatalogData.length; i++) {
+      var row = usersCatalogData[i];
+      if (row.course_id !== courseId || !row.active) continue;
+      if (!row.cohort_id) continue;
+      out.push({
+        cohort_id: row.cohort_id,
+        cohort_label: row.cohort_label || row.cohort_id,
+        buildId: row.cohort_id + suffix
+      });
+    }
+    // De-dupe by buildId
+    var seen = {}; var uniq = [];
+    for (var j = 0; j < out.length; j++) { if (!seen[out[j].buildId]) { seen[out[j].buildId] = true; uniq.push(out[j]); } }
+    // Sort by cohort_id descending (newest first)
+    uniq.sort(function (a, b) { return b.cohort_id.localeCompare(a.cohort_id); });
+    return uniq;
+  }
+
+  /* ═══════════════════════════════════════
      TAB SWITCHING (sidebar navigation)
      with History API routing
      ═══════════════════════════════════════ */
@@ -1059,6 +1164,7 @@
     if (!email || !resultEl) return;
 
     resultEl.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+    fetchUsersCatalog(); // kick off in background
 
     db.collection('users').where('email', '==', email).limit(1).get()
       .then(function (snap) {
@@ -1100,14 +1206,16 @@
               html += '<p class="yb-admin__empty">' + t('no_enrollments') + '</p>';
             }
 
-            // Append role editor
-            html += renderRoleEditor(uid, u);
+            // Append role editor — wait for catalogue so program dropdown is populated
+            return fetchUsersCatalog().then(function () {
+              html += renderRoleEditor(uid, u);
+              resultEl.innerHTML = html;
 
-            resultEl.innerHTML = html;
-
-            // Bind role form submit
-            var roleForm = $('yb-admin-role-form');
-            if (roleForm) roleForm.addEventListener('submit', saveUserRole);
+              // Bind role form submit + trainee dynamic handlers
+              var roleForm = $('yb-admin-role-form');
+              if (roleForm) roleForm.addEventListener('submit', saveUserRole);
+              bindRoleEditorHandlers(u);
+            });
           });
       })
       .catch(function (err) {
@@ -1921,30 +2029,38 @@
     html += '</select>';
     html += '</div>';
 
-    // Trainee program select (shown conditionally)
+    // Trainee program select — catalogue-driven (course_id)
+    var programs = getEducationPrograms();
+    var selectedCourseId = currentDetails.courseId || '';
     html += '<div class="yb-admin__field" id="yb-admin-role-trainee-fields" style="flex:1;display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
-    html += '<label for="yb-admin-role-program">' + t('role_program') + '</label>';
-    html += '<select id="yb-admin-role-program" class="yb-admin__select">';
+    html += '<label for="yb-admin-role-courseid">' + t('role_program') + '</label>';
+    html += '<select id="yb-admin-role-courseid" class="yb-admin__select">';
     html += '<option value="">—</option>';
-    Object.keys(R.TRAINEE_PROGRAMS).forEach(function(k) {
-      var prog = R.TRAINEE_PROGRAMS[k];
-      html += '<option value="' + k + '"' + (currentDetails.program === k ? ' selected' : '') + '>' + (prog['label_' + lang] || prog.label_da) + '</option>';
+    programs.forEach(function(p) {
+      html += '<option value="' + esc(p.course_id) + '"' + (selectedCourseId === p.course_id ? ' selected' : '') + '>' +
+        esc(p.course_name) + ' (' + esc(p.course_id) + ')</option>';
     });
     html += '</select>';
+    html += '<small style="color:#6F6A66;font-size:0.7rem">Catalogue-driven. Stored as courseId.</small>';
     html += '</div>';
 
-    // Trainee method select (shown conditionally)
+    // Trainee method — auto-derived, read-only unless 300h
+    var derivedMethod = deriveMethodFromCourseId(selectedCourseId);
+    var currentMethod = currentDetails.method || derivedMethod || '';
+    var methodEditable = !isMethodDerivable(selectedCourseId); // editable only if NOT derivable (i.e., 300h)
     html += '<div class="yb-admin__field" id="yb-admin-role-method-fields" style="flex:1;display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
     html += '<label for="yb-admin-role-method">Method</label>';
-    html += '<select id="yb-admin-role-method" class="yb-admin__select">';
+    html += '<select id="yb-admin-role-method" class="yb-admin__select"' + (methodEditable ? '' : ' disabled') + '>';
     html += '<option value="">—</option>';
     if (R.TRAINEE_METHODS) {
       Object.keys(R.TRAINEE_METHODS).forEach(function(k) {
         var meth = R.TRAINEE_METHODS[k];
-        html += '<option value="' + k + '"' + (currentDetails.method === k ? ' selected' : '') + '>' + (meth['label_' + lang] || meth.label_da) + '</option>';
+        html += '<option value="' + k + '"' + (currentMethod === k ? ' selected' : '') + '>' + (meth['label_' + lang] || meth.label_da) + '</option>';
       });
     }
     html += '</select>';
+    html += '<small id="yb-admin-role-method-hint" style="color:#6F6A66;font-size:0.7rem">' +
+      (methodEditable ? 'Select manually for 300h.' : 'Auto-derived from program.') + '</small>';
     html += '</div>';
 
     // Teacher type select (shown conditionally)
@@ -1983,11 +2099,16 @@
 
     html += '</div>'; // end form-row
 
-    // Trainee cohort (shown conditionally)
+    // Trainee cohorts — multi-select from catalogue (array)
     html += '<div id="yb-admin-role-cohort-wrap" style="display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
-    html += '<div class="yb-admin__field" style="max-width:220px">';
-    html += '<label for="yb-admin-role-cohort">' + t('role_cohort') + '</label>';
-    html += '<input type="text" id="yb-admin-role-cohort" placeholder="2026-spring" value="' + esc(currentDetails.cohort || '') + '">';
+    html += '<div class="yb-admin__field">';
+    html += '<label>' + t('role_cohort') + ' (multi)</label>';
+    html += '<div id="yb-admin-role-cohort-pills" class="yb-admin__pill-group" style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.5rem;min-height:1.5rem"></div>';
+    html += '<div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">';
+    html += '<select id="yb-admin-role-cohort-add" class="yb-admin__select" style="max-width:320px"><option value="">Add cohort…</option></select>';
+    html += '<button type="button" id="yb-admin-role-cohort-add-btn" class="yb-btn yb-btn--outline yb-btn--sm">+ Add</button>';
+    html += '</div>';
+    html += '<small style="color:#6F6A66;font-size:0.7rem">Saved as roleDetails.cohort (array, buildCohortId format).</small>';
     html += '</div>';
     html += '</div>';
 
@@ -2021,6 +2142,135 @@
     return html;
   }
 
+  /**
+   * Renders the cohort pills for the role editor — uses data-* payload on each pill.
+   */
+  function renderRoleCohortPills(pillsArr) {
+    var wrap = $('yb-admin-role-cohort-pills');
+    if (!wrap) return;
+    if (!pillsArr.length) {
+      wrap.innerHTML = '<span style="color:#6F6A66;font-size:0.75rem;font-style:italic">No cohorts assigned</span>';
+      return;
+    }
+    wrap.innerHTML = pillsArr.map(function (p, i) {
+      return '<span class="yb-admin__pill" style="display:inline-flex;align-items:center;gap:0.35rem;background:#fff4ec;border:1px solid #f75c03;color:#f75c03;padding:3px 10px;border-radius:999px;font-size:0.75rem;font-weight:600">' +
+        esc(p.label || p.buildId) +
+        ' <small style="color:#6F6A66;font-weight:400">(' + esc(p.buildId) + ')</small>' +
+        ' <button type="button" class="yb-admin-role-cohort-remove" data-idx="' + i + '" ' +
+        'style="background:none;border:none;color:#f75c03;cursor:pointer;padding:0;margin-left:0.25rem;font-size:1rem;line-height:1" aria-label="Remove">&times;</button>' +
+        '</span>';
+    }).join('');
+  }
+
+  function readRoleCohortPills() {
+    var wrap = $('yb-admin-role-cohort-pills');
+    if (!wrap || !wrap._pills) return [];
+    return wrap._pills;
+  }
+
+  function refreshRoleCohortAddOptions() {
+    var sel = $('yb-admin-role-cohort-add');
+    var cidSel = $('yb-admin-role-courseid');
+    if (!sel) return;
+    var courseId = cidSel ? cidSel.value : '';
+    var opts = ['<option value="">Add cohort…</option>'];
+    if (courseId) {
+      var cohorts = getCohortsForCourseId(courseId);
+      var existing = {};
+      var pills = readRoleCohortPills();
+      pills.forEach(function (p) { existing[p.buildId] = true; });
+      cohorts.forEach(function (c) {
+        if (existing[c.buildId]) return;
+        opts.push('<option value="' + esc(c.buildId) + '" data-cohort-id="' + esc(c.cohort_id) +
+          '" data-label="' + esc(c.cohort_label) + '">' +
+          esc(c.cohort_label) + ' — ' + esc(c.buildId) + '</option>');
+      });
+    }
+    sel.innerHTML = opts.join('');
+  }
+
+  /**
+   * Bind dynamic handlers for the trainee portion of the role editor.
+   * Called after renderRoleEditor's HTML is inserted into the DOM.
+   */
+  function bindRoleEditorHandlers(userData) {
+    var currentDetails = (userData && userData.roleDetails) || {};
+
+    // Seed cohort pills from existing roleDetails.cohort (string or array)
+    var initial = [];
+    var existingCohort = currentDetails.cohort;
+    var existingIds = Array.isArray(currentDetails.cohortIds) ? currentDetails.cohortIds : [];
+    var existingLabels = Array.isArray(currentDetails.cohortLabels) ? currentDetails.cohortLabels : [];
+    if (typeof existingCohort === 'string' && existingCohort) existingCohort = [existingCohort];
+    if (Array.isArray(existingCohort)) {
+      existingCohort.forEach(function (bid, i) {
+        initial.push({
+          buildId: bid,
+          cohortId: existingIds[i] || '',
+          label: existingLabels[i] || (currentDetails.cohortLabel || '') || bid
+        });
+      });
+    }
+    var pillsWrap = $('yb-admin-role-cohort-pills');
+    if (pillsWrap) pillsWrap._pills = initial;
+    renderRoleCohortPills(initial);
+    refreshRoleCohortAddOptions();
+
+    // Role change → show/hide trainee block (existing behaviour handled elsewhere).
+    // CourseId change → update method (auto-derive unless 300h), refresh cohort options.
+    var cidSel = $('yb-admin-role-courseid');
+    var methSel = $('yb-admin-role-method');
+    var methHint = $('yb-admin-role-method-hint');
+    if (cidSel) {
+      cidSel.addEventListener('change', function () {
+        var cid = cidSel.value;
+        var derived = deriveMethodFromCourseId(cid);
+        var editable = !isMethodDerivable(cid);
+        if (methSel) {
+          methSel.disabled = !editable;
+          if (!editable) methSel.value = derived;
+        }
+        if (methHint) methHint.textContent = editable ? 'Select manually for 300h.' : 'Auto-derived from program.';
+        refreshRoleCohortAddOptions();
+      });
+    }
+
+    // Remove cohort pill (delegated)
+    if (pillsWrap) {
+      pillsWrap.addEventListener('click', function (e) {
+        var btn = e.target.closest('.yb-admin-role-cohort-remove');
+        if (!btn) return;
+        var idx = parseInt(btn.getAttribute('data-idx'), 10);
+        var arr = pillsWrap._pills || [];
+        if (!isNaN(idx) && idx >= 0 && idx < arr.length) {
+          arr.splice(idx, 1);
+          renderRoleCohortPills(arr);
+          refreshRoleCohortAddOptions();
+        }
+      });
+    }
+
+    // Add cohort
+    var addBtn = $('yb-admin-role-cohort-add-btn');
+    if (addBtn) {
+      addBtn.addEventListener('click', function () {
+        var sel = $('yb-admin-role-cohort-add');
+        if (!sel || !sel.value) return;
+        var opt = sel.options[sel.selectedIndex];
+        var arr = pillsWrap._pills || [];
+        if (arr.some(function (p) { return p.buildId === sel.value; })) return;
+        arr.push({
+          buildId: sel.value,
+          cohortId: opt ? (opt.getAttribute('data-cohort-id') || '') : '',
+          label: opt ? (opt.getAttribute('data-label') || sel.value) : sel.value
+        });
+        pillsWrap._pills = arr;
+        renderRoleCohortPills(arr);
+        refreshRoleCohortAddOptions();
+      });
+    }
+  }
+
   function saveUserRole(e) {
     e.preventDefault();
     var form = $('yb-admin-role-form');
@@ -2029,18 +2279,35 @@
     if (!uid) return;
 
     var roleSelect = $('yb-admin-role-select');
-    var programSelect = $('yb-admin-role-program');
+    var courseIdSelect = $('yb-admin-role-courseid');
     var methodSelect = $('yb-admin-role-method');
     var teacherTypeSelect = $('yb-admin-role-teacher-type');
-    var cohortInput = $('yb-admin-role-cohort');
 
     var newRole = roleSelect ? roleSelect.value : 'member';
     var roleDetails = {};
 
     if (newRole === 'trainee') {
-      if (programSelect && programSelect.value) roleDetails.program = programSelect.value;
-      if (methodSelect && methodSelect.value) roleDetails.method = methodSelect.value;
-      if (cohortInput && cohortInput.value.trim()) roleDetails.cohort = cohortInput.value.trim();
+      var courseId = courseIdSelect ? courseIdSelect.value : '';
+      if (courseId) {
+        roleDetails.courseId = courseId;
+        // Legacy derived fields for backwards compatibility.
+        var derivedProg = deriveProgramFromCourseId(courseId);
+        if (derivedProg) roleDetails.program = derivedProg;
+        // Method: use explicit selection if editable, else derive.
+        var methVal = methodSelect ? methodSelect.value : '';
+        if (!methVal) methVal = deriveMethodFromCourseId(courseId);
+        if (methVal) roleDetails.method = methVal;
+      } else {
+        // No courseId — still allow legacy method value if user set one.
+        if (methodSelect && methodSelect.value) roleDetails.method = methodSelect.value;
+      }
+      // Multi-cohort array
+      var pills = readRoleCohortPills();
+      if (pills.length) {
+        roleDetails.cohort = pills.map(function (p) { return p.buildId; });
+        roleDetails.cohortIds = pills.map(function (p) { return p.cohortId || ''; });
+        roleDetails.cohortLabels = pills.map(function (p) { return p.label || ''; });
+      }
       // Collect trainee courseTypes
       var traineeCourseTypes = [];
       document.querySelectorAll('.yb-admin-role-trainee-coursetype:checked').forEach(function(cb) {
@@ -3259,14 +3526,18 @@
 
   function renderUserRoleEditorDetail(uid, u, el) {
     if (!el) return;
-    el.innerHTML = renderRoleEditor(uid, u);
-    var roleForm = $('yb-admin-role-form');
-    if (roleForm) {
-      roleForm.addEventListener('submit', function (e) {
-        saveUserRole(e);
-        setTimeout(function () { showUserDetail(uid); }, 1200);
-      });
-    }
+    el.innerHTML = '<p class="yb-admin__empty">' + t('loading') + '</p>';
+    fetchUsersCatalog().then(function () {
+      el.innerHTML = renderRoleEditor(uid, u);
+      var roleForm = $('yb-admin-role-form');
+      if (roleForm) {
+        roleForm.addEventListener('submit', function (e) {
+          saveUserRole(e);
+          setTimeout(function () { showUserDetail(uid); }, 1200);
+        });
+      }
+      bindRoleEditorHandlers(u);
+    });
   }
 
   function loadUserEnrollments(uid, el) {

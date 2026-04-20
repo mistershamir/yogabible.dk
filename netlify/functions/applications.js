@@ -110,8 +110,100 @@ async function update(db, event, user) {
     }
   }
 
+  // Catalogue-sync: keep user doc's roleDetails in sync when course_id or cohort_id change
+  // on an already-enrolled application, OR when the app transitions to Accepted.
+  const mergedApp = { ...existingApp, ...updates };
+  const isAlreadyEnrolled = existingApp.firebase_uid || existingApp.status === 'Enrolled';
+  const courseChanged = data.course_id !== undefined && data.course_id !== existingApp.course_id;
+  const cohortChanged = data.cohort_id !== undefined && data.cohort_id !== existingApp.cohort_id;
+  const becameAccepted = data.status === 'Accepted' && existingApp.status !== 'Accepted';
+
+  if ((isAlreadyEnrolled && (courseChanged || cohortChanged)) || becameAccepted) {
+    await syncUserFromApplication(db, { id: data.id, ...mergedApp }).catch(err => {
+      console.error('[applications] User sync failed:', err.message);
+    });
+  }
+
   const updated = await docRef.get();
   return jsonResponse(200, { ok: true, application: { id: updated.id, ...updated.data() } });
+}
+
+// =========================================================================
+// User sync — push catalogue fields (courseId, cohortId, cohort[]) into user doc
+// =========================================================================
+
+function buildCohortIdFromApp(app) {
+  const cohortId = app.cohort_id || '';
+  const yttType = app.ytt_program_type || '';
+  if (!cohortId) return '';
+  let suffix = '';
+  if (yttType === '18-week') suffix = '-18W';
+  else if (yttType === '4-week') suffix = '-4W';
+  else if (yttType === '8-week') suffix = '-8W';
+  else if (yttType === '300h') suffix = '-300H';
+  else if (yttType === '50h') suffix = '-50H';
+  else if (yttType === '30h') suffix = '-30H';
+  return cohortId + suffix;
+}
+
+async function syncUserFromApplication(db, app) {
+  const email = (app.email || '').toLowerCase().trim();
+  if (!email) return;
+
+  // Find the user by firebase_uid first, fall back to email lookup
+  let userRef = null;
+  if (app.firebase_uid) {
+    userRef = db.collection('users').doc(app.firebase_uid);
+  } else {
+    const snap = await db.collection('users').where('email', '==', email).limit(1).get();
+    if (snap.empty) return;
+    userRef = snap.docs[0].ref;
+  }
+
+  const userDoc = await userRef.get();
+  if (!userDoc.exists) return;
+  const userData = userDoc.data() || {};
+  const existingDetails = userData.roleDetails || {};
+
+  const updates = {};
+  let changed = false;
+
+  if (app.course_id && existingDetails.courseId !== app.course_id) {
+    updates.courseId = app.course_id;
+    changed = true;
+  }
+  if (app.cohort_id && existingDetails.cohortId !== app.cohort_id) {
+    updates.cohortId = app.cohort_id;
+    changed = true;
+  }
+  if (app.cohort_label && existingDetails.cohortLabel !== app.cohort_label) {
+    updates.cohortLabel = app.cohort_label;
+    changed = true;
+  }
+
+  const newCohortBuildId = buildCohortIdFromApp(app);
+  if (newCohortBuildId) {
+    const existingCohorts = Array.isArray(existingDetails.cohort)
+      ? existingDetails.cohort.slice()
+      : (typeof existingDetails.cohort === 'string' && existingDetails.cohort ? [existingDetails.cohort] : []);
+    if (existingCohorts.indexOf(newCohortBuildId) === -1) {
+      existingCohorts.push(newCohortBuildId);
+      updates.cohort = existingCohorts;
+      changed = true;
+    } else if (!Array.isArray(existingDetails.cohort)) {
+      // Already contains it but as a string — normalize to array
+      updates.cohort = existingCohorts;
+      changed = true;
+    }
+  }
+
+  if (!changed) return;
+
+  const mergedDetails = Object.assign({}, existingDetails, updates);
+  await userRef.update({ roleDetails: mergedDetails, updated_at: new Date() });
+  console.log('[user-sync] Updated user:', userRef.id,
+    'with courseId:', mergedDetails.courseId || '(none)',
+    'cohorts:', JSON.stringify(mergedDetails.cohort || []));
 }
 
 // =========================================================================

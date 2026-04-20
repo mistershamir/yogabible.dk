@@ -447,6 +447,12 @@ async function getUserPermissionsWithCohort(user) {
         }
       }
 
+      // Catalogue course_id permission (new structured data)
+      if (roleDetails.courseId) {
+        var cidPerm = 'program:' + roleDetails.courseId;
+        if (perms.indexOf(cidPerm) === -1) perms.push(cidPerm);
+      }
+
       // Method permission
       if (roleDetails.method) {
         if (perms.indexOf('method:' + roleDetails.method) === -1) {
@@ -493,19 +499,32 @@ function deriveProgramIds(role, roleDetails) {
   roleDetails = roleDetails || {};
 
   if (role === 'trainee' || role === 'teacher' || role === 'admin') {
-    // Map program + method to catalog course_id
+    // PRIMARY: explicit courseId from catalogue (set by catalogue-driven admin flow or activate-applicant)
+    if (roleDetails.courseId) {
+      ids.push(roleDetails.courseId);
+    }
+
+    // FALLBACK: infer from legacy program + method fields
     var prog = roleDetails.program || '';
     var method = roleDetails.method || '';
 
     if (prog === '200h' || prog === '100h') {
       if (method === 'vinyasa') {
-        ids.push('YTT200-4W-VP');
+        if (ids.indexOf('YTT200-4W-VP') === -1) ids.push('YTT200-4W-VP');
       }
-      // All 200h trainees match all 200h formats
-      ids.push('YTT200-4W', 'YTT200-18W', 'YTT200-8W');
+      // All 200h trainees match all 200h formats (fallback when courseId missing)
+      if (!roleDetails.courseId) {
+        ['YTT200-4W', 'YTT200-18W', 'YTT200-8W'].forEach(function (p) {
+          if (ids.indexOf(p) === -1) ids.push(p);
+        });
+      }
     }
-    if (prog === '300h') ids.push('YTT300-ADV');
-    if (prog === '500h') ids.push('YTT300-ADV', 'YTT200-4W', 'YTT200-18W', 'YTT200-8W');
+    if (prog === '300h' && ids.indexOf('YTT300-ADV') === -1) ids.push('YTT300-ADV');
+    if (prog === '500h') {
+      ['YTT300-ADV', 'YTT200-4W', 'YTT200-18W', 'YTT200-8W'].forEach(function (p) {
+        if (ids.indexOf(p) === -1) ids.push(p);
+      });
+    }
   }
 
   // Teachers get all YTT programs

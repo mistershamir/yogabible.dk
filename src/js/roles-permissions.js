@@ -93,11 +93,19 @@
       if (roleDetails.program) {
         perms.push('materials:' + roleDetails.program);
       }
+      if (roleDetails.courseId) {
+        perms.push('program:' + roleDetails.courseId);
+      }
       if (roleDetails.method) {
         perms.push('method:' + roleDetails.method);
       }
-      if (roleDetails.cohort) {
-        perms.push('cohort:' + roleDetails.cohort);
+      // Cohort: accept string OR array
+      var cohortVal = roleDetails.cohort;
+      if (cohortVal) {
+        if (typeof cohortVal === 'string') cohortVal = [cohortVal];
+        cohortVal.forEach(function (c) {
+          if (c) perms.push('cohort:' + c);
+        });
       }
       // Trainee may also have courseTypes (if they applied for courses too)
       if (roleDetails.courseTypes && roleDetails.courseTypes.length) {

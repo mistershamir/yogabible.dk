@@ -86,9 +86,12 @@ exports.handler = async (event) => {
         role = 'trainee';
         roleDetails.program = '200h'; // default YTT program
         roleDetails.method = 'triangle'; // default method
-        if (app.cohort_label || app.cohort) {
-          roleDetails.cohort = app.cohort_label || app.cohort;
-        }
+        if (app.course_id) roleDetails.courseId = app.course_id;
+        if (app.cohort_id) roleDetails.cohortId = app.cohort_id;
+        if (app.cohort_label) roleDetails.cohortLabel = app.cohort_label;
+        // Cohort as array (buildCohortId-ish value)
+        var rawCohort = app.cohort_label || app.cohort;
+        if (rawCohort) roleDetails.cohort = [rawCohort];
       } else if (programType === 'course' || programType === 'bundle') {
         role = 'student';
         // Map course name to courseType if possible

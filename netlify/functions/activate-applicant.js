@@ -226,7 +226,12 @@ exports.handler = async function (event) {
       var method = mapYTTToMethod(app.ytt_program_type, app.course_name);
       targetDetails = { program: program };
       if (method) targetDetails.method = method;
-      if (cohortId) targetDetails.cohort = cohortId;
+      // Catalogue-structured fields for live access + admin UI
+      if (app.course_id) targetDetails.courseId = app.course_id;
+      if (app.cohort_id) targetDetails.cohortId = app.cohort_id;
+      if (app.cohort_label) targetDetails.cohortLabel = app.cohort_label;
+      // Cohort always an array (buildCohortId format)
+      if (cohortId) targetDetails.cohort = [cohortId];
     } else if (appType === 'course' || appType === 'bundle') {
       targetRole = 'student';
       var courseTypes = detectCourseTypes(app.course_name, app.bundle_type);
@@ -254,6 +259,9 @@ exports.handler = async function (event) {
         updatedAt: new Date()
       });
       report.actions.push('Created user doc with role: ' + targetRole);
+      console.log('[user-sync] Updated user:', firebaseUid,
+        'courseId:', targetDetails.courseId || '(none)',
+        'cohorts:', JSON.stringify(targetDetails.cohort || []));
     } else {
       // Existing user — merge role (never downgrade)
       var existingData = userDoc.data();
@@ -267,15 +275,42 @@ exports.handler = async function (event) {
       var finalDetails = Object.assign({}, currentDetails);
       var changed = false;
 
+      // Normalize existing cohort to an array for merging
+      function normalizeCohortArray(val) {
+        if (Array.isArray(val)) return val.slice();
+        if (typeof val === 'string' && val) return [val];
+        return [];
+      }
+
+      function mergeCohortArrays(existing, incoming) {
+        var out = normalizeCohortArray(existing);
+        var inc = normalizeCohortArray(incoming);
+        var addedAny = false;
+        inc.forEach(function (c) { if (c && out.indexOf(c) === -1) { out.push(c); addedAny = true; } });
+        return { value: out, changed: addedAny };
+      }
+
       if (targetPriority > currentPriority) {
         finalRole = targetRole;
+        // Start from current details, overlay target details
         finalDetails = Object.assign({}, currentDetails, targetDetails);
+        // But merge cohort arrays (never drop pre-existing cohorts from other programs)
+        if (targetDetails.cohort) {
+          var m = mergeCohortArrays(currentDetails.cohort, targetDetails.cohort);
+          finalDetails.cohort = m.value;
+        }
         changed = true;
       } else if (currentRole === targetRole) {
         // Merge details
         if (targetDetails.program && !currentDetails.program) { finalDetails.program = targetDetails.program; changed = true; }
         if (targetDetails.method && !currentDetails.method) { finalDetails.method = targetDetails.method; changed = true; }
-        if (targetDetails.cohort && currentDetails.cohort !== targetDetails.cohort) { finalDetails.cohort = targetDetails.cohort; changed = true; }
+        if (targetDetails.courseId && currentDetails.courseId !== targetDetails.courseId) { finalDetails.courseId = targetDetails.courseId; changed = true; }
+        if (targetDetails.cohortId && currentDetails.cohortId !== targetDetails.cohortId) { finalDetails.cohortId = targetDetails.cohortId; changed = true; }
+        if (targetDetails.cohortLabel && currentDetails.cohortLabel !== targetDetails.cohortLabel) { finalDetails.cohortLabel = targetDetails.cohortLabel; changed = true; }
+        if (targetDetails.cohort) {
+          var mc = mergeCohortArrays(currentDetails.cohort, targetDetails.cohort);
+          if (mc.changed || !Array.isArray(currentDetails.cohort)) { finalDetails.cohort = mc.value; changed = true; }
+        }
         if (targetDetails.courseTypes) {
           var existing = currentDetails.courseTypes || [];
           var merged = existing.slice();
@@ -288,6 +323,9 @@ exports.handler = async function (event) {
         await userRef.update({ role: finalRole, roleDetails: finalDetails, updatedAt: new Date() });
         actualNewRole = finalRole;
         report.actions.push('Updated role: ' + currentRole + ' → ' + finalRole);
+        console.log('[user-sync] Updated user:', firebaseUid,
+          'courseId:', finalDetails.courseId || '(none)',
+          'cohorts:', JSON.stringify(finalDetails.cohort || []));
       } else {
         actualNewRole = currentRole;
         report.actions.push('Role unchanged: ' + currentRole);

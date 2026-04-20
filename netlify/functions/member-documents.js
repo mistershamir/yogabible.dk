@@ -35,8 +35,12 @@ function computePermissions(role, roleDetails) {
   } else if (role === 'trainee') {
     ['live-streaming', 'recordings'].forEach(p => perms.add(p));
     if (roleDetails.program) perms.add('materials:' + roleDetails.program);
+    if (roleDetails.courseId) perms.add('program:' + roleDetails.courseId);
     if (roleDetails.method)  perms.add('method:'    + roleDetails.method);
-    if (roleDetails.cohort)  perms.add('cohort:'    + roleDetails.cohort);
+    // cohort: string or array
+    var cohortVal = roleDetails.cohort;
+    if (typeof cohortVal === 'string' && cohortVal) cohortVal = [cohortVal];
+    if (Array.isArray(cohortVal)) cohortVal.forEach(c => { if (c) perms.add('cohort:' + c); });
     if (roleDetails.mentorship) perms.add('mentorship');
     if (Array.isArray(roleDetails.courseTypes)) {
       roleDetails.courseTypes.forEach(ct => perms.add('course:' + ct));
