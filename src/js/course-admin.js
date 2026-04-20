@@ -2044,12 +2044,20 @@
     html += '<small style="color:#6F6A66;font-size:0.7rem">Catalogue-driven. Stored as courseId.</small>';
     html += '</div>';
 
-    // Trainee method — auto-derived, read-only unless 300h
+    // Trainee method — auto-derived from program; overridable via link
     var derivedMethod = deriveMethodFromCourseId(selectedCourseId);
     var currentMethod = currentDetails.method || derivedMethod || '';
-    var methodEditable = !isMethodDerivable(selectedCourseId); // editable only if NOT derivable (i.e., 300h)
+    // Detect whether the saved method is an override (differs from what the program would derive, or program has no fixed method)
+    var autoDerivable = isMethodDerivable(selectedCourseId); // true for everything except 300h
+    var isOverridden = !!(currentDetails.methodOverride || (autoDerivable && currentDetails.method && currentDetails.method !== derivedMethod));
+    var methodEditable = !autoDerivable || isOverridden;
     html += '<div class="yb-admin__field" id="yb-admin-role-method-fields" style="flex:1;display:' + (currentRole === 'trainee' ? '' : 'none') + '">';
-    html += '<label for="yb-admin-role-method">Method</label>';
+    html += '<label for="yb-admin-role-method" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem">' +
+      '<span>Method</span>' +
+      '<a href="#" id="yb-admin-role-method-override" ' +
+      'style="font-size:0.7rem;color:#f75c03;text-decoration:underline;cursor:pointer;display:' +
+      (autoDerivable && !isOverridden ? 'inline' : 'none') + '">Override</a>' +
+      '</label>';
     html += '<select id="yb-admin-role-method" class="yb-admin__select"' + (methodEditable ? '' : ' disabled') + '>';
     html += '<option value="">—</option>';
     if (R.TRAINEE_METHODS) {
@@ -2059,8 +2067,10 @@
       });
     }
     html += '</select>';
-    html += '<small id="yb-admin-role-method-hint" style="color:#6F6A66;font-size:0.7rem">' +
-      (methodEditable ? 'Select manually for 300h.' : 'Auto-derived from program.') + '</small>';
+    var hintText = !autoDerivable
+      ? 'Select manually for 300h.'
+      : (isOverridden ? 'Manually overridden. Change program to reset.' : 'Auto-derived from program. Click to override.');
+    html += '<small id="yb-admin-role-method-hint" style="color:#6F6A66;font-size:0.7rem">' + hintText + '</small>';
     html += '</div>';
 
     // Teacher type select (shown conditionally)
@@ -2217,21 +2227,40 @@
     refreshRoleCohortAddOptions();
 
     // Role change → show/hide trainee block (existing behaviour handled elsewhere).
-    // CourseId change → update method (auto-derive unless 300h), refresh cohort options.
+    // CourseId change → reset method to auto-derived (clears any override), refresh cohort options.
     var cidSel = $('yb-admin-role-courseid');
     var methSel = $('yb-admin-role-method');
     var methHint = $('yb-admin-role-method-hint');
+    var methOverrideLink = $('yb-admin-role-method-override');
+    var form = $('yb-admin-role-form');
+
+    function setMethodOverridden(on) {
+      if (form) form._methodOverridden = !!on;
+      if (methSel) methSel.disabled = !on && isMethodDerivable(cidSel ? cidSel.value : '');
+      if (methOverrideLink) methOverrideLink.style.display = on ? 'none' : '';
+      if (methHint) {
+        var autoDerivable = isMethodDerivable(cidSel ? cidSel.value : '');
+        methHint.textContent = !autoDerivable
+          ? 'Select manually for 300h.'
+          : (on ? 'Manually overridden. Change program to reset.' : 'Auto-derived from program. Click to override.');
+      }
+    }
+
     if (cidSel) {
       cidSel.addEventListener('change', function () {
         var cid = cidSel.value;
         var derived = deriveMethodFromCourseId(cid);
-        var editable = !isMethodDerivable(cid);
-        if (methSel) {
-          methSel.disabled = !editable;
-          if (!editable) methSel.value = derived;
-        }
-        if (methHint) methHint.textContent = editable ? 'Select manually for 300h.' : 'Auto-derived from program.';
+        if (methSel) methSel.value = derived; // always reset, clearing any override
+        setMethodOverridden(false);
         refreshRoleCohortAddOptions();
+      });
+    }
+
+    if (methOverrideLink) {
+      methOverrideLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        setMethodOverridden(true);
+        if (methSel) methSel.focus();
       });
     }
 
@@ -2297,6 +2326,13 @@
         var methVal = methodSelect ? methodSelect.value : '';
         if (!methVal) methVal = deriveMethodFromCourseId(courseId);
         if (methVal) roleDetails.method = methVal;
+        // Record whether method was manually overridden so the editor
+        // can restore the "Override" UI state on re-open.
+        var overridden = !!(form && form._methodOverridden);
+        var autoDerivable = isMethodDerivable(courseId);
+        if (autoDerivable && overridden && methVal !== deriveMethodFromCourseId(courseId)) {
+          roleDetails.methodOverride = true;
+        }
       } else {
         // No courseId — still allow legacy method value if user set one.
         if (methodSelect && methodSelect.value) roleDetails.method = methodSelect.value;

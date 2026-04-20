@@ -3753,6 +3753,15 @@
         '<span class="yb-lead__card-value">' + esc(a.course_name) + '</span>' +
       '</div>';
     }
+    // Method — derived from course_id (falls back to legacy ytt_program_type)
+    var detailCourseId = a.course_id || mapLegacyYTTToCourseId(a.ytt_program_type) || '';
+    var methodDisplay = deriveMethodFromCourseId(detailCourseId);
+    if (methodDisplay) {
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Method</span>' +
+        '<span class="yb-lead__card-value">' + esc(methodDisplay) + '</span>' +
+      '</div>';
+    }
     if (a.cohort_label || a.cohort) {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">Cohort</span>' +
