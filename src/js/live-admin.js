@@ -165,8 +165,10 @@
     for (var i = 0; i < catalogData.length; i++) {
       var row = catalogData[i];
       if (!row.course_id || !row.active) continue;
+      // Skip bundles — they're payment packages, not access categories
+      if (row.category === 'Bundle') continue;
 
-      // Unique programs
+      // Unique programs (dedupe by course_id — one per program type)
       if (!seen[row.course_id]) {
         seen[row.course_id] = true;
         catalogPrograms.push({
@@ -188,7 +190,7 @@
     }
 
     // Sort programs by category then name
-    var catOrder = { Education: 0, Course: 1, Bundle: 2, Mentorship: 3 };
+    var catOrder = { Education: 0, Course: 1, Mentorship: 2 };
     catalogPrograms.sort(function (a, b) {
       var ca = catOrder[a.category] !== undefined ? catOrder[a.category] : 9;
       var cb = catOrder[b.category] !== undefined ? catOrder[b.category] : 9;
@@ -281,6 +283,52 @@
     return ids;
   }
 
+  /* ── Pill helpers for roles + perms ── */
+  function getActivePillValues(scopeEl, selector) {
+    var pills = scopeEl.querySelectorAll(selector + '.yb-la-pill--active');
+    var vals = [];
+    for (var i = 0; i < pills.length; i++) vals.push(pills[i].getAttribute('data-value'));
+    return vals;
+  }
+
+  function setPillsActive(scopeEl, selector, values) {
+    var pills = scopeEl.querySelectorAll(selector);
+    var set = {};
+    for (var i = 0; i < values.length; i++) set[values[i]] = true;
+    for (var j = 0; j < pills.length; j++) {
+      var v = pills[j].getAttribute('data-value');
+      if (set[v]) pills[j].classList.add('yb-la-pill--active');
+      else pills[j].classList.remove('yb-la-pill--active');
+    }
+  }
+
+  function toggleTeacherSection(scopeEl) {
+    var teacherActive = scopeEl.querySelector('.yb-la-role-pill.yb-la-pill--active[data-value="teacher"]');
+    var sections = scopeEl.querySelectorAll('.yb-la__teacher-section');
+    for (var i = 0; i < sections.length; i++) sections[i].hidden = !teacherActive;
+  }
+
+  function titleCase(s) {
+    return (s || '').replace(/(?:^|[-:])([a-z])/g, function (m, c) { return m.replace(c, c.toUpperCase()); });
+  }
+
+  function programLabel(progId) {
+    for (var i = 0; i < catalogPrograms.length; i++) {
+      if (catalogPrograms[i].course_id === progId) return catalogPrograms[i].course_name;
+    }
+    return progId;
+  }
+
+  function cohortLabel(buildId) {
+    for (var pid in catalogCohortMap) {
+      var arr = catalogCohortMap[pid] || [];
+      for (var i = 0; i < arr.length; i++) {
+        if (arr[i].buildId === buildId) return arr[i].cohort_label;
+      }
+    }
+    return buildId;
+  }
+
   function updateAccessSummary(summaryId, programContainerId, cohortContainerId) {
     var el = $(summaryId);
     if (!el) return;
@@ -288,20 +336,36 @@
     var progs = getSelectedProgramIds(programContainerId);
     var cohorts = getSelectedCohortBuildIds(cohortContainerId);
 
-    // Gather selected roles
+    // Scope: form vs bulk
     var isForm = programContainerId === 'yb-la-programs-container';
-    var roleCbs = document.querySelectorAll(isForm ? '.yb-la-role-cb' : '.yb-la-bulk-role-cb');
-    var roles = [];
-    for (var i = 0; i < roleCbs.length; i++) {
-      if (roleCbs[i].checked) roles.push(roleCbs[i].value);
+    var scope = isForm ? $('yb-live-admin-v-form') : $('yb-live-bulk-access-panel');
+    if (!scope) { el.textContent = 'Visible to: everyone (no restrictions)'; return; }
+
+    var roles = getActivePillValues(scope, '.yb-la-role-pill').map(titleCase);
+    var perms = getActivePillValues(scope, '.yb-la-perm-pill');
+
+    // Toggle teacher section visibility based on role pills
+    toggleTeacherSection(scope);
+
+    if (!roles.length && !progs.length && !cohorts.length && !perms.length) {
+      el.textContent = 'Visible to: everyone (no restrictions)';
+      return;
     }
 
-    var parts = [];
-    if (roles.length) parts.push(roles.join(', '));
-    if (progs.length) parts.push('in ' + progs.join(', '));
-    if (cohorts.length) parts.push('cohort ' + cohorts.join(', '));
+    var who = roles.length ? '[' + roles.join(', ') + ']' : '[everyone]';
+    var programLabels = progs.map(programLabel);
+    var cohortLabels = cohorts.map(cohortLabel);
+    var programPart = '';
+    if (progs.length && cohorts.length) {
+      programPart = ' enrolled in [' + programLabels.join(', ') + ' — ' + cohortLabels.join(', ') + ']';
+    } else if (progs.length) {
+      programPart = ' enrolled in [' + programLabels.join(', ') + ']';
+    }
+    var permPart = perms.length ? ' with [' + perms.map(function (p) {
+      return titleCase(p.replace(/^[a-z]+:/, ''));
+    }).join(', ') + '] permission' : '';
 
-    el.textContent = parts.length ? 'Visible to: ' + parts.join(' ') : 'Visible to: everyone (no restrictions)';
+    el.textContent = 'This session is visible to: ' + who + programPart + permPart;
   }
 
   /* ══════════════════════════════════════════
@@ -374,7 +438,7 @@
 
       html += '<tr>';
       html += '<td><input type="checkbox" class="yb-la-live-cb" data-id="' + item.id + '"' + (isSelected ? ' checked' : '') + '></td>';
-      html += '<td>' + statusBadge(item.status) + '</td>';
+      html += '<td>' + statusBadge(item.status) + recordingBadge(item) + '</td>';
       html += '<td><strong>' + esc(title) + '</strong></td>';
       html += '<td>' + fmtDate(item.startDateTime) + '</td>';
       html += '<td>' + sourceBadge(item.source) + '</td>';
@@ -476,19 +540,25 @@
       $('yb-la-end').value = '';
     }
 
-    // Role checkboxes
-    var roleCbs = document.querySelectorAll('.yb-la-role-cb');
-    var roles = (item && item.access && item.access.roles) || ['trainee', 'teacher', 'admin'];
-    for (var i = 0; i < roleCbs.length; i++) {
-      roleCbs[i].checked = roles.indexOf(roleCbs[i].value) !== -1;
+    // Role + permission pills
+    var formScope = $('yb-live-admin-v-form');
+    if (formScope) {
+      var roles = (item && item.access && item.access.roles) || ['trainee', 'teacher', 'admin'];
+      var permsList = (item && item.access && item.access.permissions) || ['live-streaming'];
+      setPillsActive(formScope, '.yb-la-role-pill', roles);
+      setPillsActive(formScope, '.yb-la-perm-pill', permsList);
+      toggleTeacherSection(formScope);
     }
 
-    // Permission checkboxes
-    var permCbs = document.querySelectorAll('.yb-la-perm-cb');
-    var permsList = (item && item.access && item.access.permissions) || ['live-streaming'];
-    for (var i = 0; i < permCbs.length; i++) {
-      permCbs[i].checked = permsList.indexOf(permCbs[i].value) !== -1;
-    }
+    // Recording asset id (hidden field)
+    var recAssetEl = $('yb-la-recording-asset-id');
+    if (recAssetEl) recAssetEl.value = (item && item.recordingAssetId) || '';
+
+    // "Link existing recording" toggle — only shown on create
+    var linkWrap = $('yb-la-link-existing-wrap');
+    if (linkWrap) linkWrap.hidden = isEdit;
+    var linkToggle = $('yb-la-link-existing-toggle');
+    if (linkToggle) linkToggle.checked = false;
 
     // AI content section — show only for ended sessions with recordings
     var aiSection = $('yb-la-ai-section');
@@ -544,16 +614,9 @@
   }
 
   function collectFormData() {
-    var roleCbs = document.querySelectorAll('.yb-la-role-cb');
-    var roles = [];
-    for (var i = 0; i < roleCbs.length; i++) {
-      if (roleCbs[i].checked) roles.push(roleCbs[i].value);
-    }
-    var permCbs = document.querySelectorAll('.yb-la-perm-cb');
-    var perms = [];
-    for (var i = 0; i < permCbs.length; i++) {
-      if (permCbs[i].checked) perms.push(permCbs[i].value);
-    }
+    var formScope = $('yb-live-admin-v-form');
+    var roles = formScope ? getActivePillValues(formScope, '.yb-la-role-pill') : [];
+    var perms = formScope ? getActivePillValues(formScope, '.yb-la-perm-pill') : [];
 
     var data = {
       source: $('yb-la-source').value,
@@ -568,12 +631,21 @@
       endDateTime: $('yb-la-end').value ? new Date($('yb-la-end').value).toISOString() : '',
       muxPlaybackId: $('yb-la-mux-playback').value.trim() || null,
       recordingPlaybackId: $('yb-la-recording-id').value.trim() || null,
+      recordingAssetId: ($('yb-la-recording-asset-id') ? $('yb-la-recording-asset-id').value.trim() : '') || null,
       access: { roles: roles, permissions: perms }
     };
 
     // Programs & cohorts from pill selectors
     data.programs = getSelectedProgramIds('yb-la-programs-container');
     data.cohorts = getSelectedCohortBuildIds('yb-la-cohorts-container');
+
+    // Auto-add method permissions derived from program selection
+    var autoPerms = derivedMethodPerms(data.programs);
+    for (var k = 0; k < autoPerms.length; k++) {
+      if (data.access.permissions.indexOf(autoPerms[k]) === -1) {
+        data.access.permissions.push(autoPerms[k]);
+      }
+    }
 
     // Stream type + co-teachers + meeting URL
     var streamTypeSel = $('yb-la-stream-type');
@@ -1087,24 +1159,38 @@
   }
 
   function collectBulkAccessData() {
-    var roleCbs = document.querySelectorAll('.yb-la-bulk-role-cb');
-    var roles = [];
-    for (var i = 0; i < roleCbs.length; i++) {
-      if (roleCbs[i].checked) roles.push(roleCbs[i].value);
-    }
-    var permCbs = document.querySelectorAll('.yb-la-bulk-perm-cb');
-    var perms = [];
-    for (var i = 0; i < permCbs.length; i++) {
-      if (permCbs[i].checked) perms.push(permCbs[i].value);
-    }
+    var bulkScope = $('yb-live-bulk-access-panel');
+    var roles = bulkScope ? getActivePillValues(bulkScope, '.yb-la-role-pill') : [];
+    var perms = bulkScope ? getActivePillValues(bulkScope, '.yb-la-perm-pill') : [];
     var programs = getSelectedProgramIds('yb-la-bulk-programs-container');
     var cohorts = getSelectedCohortBuildIds('yb-la-bulk-cohorts-container');
+
+    // Auto-add method permissions from program selection
+    var autoPerms = derivedMethodPerms(programs);
+    for (var k = 0; k < autoPerms.length; k++) {
+      if (perms.indexOf(autoPerms[k]) === -1) perms.push(autoPerms[k]);
+    }
 
     return {
       access: { roles: roles, permissions: perms },
       programs: programs,
       cohorts: cohorts
     };
+  }
+
+  /**
+   * Map program course_ids → implied method: permissions.
+   * Vinyasa Plus (YTT200-4W-VP) auto-implies method:vinyasa.
+   */
+  function derivedMethodPerms(programIds) {
+    var out = [];
+    if (!programIds) return out;
+    for (var i = 0; i < programIds.length; i++) {
+      if (programIds[i] === 'YTT200-4W-VP') {
+        if (out.indexOf('method:vinyasa') === -1) out.push('method:vinyasa');
+      }
+    }
+    return out;
   }
 
   function bulkUpdateAccess() {
@@ -1174,6 +1260,155 @@
         toast(res.error || t('error_save'), true);
       }
     });
+  }
+
+  /* ══════════════════════════════════════════
+     MUX ASSET BROWSER
+     ══════════════════════════════════════════ */
+  var muxBrowserAssets = [];
+  var muxBrowserCursor = null;
+  var muxBrowserLoading = false;
+
+  function openMuxBrowser() {
+    var modal = $('yb-la-mux-modal');
+    if (!modal) return;
+    modal.hidden = false;
+    muxBrowserCursor = null;
+    muxBrowserAssets = [];
+    loadMuxAssets();
+  }
+
+  function closeMuxBrowser() {
+    var modal = $('yb-la-mux-modal');
+    if (modal) modal.hidden = true;
+  }
+
+  function fmtDuration(seconds) {
+    if (!seconds || isNaN(seconds)) return '—';
+    var s = Math.floor(seconds);
+    var h = Math.floor(s / 3600);
+    var m = Math.floor((s % 3600) / 60);
+    var sec = s % 60;
+    return (h > 0 ? h + ':' : '') + String(m).padStart(h > 0 ? 2 : 1, '0') + ':' + String(sec).padStart(2, '0');
+  }
+
+  function fmtAssetDate(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso);
+    var day = String(d.getDate()).padStart(2, '0');
+    var mon = String(d.getMonth() + 1).padStart(2, '0');
+    var yr = d.getFullYear();
+    var h = String(d.getHours()).padStart(2, '0');
+    var m = String(d.getMinutes()).padStart(2, '0');
+    return day + '/' + mon + '/' + yr + ' ' + h + ':' + m;
+  }
+
+  function loadMuxAssets() {
+    if (muxBrowserLoading) return;
+    muxBrowserLoading = true;
+
+    var body = $('yb-la-mux-modal-body');
+    if (body && !muxBrowserAssets.length) body.innerHTML = '<p class="yb-la__loading-text">Loading assets…</p>';
+
+    var days = ($('yb-la-mux-date-filter') || {}).value || '30';
+    var params = { limit: 20, days: days };
+    if (muxBrowserCursor) params.cursor = muxBrowserCursor;
+
+    getToken().then(function (token) {
+      var url = '/.netlify/functions/mux-stream?action=list-assets';
+      for (var k in params) url += '&' + k + '=' + encodeURIComponent(params[k]);
+      return fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      muxBrowserLoading = false;
+      if (!res.ok) {
+        if (body) body.innerHTML = '<p class="yb-la__error-text">' + esc(res.error || 'Failed to load Mux assets') + '</p>';
+        return;
+      }
+      var assets = res.assets || [];
+      for (var i = 0; i < assets.length; i++) muxBrowserAssets.push(assets[i]);
+      muxBrowserCursor = res.cursor || null;
+      renderMuxAssets();
+      var loadMoreBtn = $('yb-la-mux-load-more');
+      if (loadMoreBtn) loadMoreBtn.hidden = !muxBrowserCursor;
+    }).catch(function (err) {
+      muxBrowserLoading = false;
+      if (body) body.innerHTML = '<p class="yb-la__error-text">Error: ' + esc(err.message) + '</p>';
+    });
+  }
+
+  function renderMuxAssets() {
+    var body = $('yb-la-mux-modal-body');
+    if (!body) return;
+    if (!muxBrowserAssets.length) {
+      body.innerHTML = '<p class="yb-la__loading-text">No recordings found for this time range.</p>';
+      return;
+    }
+    var html = '<div class="yb-la__mux-asset-grid">';
+    for (var i = 0; i < muxBrowserAssets.length; i++) {
+      var a = muxBrowserAssets[i];
+      var playbackId = a.playback_id || '';
+      var thumb = playbackId ? 'https://image.mux.com/' + playbackId + '/thumbnail.jpg?width=320&height=180&fit_mode=smartcrop' : '';
+      html += '<div class="yb-la__mux-asset-card">';
+      if (thumb) {
+        html += '<img class="yb-la__mux-asset-thumb" src="' + esc(thumb) + '" alt="" loading="lazy">';
+      } else {
+        html += '<div class="yb-la__mux-asset-thumb yb-la__mux-asset-thumb--empty">No thumbnail</div>';
+      }
+      html += '<div class="yb-la__mux-asset-meta">';
+      html += '<div class="yb-la__mux-asset-date">' + esc(fmtAssetDate(a.created_at)) + '</div>';
+      html += '<div class="yb-la__mux-asset-row"><span>Duration</span><strong>' + esc(fmtDuration(a.duration)) + '</strong></div>';
+      if (a.resolution) html += '<div class="yb-la__mux-asset-row"><span>Resolution</span><strong>' + esc(a.resolution) + '</strong></div>';
+      html += '<div class="yb-la__mux-asset-ids">';
+      html += '<div><span>Playback</span> <code>' + esc(playbackId) + '</code></div>';
+      html += '<div><span>Asset</span> <code>' + esc(a.id || '') + '</code></div>';
+      html += '</div>';
+      html += '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-la__mux-asset-select" ' +
+        'data-action="live-mux-select" ' +
+        'data-playback-id="' + esc(playbackId) + '" ' +
+        'data-asset-id="' + esc(a.id || '') + '" ' +
+        'data-created-at="' + esc(a.created_at || '') + '">Select</button>';
+      html += '</div></div>';
+    }
+    html += '</div>';
+    body.innerHTML = html;
+  }
+
+  function selectMuxAsset(playbackId, assetId, createdAt) {
+    var recInput = $('yb-la-recording-id');
+    var recAssetInput = $('yb-la-recording-asset-id');
+    if (recInput) recInput.value = playbackId || '';
+    if (recAssetInput) recAssetInput.value = assetId || '';
+
+    // If "Link existing recording" toggle is active on a new session, pre-fill start time
+    var linkToggle = $('yb-la-link-existing-toggle');
+    if (linkToggle && linkToggle.checked && createdAt) {
+      var startInput = $('yb-la-start');
+      if (startInput && !startInput.value) {
+        var d = new Date(createdAt);
+        var iso = d.getFullYear() + '-' +
+          String(d.getMonth() + 1).padStart(2, '0') + '-' +
+          String(d.getDate()).padStart(2, '0') + 'T' +
+          String(d.getHours()).padStart(2, '0') + ':' +
+          String(d.getMinutes()).padStart(2, '0');
+        startInput.value = iso;
+      }
+    }
+
+    closeMuxBrowser();
+    toast('Recording linked: ' + (playbackId || '(no playback id)'));
+  }
+
+  function recordingBadge(item) {
+    if (item.status !== 'ended') return '';
+    var aiSt = item.aiStatus || '';
+    if (aiSt === 'processing' || aiSt === 'preparing_audio' || aiSt === 'transcribing' ||
+        aiSt === 'generating_summary' || aiSt === 'uploading_subtitles' || aiSt === 'translating') {
+      return ' <span class="yb-la__rec-badge yb-la__rec-badge--processing">Processing</span>';
+    }
+    if (item.recordingPlaybackId) {
+      return ' <span class="yb-la__rec-badge yb-la__rec-badge--ready">Recording</span>';
+    }
+    return ' <span class="yb-la__rec-badge yb-la__rec-badge--missing">No recording</span>';
   }
 
   /* ══════════════════════════════════════════
@@ -1252,7 +1487,30 @@
         if (window._aiLangTab) window._aiLangTab(lang);
         return;
       }
+
+      // ── Mux asset browser ──
+      btn = e.target.closest('[data-action="live-browse-mux"]');
+      if (btn) { openMuxBrowser(); return; }
+
+      btn = e.target.closest('[data-action="live-mux-close"]');
+      if (btn) { closeMuxBrowser(); return; }
+
+      btn = e.target.closest('[data-action="live-mux-select"]');
+      if (btn) {
+        selectMuxAsset(btn.getAttribute('data-playback-id'), btn.getAttribute('data-asset-id'), btn.getAttribute('data-created-at'));
+        return;
+      }
     });
+
+    // Mux date filter + load more
+    var muxDateFilter = $('yb-la-mux-date-filter');
+    if (muxDateFilter) muxDateFilter.addEventListener('change', function () {
+      muxBrowserCursor = null;
+      muxBrowserAssets = [];
+      loadMuxAssets();
+    });
+    var muxLoadMore = $('yb-la-mux-load-more');
+    if (muxLoadMore) muxLoadMore.addEventListener('click', function () { loadMuxAssets(); });
 
     // Form submit
     var form = $('yb-live-admin-form');
@@ -1306,6 +1564,41 @@
     ['yb-la-mb-filter-program', 'yb-la-mb-filter-instructor', 'yb-la-mb-filter-session-type', 'yb-la-mb-filter-day'].forEach(function (id) {
       var el = $(id);
       if (el) el.addEventListener('change', renderMbTable);
+    });
+
+    // ── Role / Permission pill click delegation ──
+    document.addEventListener('click', function (e) {
+      var rolePill = e.target.closest('.yb-la-role-pill');
+      if (rolePill) {
+        e.preventDefault();
+        rolePill.classList.toggle('yb-la-pill--active');
+        var scope = rolePill.closest('#yb-live-admin-v-form, #yb-live-bulk-access-panel');
+        if (scope) {
+          toggleTeacherSection(scope);
+          var isFormScope = scope.id === 'yb-live-admin-v-form';
+          updateAccessSummary(
+            isFormScope ? 'yb-la-access-summary' : 'yb-la-bulk-access-summary',
+            isFormScope ? 'yb-la-programs-container' : 'yb-la-bulk-programs-container',
+            isFormScope ? 'yb-la-cohorts-container' : 'yb-la-bulk-cohorts-container'
+          );
+        }
+        return;
+      }
+      var permPill = e.target.closest('.yb-la-perm-pill');
+      if (permPill) {
+        e.preventDefault();
+        permPill.classList.toggle('yb-la-pill--active');
+        var scope2 = permPill.closest('#yb-live-admin-v-form, #yb-live-bulk-access-panel');
+        if (scope2) {
+          var isFormScope2 = scope2.id === 'yb-live-admin-v-form';
+          updateAccessSummary(
+            isFormScope2 ? 'yb-la-access-summary' : 'yb-la-bulk-access-summary',
+            isFormScope2 ? 'yb-la-programs-container' : 'yb-la-bulk-programs-container',
+            isFormScope2 ? 'yb-la-cohorts-container' : 'yb-la-bulk-cohorts-container'
+          );
+        }
+        return;
+      }
     });
 
     // ── Program / Cohort pill click delegation ──

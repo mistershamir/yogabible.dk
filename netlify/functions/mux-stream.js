@@ -84,6 +84,8 @@ exports.handler = async function (event) {
         return handleStreamStatus(params);
       case 'teacher-sessions':
         return handleTeacherSessions(user);
+      case 'list-assets':
+        return handleListAssets(params, user);
       default:
         return jsonResponse(400, { ok: false, error: 'Unknown action: ' + action });
     }
@@ -270,4 +272,69 @@ async function handleTeacherSessions(user) {
   });
 
   return jsonResponse(200, { ok: true, items: safe });
+}
+
+// ═══════════════════════════════════════════════════════
+// List recent Mux assets (admin only — for matching recordings to sessions)
+// ═══════════════════════════════════════════════════════
+async function handleListAssets(params, user) {
+  if (user.role !== 'admin') {
+    return jsonResponse(403, { ok: false, error: 'Admin role required' });
+  }
+
+  var limit = Math.min(parseInt(params.limit, 10) || 20, 100);
+  var cursor = params.cursor || null;
+  var days = parseInt(params.days, 10);
+  var cutoffMs = (days > 0) ? Date.now() - (days * 86400000) : 0;
+
+  var qs = '?limit=' + limit;
+  // Mux list endpoint uses page-based pagination; we translate our "cursor" to a page number
+  var page = cursor ? parseInt(cursor, 10) : 1;
+  qs += '&page=' + page;
+
+  var result = await muxFetch('/video/v1/assets' + qs, 'GET');
+  var rawAssets = Array.isArray(result.data) ? result.data : [];
+
+  var assets = [];
+  for (var i = 0; i < rawAssets.length; i++) {
+    var a = rawAssets[i];
+    if (a.status !== 'ready') continue;
+    if (cutoffMs && a.created_at) {
+      // Mux created_at is a unix seconds string
+      var createdMs = parseInt(a.created_at, 10) * 1000;
+      if (!isNaN(createdMs) && createdMs < cutoffMs) continue;
+    }
+    var playbackId = null;
+    if (Array.isArray(a.playback_ids) && a.playback_ids.length) {
+      for (var j = 0; j < a.playback_ids.length; j++) {
+        if (a.playback_ids[j].policy === 'public') { playbackId = a.playback_ids[j].id; break; }
+      }
+      if (!playbackId) playbackId = a.playback_ids[0].id;
+    }
+    // Top-rendition resolution
+    var resolution = '';
+    if (Array.isArray(a.tracks)) {
+      var maxH = 0;
+      for (var t = 0; t < a.tracks.length; t++) {
+        var tr = a.tracks[t];
+        if (tr.type === 'video' && tr.max_height && tr.max_height > maxH) {
+          maxH = tr.max_height;
+          resolution = (tr.max_width || '?') + 'x' + tr.max_height;
+        }
+      }
+    }
+    assets.push({
+      id: a.id,
+      playback_id: playbackId,
+      created_at: a.created_at ? new Date(parseInt(a.created_at, 10) * 1000).toISOString() : null,
+      duration: a.duration || 0,
+      resolution: resolution,
+      aspect_ratio: a.aspect_ratio || null
+    });
+  }
+
+  // If this page was full, expose next cursor (= next page number)
+  var nextCursor = rawAssets.length >= limit ? String(page + 1) : null;
+
+  return jsonResponse(200, { ok: true, assets: assets, cursor: nextCursor });
 }

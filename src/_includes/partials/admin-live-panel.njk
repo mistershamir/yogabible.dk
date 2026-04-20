@@ -41,75 +41,59 @@
       <button type="button" class="yb-admin__icon-btn" data-action="live-bulk-access-close" title="Close">&times;</button>
     </div>
 
-    {# Bulk — Role checkboxes #}
+    {# Bulk — Role pills #}
     <div class="yb-admin__field yb-la__field--md">
       <label class="yb-la__field-label">{{ t.live_field_access_roles }}</label>
-      <div class="yb-admin__form-row yb-la__checkbox-group--spaced">
-        <label class="yb-admin__checkbox-label"><input type="checkbox" value="member" class="yb-la-bulk-role-cb"> Member</label>
-        <label class="yb-admin__checkbox-label"><input type="checkbox" value="trainee" class="yb-la-bulk-role-cb" checked> Trainee</label>
-        <label class="yb-admin__checkbox-label"><input type="checkbox" value="student" class="yb-la-bulk-role-cb"> Student</label>
-        <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher" class="yb-la-bulk-role-cb" checked> Teacher</label>
-        <label class="yb-admin__checkbox-label"><input type="checkbox" value="admin" class="yb-la-bulk-role-cb" checked> Admin</label>
+      <div class="yb-la__pill-row yb-la__pill-row--bulk-roles">
+        <button type="button" class="yb-la-role-pill" data-value="member">Member</button>
+        <button type="button" class="yb-la-role-pill yb-la-pill--active" data-value="trainee">Trainee</button>
+        <button type="button" class="yb-la-role-pill" data-value="student">Student</button>
+        <button type="button" class="yb-la-role-pill yb-la-pill--active" data-value="teacher">Teacher</button>
+        <button type="button" class="yb-la-role-pill yb-la-pill--active" data-value="admin">Admin</button>
       </div>
     </div>
 
-    {# Bulk — Permission checkboxes (same groups as form) #}
+    {# Bulk — Permission pills #}
     <div class="yb-admin__field yb-la__field--md">
       <label class="yb-la__field-label">{{ t.live_field_access_perms }}</label>
       <div class="yb-la__perm-wrap">
-        <div class="yb-live__perm-group">
-          <span class="yb-live__perm-group-label">{{ t.live_perm_group_base }}</span>
-          <div class="yb-admin__form-row yb-la__checkbox-group">
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="live-streaming" class="yb-la-bulk-perm-cb" checked> Live Streaming</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="recordings" class="yb-la-bulk-perm-cb"> Recordings</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="gated-content" class="yb-la-bulk-perm-cb"> Gated Content</label>
+        <div class="yb-la__perm-section">
+          <span class="yb-la__group-label">{{ t.live_perm_group_base }}</span>
+          <div class="yb-la__pill-row">
+            <button type="button" class="yb-la-perm-pill yb-la-pill--active" data-value="live-streaming">Live Streaming</button>
+            <button type="button" class="yb-la-perm-pill" data-value="recordings">Recordings</button>
+            <button type="button" class="yb-la-perm-pill" data-value="gated-content">Gated Content</button>
           </div>
         </div>
-        <div class="yb-live__perm-group">
-          <span class="yb-live__perm-group-label">{{ t.live_perm_group_materials }}</span>
-          <div class="yb-admin__form-row yb-la__checkbox-group">
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:100h" class="yb-la-bulk-perm-cb"> 100h</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:200h" class="yb-la-bulk-perm-cb"> 200h</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:300h" class="yb-la-bulk-perm-cb"> 300h</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:500h" class="yb-la-bulk-perm-cb"> 500h</label>
+        <div class="yb-la__perm-section">
+          <span class="yb-la__group-label">{{ t.live_perm_group_courses }}</span>
+          <div class="yb-la__pill-row">
+            <button type="button" class="yb-la-perm-pill" data-value="course:inversions">Inversions</button>
+            <button type="button" class="yb-la-perm-pill" data-value="course:splits">Splits</button>
+            <button type="button" class="yb-la-perm-pill" data-value="course:backbends">Backbends</button>
+            <button type="button" class="yb-la-perm-pill" data-value="course:handstands">Handstands</button>
+            <button type="button" class="yb-la-perm-pill" data-value="course:armbalances">Arm Balances</button>
+            <button type="button" class="yb-la-perm-pill" data-value="course:prenatal">Prenatal</button>
           </div>
         </div>
-        <div class="yb-live__perm-group">
-          <span class="yb-live__perm-group-label">{{ t.live_perm_group_methods }}</span>
-          <div class="yb-admin__form-row yb-la__checkbox-group">
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:triangle" class="yb-la-bulk-perm-cb"> Triangle</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:vinyasa" class="yb-la-bulk-perm-cb"> Vinyasa</label>
+        <div class="yb-la__perm-section yb-la__teacher-section" hidden>
+          <span class="yb-la__group-label">{{ t.live_perm_group_teacher }}</span>
+          <div class="yb-la__pill-row">
+            <button type="button" class="yb-la-perm-pill" data-value="teacher:vinyasa">Vinyasa</button>
+            <button type="button" class="yb-la-perm-pill" data-value="teacher:yin">Yin</button>
+            <button type="button" class="yb-la-perm-pill" data-value="teacher:hot">Hot Yoga</button>
+            <button type="button" class="yb-la-perm-pill" data-value="teacher:ashtanga">Ashtanga</button>
+            <button type="button" class="yb-la-perm-pill" data-value="teacher:hatha">Hatha</button>
+            <button type="button" class="yb-la-perm-pill" data-value="teacher:kids">Kids</button>
+            <button type="button" class="yb-la-perm-pill" data-value="teacher:restorative">Restorative</button>
+            <button type="button" class="yb-la-perm-pill" data-value="teacher:prenatal">Prenatal</button>
+            <button type="button" class="yb-la-perm-pill" data-value="teacher:meditation">Meditation</button>
           </div>
         </div>
-        <div class="yb-live__perm-group">
-          <span class="yb-live__perm-group-label">{{ t.live_perm_group_courses }}</span>
-          <div class="yb-admin__form-row yb-la__checkbox-group">
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:inversions" class="yb-la-bulk-perm-cb"> Inversions</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:splits" class="yb-la-bulk-perm-cb"> Splits</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:backbends" class="yb-la-bulk-perm-cb"> Backbends</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:handstands" class="yb-la-bulk-perm-cb"> Handstands</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:armbalances" class="yb-la-bulk-perm-cb"> Arm Balances</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:prenatal" class="yb-la-bulk-perm-cb"> Prenatal</label>
-          </div>
-        </div>
-        <div class="yb-live__perm-group">
-          <span class="yb-live__perm-group-label">{{ t.live_perm_group_teacher }}</span>
-          <div class="yb-admin__form-row yb-la__checkbox-group">
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:vinyasa" class="yb-la-bulk-perm-cb"> Vinyasa</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:yin" class="yb-la-bulk-perm-cb"> Yin</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hot" class="yb-la-bulk-perm-cb"> Hot Yoga</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:ashtanga" class="yb-la-bulk-perm-cb"> Ashtanga</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hatha" class="yb-la-bulk-perm-cb"> Hatha</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:kids" class="yb-la-bulk-perm-cb"> Kids</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:restorative" class="yb-la-bulk-perm-cb"> Restorative</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:prenatal" class="yb-la-bulk-perm-cb"> Prenatal</label>
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:meditation" class="yb-la-bulk-perm-cb"> Meditation</label>
-          </div>
-        </div>
-        <div class="yb-live__perm-group">
-          <span class="yb-live__perm-group-label">{{ t.live_perm_group_other }}</span>
-          <div class="yb-admin__form-row yb-la__checkbox-group">
-            <label class="yb-admin__checkbox-label"><input type="checkbox" value="mentorship" class="yb-la-bulk-perm-cb"> Mentorship</label>
+        <div class="yb-la__perm-section">
+          <span class="yb-la__group-label">{{ t.live_perm_group_other }}</span>
+          <div class="yb-la__pill-row">
+            <button type="button" class="yb-la-perm-pill" data-value="mentorship">Mentorship</button>
           </div>
         </div>
       </div>
@@ -267,6 +251,14 @@
       </div>
     </div>
 
+    {# Link existing recording toggle (creation only) #}
+    <div class="yb-admin__field yb-la__link-existing" id="yb-la-link-existing-wrap" hidden>
+      <label class="yb-admin__checkbox-label">
+        <input type="checkbox" id="yb-la-link-existing-toggle">
+        <span>Link existing Mux recording</span>
+      </label>
+    </div>
+
     {# Mux IDs #}
     <div class="yb-admin__form-row">
       <div class="yb-admin__field">
@@ -275,7 +267,11 @@
       </div>
       <div class="yb-admin__field">
         <label for="yb-la-recording-id">{{ t.live_field_recording_id }}</label>
-        <input type="text" id="yb-la-recording-id" placeholder="{{ t.live_field_recording_hint }}">
+        <div class="yb-la__input-with-action">
+          <input type="text" id="yb-la-recording-id" placeholder="{{ t.live_field_recording_hint }}">
+          <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-browse-mux">Browse Mux Assets</button>
+        </div>
+        <input type="hidden" id="yb-la-recording-asset-id">
       </div>
     </div>
 
@@ -333,88 +329,68 @@
       <p class="yb-la__form-hint">{{ t.live_coteachers_help or "Comma-separated emails. These teachers can also Go Live for this session." }}</p>
     </div>
 
-    {# Access: Roles #}
+    {# Access: Roles — pill buttons #}
     <div class="yb-admin__field">
       <label>{{ t.live_field_access_roles }}</label>
       <p class="yb-la__help-text">{{ t.live_access_hint_roles }}</p>
-      <div class="yb-admin__form-row yb-la__checkbox-group--roles">
-        <label class="yb-admin__checkbox-label"><input type="checkbox" value="member" class="yb-la-role-cb"> Member</label>
-        <label class="yb-admin__checkbox-label"><input type="checkbox" value="trainee" class="yb-la-role-cb" checked> Trainee</label>
-        <label class="yb-admin__checkbox-label"><input type="checkbox" value="student" class="yb-la-role-cb"> Student</label>
-        <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher" class="yb-la-role-cb" checked> Teacher</label>
-        <label class="yb-admin__checkbox-label"><input type="checkbox" value="admin" class="yb-la-role-cb" checked> Admin</label>
+      <div class="yb-la__pill-row yb-la__pill-row--roles">
+        <button type="button" class="yb-la-role-pill" data-value="member">Member</button>
+        <button type="button" class="yb-la-role-pill yb-la-pill--active" data-value="trainee">Trainee</button>
+        <button type="button" class="yb-la-role-pill" data-value="student">Student</button>
+        <button type="button" class="yb-la-role-pill yb-la-pill--active" data-value="teacher">Teacher</button>
+        <button type="button" class="yb-la-role-pill yb-la-pill--active" data-value="admin">Admin</button>
       </div>
     </div>
 
-    {# Access: Permissions — grouped checkboxes #}
+    {# Access: Permissions — pill groups #}
     <div class="yb-admin__field">
       <label>{{ t.live_field_access_perms }}</label>
       <p class="yb-la__help-text">{{ t.live_access_hint_perms }}</p>
 
-      {# Base permissions #}
+      {# Base Access #}
       <div class="yb-la__perm-section">
         <span class="yb-la__group-label">{{ t.live_perm_group_base }}</span>
-        <div class="yb-admin__form-row yb-la__checkbox-group">
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="live-streaming" class="yb-la-perm-cb" checked> Live Streaming</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="recordings" class="yb-la-perm-cb"> Recordings</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="gated-content" class="yb-la-perm-cb"> Gated Content</label>
-        </div>
-      </div>
-
-      {# Materials (Program) #}
-      <div class="yb-la__perm-section">
-        <span class="yb-la__group-label">{{ t.live_perm_group_materials }}</span>
-        <div class="yb-admin__form-row yb-la__checkbox-group">
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:100h" class="yb-la-perm-cb"> 100h</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:200h" class="yb-la-perm-cb"> 200h</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:300h" class="yb-la-perm-cb"> 300h</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="materials:500h" class="yb-la-perm-cb"> 500h</label>
-        </div>
-      </div>
-
-      {# Method #}
-      <div class="yb-la__perm-section">
-        <span class="yb-la__group-label">{{ t.live_perm_group_methods }}</span>
-        <div class="yb-admin__form-row yb-la__checkbox-group">
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:triangle" class="yb-la-perm-cb"> Triangle</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="method:vinyasa" class="yb-la-perm-cb"> Vinyasa</label>
+        <div class="yb-la__pill-row">
+          <button type="button" class="yb-la-perm-pill yb-la-pill--active" data-value="live-streaming">Live Streaming</button>
+          <button type="button" class="yb-la-perm-pill" data-value="recordings">Recordings</button>
+          <button type="button" class="yb-la-perm-pill" data-value="gated-content">Gated Content</button>
         </div>
       </div>
 
       {# Courses #}
       <div class="yb-la__perm-section">
         <span class="yb-la__group-label">{{ t.live_perm_group_courses }}</span>
-        <div class="yb-admin__form-row yb-la__checkbox-group">
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:inversions" class="yb-la-perm-cb"> Inversions</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:splits" class="yb-la-perm-cb"> Splits</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:backbends" class="yb-la-perm-cb"> Backbends</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:handstands" class="yb-la-perm-cb"> Handstands</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:armbalances" class="yb-la-perm-cb"> Arm Balances</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="course:prenatal" class="yb-la-perm-cb"> Prenatal</label>
+        <div class="yb-la__pill-row">
+          <button type="button" class="yb-la-perm-pill" data-value="course:inversions">Inversions</button>
+          <button type="button" class="yb-la-perm-pill" data-value="course:splits">Splits</button>
+          <button type="button" class="yb-la-perm-pill" data-value="course:backbends">Backbends</button>
+          <button type="button" class="yb-la-perm-pill" data-value="course:handstands">Handstands</button>
+          <button type="button" class="yb-la-perm-pill" data-value="course:armbalances">Arm Balances</button>
+          <button type="button" class="yb-la-perm-pill" data-value="course:prenatal">Prenatal</button>
         </div>
       </div>
 
-      {# Teacher Type #}
-      <div class="yb-la__perm-section">
+      {# Teacher Type — only visible when Teacher role is active #}
+      <div class="yb-la__perm-section yb-la__teacher-section" hidden>
         <span class="yb-la__group-label">{{ t.live_perm_group_teacher }}</span>
-        <div class="yb-admin__form-row yb-la__checkbox-group">
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:vinyasa" class="yb-la-perm-cb"> Vinyasa</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:yin" class="yb-la-perm-cb"> Yin</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hot" class="yb-la-perm-cb"> Hot Yoga</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:ashtanga" class="yb-la-perm-cb"> Ashtanga</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:hatha" class="yb-la-perm-cb"> Hatha</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:kids" class="yb-la-perm-cb"> Kids</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:restorative" class="yb-la-perm-cb"> Restorative</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:prenatal" class="yb-la-perm-cb"> Prenatal</label>
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="teacher:meditation" class="yb-la-perm-cb"> Meditation</label>
+        <div class="yb-la__pill-row">
+          <button type="button" class="yb-la-perm-pill" data-value="teacher:vinyasa">Vinyasa</button>
+          <button type="button" class="yb-la-perm-pill" data-value="teacher:yin">Yin</button>
+          <button type="button" class="yb-la-perm-pill" data-value="teacher:hot">Hot Yoga</button>
+          <button type="button" class="yb-la-perm-pill" data-value="teacher:ashtanga">Ashtanga</button>
+          <button type="button" class="yb-la-perm-pill" data-value="teacher:hatha">Hatha</button>
+          <button type="button" class="yb-la-perm-pill" data-value="teacher:kids">Kids</button>
+          <button type="button" class="yb-la-perm-pill" data-value="teacher:restorative">Restorative</button>
+          <button type="button" class="yb-la-perm-pill" data-value="teacher:prenatal">Prenatal</button>
+          <button type="button" class="yb-la-perm-pill" data-value="teacher:meditation">Meditation</button>
         </div>
       </div>
 
-      {# Other #}
-      <div>
+      {# Mentorship #}
+      <div class="yb-la__perm-section">
         <span class="yb-la__group-label">{{ t.live_perm_group_other }}</span>
-        <div class="yb-admin__form-row yb-la__checkbox-group">
-          <label class="yb-admin__checkbox-label"><input type="checkbox" value="mentorship" class="yb-la-perm-cb"> Mentorship</label>
+        <div class="yb-la__pill-row">
+          <button type="button" class="yb-la-perm-pill" data-value="mentorship">Mentorship</button>
         </div>
       </div>
     </div>
@@ -556,4 +532,29 @@
     </table>
   </div>
   <p id="yb-live-mb-empty" class="yb-admin__empty" hidden>{{ t.live_field_mb_none }}</p>
+</div>
+
+{# ── Mux Asset Browser Modal ── #}
+<div id="yb-la-mux-modal" class="yb-la__mux-modal" hidden>
+  <div class="yb-la__mux-modal-overlay" data-action="live-mux-close"></div>
+  <div class="yb-la__mux-modal-dialog" role="dialog" aria-label="Browse Mux recordings">
+    <div class="yb-la__mux-modal-head">
+      <h3 class="yb-la__mux-modal-title">Browse Mux Recordings</h3>
+      <div class="yb-la__mux-modal-controls">
+        <select id="yb-la-mux-date-filter" class="yb-admin__select">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="0">All time</option>
+        </select>
+        <button type="button" class="yb-admin__icon-btn" data-action="live-mux-close" title="Close">&times;</button>
+      </div>
+    </div>
+    <div id="yb-la-mux-modal-body" class="yb-la__mux-modal-body">
+      <p class="yb-la__loading-text">Loading assets…</p>
+    </div>
+    <div class="yb-la__mux-modal-foot">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-la-mux-load-more" hidden>Load more</button>
+    </div>
+  </div>
 </div>

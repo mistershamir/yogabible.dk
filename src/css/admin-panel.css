@@ -9241,3 +9241,233 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   font-size: 0.7rem;
   color: #6F6A66;
 }
+
+/* ═══════════════════════════════════════════════════════
+   Live Admin — Role / Permission Pills
+   ═══════════════════════════════════════════════════════ */
+.yb-la__pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.yb-la__pill-row--roles,
+.yb-la__pill-row--bulk-roles {
+  gap: 0.5rem;
+}
+
+.yb-la-role-pill,
+.yb-la-perm-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid #e5e0db;
+  border-radius: 999px;
+  background: #fff;
+  color: #0F0F0F;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.yb-la-role-pill:hover,
+.yb-la-perm-pill:hover {
+  border-color: #f75c03;
+  background: #FFF5EE;
+}
+
+.yb-la-role-pill.yb-la-pill--active,
+.yb-la-perm-pill.yb-la-pill--active {
+  background: #f75c03;
+  color: #fff;
+  border-color: #f75c03;
+}
+
+/* Input with inline action button (Browse Mux Assets) */
+.yb-la__input-with-action {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.yb-la__input-with-action input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Link-existing toggle block */
+.yb-la__link-existing {
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Recording status badges (in list table) */
+.yb-la__rec-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+}
+.yb-la__rec-badge--ready {
+  background: #dcfce7;
+  color: #166534;
+}
+.yb-la__rec-badge--missing {
+  background: #ffedd5;
+  color: #9a3412;
+}
+.yb-la__rec-badge--processing {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Live Admin — Mux Asset Browser Modal
+   ═══════════════════════════════════════════════════════ */
+.yb-la__mux-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.yb-la__mux-modal[hidden] { display: none; }
+
+.yb-la__mux-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.yb-la__mux-modal-dialog {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  max-width: 1100px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+.yb-la__mux-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #E8E4E0;
+  gap: 1rem;
+}
+
+.yb-la__mux-modal-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.yb-la__mux-modal-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.yb-la__mux-modal-body {
+  padding: 1rem 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.yb-la__mux-modal-foot {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid #E8E4E0;
+  display: flex;
+  justify-content: center;
+}
+
+.yb-la__mux-asset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.yb-la__mux-asset-card {
+  border: 1px solid #e5e0db;
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.yb-la__mux-asset-card:hover {
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  border-color: #f75c03;
+}
+
+.yb-la__mux-asset-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #F5F3F0;
+}
+.yb-la__mux-asset-thumb--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6F6A66;
+  font-size: 0.8rem;
+}
+
+.yb-la__mux-asset-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.yb-la__mux-asset-date {
+  font-weight: 600;
+  color: #0F0F0F;
+}
+
+.yb-la__mux-asset-row {
+  display: flex;
+  justify-content: space-between;
+  color: #6F6A66;
+}
+
+.yb-la__mux-asset-ids {
+  font-size: 0.7rem;
+  color: #6F6A66;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  word-break: break-all;
+}
+.yb-la__mux-asset-ids code {
+  background: #F5F3F0;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+}
+
+.yb-la__mux-asset-select {
+  margin-top: 0.25rem;
+}
