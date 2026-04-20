@@ -9471,3 +9471,117 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-la__mux-asset-select {
   margin-top: 0.25rem;
 }
+
+/* ═══════════════════════════════════════════════════════
+   Live Admin — AI Status Badge + Backfill Modal
+   ═══════════════════════════════════════════════════════ */
+.yb-la__ai-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  margin-left: 0.3rem;
+  cursor: pointer;
+  vertical-align: middle;
+  user-select: none;
+}
+.yb-la__ai-badge--ok {
+  background: #dcfce7;
+  color: #166534;
+}
+.yb-la__ai-badge--pending {
+  background: #ffedd5;
+  color: #9a3412;
+}
+.yb-la__ai-badge--err {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.yb-la__ai-badge--none {
+  background: #F5F3F0;
+  color: #6F6A66;
+}
+
+.yb-la__bf-section {
+  margin-bottom: 1rem;
+}
+
+.yb-la__bf-heading {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.yb-la__bf-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.yb-la__bf-filter-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6F6A66;
+}
+
+.yb-la__bf-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.yb-la__bf-limit-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: #6F6A66;
+}
+
+.yb-la__bf-limit-input {
+  width: 70px;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #e5e0db;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.yb-la__bf-results {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #FFFCF9;
+  border: 1px solid #E8E4E0;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.yb-la__bf-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.82rem;
+}
+.yb-la__bf-list li {
+  margin-bottom: 0.2rem;
+  word-break: break-word;
+}
+.yb-la__bf-list code {
+  background: #F5F3F0;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.yb-la__bf-divider {
+  border: none;
+  border-top: 1px solid #E8E4E0;
+  margin: 1.25rem 0;
+}
+
+.yb-la__bf-orphans {
+  margin-top: 0.5rem;
+}

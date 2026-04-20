@@ -3,6 +3,7 @@
   <div class="yb-admin__view-head">
     <h2>{{ t.live_title }}</h2>
     <div class="yb-lead__toolbar-right">
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-backfill-ai">AI Backfill</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-import-mb">{{ t.live_import_mb }}</button>
       <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-new">+ {{ t.live_new }}</button>
     </div>
@@ -532,6 +533,61 @@
     </table>
   </div>
   <p id="yb-live-mb-empty" class="yb-admin__empty" hidden>{{ t.live_field_mb_none }}</p>
+</div>
+
+{# ── AI Backfill Modal ── #}
+<div id="yb-la-backfill-modal" class="yb-la__mux-modal" hidden>
+  <div class="yb-la__mux-modal-overlay" data-action="live-backfill-close"></div>
+  <div class="yb-la__mux-modal-dialog" role="dialog" aria-label="AI Backfill">
+    <div class="yb-la__mux-modal-head">
+      <h3 class="yb-la__mux-modal-title">AI Backfill</h3>
+      <button type="button" class="yb-admin__icon-btn" data-action="live-backfill-close" title="Close">&times;</button>
+    </div>
+    <div class="yb-la__mux-modal-body">
+      <div class="yb-la__bf-section">
+        <h4 class="yb-la__bf-heading">Bulk reprocess sessions</h4>
+        <p class="yb-la__help-text">Re-trigger the AI pipeline (Deepgram → Claude) on past ended sessions with recordings. Triggers are staggered by 5 seconds.</p>
+
+        <div class="yb-la__bf-filter-row">
+          <label class="yb-la__bf-filter-label">Filter:</label>
+          <div class="yb-la__pill-row">
+            <button type="button" class="yb-la-perm-pill yb-la-pill--active yb-la-bf-status-pill" data-value="missing">Missing AI content</button>
+            <button type="button" class="yb-la-perm-pill yb-la-bf-status-pill" data-value="failed">Failed AI</button>
+            <button type="button" class="yb-la-perm-pill yb-la-bf-status-pill" data-value="all">All ended sessions</button>
+          </div>
+        </div>
+
+        <div class="yb-la__bf-controls">
+          <label class="yb-la__bf-limit-label">
+            Limit
+            <input type="number" id="yb-la-bf-limit" class="yb-la__bf-limit-input" min="1" max="50" value="10">
+          </label>
+          <label class="yb-admin__checkbox-label">
+            <input type="checkbox" id="yb-la-bf-dry-run" checked>
+            <span>Dry run first</span>
+          </label>
+          <button type="button" class="yb-btn yb-btn--primary yb-btn--sm" id="yb-la-bf-start-btn" data-action="live-backfill-start">Start backfill</button>
+        </div>
+
+        <div id="yb-la-bf-results" class="yb-la__bf-results" hidden></div>
+      </div>
+
+      <hr class="yb-la__bf-divider">
+
+      <div class="yb-la__bf-section">
+        <h4 class="yb-la__bf-heading">Orphan Mux Assets</h4>
+        <p class="yb-la__help-text">Ready Mux recordings that aren't attached to any session. Create a backdated session from any of them.</p>
+        <div class="yb-la__bf-controls">
+          <label class="yb-la__bf-limit-label">
+            Days back
+            <input type="number" id="yb-la-bf-orphan-days" class="yb-la__bf-limit-input" min="1" max="365" value="60">
+          </label>
+          <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-backfill-scan-orphans">Scan Mux for unattached recordings</button>
+        </div>
+        <div id="yb-la-bf-orphans" class="yb-la__bf-orphans"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 {# ── Mux Asset Browser Modal ── #}

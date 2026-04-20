@@ -438,7 +438,7 @@
 
       html += '<tr>';
       html += '<td><input type="checkbox" class="yb-la-live-cb" data-id="' + item.id + '"' + (isSelected ? ' checked' : '') + '></td>';
-      html += '<td>' + statusBadge(item.status) + recordingBadge(item) + '</td>';
+      html += '<td>' + statusBadge(item.status) + recordingBadge(item) + aiBadge(item) + '</td>';
       html += '<td><strong>' + esc(title) + '</strong></td>';
       html += '<td>' + fmtDate(item.startDateTime) + '</td>';
       html += '<td>' + sourceBadge(item.source) + '</td>';
@@ -1398,6 +1398,198 @@
     toast('Recording linked: ' + (playbackId || '(no playback id)'));
   }
 
+  /* ══════════════════════════════════════════
+     AI BACKFILL
+     ══════════════════════════════════════════ */
+  function getInternalSecret() {
+    var cached = sessionStorage.getItem('yb_ai_secret') || '';
+    if (cached) return cached;
+    var entered = prompt('Enter AI_INTERNAL_SECRET:');
+    if (entered) sessionStorage.setItem('yb_ai_secret', entered);
+    return entered || '';
+  }
+
+  function backfillFetch(method, queryString, body) {
+    var secret = getInternalSecret();
+    if (!secret) return Promise.reject(new Error('Secret required'));
+    var url = '/.netlify/functions/backfill-ai-recordings' + (queryString ? '?' + queryString : '');
+    var opts = {
+      method: method || 'GET',
+      headers: {
+        'X-Internal-Secret': secret,
+        'Content-Type': 'application/json'
+      }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    return fetch(url, opts).then(function (r) {
+      return r.json().then(function (json) {
+        if (!r.ok) {
+          // Invalidate cached secret on 401
+          if (r.status === 401) sessionStorage.removeItem('yb_ai_secret');
+          throw new Error(json.error || ('HTTP ' + r.status));
+        }
+        return json;
+      });
+    });
+  }
+
+  function openBackfillModal() {
+    var modal = $('yb-la-backfill-modal');
+    if (modal) modal.hidden = false;
+    var results = $('yb-la-bf-results');
+    if (results) { results.hidden = true; results.innerHTML = ''; }
+    var orphans = $('yb-la-bf-orphans');
+    if (orphans) orphans.innerHTML = '';
+  }
+
+  function closeBackfillModal() {
+    var modal = $('yb-la-backfill-modal');
+    if (modal) modal.hidden = true;
+  }
+
+  function runBackfill() {
+    var modal = $('yb-la-backfill-modal');
+    if (!modal) return;
+    var statusPill = modal.querySelector('.yb-la-bf-status-pill.yb-la-pill--active');
+    var status = statusPill ? statusPill.getAttribute('data-value') : 'missing';
+    var limit = parseInt(($('yb-la-bf-limit') || {}).value, 10) || 10;
+    var dryRun = ($('yb-la-bf-dry-run') || {}).checked;
+
+    var qs = 'status=' + encodeURIComponent(status) + '&limit=' + limit + (dryRun ? '&dry_run=true' : '');
+    var btn = $('yb-la-bf-start-btn');
+    if (btn) { btn.disabled = true; btn.textContent = dryRun ? 'Running dry run…' : 'Queuing…'; }
+    var results = $('yb-la-bf-results');
+    if (results) { results.hidden = false; results.innerHTML = '<p class="yb-la__loading-text">Working…</p>'; }
+
+    backfillFetch('POST', qs).then(function (res) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Start backfill'; }
+      var html = '';
+      if (res.dry_run) {
+        html += '<p><strong>Dry run:</strong> ' + res.matched + ' matching sessions, would process ' + res.wouldProcess + '.</p>';
+      } else {
+        html += '<p><strong>Queued ' + res.queued + ' session(s).</strong> Matched ' + res.matched + ', skipped ' + res.skipped + '.</p>';
+        html += '<p class="yb-la__help-text">Refresh the Live tab in a few minutes to see updated AI status badges.</p>';
+      }
+      if (res.sessions && res.sessions.length) {
+        html += '<ul class="yb-la__bf-list">';
+        for (var i = 0; i < res.sessions.length; i++) {
+          var s = res.sessions[i];
+          html += '<li><code>' + esc(s.id) + '</code> — ' + esc(s.title || '(no title)') +
+            (s.startDateTime ? ' <span class="yb-la__help-text">(' + fmtDate(s.startDateTime) + ')</span>' : '') +
+            '</li>';
+        }
+        html += '</ul>';
+      }
+      if (res.errors && res.errors.length) {
+        html += '<p class="yb-la__error-text">' + res.errors.length + ' error(s):</p><ul class="yb-la__bf-list">';
+        for (var j = 0; j < res.errors.length; j++) {
+          html += '<li><code>' + esc(res.errors[j].id) + '</code>: ' + esc(res.errors[j].error) + '</li>';
+        }
+        html += '</ul>';
+      }
+      if (results) results.innerHTML = html;
+      if (!res.dry_run) loadItems();
+    }).catch(function (err) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Start backfill'; }
+      if (results) results.innerHTML = '<p class="yb-la__error-text">' + esc(err.message) + '</p>';
+    });
+  }
+
+  function scanOrphans() {
+    var days = parseInt(($('yb-la-bf-orphan-days') || {}).value, 10) || 60;
+    var container = $('yb-la-bf-orphans');
+    if (container) container.innerHTML = '<p class="yb-la__loading-text">Scanning Mux…</p>';
+
+    backfillFetch('GET', 'action=find-orphans&days=' + days).then(function (res) {
+      if (!container) return;
+      if (!res.orphans || !res.orphans.length) {
+        container.innerHTML = '<p class="yb-la__help-text">No orphan recordings found in the last ' + days + ' days (scanned ' + res.scanned + ').</p>';
+        return;
+      }
+      var html = '<p class="yb-la__help-text">' + res.orphans.length + ' orphan recording(s) found (scanned ' + res.scanned + ').</p>';
+      html += '<div class="yb-la__mux-asset-grid">';
+      for (var i = 0; i < res.orphans.length; i++) {
+        var a = res.orphans[i];
+        var pbId = a.playback_id || '';
+        var thumb = pbId ? 'https://image.mux.com/' + pbId + '/thumbnail.jpg?width=320&height=180&fit_mode=smartcrop' : '';
+        html += '<div class="yb-la__mux-asset-card">';
+        if (thumb) html += '<img class="yb-la__mux-asset-thumb" src="' + esc(thumb) + '" alt="" loading="lazy">';
+        else html += '<div class="yb-la__mux-asset-thumb yb-la__mux-asset-thumb--empty">No thumbnail</div>';
+        html += '<div class="yb-la__mux-asset-meta">';
+        html += '<div class="yb-la__mux-asset-date">' + esc(fmtAssetDate(a.created_at)) + '</div>';
+        html += '<div class="yb-la__mux-asset-row"><span>Duration</span><strong>' + esc(fmtDuration(a.duration)) + '</strong></div>';
+        if (a.resolution) html += '<div class="yb-la__mux-asset-row"><span>Resolution</span><strong>' + esc(a.resolution) + '</strong></div>';
+        html += '<div class="yb-la__mux-asset-ids">';
+        html += '<div><span>Playback</span> <code>' + esc(pbId) + '</code></div>';
+        html += '<div><span>Asset</span> <code>' + esc(a.id || '') + '</code></div>';
+        html += '</div>';
+        html += '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" ' +
+          'data-action="live-orphan-create" ' +
+          'data-playback-id="' + esc(pbId) + '" ' +
+          'data-asset-id="' + esc(a.id || '') + '" ' +
+          'data-created-at="' + esc(a.created_at || '') + '" ' +
+          'data-duration="' + esc(String(a.duration || '')) + '">Create session from this</button>';
+        html += '</div></div>';
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    }).catch(function (err) {
+      if (container) container.innerHTML = '<p class="yb-la__error-text">' + esc(err.message) + '</p>';
+    });
+  }
+
+  function createSessionFromOrphan(playbackId, assetId, createdAt, duration) {
+    closeBackfillModal();
+    openForm(null);
+    // Pre-fill after openForm so catalog load doesn't overwrite
+    setTimeout(function () {
+      var recInput = $('yb-la-recording-id');
+      var recAssetInput = $('yb-la-recording-asset-id');
+      var startInput = $('yb-la-start');
+      var endInput = $('yb-la-end');
+      var statusSel = $('yb-la-status');
+      if (recInput) recInput.value = playbackId || '';
+      if (recAssetInput) recAssetInput.value = assetId || '';
+      if (statusSel) statusSel.value = 'ended';
+      if (createdAt && startInput) {
+        var d = new Date(createdAt);
+        var iso = d.getFullYear() + '-' +
+          String(d.getMonth() + 1).padStart(2, '0') + '-' +
+          String(d.getDate()).padStart(2, '0') + 'T' +
+          String(d.getHours()).padStart(2, '0') + ':' +
+          String(d.getMinutes()).padStart(2, '0');
+        startInput.value = iso;
+        if (endInput && duration) {
+          var endDate = new Date(d.getTime() + (parseFloat(duration) * 1000));
+          var endIso = endDate.getFullYear() + '-' +
+            String(endDate.getMonth() + 1).padStart(2, '0') + '-' +
+            String(endDate.getDate()).padStart(2, '0') + 'T' +
+            String(endDate.getHours()).padStart(2, '0') + ':' +
+            String(endDate.getMinutes()).padStart(2, '0');
+          endInput.value = endIso;
+        }
+      }
+      toast('Pre-filled from Mux asset. Add title + access, then save.');
+    }, 50);
+  }
+
+  function aiBadge(item) {
+    var hasSummary = !!(item.aiSummary || item.aiSummary_da || item.aiSummary_en);
+    var st = item.aiStatus || '';
+    var cls, label, title;
+    var ACTIVE = { processing: 1, preparing_audio: 1, transcribing: 1, uploading_subtitles: 1, generating_summary: 1, translating: 1, deepgram_pending: 1, mp4_pending: 1, captions_requested: 1, captions_pending: 1, subtitle_pending: 1, transcript_ready: 1 };
+    if (hasSummary || st === 'complete') {
+      cls = 'yb-la__ai-badge--ok'; label = 'AI ✓'; title = 'AI content ready';
+    } else if (st === 'error' || st === 'no_transcript') {
+      cls = 'yb-la__ai-badge--err'; label = 'AI ✗'; title = item.aiError || 'AI failed: ' + st;
+    } else if (ACTIVE[st]) {
+      cls = 'yb-la__ai-badge--pending'; label = 'AI ⋯'; title = 'AI: ' + st;
+    } else {
+      cls = 'yb-la__ai-badge--none'; label = 'AI —'; title = 'No AI content';
+    }
+    return ' <span class="yb-la__ai-badge ' + cls + '" data-action="live-ai-jump" data-id="' + esc(item.id) + '" title="' + esc(title) + '">' + label + '</span>';
+  }
+
   function recordingBadge(item) {
     if (item.status !== 'ended') return '';
     var aiSt = item.aiStatus || '';
@@ -1485,6 +1677,56 @@
       if (btn) {
         var lang = btn.getAttribute('data-lang');
         if (window._aiLangTab) window._aiLangTab(lang);
+        return;
+      }
+
+      // ── AI Backfill ──
+      btn = e.target.closest('[data-action="live-backfill-ai"]');
+      if (btn) { openBackfillModal(); return; }
+
+      btn = e.target.closest('[data-action="live-backfill-close"]');
+      if (btn) { closeBackfillModal(); return; }
+
+      btn = e.target.closest('[data-action="live-backfill-start"]');
+      if (btn) { runBackfill(); return; }
+
+      btn = e.target.closest('[data-action="live-backfill-scan-orphans"]');
+      if (btn) { scanOrphans(); return; }
+
+      btn = e.target.closest('[data-action="live-orphan-create"]');
+      if (btn) {
+        createSessionFromOrphan(
+          btn.getAttribute('data-playback-id'),
+          btn.getAttribute('data-asset-id'),
+          btn.getAttribute('data-created-at'),
+          btn.getAttribute('data-duration')
+        );
+        return;
+      }
+
+      // ── AI status badge jump — open form + scroll to AI section ──
+      var aiJump = e.target.closest('[data-action="live-ai-jump"]');
+      if (aiJump) {
+        var jumpId = aiJump.getAttribute('data-id');
+        var item = items.find(function (x) { return x.id === jumpId; });
+        if (item) {
+          openForm(item);
+          setTimeout(function () {
+            var ai = $('yb-la-ai-section');
+            if (ai && !ai.hidden) ai.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
+        e.stopPropagation();
+        return;
+      }
+
+      // ── Backfill status pill toggle (single-select) ──
+      var bfPill = e.target.closest('.yb-la-bf-status-pill');
+      if (bfPill) {
+        var siblings = document.querySelectorAll('.yb-la-bf-status-pill');
+        for (var bp = 0; bp < siblings.length; bp++) siblings[bp].classList.remove('yb-la-pill--active');
+        bfPill.classList.add('yb-la-pill--active');
+        e.preventDefault();
         return;
       }
 
@@ -1586,6 +1828,8 @@
       }
       var permPill = e.target.closest('.yb-la-perm-pill');
       if (permPill) {
+        // Skip pills used for non-permission UI (backfill filter, etc.) — handled elsewhere
+        if (permPill.classList.contains('yb-la-bf-status-pill')) return;
         e.preventDefault();
         permPill.classList.toggle('yb-la-pill--active');
         var scope2 = permPill.closest('#yb-live-admin-v-form, #yb-live-bulk-access-panel');
