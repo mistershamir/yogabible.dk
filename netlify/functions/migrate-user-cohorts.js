@@ -18,6 +18,64 @@
 const { getDb } = require('./shared/firestore');
 const { jsonResponse, optionsResponse } = require('./shared/utils');
 
+// Admin/test accounts — skip entirely (no migration, no couldNotInfer count).
+var ADMIN_SKIP_EMAILS = [
+  'info@yogabible.com',
+  'info@hotyogacph.dk',
+  'shamir@hotyogacph.dk'
+];
+
+// Per-email overrides for unusual legacy cohort values that cannot be
+// inferred from program/method alone. Each entry supplies the
+// authoritative catalogue-aligned values.
+var EMAIL_OVERRIDES = {
+  'avasuleimans@gmail.com': {
+    courseId: 'YTT200-4W',
+    cohortId: '2026-04',
+    cohortLabel: 'April 2026',
+    cohortBuildId: '2026-04-4W'
+  }
+};
+
+// Legacy cohort value → authoritative mapping.
+// "2026-spring" → 18-Week March–June 2026 (catalogue cohort_id: 2026-03-06)
+var LEGACY_COHORT_MAP = {
+  '2026-spring': {
+    courseId: 'YTT200-18W',
+    cohortId: '2026-03-06',
+    cohortLabel: 'March–June 2026',
+    cohortBuildId: '2026-03-06-18W'
+  }
+};
+
+/**
+ * If a cohort value is a full ISO timestamp like "2026-02-28T23:00:00.000Z-4W",
+ * strip the ISO suffix and return just { datePart, suffix }.
+ * Returns null when no ISO timestamp is present.
+ */
+function stripIsoFromCohort(cohort) {
+  if (typeof cohort !== 'string') return null;
+  // Matches YYYY-MM-DDTHH:MM:SS(.sss)?Z followed by optional suffix like "-4W"
+  var m = cohort.match(/^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z(-.*)?$/);
+  if (!m) return null;
+  return { datePart: m[1], suffix: m[2] || '' };
+}
+
+/**
+ * Best-effort rebuild of a buildCohortId-format string when a cohort
+ * value contains an ISO timestamp.
+ *   "2026-02-28T23:00:00.000Z-4W"  →  "2026-02-4W"  (month portion only)
+ *
+ * The catalogue cohort_id for 4-week intensives uses "YYYY-MM" (no day),
+ * so we prefer the year-month portion of the ISO date.
+ */
+function rebuildIsoCohort(cohort) {
+  var stripped = stripIsoFromCohort(cohort);
+  if (!stripped) return null;
+  var yearMonth = stripped.datePart.slice(0, 7); // "2026-02"
+  return yearMonth + (stripped.suffix || '');
+}
+
 function inferCourseIdFromDetails(details) {
   var prog = details.program || '';
   var method = details.method || '';
@@ -60,7 +118,7 @@ exports.handler = async (event) => {
     var db = getDb();
     var snap = await db.collection('users').get();
 
-    var summary = { migrated: 0, couldNotInfer: 0, skipped: 0, details: [] };
+    var summary = { migrated: 0, couldNotInfer: 0, skipped: 0, adminSkipped: 0, details: [] };
 
     var writes = [];
 
@@ -68,6 +126,13 @@ exports.handler = async (event) => {
       var uid = doc.id;
       var data = doc.data() || {};
       var details = data.roleDetails || {};
+      var email = (data.email || '').toLowerCase().trim();
+
+      // Skip admin/test accounts entirely
+      if (email && ADMIN_SKIP_EMAILS.indexOf(email) !== -1) {
+        summary.adminSkipped++;
+        return;
+      }
 
       // Only trainees/teachers have program/cohort semantics
       if (!details.program && !details.cohort && !details.courseId) {
@@ -78,22 +143,57 @@ exports.handler = async (event) => {
       var updates = {};
       var actions = [];
 
-      // 1. Wrap cohort string in array
-      if (typeof details.cohort === 'string' && details.cohort) {
-        updates.cohort = [details.cohort];
-        actions.push('cohort:string→array');
-      }
-
-      // 2. Infer courseId when missing
-      if (!details.courseId) {
-        var inferred = inferCourseIdFromDetails(details);
-        if (inferred) {
-          updates.courseId = inferred;
-          actions.push('courseId:' + inferred);
+      // 0a. Per-email override takes highest priority (handles unique legacy cases)
+      var emailOverride = email ? EMAIL_OVERRIDES[email] : null;
+      if (emailOverride) {
+        if (!details.courseId || details.courseId !== emailOverride.courseId) {
+          updates.courseId = emailOverride.courseId; actions.push('override.courseId:' + emailOverride.courseId);
+        }
+        if (!details.cohortId || details.cohortId !== emailOverride.cohortId) {
+          updates.cohortId = emailOverride.cohortId; actions.push('override.cohortId:' + emailOverride.cohortId);
+        }
+        if (!details.cohortLabel) {
+          updates.cohortLabel = emailOverride.cohortLabel; actions.push('override.cohortLabel');
+        }
+        updates.cohort = [emailOverride.cohortBuildId];
+        actions.push('override.cohort:' + emailOverride.cohortBuildId);
+      } else {
+        // 0b. Legacy cohort string mapping (e.g. "2026-spring" → 18W)
+        var cohortForMap = Array.isArray(details.cohort) ? details.cohort[0] : details.cohort;
+        var legacyMap = cohortForMap ? LEGACY_COHORT_MAP[cohortForMap] : null;
+        if (legacyMap) {
+          if (!details.courseId) { updates.courseId = legacyMap.courseId; actions.push('legacyMap.courseId:' + legacyMap.courseId); }
+          if (!details.cohortId) { updates.cohortId = legacyMap.cohortId; actions.push('legacyMap.cohortId:' + legacyMap.cohortId); }
+          if (!details.cohortLabel) { updates.cohortLabel = legacyMap.cohortLabel; actions.push('legacyMap.cohortLabel'); }
+          updates.cohort = [legacyMap.cohortBuildId];
+          actions.push('legacyMap.cohort:' + legacyMap.cohortBuildId);
         } else {
-          summary.couldNotInfer++;
-          summary.details.push({ uid: uid, email: data.email || '', status: 'could_not_infer', existing: details });
-          return;
+          // 1a. ISO timestamp in cohort value → rebuild "YYYY-MM<suffix>"
+          var cohortStr = Array.isArray(details.cohort) ? details.cohort[0] : details.cohort;
+          var rebuilt = rebuildIsoCohort(cohortStr);
+          if (rebuilt) {
+            updates.cohort = [rebuilt];
+            actions.push('iso→' + rebuilt);
+            // Refresh cohort for subsequent inference steps
+            details = Object.assign({}, details, { cohort: rebuilt });
+          } else if (typeof details.cohort === 'string' && details.cohort) {
+            // 1b. Wrap plain cohort string in array
+            updates.cohort = [details.cohort];
+            actions.push('cohort:string→array');
+          }
+
+          // 2. Infer courseId when missing
+          if (!details.courseId && !updates.courseId) {
+            var inferred = inferCourseIdFromDetails(details);
+            if (inferred) {
+              updates.courseId = inferred;
+              actions.push('courseId:' + inferred);
+            } else {
+              summary.couldNotInfer++;
+              summary.details.push({ uid: uid, email: email, status: 'could_not_infer', existing: details });
+              return;
+            }
+          }
         }
       }
 
@@ -103,10 +203,10 @@ exports.handler = async (event) => {
       }
 
       summary.migrated++;
-      summary.details.push({ uid: uid, email: data.email || '', status: 'migrated', actions: actions, updates: updates });
+      summary.details.push({ uid: uid, email: email, status: 'migrated', actions: actions, updates: updates });
 
       if (!dryRun) {
-        var mergedDetails = Object.assign({}, details, updates);
+        var mergedDetails = Object.assign({}, data.roleDetails || {}, updates);
         writes.push({ ref: doc.ref, details: mergedDetails });
       }
     });
@@ -126,7 +226,8 @@ exports.handler = async (event) => {
     console.log('[migrate-user-cohorts]', dryRun ? '(dry run)' : '(write)',
       'migrated:', summary.migrated,
       'couldNotInfer:', summary.couldNotInfer,
-      'skipped:', summary.skipped);
+      'skipped:', summary.skipped,
+      'adminSkipped:', summary.adminSkipped);
 
     return jsonResponse(200, { ok: true, dryRun: dryRun, ...summary });
 
