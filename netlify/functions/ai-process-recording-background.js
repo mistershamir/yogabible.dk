@@ -28,6 +28,8 @@ var COLLECTION = 'live-schedule';
 // ═══════════════════════════════════════════════════
 
 exports.handler = async function (event) {
+  console.log('[ai-bg] ENTRY — method:', event.httpMethod, 'body length:', (event.body || '').length);
+
   if (event.httpMethod === 'OPTIONS') {
     return jsonResponse(204, '');
   }
@@ -39,6 +41,9 @@ exports.handler = async function (event) {
     var playbackId = body.playbackId || null;
     var transcriptOnly = body.transcriptOnly === true;
     var directUrl = body.directUrl || null; // Skip Mux MP4 — send this URL straight to Deepgram
+    var providedSecret = body.secret || '';
+
+    console.log('[ai-bg] Parsed — sessionId:', sessionId, 'secret present:', !!providedSecret);
 
     if (!sessionId || !assetId) {
       return jsonResponse(400, { ok: false, error: 'sessionId and assetId required' });
@@ -46,11 +51,11 @@ exports.handler = async function (event) {
 
     // Verify internal call
     var internalSecret = process.env.AI_INTERNAL_SECRET || '';
-    var providedSecret = body.secret || '';
     if (internalSecret && providedSecret !== internalSecret) {
       return jsonResponse(401, { ok: false, error: 'Unauthorized' });
     }
 
+    console.log('[ai-bg] Auth passed');
     console.log('[ai-process] Starting full pipeline for session:', sessionId, 'asset:', assetId);
 
     // Guard: skip if pipeline is actively mid-work on this session.
@@ -60,11 +65,13 @@ exports.handler = async function (event) {
     // states that mean Deepgram/Claude is actively running, or is already done.
     var currentDoc = await getDoc(COLLECTION, sessionId);
     var currentStatus = currentDoc && currentDoc.aiStatus;
+    console.log('[ai-bg] Session loaded — exists:', !!currentDoc, 'aiStatus:', currentDoc ? currentStatus : 'N/A');
     var ACTIVE_STATUSES = ['transcribing', 'uploading_subtitles', 'generating_summary', 'translating', 'complete'];
     if (ACTIVE_STATUSES.indexOf(currentStatus) !== -1) {
       console.log('[ai-process] Session', sessionId, 'already has aiStatus:', currentStatus, '— skipping duplicate run');
       return jsonResponse(200, { ok: true, status: 'already_processing', aiStatus: currentStatus });
     }
+    console.log('[ai-bg] Guard passed — proceeding to process');
 
     // Mark processing started (idempotent — may already be 'processing' from webhook claim)
     await updateDoc(COLLECTION, sessionId, { aiStatus: 'processing' });
