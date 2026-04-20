@@ -9493,6 +9493,36 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   box-shadow: 0 4px 14px rgba(247, 92, 3, 0.18);
 }
 
+/* Currently matched card — purple, distinct from best-guess orange */
+.yb-la__mux-asset-card--matched {
+  border: 2px solid #7c3aed;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.18);
+}
+
+/* Matched-card action row (Keep + Unmatch) */
+.yb-la__mux-asset-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.yb-la__mux-asset-actions > .yb-btn { flex: 1; }
+
+/* "Unmatch" button — danger ghost, fills red on hover */
+.yb-la__mux-asset-unmatch {
+  background: transparent;
+  border: 2px solid #dc2626;
+  color: #dc2626;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.yb-la__mux-asset-unmatch:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+/* Inline preview slot under the Recording Playback ID input */
+.yb-la__rec-preview-slot { width: 100%; }
+.yb-la__rec-preview-slot[hidden] { display: none; }
+
 /* Thumbnail wrap + play button overlay */
 .yb-la__mux-thumb-wrap {
   position: relative;
@@ -9546,6 +9576,10 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
 .yb-la__mux-match-badge--sameday {
   background: #dbeafe;
   color: #2563eb;
+}
+.yb-la__mux-match-badge--matched {
+  background: #ede9fe;
+  color: #7c3aed;
 }
 
 .yb-la__mux-asset-delta {

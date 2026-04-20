@@ -557,6 +557,8 @@
     // Recording asset id (hidden field)
     var recAssetEl = $('yb-la-recording-asset-id');
     if (recAssetEl) recAssetEl.value = (item && item.recordingAssetId) || '';
+    // Show/hide inline Preview button based on whether a recording is linked
+    refreshRecPreviewButton();
 
     // "Link existing recording" toggle — only shown on create
     var linkWrap = $('yb-la-link-existing-wrap');
@@ -1488,6 +1490,12 @@
       return;
     }
     var sorted = sortedMuxAssets();
+
+    // Read current matched playback ID from the form so we can highlight & prioritize it.
+    var recInput = $('yb-la-recording-id');
+    var currentPlaybackId = recInput ? (recInput.value || '').trim() : '';
+    var matchedCardId = null;
+
     var bestId = null;
     if (muxSessionStart) {
       var best = null;
@@ -1505,8 +1513,12 @@
       var thumb = playbackId ? 'https://image.mux.com/' + playbackId + '/thumbnail.jpg?width=320&height=180&fit_mode=smartcrop' : '';
       var match = muxAssetMatch(a);
       var cardId = a.id || playbackId;
-      var isBest = bestId && cardId === bestId;
-      var cls = 'yb-la__mux-asset-card' + (isBest ? ' yb-la__mux-asset-card--best' : '');
+      var isMatched = !!(currentPlaybackId && playbackId && playbackId === currentPlaybackId);
+      if (isMatched) matchedCardId = cardId;
+      var isBest = bestId && cardId === bestId && !isMatched;
+      var cls = 'yb-la__mux-asset-card' +
+        (isMatched ? ' yb-la__mux-asset-card--matched' : '') +
+        (isBest ? ' yb-la__mux-asset-card--best' : '');
       html += '<div class="' + cls + '" data-card-id="' + esc(cardId) + '">';
 
       // Thumbnail wrapper with play button overlay
@@ -1522,8 +1534,10 @@
           '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>' +
           '</button>';
       }
-      // Match badge
-      if (match && match.tier === 'likely') {
+      // Badges — "Currently Matched" takes precedence over likely/sameday
+      if (isMatched) {
+        html += '<span class="yb-la__mux-match-badge yb-la__mux-match-badge--matched">Currently Matched</span>';
+      } else if (match && match.tier === 'likely') {
         html += '<span class="yb-la__mux-match-badge yb-la__mux-match-badge--likely">Likely Match</span>';
       } else if (match && match.tier === 'sameday') {
         html += '<span class="yb-la__mux-match-badge yb-la__mux-match-badge--sameday">Same Day</span>';
@@ -1544,15 +1558,41 @@
       html += '<div><span>Playback</span> <code>' + esc(playbackId) + '</code></div>';
       html += '<div><span>Asset</span> <code>' + esc(a.id || '') + '</code></div>';
       html += '</div>';
-      html += '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-la__mux-asset-select" ' +
-        'data-action="live-mux-select" ' +
-        'data-playback-id="' + esc(playbackId) + '" ' +
-        'data-asset-id="' + esc(a.id || '') + '" ' +
-        'data-created-at="' + esc(a.created_at || '') + '">Select</button>';
+
+      if (isMatched) {
+        // Matched card: Keep (ghost) + Unmatch (danger ghost)
+        html += '<div class="yb-la__mux-asset-actions">';
+        html += '<button type="button" class="yb-btn yb-btn--ghost yb-btn--sm yb-la__mux-asset-select" ' +
+          'data-action="live-mux-close">Keep</button>';
+        html += '<button type="button" class="yb-btn yb-btn--sm yb-la__mux-asset-unmatch" ' +
+          'data-action="live-mux-unmatch">Unmatch</button>';
+        html += '</div>';
+      } else {
+        // Unmatched: single select/replace button
+        var label = currentPlaybackId ? 'Replace with this' : 'Select';
+        html += '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-la__mux-asset-select" ' +
+          'data-action="live-mux-select" ' +
+          'data-playback-id="' + esc(playbackId) + '" ' +
+          'data-asset-id="' + esc(a.id || '') + '" ' +
+          'data-created-at="' + esc(a.created_at || '') + '">' + label + '</button>';
+      }
       html += '</div></div>';
     }
     html += '</div>';
     body.innerHTML = html;
+
+    // Auto-expand player on the matched card + scroll into view
+    if (matchedCardId) {
+      // Defer slightly so DOM is painted before we query the slot/scroll.
+      setTimeout(function () {
+        var matchedPlayback = currentPlaybackId;
+        muxPlayAsset(matchedCardId, matchedPlayback);
+        var card = body.querySelector('.yb-la__mux-asset-card[data-card-id="' + CSS.escape(matchedCardId) + '"]');
+        if (card && card.scrollIntoView) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 50);
+    }
   }
 
   function muxPlayAsset(cardId, playbackId) {
@@ -1592,6 +1632,48 @@
     if (muxActivePlayerCard === cardId) muxActivePlayerCard = null;
   }
 
+  function unmatchMuxAsset() {
+    var recInput = $('yb-la-recording-id');
+    var recAssetInput = $('yb-la-recording-asset-id');
+    if (recInput) recInput.value = '';
+    if (recAssetInput) recAssetInput.value = '';
+    // Surface the change to other form logic (e.g. not-recorded visibility)
+    if (recInput && typeof Event === 'function') {
+      recInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    refreshRecPreviewButton();
+    closeMuxBrowser();
+    toast('Recording unmatched');
+  }
+
+  function refreshRecPreviewButton() {
+    var recInput = $('yb-la-recording-id');
+    var btn = $('yb-la-rec-preview-btn');
+    var slot = $('yb-la-rec-preview-slot');
+    var val = recInput ? (recInput.value || '').trim() : '';
+    if (btn) btn.hidden = !val;
+    // Close any open preview if the id was cleared/changed
+    if (!val && slot) { slot.innerHTML = ''; slot.hidden = true; }
+  }
+
+  function toggleRecPreview() {
+    var recInput = $('yb-la-recording-id');
+    var slot = $('yb-la-rec-preview-slot');
+    if (!recInput || !slot) return;
+    var playbackId = (recInput.value || '').trim();
+    if (!playbackId) return;
+    if (!slot.hidden) {
+      slot.innerHTML = '';
+      slot.hidden = true;
+      return;
+    }
+    ensureMuxPlayerScript().then(function () {
+      slot.innerHTML = '<mux-player playback-id="' + esc(playbackId) + '" stream-type="on-demand" ' +
+        'style="--media-object-fit:cover;aspect-ratio:16/9;width:100%;max-width:480px;display:block;border-radius:8px;overflow:hidden;margin-top:0.5rem;"></mux-player>';
+      slot.hidden = false;
+    });
+  }
+
   function selectMuxAsset(playbackId, assetId, createdAt) {
     var recInput = $('yb-la-recording-id');
     var recAssetInput = $('yb-la-recording-asset-id');
@@ -1613,6 +1695,7 @@
       }
     }
 
+    refreshRecPreviewButton();
     closeMuxBrowser();
     toast('Recording linked: ' + (playbackId || '(no playback id)'));
   }
@@ -1958,6 +2041,9 @@
         return;
       }
 
+      btn = e.target.closest('[data-action="live-mux-unmatch"]');
+      if (btn) { unmatchMuxAsset(); return; }
+
       btn = e.target.closest('[data-action="live-mux-play"]');
       if (btn) {
         muxPlayAsset(btn.getAttribute('data-card-id'), btn.getAttribute('data-playback-id'));
@@ -1969,6 +2055,9 @@
         muxClosePlayer(btn.getAttribute('data-card-id'));
         return;
       }
+
+      btn = e.target.closest('[data-action="live-rec-preview"]');
+      if (btn) { toggleRecPreview(); return; }
     });
 
     // Mux date filter + load more
@@ -2006,7 +2095,10 @@
     var statusSel = $('yb-la-status');
     if (statusSel) statusSel.addEventListener('change', applyNotRecordedVisibility);
     var recIdInput = $('yb-la-recording-id');
-    if (recIdInput) recIdInput.addEventListener('input', applyNotRecordedVisibility);
+    if (recIdInput) {
+      recIdInput.addEventListener('input', applyNotRecordedVisibility);
+      recIdInput.addEventListener('input', refreshRecPreviewButton);
+    }
 
     // List view filters
     var filterEl = $('yb-live-admin-filter');

@@ -280,9 +280,11 @@
         <label for="yb-la-recording-id">{{ t.live_field_recording_id }}</label>
         <div class="yb-la__input-with-action">
           <input type="text" id="yb-la-recording-id" placeholder="{{ t.live_field_recording_hint }}">
+          <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-rec-preview" id="yb-la-rec-preview-btn" hidden>Preview</button>
           <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-browse-mux">Browse Mux Assets</button>
         </div>
         <input type="hidden" id="yb-la-recording-asset-id">
+        <div class="yb-la__rec-preview-slot" id="yb-la-rec-preview-slot" hidden></div>
       </div>
     </div>
 
