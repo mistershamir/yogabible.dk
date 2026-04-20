@@ -9329,6 +9329,21 @@ a.yb-appt__phone-link:hover { text-decoration: underline; }
   background: #dbeafe;
   color: #1e40af;
 }
+.yb-la__rec-badge--not-recorded {
+  background: #f0efed;
+  color: #6F6A66;
+}
+
+/* "Not recorded" toggle (form) */
+.yb-la__not-recorded-wrap {
+  margin-top: 0.25rem;
+}
+.yb-la__not-recorded-note {
+  margin: 0.4rem 0 0;
+  color: #6F6A66;
+  font-size: 0.82rem;
+  font-style: italic;
+}
 
 /* ═══════════════════════════════════════════════════════
    Live Admin — Mux Asset Browser Modal

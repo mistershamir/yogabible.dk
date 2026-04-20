@@ -28,7 +28,7 @@ const ALLOWED_FIELDS = [
   'title_da', 'title_en', 'description_da', 'description_en',
   'instructor', 'teacherEmail', 'startDateTime', 'endDateTime', 'duration',
   'muxPlaybackId', 'muxStreamKey', 'muxLiveStreamId',
-  'recordingPlaybackId', 'recordingAssetId',
+  'recordingPlaybackId', 'recordingAssetId', 'notRecorded',
   'liveStartedAt', 'liveEndedAt',
   'status', 'recurrence', 'access', 'programs', 'cohorts',
   'streamSource', 'livekitRoom', 'interactive', 'streamType', 'coTeachers', 'meetingUrl',
@@ -383,7 +383,7 @@ async function handleRecordings(event) {
   console.log('[live-admin] recordings: total sessions:', allItems.length);
 
   var items = allItems.filter(function (item) {
-    return item.status === 'ended' && !!item.recordingPlaybackId;
+    return item.status === 'ended' && (!!item.recordingPlaybackId || item.notRecorded === true);
   }).slice(0, 50);
   console.log('[live-admin] recordings: with recording:', items.length);
 

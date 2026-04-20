@@ -439,6 +439,12 @@
           card += '<span style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.8);color:#FFFCF9;font-size:0.7rem;font-weight:600;padding:3px 8px;border-radius:4px;letter-spacing:0.02em">' + dur + '</span>';
         }
         card += '</div>';
+      } else if (item.notRecorded) {
+        // Non-clickable placeholder for sessions that were held but not recorded
+        var altText = isDa ? 'Denne session blev ikke optaget' : 'This session was not recorded';
+        card += '<div style="aspect-ratio:16/9;background:#FFFCF9;position:relative">';
+        card += '<img src="/assets/images/live/not-recorded-placeholder.svg" alt="' + escHtml(altText) + '" style="width:100%;height:100%;object-fit:cover;display:block">';
+        card += '</div>';
       }
 
       // Info

@@ -560,6 +560,11 @@
     var linkToggle = $('yb-la-link-existing-toggle');
     if (linkToggle) linkToggle.checked = false;
 
+    // "Not recorded" toggle — only visible on ended sessions with no recording
+    var nrToggle = $('yb-la-not-recorded-toggle');
+    if (nrToggle) nrToggle.checked = !!(item && item.notRecorded);
+    applyNotRecordedVisibility();
+
     // AI content section — show only for ended sessions with recordings
     var aiSection = $('yb-la-ai-section');
     if (aiSection) {
@@ -613,6 +618,25 @@
     if (wrap) wrap.hidden = val === 'none';
   }
 
+  // Show the "Not recorded" toggle only for ended sessions without a playback ID.
+  // When checked, hide the Mux ID row + Browse button and show a note.
+  function applyNotRecordedVisibility() {
+    var wrap = $('yb-la-not-recorded-wrap');
+    var toggle = $('yb-la-not-recorded-toggle');
+    var muxRow = $('yb-la-mux-ids-row');
+    var note = $('yb-la-not-recorded-note');
+    if (!wrap || !toggle) return;
+    var status = $('yb-la-status') ? $('yb-la-status').value : '';
+    var playbackId = $('yb-la-recording-id') ? $('yb-la-recording-id').value.trim() : '';
+    var isEnded = status === 'ended';
+    var hasRecording = !!playbackId;
+    // Visible when: ended AND (no recording OR already marked notRecorded)
+    wrap.hidden = !(isEnded && (!hasRecording || toggle.checked));
+    if (wrap.hidden) { toggle.checked = false; }
+    if (muxRow) muxRow.hidden = toggle.checked;
+    if (note) note.hidden = !toggle.checked;
+  }
+
   function collectFormData() {
     var formScope = $('yb-live-admin-v-form');
     var roles = formScope ? getActivePillValues(formScope, '.yb-la-role-pill') : [];
@@ -632,6 +656,7 @@
       muxPlaybackId: $('yb-la-mux-playback').value.trim() || null,
       recordingPlaybackId: $('yb-la-recording-id').value.trim() || null,
       recordingAssetId: ($('yb-la-recording-asset-id') ? $('yb-la-recording-asset-id').value.trim() : '') || null,
+      notRecorded: !!($('yb-la-not-recorded-toggle') && $('yb-la-not-recorded-toggle').checked),
       access: { roles: roles, permissions: perms }
     };
 
@@ -1213,6 +1238,35 @@
     });
   }
 
+  // Mark selected sessions as "not recorded" (skips any that already have a recording)
+  function bulkMarkNotRecorded() {
+    if (!liveSelectedIds.size) return;
+    var selectedIds = Array.from(liveSelectedIds);
+    var eligible = items.filter(function (x) {
+      return selectedIds.indexOf(x.id) !== -1 && !x.recordingPlaybackId;
+    }).map(function (x) { return x.id; });
+
+    if (!eligible.length) {
+      toast(LANG === 'da' ? 'Alle valgte sessioner har allerede en optagelse.' : 'All selected sessions already have a recording.', true);
+      return;
+    }
+
+    var msg = t('live_confirm_bulk_not_recorded').replace('{n}', eligible.length);
+    if (!confirm(msg)) return;
+
+    apiFetch('bulk-update', { method: 'POST', body: { ids: eligible, updates: { notRecorded: true } } }).then(function (res) {
+      if (res.ok) {
+        toast(res.updated + ' ' + t('live_bulk_marked_not_recorded'));
+        liveSelectedIds.clear();
+        loadItems();
+      } else {
+        toast(res.error || t('error_save'), true);
+      }
+    }).catch(function () {
+      toast(t('error_save'), true);
+    });
+  }
+
   function bulkDeleteLive() {
     if (!liveSelectedIds.size) return;
     if (!confirm(t('live_confirm_bulk_delete'))) return;
@@ -1761,6 +1815,9 @@
     if (item.recordingPlaybackId) {
       return ' <span class="yb-la__rec-badge yb-la__rec-badge--ready">Recording</span>';
     }
+    if (item.notRecorded) {
+      return ' <span class="yb-la__rec-badge yb-la__rec-badge--not-recorded">' + esc(t('live_badge_not_recorded')) + '</span>';
+    }
     return ' <span class="yb-la__rec-badge yb-la__rec-badge--missing">No recording</span>';
   }
 
@@ -1830,6 +1887,9 @@
 
       btn = e.target.closest('[data-action="live-bulk-delete"]');
       if (btn) { bulkDeleteLive(); return; }
+
+      btn = e.target.closest('[data-action="live-bulk-not-recorded"]');
+      if (btn) { bulkMarkNotRecorded(); return; }
 
       btn = e.target.closest('[data-action="live-bulk-deselect"]');
       if (btn) { deselectAllLive(); return; }
@@ -1945,6 +2005,14 @@
     // Recurrence toggle
     var recSelect = $('yb-la-recurrence');
     if (recSelect) recSelect.addEventListener('change', toggleRecurrenceEnd);
+
+    // Not-recorded toggle + its dependencies (status, recording-id)
+    var nrToggle = $('yb-la-not-recorded-toggle');
+    if (nrToggle) nrToggle.addEventListener('change', applyNotRecordedVisibility);
+    var statusSel = $('yb-la-status');
+    if (statusSel) statusSel.addEventListener('change', applyNotRecordedVisibility);
+    var recIdInput = $('yb-la-recording-id');
+    if (recIdInput) recIdInput.addEventListener('input', applyNotRecordedVisibility);
 
     // List view filters
     var filterEl = $('yb-live-admin-filter');

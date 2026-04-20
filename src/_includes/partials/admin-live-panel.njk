@@ -31,6 +31,7 @@
   <div id="yb-live-bulk-bar" class="yb-lead__bulk-bar" hidden>
     <span id="yb-live-bulk-count" class="yb-lead__bulk-count-text"></span>
     <button class="yb-btn yb-btn--primary yb-btn--sm" data-action="live-bulk-access">&#128274; {{ t.live_bulk_set_access }}</button>
+    <button class="yb-btn yb-btn--ghost yb-btn--sm" data-action="live-bulk-not-recorded">&#127909; {{ t.live_bulk_mark_not_recorded }}</button>
     <button class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" data-action="live-bulk-delete">&#128465; {{ t.live_bulk_delete }}</button>
     <button class="yb-btn yb-btn--outline yb-btn--sm" data-action="live-bulk-deselect">&#10006; {{ t.live_bulk_deselect }}</button>
   </div>
@@ -260,8 +261,17 @@
       </label>
     </div>
 
+    {# Not-recorded toggle — only for ended sessions without a recording #}
+    <div class="yb-admin__field yb-la__not-recorded-wrap" id="yb-la-not-recorded-wrap" hidden>
+      <label class="yb-admin__checkbox-label">
+        <input type="checkbox" id="yb-la-not-recorded-toggle">
+        <span>{{ t.live_field_not_recorded }}</span>
+      </label>
+      <p class="yb-la__not-recorded-note" id="yb-la-not-recorded-note" hidden>{{ t.live_field_not_recorded_note }}</p>
+    </div>
+
     {# Mux IDs #}
-    <div class="yb-admin__form-row">
+    <div class="yb-admin__form-row" id="yb-la-mux-ids-row">
       <div class="yb-admin__field">
         <label for="yb-la-mux-playback">{{ t.live_field_mux_playback }}</label>
         <input type="text" id="yb-la-mux-playback" placeholder="{{ t.live_field_mux_playback_hint }}">
