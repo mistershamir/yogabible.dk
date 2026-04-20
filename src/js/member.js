@@ -442,7 +442,7 @@
       } else if (item.notRecorded) {
         // Non-clickable placeholder for sessions that were held but not recorded
         var altText = isDa ? 'Denne session blev ikke optaget' : 'This session was not recorded';
-        card += '<div style="aspect-ratio:16/9;background:#FFFCF9;position:relative">';
+        card += '<div style="aspect-ratio:16/9;background:#161616;position:relative">';
         card += '<img src="/assets/images/live/not-recorded-placeholder.svg" alt="' + escHtml(altText) + '" style="width:100%;height:100%;object-fit:cover;display:block">';
         card += '</div>';
       }

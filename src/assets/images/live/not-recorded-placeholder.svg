@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="Session not recorded">
-  <rect width="640" height="360" fill="#FFFCF9"/>
-  <g transform="translate(320 150)" fill="none" stroke="#6F6A66" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+  <rect width="640" height="360" fill="#161616"/>
+  <g transform="translate(320 150)" fill="none" stroke="#4a4a4a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
     <rect x="-70" y="-38" width="116" height="76" rx="10" ry="10"/>
-    <path d="M46 -16 L86 -36 L86 36 L46 16 Z"/>
+    <path d="M46 -16 L86 -36 L86 36 L46 16 Z" stroke="#6F6A66"/>
     <line x1="-78" y1="-52" x2="94" y2="52" stroke="#f75c03" stroke-width="6"/>
   </g>
-  <text x="320" y="248" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="18" font-weight="700" fill="#0F0F0F" letter-spacing="0.02em">Denne session blev ikke optaget</text>
+  <text x="320" y="248" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="18" font-weight="700" fill="#aaaaaa" letter-spacing="0.02em">Denne session blev ikke optaget</text>
   <text x="320" y="276" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="400" fill="#6F6A66" letter-spacing="0.02em">This session was not recorded</text>
   <rect x="260" y="308" width="120" height="3" rx="1.5" fill="#f75c03"/>
 </svg>
