@@ -45,14 +45,30 @@ exports.handler = async function (event) {
 
     console.log('[ai-bg] Parsed — sessionId:', sessionId, 'secret present:', !!providedSecret);
 
-    if (!sessionId || !assetId) {
-      return jsonResponse(400, { ok: false, error: 'sessionId and assetId required' });
+    // Verify internal call FIRST — before any Firestore lookups.
+    // Trim both sides to defend against stray whitespace/newlines in env var or body.
+    var internalSecret = (process.env.AI_INTERNAL_SECRET || '').trim();
+    if (internalSecret && providedSecret.trim() !== internalSecret) {
+      console.log('[ai-bg] Auth failed — secret mismatch');
+      return jsonResponse(401, { ok: false, error: 'Unauthorized' });
     }
 
-    // Verify internal call
-    var internalSecret = process.env.AI_INTERNAL_SECRET || '';
-    if (internalSecret && providedSecret !== internalSecret) {
-      return jsonResponse(401, { ok: false, error: 'Unauthorized' });
+    if (!sessionId) {
+      return jsonResponse(400, { ok: false, error: 'sessionId required' });
+    }
+
+    // assetId is optional in the request body. If not provided (e.g. admin-triggered
+    // retries), hydrate it (and playbackId) from the session doc in Firestore so that
+    // callers can invoke the pipeline with just { sessionId, secret }.
+    if (!assetId) {
+      var bootstrapDoc = await getDoc(COLLECTION, sessionId);
+      assetId = bootstrapDoc && bootstrapDoc.recordingAssetId;
+      if (!playbackId) playbackId = (bootstrapDoc && bootstrapDoc.recordingPlaybackId) || null;
+      console.log('[ai-bg] Hydrated from Firestore — assetId:', assetId || 'NOT FOUND', 'playbackId:', playbackId || 'NOT FOUND');
+    }
+
+    if (!assetId) {
+      return jsonResponse(400, { ok: false, error: 'assetId required (not in body and no recordingAssetId on session)' });
     }
 
     console.log('[ai-bg] Auth passed');
