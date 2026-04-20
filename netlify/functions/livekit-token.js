@@ -299,10 +299,33 @@ async function handleCreateRoom(event) {
   });
 
   // ── Set up Mux recording via Room Composite Egress ──
-  // Skip if session already has a Mux stream (teacher is rejoining)
-  var isRejoin = session.status === 'live' && session.muxLiveStreamId;
-  var muxStreamId = session.muxLiveStreamId || null;
-  var muxPlaybackId = session.muxPlaybackId || null;
+  // Detect fresh go-live vs. rejoin of an in-progress session.
+  //
+  // A "rejoin" is a teacher re-entering the SAME live session (e.g. ATEM
+  // hiccup, browser refresh) — we want to reuse the existing Mux stream
+  // and egress so the recording stays continuous.
+  //
+  // A "fresh go-live" is a new session on a different day, even if the
+  // Firestore doc is reused (recurring class). In that case we MUST create
+  // a new Mux live stream — reusing yesterday's stream ID causes the
+  // asset.ready webhook to attach today's recording to yesterday's session.
+  //
+  // Signals that this is a fresh go-live, not a rejoin:
+  //   - session already has a recordingPlaybackId (yesterday was recorded)
+  //   - session already has liveEndedAt (yesterday ended)
+  //   - liveStartedAt is older than the Mux max_continuous_duration (6h)
+  var hasPriorRecording = !!(session.recordingPlaybackId || session.liveEndedAt);
+  var liveStartedRecently = false;
+  if (session.liveStartedAt) {
+    var startedMs = new Date(session.liveStartedAt).getTime();
+    liveStartedRecently = (Date.now() - startedMs) < 7 * 60 * 60 * 1000; // 7h
+  }
+  var isRejoin = session.status === 'live' &&
+                 session.muxLiveStreamId &&
+                 liveStartedRecently &&
+                 !hasPriorRecording;
+  var muxStreamId = isRejoin ? session.muxLiveStreamId : null;
+  var muxPlaybackId = isRejoin ? session.muxPlaybackId : null;
 
   if (!isRejoin) {
     // Check for active egresses on this room first — prevent duplicates
@@ -378,6 +401,20 @@ async function handleCreateRoom(event) {
   if (!isRejoin) sessionUpdate.liveStartedAt = new Date().toISOString();
   if (muxStreamId) sessionUpdate.muxLiveStreamId = muxStreamId;
   if (muxPlaybackId) sessionUpdate.muxPlaybackId = muxPlaybackId;
+
+  // Fresh go-live on a session that previously ran (recurring class reused
+  // across days): clear stale recording + AI state so today's recording can
+  // attach cleanly and trigger fresh AI processing.
+  if (!isRejoin && hasPriorRecording) {
+    sessionUpdate.recordingPlaybackId = null;
+    sessionUpdate.recordingAssetId = null;
+    sessionUpdate.liveEndedAt = null;
+    sessionUpdate.aiStatus = null;
+    sessionUpdate.aiError = null;
+    sessionUpdate.aiProcessedAt = null;
+    console.log('[livekit-token] Fresh go-live on reused session', sessionId,
+      '— cleared stale recording/AI fields from prior run');
+  }
 
   await updateDoc(COLLECTION, sessionId, sessionUpdate);
 

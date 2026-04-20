@@ -144,6 +144,36 @@ function getDayBounds(date) {
   };
 }
 
+/**
+ * Mutate `update` to clear stale state from a prior go-live on the same
+ * session doc (recurring class reused across days). Signals of a prior run:
+ *   - liveEndedAt is set (previous session ended)
+ *   - aiProcessedAt is set (previous AI pipeline completed)
+ *   - recordingPlaybackId is set (previous recording attached)
+ *
+ * Without this, yesterday's aiStatus ('complete', 'error', stuck 'processing')
+ * blocks claimAiProcessingSlot when today's recording reconciles — the
+ * transaction sees a "busy" status and skips triggering AI for the new asset.
+ */
+function clearStaleRunState(session, update) {
+  var hasPriorRun = !!(session.liveEndedAt || session.aiProcessedAt ||
+                       session.recordingPlaybackId);
+  if (!hasPriorRun) return;
+
+  if (session.aiStatus) {
+    update.aiStatus = null;
+    update.aiError = null;
+    update.aiProcessedAt = null;
+  }
+  if (session.liveEndedAt) update.liveEndedAt = null;
+  if (session.recordingPlaybackId) update.recordingPlaybackId = null;
+  if (session.recordingAssetId) update.recordingAssetId = null;
+
+  console.log('[mux-webhook] Cleared stale prior-run state on session', session.id,
+    '(prior aiStatus:', session.aiStatus || 'none',
+    ', prior recordingPlaybackId:', session.recordingPlaybackId || 'none', ')');
+}
+
 /* ══════════════════════════════════════════════════════════════
    1. STREAM WENT LIVE — match to closest scheduled session
    ══════════════════════════════════════════════════════════════ */
@@ -179,6 +209,10 @@ async function handleStreamActive(streamData) {
     if (streamPlaybackId && !preMatched.muxPlaybackId) {
       preUpdate.muxPlaybackId = streamPlaybackId;
     }
+    // Clear stale state from a prior go-live on this same doc. Without this,
+    // aiStatus from yesterday ('complete', 'error', or stuck 'processing')
+    // blocks claimAiProcessingSlot when today's recording reconciles.
+    clearStaleRunState(preMatched, preUpdate);
     await updateDoc(COLLECTION, preMatched.id, preUpdate);
     await reconcileUnmatchedRecordings(liveStreamId, preMatched.id);
     return;
@@ -234,6 +268,9 @@ async function handleStreamActive(streamData) {
   if (streamPlaybackId && !closest.muxPlaybackId) {
     update.muxPlaybackId = streamPlaybackId;
   }
+
+  // Clear stale state from a prior go-live on this same doc.
+  clearStaleRunState(closest, update);
 
   await updateDoc(COLLECTION, closest.id, update);
   console.log('[mux-webhook] Session', closest.id, 'is now LIVE');
@@ -347,25 +384,36 @@ async function handleAssetReady(assetData) {
 
   var matched = null;
 
-  // Priority 1: exact match on stored muxLiveStreamId
+  // Priority 1: session that owns this stream ID AND doesn't yet have a
+  // recording. The stream ID can be shared across multiple sessions when a
+  // recurring class reuses the same Firestore doc — picking the one without
+  // a recording ensures a fresh recording lands on the right go-live.
+  // recentSessions is already sorted newest-first, so we naturally pick
+  // today's session over yesterday's when both share the stream ID.
   for (var i = 0; i < recentSessions.length; i++) {
-    if (recentSessions[i].muxLiveStreamId === liveStreamId) {
-      matched = recentSessions[i];
+    var si = recentSessions[i];
+    if (si.muxLiveStreamId === liveStreamId && !si.recordingPlaybackId) {
+      matched = si;
       break;
     }
   }
 
-  // Priority 2: match on muxStreamKey (manually entered in admin form)
+  // Priority 2: match on muxStreamKey (manually entered in admin form),
+  // again preferring sessions without an existing recording.
   if (!matched) {
     for (var j = 0; j < recentSessions.length; j++) {
-      if (recentSessions[j].muxStreamKey === liveStreamId) {
-        matched = recentSessions[j];
+      var sj = recentSessions[j];
+      if (sj.muxStreamKey === liveStreamId && !sj.recordingPlaybackId) {
+        matched = sj;
         break;
       }
     }
   }
 
-  // Priority 3: most recent ended/live session without a recording (same day)
+  // Priority 3: a session from today (live or ended) without a recording.
+  // Covers the case where a fresh go-live created a new Mux stream but
+  // the session doc hasn't yet had muxLiveStreamId propagated via the
+  // live_stream.active webhook — asset.ready arrived first.
   if (!matched) {
     var now = new Date();
     var bounds = getDayBounds(now);
@@ -376,6 +424,24 @@ async function handleAssetReady(assetData) {
         matched = s;
         break;
       }
+    }
+  }
+
+  // Priority 4: any scheduled session for today without a recording that
+  // hasn't been touched yet — final fallback before giving up.
+  if (!matched) {
+    var now2 = new Date();
+    var bounds2 = getDayBounds(now2);
+    var allToday = allSessions.filter(function (s) {
+      return s.startDateTime &&
+             s.startDateTime >= bounds2.start &&
+             s.startDateTime <= bounds2.end &&
+             !s.recordingPlaybackId;
+    });
+    if (allToday.length) {
+      matched = allToday[0];
+      console.log('[mux-webhook] Priority 4 fallback — matched scheduled session',
+        matched.id, 'for today without recording');
     }
   }
 
