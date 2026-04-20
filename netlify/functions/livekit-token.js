@@ -355,7 +355,10 @@ async function handleCreateRoom(event) {
       try {
         var muxResult = await muxFetch('/video/v1/live-streams', 'POST', {
           playback_policy: ['public'],
-          new_asset_settings: { playback_policy: ['public'] },
+          new_asset_settings: {
+            playback_policy: ['public'],
+            generated_subtitles: [{ language_code: 'en', name: 'English (auto)' }]
+          },
           latency_mode: 'low',
           reconnect_window: 60,
           max_continuous_duration: 21600
@@ -719,7 +722,11 @@ async function handleStartEgress(event) {
     // Create a new Mux live stream
     var muxResult = await muxFetch('/video/v1/live-streams', 'POST', {
       playback_policy: ['public'],
-      new_asset_settings: { playback_policy: ['public'], master_access: 'temporary' },
+      new_asset_settings: {
+        playback_policy: ['public'],
+        master_access: 'temporary',
+        generated_subtitles: [{ language_code: 'en', name: 'English (auto)' }]
+      },
       latency_mode: 'low',
       reconnect_window: 60,
       max_continuous_duration: 21600

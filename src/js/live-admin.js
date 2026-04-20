@@ -1747,13 +1747,22 @@
     var limit = parseInt(($('yb-la-bf-limit') || {}).value, 10) || 10;
     var dryRun = ($('yb-la-bf-dry-run') || {}).checked;
 
-    var qs = 'status=' + encodeURIComponent(status) + '&limit=' + limit + (dryRun ? '&dry_run=true' : '');
+    var isGenCaptions = status === 'generate-captions';
+    var qs;
+    var method;
+    if (isGenCaptions) {
+      qs = 'action=generate-captions&limit=' + limit + (dryRun ? '&dry_run=true' : '');
+      method = 'POST';
+    } else {
+      qs = 'status=' + encodeURIComponent(status) + '&limit=' + limit + (dryRun ? '&dry_run=true' : '');
+      method = 'POST';
+    }
     var btn = $('yb-la-bf-start-btn');
     if (btn) { btn.disabled = true; btn.textContent = dryRun ? 'Running dry run…' : 'Queuing…'; }
     var results = $('yb-la-bf-results');
     if (results) { results.hidden = false; results.innerHTML = '<p class="yb-la__loading-text">Working…</p>'; }
 
-    backfillFetch('POST', qs).then(function (res) {
+    backfillFetch(method, qs).then(function (res) {
       if (btn) { btn.disabled = false; btn.textContent = 'Start backfill'; }
       var html = '';
       if (res.dry_run) {

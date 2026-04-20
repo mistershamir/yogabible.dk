@@ -80,6 +80,7 @@ exports.handler = async function (event) {
     if (action === 'list-mux-assets') return await handleListMuxAssets(params);
     if (action === 'find-orphans') return await handleFindOrphans(params);
     if (action === 'list-unmatched') return await handleListUnmatched();
+    if (action === 'generate-captions') return await handleGenerateCaptions(params);
 
     // Default: backfill
     if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
@@ -268,6 +269,111 @@ async function handleFindOrphans(params) {
   }
 
   return jsonResponse(200, { ok: true, scanned: scanned, orphans: orphans, truncated: scanned >= pagesToScan * limit });
+}
+
+/**
+ * Retroactively generate Mux auto-captions on old recordings.
+ * For each session with recordingAssetId but no captionTrackId, calls Mux's
+ * generate-subtitles endpoint on the asset's audio track. Mux then fires
+ * video.asset.track.ready when captions are ready — handleTrackReady triggers
+ * the Claude pipeline.
+ */
+async function handleGenerateCaptions(params) {
+  var limit = Math.min(parseInt(params.limit, 10) || DEFAULT_LIMIT, MAX_LIMIT);
+  var dryRun = params.dry_run === 'true' || params.dry_run === '1';
+  var sessionId = params.session_id || '';
+
+  var all = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'desc' });
+
+  var candidates;
+  if (sessionId) {
+    var single = all.find(function (s) { return s.id === sessionId; });
+    if (!single) return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessionId });
+    if (!single.recordingAssetId) return jsonResponse(400, { ok: false, error: 'Session has no recordingAssetId' });
+    candidates = [single];
+  } else {
+    candidates = all.filter(function (s) {
+      return s.recordingAssetId && !s.captionTrackId && !s.aiCaptionTrackId;
+    });
+  }
+
+  var targets = candidates.slice(0, limit);
+
+  if (dryRun) {
+    return jsonResponse(200, {
+      ok: true,
+      dry_run: true,
+      matched: candidates.length,
+      wouldProcess: targets.length,
+      sessions: targets.map(function (s) {
+        return { id: s.id, title: s.title_da || s.title_en || '', assetId: s.recordingAssetId };
+      })
+    });
+  }
+
+  var queued = [];
+  var errors = [];
+  var skipped = [];
+
+  for (var i = 0; i < targets.length; i++) {
+    var s = targets[i];
+    try {
+      // Fetch asset to find audio track ID
+      var assetResult = await muxFetch('GET', '/video/v1/assets/' + s.recordingAssetId);
+      var tracks = (assetResult.data && assetResult.data.tracks) || [];
+      var audioTrack = null;
+      for (var t = 0; t < tracks.length; t++) {
+        if (tracks[t].type === 'audio') { audioTrack = tracks[t]; break; }
+      }
+      if (!audioTrack || !audioTrack.id) {
+        skipped.push({ id: s.id, reason: 'no audio track' });
+        continue;
+      }
+
+      // Check if captions are already being generated / exist
+      var hasGeneratedText = false;
+      for (var tt = 0; tt < tracks.length; tt++) {
+        var tr = tracks[tt];
+        if (tr.type === 'text' &&
+            (tr.text_source === 'generated_vod' || tr.text_source === 'generated_live')) {
+          hasGeneratedText = true;
+          break;
+        }
+      }
+      if (hasGeneratedText) {
+        skipped.push({ id: s.id, reason: 'captions already exist on asset' });
+        continue;
+      }
+
+      await muxFetch('POST',
+        '/video/v1/assets/' + s.recordingAssetId + '/tracks/' + audioTrack.id + '/generate-subtitles',
+        { generated_subtitles: [{ language_code: 'en', name: 'English (auto)' }] }
+      );
+
+      await updateDoc(COLLECTION, s.id, {
+        aiStatus: 'captions_requested',
+        aiError: null
+      });
+
+      queued.push({ id: s.id, title: s.title_da || s.title_en || '', assetId: s.recordingAssetId });
+      console.log('[backfill-ai] Generate-captions queued:', s.id, 'asset:', s.recordingAssetId);
+
+      if (i < targets.length - 1) await sleep(1000);
+    } catch (err) {
+      errors.push({ id: s.id, error: err.message });
+      console.error('[backfill-ai] generate-captions error for', s.id, ':', err.message);
+    }
+  }
+
+  return jsonResponse(200, {
+    ok: true,
+    matched: candidates.length,
+    queued: queued.length,
+    skipped: skipped.length,
+    skippedDetails: skipped,
+    errors: errors,
+    sessions: queued
+  });
 }
 
 async function handleListUnmatched() {

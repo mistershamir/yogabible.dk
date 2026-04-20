@@ -40,6 +40,7 @@ exports.handler = async function (event) {
     var assetId = body.assetId;
     var playbackId = body.playbackId || null;
     var transcriptOnly = body.transcriptOnly === true;
+    var transcriptReady = body.transcriptReady === true; // Mux captions path — skip Deepgram
     var directUrl = body.directUrl || null; // Skip Mux MP4 — send this URL straight to Deepgram
     var providedSecret = body.secret || '';
 
@@ -91,6 +92,74 @@ exports.handler = async function (event) {
 
     // Mark processing started (idempotent — may already be 'processing' from webhook claim)
     await updateDoc(COLLECTION, sessionId, { aiStatus: 'processing' });
+
+    // ── Fast-path: Mux captions already produced the transcript ──
+    // Webhook (video.asset.track.ready) wrote session.aiTranscript; skip
+    // MP4 rendition + Deepgram entirely and go straight to Claude.
+    if (transcriptReady) {
+      console.log('[ai-pipeline] Using Mux captions (primary) — skipping Deepgram');
+      var muxDoc = currentDoc || await getDoc(COLLECTION, sessionId);
+      var muxTranscript = (muxDoc && muxDoc.aiTranscript) || '';
+      if (!muxTranscript || muxTranscript.length < 50) {
+        await updateDoc(COLLECTION, sessionId, {
+          aiStatus: 'no_transcript',
+          aiError: 'Mux caption transcript empty (' + muxTranscript.length + ' chars)'
+        });
+        return jsonResponse(200, { ok: true, status: 'no_transcript', chars: muxTranscript.length });
+      }
+
+      await updateDoc(COLLECTION, sessionId, { aiStatus: 'generating_summary' });
+      var muxSessionTitle = (muxDoc && (muxDoc.title_da || muxDoc.title_en)) || 'Yoga Class';
+      var muxSessionInstructor = (muxDoc && muxDoc.instructor) || '';
+      var muxStreamType = muxDoc && muxDoc.streamType;
+      var muxIsInteractive = muxStreamType === 'panel' || muxStreamType === 'interactive' ||
+                             !!(muxDoc && muxDoc.interactive);
+
+      console.log('[ai-process] (mux-captions) Sending to Claude — transcript chars:', muxTranscript.length);
+      var muxAi = await generateSummaryAndQuiz(muxTranscript, muxSessionTitle, muxSessionInstructor, null, muxIsInteractive);
+      var muxPrimaryLang = muxAi.lang || 'da';
+
+      await updateDoc(COLLECTION, sessionId, { aiStatus: 'translating' });
+      var muxTranslated = { summary: '', quiz: [] };
+      try {
+        muxTranslated = await translateSummaryAndQuiz(muxAi.summary, muxAi.quiz, muxPrimaryLang);
+      } catch (translErr) {
+        console.error('[ai-process] Translation failed (non-fatal):', translErr.message);
+      }
+
+      var muxSummaryDa = muxPrimaryLang === 'da' ? muxAi.summary : (muxTranslated.summary || '');
+      var muxSummaryEn = muxPrimaryLang === 'en' ? muxAi.summary : (muxTranslated.summary || '');
+      var muxQuizDa = muxPrimaryLang === 'da' ? muxAi.quiz : (muxTranslated.quiz || []);
+      var muxQuizEn = muxPrimaryLang === 'en' ? muxAi.quiz : (muxTranslated.quiz || []);
+
+      await updateDoc(COLLECTION, sessionId, {
+        aiStatus: 'complete',
+        aiSummary: muxAi.summary || '',
+        aiSummaryLang: muxPrimaryLang,
+        aiSummary_da: muxSummaryDa,
+        aiSummary_en: muxSummaryEn,
+        aiQuiz: JSON.stringify(muxAi.quiz || []),
+        aiQuiz_da: JSON.stringify(muxQuizDa),
+        aiQuiz_en: JSON.stringify(muxQuizEn),
+        aiProcessedAt: new Date().toISOString(),
+        aiError: null
+      });
+
+      console.log('[ai-process] (mux-captions) Complete! Session:', sessionId, 'Primary:', muxPrimaryLang);
+
+      // Fire-and-forget Mux Robots bonus jobs (summarize + chapters) on the asset
+      if (assetId) fireMuxRobotsJobs(assetId, sessionId);
+
+      return jsonResponse(200, {
+        ok: true,
+        status: 'complete',
+        sessionId: sessionId,
+        lang: muxAi.lang,
+        source: 'mux-captions'
+      });
+    }
+
+    console.log('[ai-pipeline] Falling back to Deepgram (legacy)');
 
     // ── Step 1: Resolve playback ID ──
     if (!playbackId) {
@@ -851,6 +920,29 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInte
 // ═══════════════════════════════════════════════════
 // Claude API — translate summary + quiz to other language
 // ═══════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════
+// Mux Robots — fire summarize + generate-chapters jobs (bonus metadata)
+// ═══════════════════════════════════════════════════
+
+function fireMuxRobotsJobs(assetId, sessionId) {
+  var jobs = ['summarize', 'generate-chapters'];
+  for (var i = 0; i < jobs.length; i++) {
+    (function (jobType) {
+      muxRequest('POST', '/robots/v0/jobs/' + jobType, {
+        parameters: { asset_id: assetId }
+      }).then(function () {
+        console.log('[ai-process] Robots job queued:', jobType, 'session:', sessionId);
+      }).catch(function (err) {
+        if (err.status === 403) {
+          console.warn('[ai-process] Robots ' + jobType + ' 403 — token lacks robots:* scope');
+        } else {
+          console.log('[ai-process] Robots ' + jobType + ' failed (non-fatal):', err.message);
+        }
+      });
+    })(jobs[i]);
+  }
+}
 
 function translateSummaryAndQuiz(summary, quiz, sourceLang) {
   var targetLang = sourceLang === 'da' ? 'en' : 'da';

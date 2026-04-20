@@ -98,6 +98,15 @@ exports.handler = async function (event) {
       case 'video.asset.ready':
         await handleAssetReady(payload.data);
         break;
+      case 'video.asset.track.ready':
+        await handleTrackReady(payload.data);
+        break;
+      case 'robots.job.summarize.completed':
+        await handleRobotsSummarize(payload.data);
+        break;
+      case 'robots.job.generate_chapters.completed':
+        await handleRobotsChapters(payload.data);
+        break;
       default:
         // Ignore all other events
         break;
@@ -472,14 +481,11 @@ async function handleAssetReady(assetData) {
     });
     console.log('[mux-webhook] Session', matched.id, 'now has recording', recordingPlaybackId);
 
-    // Trigger AI processing (transcription + summary + quiz).
-    // Atomically claim the processing slot via a Firestore transaction
-    // to prevent two concurrent webhook deliveries from both triggering
-    // transcription for the same asset.
-    var claimed = await claimAiProcessingSlot(matched.id);
-    if (claimed) {
-      triggerAiProcessing(matched.id, assetData.id);
-    }
+    // NEW FLOW: do NOT trigger Deepgram here. The live stream was created
+    // with generated_subtitles enabled, so Mux will auto-generate captions
+    // and fire video.asset.track.ready — handleTrackReady picks it up and
+    // triggers Claude in transcriptReady mode.
+    console.log('[ai-pipeline] Using Mux captions (primary) — waiting for track.ready');
   } else {
     // No match — store as unmatched recording so it gets reconciled
     // when handleStreamActive runs (events can arrive out of order)
@@ -529,15 +535,8 @@ async function reconcileUnmatchedRecordings(liveStreamId, sessionId) {
       recordingAssetId: rec.recordingAssetId || null
     });
 
-    // Trigger AI processing for reconciled recording. Atomic claim via
-    // Firestore transaction prevents duplicate transcription if the
-    // non-reconcile path in handleAssetReady already claimed the slot.
-    if (rec.recordingAssetId) {
-      var reconciledClaim = await claimAiProcessingSlot(sessionId);
-      if (reconciledClaim) {
-        triggerAiProcessing(sessionId, rec.recordingAssetId);
-      }
-    }
+    // NEW FLOW: wait for track.ready webhook; don't trigger Deepgram here.
+    console.log('[ai-pipeline] Using Mux captions (primary) — reconciled asset', rec.recordingAssetId);
 
     // Delete all matched unmatched records
     for (var i = 0; i < matches.length; i++) {
@@ -603,7 +602,7 @@ async function claimAiProcessingSlot(sessionId) {
  * Fire-and-forget call to ai-process-recording function.
  * Non-blocking — errors are logged but don't affect the webhook response.
  */
-function triggerAiProcessing(sessionId, assetId, playbackId) {
+function triggerAiProcessing(sessionId, assetId, playbackId, transcriptReady) {
   try {
     var https = require('https');
     var payload = {
@@ -612,6 +611,7 @@ function triggerAiProcessing(sessionId, assetId, playbackId) {
       secret: process.env.AI_INTERNAL_SECRET || ''
     };
     if (playbackId) payload.playbackId = playbackId;
+    if (transcriptReady) payload.transcriptReady = true;
     var body = JSON.stringify(payload);
 
     var opts = {
@@ -654,4 +654,235 @@ function getPlaybackId(muxObj) {
     if (ids[i].policy === 'public') return ids[i].id;
   }
   return ids.length ? ids[0].id : null;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   4. MUX AUTO-CAPTION TRACK READY — primary transcript source
+   ══════════════════════════════════════════════════════════════ */
+
+async function handleTrackReady(data) {
+  if (!data) return;
+
+  // Only act on Mux-generated caption tracks (text + generated_vod/generated_live)
+  var textSource = data.text_source || '';
+  var isGenerated = textSource === 'generated_vod' || textSource === 'generated_live';
+  if (data.type !== 'text' || !isGenerated) {
+    console.log('[mux-webhook] track.ready — not a generated caption (type:', data.type,
+      'source:', textSource, ') — skipping');
+    return;
+  }
+
+  var assetId = data.asset_id || (data.asset && data.asset.id);
+  var trackId = data.id;
+  var langCode = data.language_code || 'en';
+
+  if (!assetId || !trackId) {
+    console.log('[mux-webhook] track.ready missing asset_id or track id');
+    return;
+  }
+
+  // Find session by recordingAssetId
+  var db = getDb();
+  var snap = await db.collection(COLLECTION)
+    .where('recordingAssetId', '==', assetId)
+    .limit(1)
+    .get();
+
+  if (snap.empty) {
+    console.log('[mux-webhook] track.ready — no session found for asset', assetId);
+    return;
+  }
+
+  var sessionDoc = snap.docs[0];
+  var sessionId = sessionDoc.id;
+  var session = sessionDoc.data();
+  var playbackId = session.recordingPlaybackId;
+
+  if (!playbackId) {
+    console.log('[mux-webhook] track.ready — session', sessionId, 'has no recordingPlaybackId');
+    return;
+  }
+
+  console.log('[mux-webhook] track.ready — session:', sessionId, 'track:', trackId, 'lang:', langCode);
+
+  // Fetch plain-text transcript from Mux
+  var transcriptTxt = '';
+  var vtt = '';
+  try {
+    transcriptTxt = await httpsGetText('https://stream.mux.com/' + playbackId + '/text/' + trackId + '.txt');
+  } catch (err) {
+    console.error('[mux-webhook] Failed to fetch transcript .txt:', err.message);
+  }
+  try {
+    vtt = await httpsGetText('https://stream.mux.com/' + playbackId + '/text/' + trackId + '.vtt');
+  } catch (err) {
+    console.error('[mux-webhook] Failed to fetch transcript .vtt:', err.message);
+  }
+
+  var update = {
+    captionTrackId: trackId,
+    captionLang: langCode,
+    aiCaptionTrackId: trackId
+  };
+  if (transcriptTxt) update.aiTranscript = transcriptTxt.substring(0, 50000);
+  if (vtt && vtt.length < 900000) update.captionVtt = vtt;
+
+  if (transcriptTxt && transcriptTxt.length >= 50) {
+    update.aiStatus = 'transcript_ready';
+  }
+
+  await updateDoc(COLLECTION, sessionId, update);
+  console.log('[mux-webhook] Saved Mux transcript — session:', sessionId,
+    'chars:', transcriptTxt.length, 'vtt chars:', vtt.length);
+
+  // Trigger AI pipeline in transcript-ready mode (skip Deepgram/MP4)
+  if (transcriptTxt && transcriptTxt.length >= 50) {
+    triggerAiProcessing(sessionId, assetId, null, true);
+  }
+
+  // Fire-and-forget Mux Robots bonus jobs (summarize + chapters)
+  fireRobotsJobs(assetId, sessionId);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   5. MUX ROBOTS — summarize + chapters results
+   ══════════════════════════════════════════════════════════════ */
+
+async function findSessionByAssetId(assetId) {
+  if (!assetId) return null;
+  var db = getDb();
+  var snap = await db.collection(COLLECTION)
+    .where('recordingAssetId', '==', assetId)
+    .limit(1)
+    .get();
+  if (snap.empty) return null;
+  return { id: snap.docs[0].id, data: snap.docs[0].data() };
+}
+
+async function handleRobotsSummarize(data) {
+  if (!data) return;
+  var assetId = (data.parameters && data.parameters.asset_id) ||
+                data.asset_id || (data.asset && data.asset.id);
+  var result = data.result || data.output || {};
+  if (!assetId) return;
+
+  var found = await findSessionByAssetId(assetId);
+  if (!found) {
+    console.log('[mux-webhook] robots.summarize — no session for asset', assetId);
+    return;
+  }
+
+  var update = {};
+  if (result.title) update.muxTitle = result.title;
+  if (result.description) update.muxDescription = result.description;
+  if (result.tags) update.muxTags = result.tags;
+  if (!Object.keys(update).length) {
+    console.log('[mux-webhook] robots.summarize — no title/desc/tags in payload');
+    return;
+  }
+  await updateDoc(COLLECTION, found.id, update);
+  console.log('[mux-webhook] Saved Mux summarize → session:', found.id);
+}
+
+async function handleRobotsChapters(data) {
+  if (!data) return;
+  var assetId = (data.parameters && data.parameters.asset_id) ||
+                data.asset_id || (data.asset && data.asset.id);
+  var result = data.result || data.output || {};
+  if (!assetId) return;
+
+  var found = await findSessionByAssetId(assetId);
+  if (!found) {
+    console.log('[mux-webhook] robots.chapters — no session for asset', assetId);
+    return;
+  }
+
+  var chapters = result.chapters || data.chapters || null;
+  if (!chapters) {
+    console.log('[mux-webhook] robots.chapters — no chapters in payload');
+    return;
+  }
+  await updateDoc(COLLECTION, found.id, { muxChapters: chapters });
+  console.log('[mux-webhook] Saved Mux chapters → session:', found.id);
+}
+
+function fireRobotsJobs(assetId, sessionId) {
+  // Fire both summarize + generate-chapters. Results arrive via webhook.
+  var jobs = ['summarize', 'generate-chapters'];
+  for (var i = 0; i < jobs.length; i++) {
+    (function (jobType) {
+      muxRobotsRequest('POST', '/robots/v0/jobs/' + jobType, {
+        parameters: { asset_id: assetId }
+      }).then(function () {
+        console.log('[mux-webhook] Robots job queued:', jobType, 'for session:', sessionId);
+      }).catch(function (err) {
+        if (/403/.test(err.message)) {
+          console.warn('[mux-webhook] Robots ' + jobType + ' 403 — token lacks robots:* scope (non-fatal)');
+        } else {
+          console.log('[mux-webhook] Robots ' + jobType + ' failed (non-fatal):', err.message);
+        }
+      });
+    })(jobs[i]);
+  }
+}
+
+function muxRobotsRequest(method, path, body) {
+  var tokenId = process.env.MUX_TOKEN_ID;
+  var tokenSecret = process.env.MUX_TOKEN_SECRET;
+  if (!tokenId || !tokenSecret) return Promise.reject(new Error('MUX_TOKEN_ID/SECRET required'));
+
+  return new Promise(function (resolve, reject) {
+    var https = require('https');
+    var payload = body ? JSON.stringify(body) : '';
+    var opts = {
+      hostname: 'api.mux.com',
+      path: path,
+      method: method,
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(tokenId + ':' + tokenSecret).toString('base64'),
+        'Content-Type': 'application/json'
+      }
+    };
+    if (payload) opts.headers['Content-Length'] = Buffer.byteLength(payload);
+
+    var req = https.request(opts, function (res) {
+      var chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () {
+        var raw = Buffer.concat(chunks).toString();
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try { resolve(JSON.parse(raw || '{}')); } catch (e) { resolve({}); }
+        } else {
+          reject(new Error('Mux Robots ' + res.statusCode + ': ' + raw.substring(0, 200)));
+        }
+      });
+    });
+    req.on('error', reject);
+    if (payload) req.write(payload);
+    req.end();
+  });
+}
+
+function httpsGetText(url) {
+  return new Promise(function (resolve, reject) {
+    var https = require('https');
+    var req = https.get(url, function (res) {
+      // Follow redirects
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        res.resume();
+        httpsGetText(res.headers.location).then(resolve, reject);
+        return;
+      }
+      if (res.statusCode !== 200) {
+        res.resume();
+        reject(new Error('HTTP ' + res.statusCode + ' from ' + url));
+        return;
+      }
+      var chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () { resolve(Buffer.concat(chunks).toString('utf8')); });
+    });
+    req.on('error', reject);
+    req.setTimeout(60000, function () { req.destroy(new Error('timeout')); });
+  });
 }
