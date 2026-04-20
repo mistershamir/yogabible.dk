@@ -397,16 +397,26 @@ async function ensureMp4Rendition(assetId, playbackId, sessionId) {
     return master.url;
   }
 
-  // Step 4: Enable master_access on original asset to get downloadable MP4
+  // Step 4: Enable master_access on original asset to get downloadable MP4.
+  // Mux returns 400 "Download already exists" if master access was enabled on a
+  // prior run — in that case the master is already being prepared (or ready) and
+  // we just fall through to the polling loop below.
   console.log('[ai-process] Enabling master_access on original asset:', assetId);
-  var masterResult = await muxRequest('PUT', '/video/v1/assets/' + assetId + '/master-access', {
-    master_access: 'temporary'
-  });
-
-  var newMaster = masterResult.data && masterResult.data.master;
-  if (newMaster && newMaster.status === 'ready' && newMaster.url) {
-    console.log('[ai-process] Master URL immediately ready!');
-    return newMaster.url;
+  try {
+    var masterResult = await muxRequest('PUT', '/video/v1/assets/' + assetId + '/master-access', {
+      master_access: 'temporary'
+    });
+    var newMaster = masterResult.data && masterResult.data.master;
+    if (newMaster && newMaster.status === 'ready' && newMaster.url) {
+      console.log('[ai-process] Master URL immediately ready!');
+      return newMaster.url;
+    }
+  } catch (err) {
+    if (err.status === 400 && /already exists/i.test(err.message || '')) {
+      console.log('[ai-process] Master access already enabled, proceeding to poll');
+    } else {
+      throw err;
+    }
   }
 
   if (sessionId) {
