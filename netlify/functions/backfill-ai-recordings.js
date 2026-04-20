@@ -29,7 +29,7 @@ const { jsonResponse } = require('./shared/utils');
 
 const COLLECTION = 'live-schedule';
 const UNMATCHED_COLLECTION = 'live-unmatched-recordings';
-const STAGGER_MS = 5000;
+const STAGGER_MS = 8000;
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 10;
 
@@ -361,16 +361,27 @@ function triggerAiProcess(sessionId, assetId) {
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(payload)
     },
-    timeout: 5000
+    timeout: 30000
   };
   var req = https.request(opts, function (res) {
-    console.log('[backfill-ai] Triggered', sessionId, '→', res.statusCode);
-    res.resume();
+    var chunks = [];
+    res.on('data', function (c) { chunks.push(c); });
+    res.on('end', function () {
+      var body = Buffer.concat(chunks).toString();
+      if (res.statusCode === 200 || res.statusCode === 202) {
+        console.log('[backfill-ai] Trigger response:', sessionId, 'status:', res.statusCode, 'body:', body);
+      } else {
+        console.error('[backfill-ai] Trigger response:', sessionId, 'status:', res.statusCode, 'body:', body);
+      }
+    });
   });
   req.on('error', function (err) {
-    console.log('[backfill-ai] Trigger error (non-fatal):', err.message);
+    console.error('[backfill-ai] Trigger error (non-fatal):', sessionId, err.message);
   });
-  req.on('timeout', function () { req.destroy(); });
+  req.on('timeout', function () {
+    console.error('[backfill-ai] Trigger TIMED OUT for session:', sessionId, '— background function may not have started');
+    req.destroy();
+  });
   req.write(payload);
   req.end();
 }
