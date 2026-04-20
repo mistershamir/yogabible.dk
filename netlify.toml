@@ -1,5 +1,5 @@
 [build]
-  command = "rm -rf _site/css _site/js && node scripts/write-firebase-key.js && npx @11ty/eleventy && node scripts/minify-js.js && node scripts/purge-css.js && node scripts/optimize-images.js && node scripts/critical-css.js && node scripts/hash-assets.js && node scripts/seo-validator.js"
+  command = "rm -rf _site/css _site/js && node scripts/write-firebase-key.js && npx @11ty/eleventy && node scripts/parallel-post-build.js"
   publish = "_site"
   functions = "netlify/functions"
 
