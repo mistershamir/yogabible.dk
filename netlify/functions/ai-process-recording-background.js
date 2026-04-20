@@ -402,6 +402,7 @@ async function ensureMp4Rendition(assetId, playbackId, sessionId) {
   // prior run — in that case the master is already being prepared (or ready) and
   // we just fall through to the polling loop below.
   console.log('[ai-process] Enabling master_access on original asset:', assetId);
+  var alreadyExists = false;
   try {
     var masterResult = await muxRequest('PUT', '/video/v1/assets/' + assetId + '/master-access', {
       master_access: 'temporary'
@@ -414,8 +415,26 @@ async function ensureMp4Rendition(assetId, playbackId, sessionId) {
   } catch (err) {
     if (err.status === 400 && /already exists/i.test(err.message || '')) {
       console.log('[ai-process] Master access already enabled, proceeding to poll');
+      alreadyExists = true;
     } else {
       throw err;
+    }
+  }
+
+  // When master access was already enabled on a prior run, the URL may be ready
+  // right now — skip the 30s initial wait and check once immediately.
+  if (alreadyExists) {
+    try {
+      var preAsset = await muxRequest('GET', '/video/v1/assets/' + assetId);
+      var preMaster = preAsset.data && preAsset.data.master;
+      if (preMaster && preMaster.status === 'ready' && preMaster.url) {
+        console.log('[ai-process] Master URL already ready from prior request');
+        return preMaster.url;
+      }
+      console.log('[ai-process] Prior master request still preparing (status:',
+        preMaster ? preMaster.status : 'none', ')');
+    } catch (preErr) {
+      console.log('[ai-process] Pre-poll check failed (continuing to poll):', preErr.message);
     }
   }
 
@@ -424,8 +443,9 @@ async function ensureMp4Rendition(assetId, playbackId, sessionId) {
   }
   console.log('[ai-process] Master access requested, polling for readiness...');
 
-  // Poll for master URL readiness (up to 10 minutes)
-  var maxAttempts = 20; // 20 × 30s = 10 minutes
+  // Poll for master URL readiness (up to 15 minutes). Very long recordings
+  // (5-8 hours) can take longer than 10 minutes for Mux to prepare the master.
+  var maxAttempts = 30; // 30 × 30s = 15 minutes
   for (var attempt = 1; attempt <= maxAttempts; attempt++) {
     await sleep(30000);
     asset = await muxRequest('GET', '/video/v1/assets/' + assetId);
@@ -440,7 +460,7 @@ async function ensureMp4Rendition(assetId, playbackId, sessionId) {
     if (attempt % 4 === 0) console.log('[ai-process] Master poll', attempt + '/' + maxAttempts, '— status:', master ? master.status : 'none');
   }
 
-  throw new Error('Master download URL not ready after 10 minutes on asset ' + assetId + '. Run retranscribe again to resume.');
+  throw new Error('Master download URL not ready after 15 minutes on asset ' + assetId + '. Run retranscribe again to resume.');
 }
 
 // ═══════════════════════════════════════════════════
