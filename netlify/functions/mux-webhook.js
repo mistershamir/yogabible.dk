@@ -38,10 +38,13 @@ const UNMATCHED_COLLECTION = 'live-unmatched-recordings';
  */
 function verifySignature(rawBody, signatureHeader, secret) {
   if (!secret) {
-    console.error('[mux-webhook] MUX_WEBHOOK_SECRET not set — rejecting request');
+    console.error('[mux-webhook] MUX_WEBHOOK_SECRET not configured — all webhooks rejected. Set this env var in Netlify (Mux Dashboard → Settings → Webhooks → copy signing secret).');
     return false;
   }
-  if (!signatureHeader) return false;
+  if (!signatureHeader) {
+    console.error('[mux-webhook] Request has no mux-signature header — rejecting');
+    return false;
+  }
 
   var parts = {};
   signatureHeader.split(',').forEach(function (pair) {

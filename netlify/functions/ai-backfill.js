@@ -627,23 +627,46 @@ exports.handler = async function (event) {
 
       var sessionTitle = sess.title_da || sess.title_en || 'Yoga Class';
       var sessionInstructor = sess.instructor || '';
-      var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, params.lang || null, !!sess.interactive);
+      var streamType = sess.streamType;
+      var isInteractive = streamType === 'panel' || streamType === 'interactive' || !!sess.interactive;
+      var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, params.lang || null, isInteractive);
+      var primaryLang = aiResult.lang || 'en';
+      var secondaryLang = primaryLang === 'da' ? 'en' : 'da';
+
+      // Translate to the other language so the bilingual UI has both
+      console.log('[ai-backfill] Translating reprocessed summary from', primaryLang, 'to', secondaryLang + '...');
+      var translated = { summary: '', quiz: [] };
+      try {
+        translated = await translateSummaryAndQuiz(aiResult.summary, aiResult.quiz, primaryLang);
+      } catch (err) {
+        console.error('[ai-backfill] Reprocess translation failed (non-fatal):', err.message);
+      }
+
+      var summary_da = primaryLang === 'da' ? aiResult.summary : (translated.summary || '');
+      var summary_en = primaryLang === 'en' ? aiResult.summary : (translated.summary || '');
+      var quiz_da = primaryLang === 'da' ? aiResult.quiz : (translated.quiz || []);
+      var quiz_en = primaryLang === 'en' ? aiResult.quiz : (translated.quiz || []);
 
       await updateDoc(COLLECTION, sessId, {
         aiStatus: 'complete',
         aiTranscript: transcript.substring(0, 50000),
         aiSummary: aiResult.summary || '',
-        aiSummaryLang: aiResult.lang || 'en',
+        aiSummaryLang: primaryLang,
+        aiSummary_da: summary_da,
+        aiSummary_en: summary_en,
         aiQuiz: JSON.stringify(aiResult.quiz || []),
-        aiProcessedAt: new Date().toISOString()
+        aiQuiz_da: JSON.stringify(quiz_da),
+        aiQuiz_en: JSON.stringify(quiz_en),
+        aiProcessedAt: new Date().toISOString(),
+        aiError: null
       });
 
       return jsonResponse(200, {
         ok: true,
-        message: 'Reprocessed session ' + sessId + ' in ' + aiResult.lang,
+        message: 'Reprocessed session ' + sessId + ' in ' + primaryLang + ' (+ ' + secondaryLang + ' translation)',
         id: sessId,
         title: sessionTitle,
-        lang: aiResult.lang
+        lang: primaryLang
       });
     }
 
@@ -968,6 +991,44 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInte
         parsed = { summary: '', quiz: [] };
       }
       return { summary: parsed.summary || '', quiz: parsed.quiz || [], lang: lang };
+    });
+}
+
+/* ── Claude API: translate summary + quiz to the other language ── */
+
+function translateSummaryAndQuiz(summary, quiz, sourceLang) {
+  var targetLang = sourceLang === 'da' ? 'en' : 'da';
+
+  var systemPrompt = targetLang === 'da'
+    ? 'Du er en professionel oversætter med ekspertise inden for yoga og yogalæreruddannelse. '
+      + 'Oversæt det følgende indhold til naturligt, flydende dansk. '
+      + 'Bevar al HTML-formatering (h3, p, ul, li, strong tags). '
+      + 'Brug korrekt dansk yogaterminologi. Svar KUN med valid JSON.'
+    : 'You are a professional translator with expertise in yoga and yoga teacher training. '
+      + 'Translate the following content into natural, fluent English. '
+      + 'Preserve all HTML formatting (h3, p, ul, li, strong tags). '
+      + 'Use standard English yoga terminology. Respond ONLY with valid JSON.';
+
+  var userPrompt = 'Translate this AI-generated yoga session summary and quiz from '
+    + (sourceLang === 'da' ? 'Danish' : 'English') + ' to '
+    + (targetLang === 'da' ? 'Danish' : 'English') + '.\n\n'
+    + 'IMPORTANT: Keep the exact same structure. Do NOT translate yoga pose names in Sanskrit (e.g., Adho Mukha Svanasana stays as-is). '
+    + 'Translate all explanatory text, questions, options, and explanations naturally — not literally.\n\n'
+    + 'Input JSON:\n'
+    + JSON.stringify({ summary: summary, quiz: quiz }, null, 2)
+    + '\n\nRespond ONLY with the raw JSON object containing "summary" (HTML string) and "quiz" (array with same structure).';
+
+  return claudeRequest([{ role: 'user', content: userPrompt }], systemPrompt)
+    .then(function (response) {
+      var cleaned = response.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '').trim();
+      var parsed;
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch (e) {
+        console.error('[ai-backfill] Failed to parse translation response:', response.substring(0, 500));
+        return { summary: '', quiz: [] };
+      }
+      return { summary: parsed.summary || '', quiz: parsed.quiz || [] };
     });
 }
 

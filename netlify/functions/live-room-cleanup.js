@@ -12,10 +12,15 @@
  */
 
 const crypto = require('crypto');
-const { getDoc, updateDoc, queryDocs } = require('./shared/firestore');
+const { getDoc, updateDoc, queryDocs, getCollection } = require('./shared/firestore');
 const { jsonResponse } = require('./shared/utils');
 
 const COLLECTION = 'live-schedule';
+
+// Any session sitting in these AI statuses longer than STUCK_AI_THRESHOLD_MS
+// is assumed dead (function crashed / timed out) and reset so the pipeline retries.
+var STUCK_AI_STATUSES = ['processing', 'preparing_audio', 'transcribing', 'deepgram_pending'];
+var STUCK_AI_THRESHOLD_MS = 20 * 60 * 1000; // 20 minutes
 
 // ── LiveKit helpers (same as livekit-token.js) ──
 
@@ -117,9 +122,13 @@ async function muxFetch(path, method, body) {
 exports.handler = async function (event) {
   console.log('[live-room-cleanup] Running zombie room check...');
 
-  if (!process.env.LIVEKIT_API_KEY || !process.env.LIVEKIT_API_SECRET || !process.env.LIVEKIT_URL) {
-    console.log('[live-room-cleanup] LiveKit not configured, skipping');
-    return jsonResponse(200, { ok: true, skipped: true, reason: 'LiveKit not configured' });
+  var liveKitConfigured = process.env.LIVEKIT_API_KEY && process.env.LIVEKIT_API_SECRET && process.env.LIVEKIT_URL;
+  if (!liveKitConfigured) {
+    console.log('[live-room-cleanup] LiveKit not configured — skipping zombie-room check, running stuck-AI recovery only');
+    var resetAiOnly = [];
+    try { resetAiOnly = await recoverStuckAiSessions(); }
+    catch (e) { console.error('[live-room-cleanup] Stuck-AI recovery error:', e.message); }
+    return jsonResponse(200, { ok: true, skipped: 'livekit', resetAi: resetAiOnly });
   }
 
   try {
@@ -246,11 +255,54 @@ exports.handler = async function (event) {
       }
     }
 
-    console.log('[live-room-cleanup] Done. Cleaned:', cleaned.length, 'rooms');
-    return jsonResponse(200, { ok: true, cleaned: cleaned });
+    // ── Stuck AI recovery ──
+    var resetAi = [];
+    try {
+      resetAi = await recoverStuckAiSessions();
+    } catch (aiErr) {
+      console.error('[live-room-cleanup] Stuck-AI recovery error (non-fatal):', aiErr.message);
+    }
+
+    console.log('[live-room-cleanup] Done. Cleaned:', cleaned.length, 'rooms, reset AI:', resetAi.length, 'sessions');
+    return jsonResponse(200, { ok: true, cleaned: cleaned, resetAi: resetAi });
 
   } catch (err) {
     console.error('[live-room-cleanup] Error:', err.message);
     return jsonResponse(500, { ok: false, error: err.message });
   }
 };
+
+/**
+ * Find sessions stuck in an active-looking AI status for more than
+ * STUCK_AI_THRESHOLD_MS and clear the status so the pipeline retries.
+ * Uses `updated_at` (or `aiMasterAccessRequestedAt` as a fallback) to age them.
+ */
+async function recoverStuckAiSessions() {
+  var all = await getCollection(COLLECTION);
+  var nowMs = Date.now();
+  var reset = [];
+
+  for (var i = 0; i < all.length; i++) {
+    var s = all[i];
+    if (STUCK_AI_STATUSES.indexOf(s.aiStatus) === -1) continue;
+
+    // Age based on most recent known timestamp.
+    var ageSource = s.updated_at || s.aiMasterAccessRequestedAt || s.liveEndedAt || s.startDateTime;
+    if (!ageSource) continue;
+    var ageMs = nowMs - new Date(ageSource).getTime();
+    if (isNaN(ageMs) || ageMs < STUCK_AI_THRESHOLD_MS) continue;
+
+    var oldStatus = s.aiStatus;
+    try {
+      await updateDoc(COLLECTION, s.id, {
+        aiStatus: null,
+        aiError: 'Reset by cleanup cron after ' + Math.round(ageMs / 60000) + ' min stuck in ' + oldStatus
+      });
+      console.log('[cleanup] Reset stuck AI session:', s.id, 'from:', oldStatus, '(' + Math.round(ageMs / 60000) + ' min)');
+      reset.push({ id: s.id, from: oldStatus, ageMinutes: Math.round(ageMs / 60000) });
+    } catch (err) {
+      console.error('[cleanup] Failed to reset', s.id, ':', err.message);
+    }
+  }
+  return reset;
+}

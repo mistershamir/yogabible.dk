@@ -53,17 +53,20 @@ exports.handler = async function (event) {
 
     console.log('[ai-process] Starting full pipeline for session:', sessionId, 'asset:', assetId);
 
-    // Guard: skip if already processing (prevents duplicate Deepgram calls from
-    // concurrent triggers — e.g. retranscribe + Mux webhook both firing)
+    // Guard: skip if pipeline is actively mid-work on this session.
+    // NOTE: 'processing' is NOT a bail state — it's the claim marker the webhook
+    // (or this function) writes before starting. Bailing on 'processing' would
+    // make claimAiProcessingSlot → triggerAiProcessing a no-op. Only bail on
+    // states that mean Deepgram/Claude is actively running, or is already done.
     var currentDoc = await getDoc(COLLECTION, sessionId);
     var currentStatus = currentDoc && currentDoc.aiStatus;
-    if (currentStatus === 'processing' || currentStatus === 'transcribing' ||
-        currentStatus === 'uploading_subtitles' || currentStatus === 'generating_summary') {
+    var ACTIVE_STATUSES = ['transcribing', 'uploading_subtitles', 'generating_summary', 'translating', 'complete'];
+    if (ACTIVE_STATUSES.indexOf(currentStatus) !== -1) {
       console.log('[ai-process] Session', sessionId, 'already has aiStatus:', currentStatus, '— skipping duplicate run');
       return jsonResponse(200, { ok: true, status: 'already_processing', aiStatus: currentStatus });
     }
 
-    // Mark processing started
+    // Mark processing started (idempotent — may already be 'processing' from webhook claim)
     await updateDoc(COLLECTION, sessionId, { aiStatus: 'processing' });
 
     // ── Step 1: Resolve playback ID ──
@@ -179,9 +182,11 @@ exports.handler = async function (event) {
     var session = await getDoc(COLLECTION, sessionId);
     var sessionTitle = (session && (session.title_da || session.title_en)) || 'Yoga Class';
     var sessionInstructor = (session && session.instructor) || '';
+    var streamType = session && session.streamType;
+    var isInteractive = streamType === 'panel' || streamType === 'interactive' || !!(session && session.interactive);
 
-    console.log('[ai-process] Sending to Claude for summary + quiz...');
-    var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor);
+    console.log('[ai-process] Sending to Claude for summary + quiz...', isInteractive ? '(interactive/panel)' : '');
+    var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, null, isInteractive);
     var primaryLang = aiResult.lang || 'da';
     var secondaryLang = primaryLang === 'da' ? 'en' : 'da';
 
@@ -645,7 +650,7 @@ function claudeRequest(messages, systemPrompt) {
   });
 }
 
-function generateSummaryAndQuiz(transcript, title, instructor, forceLang) {
+function generateSummaryAndQuiz(transcript, title, instructor, forceLang, isInteractive) {
   var daWords = ['og', 'til', 'din', 'det', 'som', 'har', 'den', 'ikke', 'kan', 'skal', 'godt', 'pust', 'ånd', 'stræk', 'krop', 'ben', 'arme', 'ryg', 'vi', 'jer', 'dig', 'ser', 'ned', 'op', 'er', 'en', 'et', 'jeg', 'nu', 'lige', 'også', 'så', 'bare', 'igen', 'lidt', 'helt', 'venstre', 'højre'];
   var enWords = ['the', 'and', 'your', 'you', 'that', 'this', 'have', 'not', 'breathe', 'stretch', 'body', 'arms', 'legs', 'inhale', 'exhale', 'is', 'are', 'we', 'go', 'into', 'let', 'just', 'now', 'right', 'left', 'down', 'up', 'here', 'feel', 'bring', 'keep', 'through', 'then', 'going', 'want', 'make', 'take', 'come'];
 
@@ -705,6 +710,28 @@ function generateSummaryAndQuiz(transcript, title, instructor, forceLang) {
       + '- Names and personal details about the instructor or students\n'
       + '- Technical issues with audio, camera, or streaming\n'
       + '- Trivia about the instructor (e.g., how many studios they own, travel history)\n';
+
+  // Interactive / panel session: add multi-speaker handling instructions
+  if (isInteractive) {
+    var interactiveInstructions = lang === 'da'
+      ? '\n\nINTERAKTIV SESSION — Flerspeaker-håndtering:\n'
+        + 'Denne optagelse er fra en interaktiv session med flere deltagere. Der vil være flere stemmer i transskriptionen.\n\n'
+        + (instructor ? 'UNDERVISER: ' + instructor + ' — denne persons udtalelser er det primære faglige indhold.\n' : '')
+        + 'REGLER:\n'
+        + '- Underviseren er den autoritative kilde. Prioritér undervisernes forklaringer og instruktioner.\n'
+        + '- Medtag vigtige faglige spørgsmål fra studerende som "Diskussionspunkter" — kun hvis de fører til fagligt værdifulde svar.\n'
+        + '- IGNORÉR studerendes small talk, "ja/nej"-svar og casual snak.\n'
+        + '- Quiz-spørgsmål skal baseres på undervisernes svar, IKKE på studerendes udtalelser.\n'
+      : '\n\nINTERACTIVE SESSION — Multi-Speaker Handling:\n'
+        + 'This recording is from an interactive session with multiple participants. There will be multiple voices in the transcript.\n\n'
+        + (instructor ? 'INSTRUCTOR: ' + instructor + ' — this person\'s statements are the primary educational content.\n' : '')
+        + 'RULES:\n'
+        + '- The instructor is the authoritative source. Prioritize the instructor\'s explanations and instructions.\n'
+        + '- Include important educational student questions as "Discussion Points" — only if they led to valuable answers.\n'
+        + '- IGNORE student small talk, "yes/no" responses, and casual chat.\n'
+        + '- Quiz questions must be based on the instructor\'s answers, NOT on student statements.\n';
+    focusInstructions += interactiveInstructions;
+  }
 
   var userPrompt = lang === 'da'
     ? 'Her er en transskription af en yogalæreruddannelsessession'
