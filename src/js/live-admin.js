@@ -667,8 +667,12 @@
       description_en: $('yb-la-desc-en').value.trim(),
       instructor: $('yb-la-instructor').value.trim(),
       teacherEmail: $('yb-la-teacher-email') ? $('yb-la-teacher-email').value.trim() || null : null,
-      startDateTime: $('yb-la-start').value ? new Date($('yb-la-start').value).toISOString() : '',
-      endDateTime: $('yb-la-end').value ? new Date($('yb-la-end').value).toISOString() : '',
+      // Store datetime-local values as-is (local time, no timezone suffix).
+      // Wrapping in new Date().toISOString() converts local→UTC on save, but
+      // the load path uses .slice(0, 16) which treats the stored string as
+      // local — the mismatch made times drift by the TZ offset each edit.
+      startDateTime: $('yb-la-start').value || '',
+      endDateTime: $('yb-la-end').value || '',
       muxPlaybackId: $('yb-la-mux-playback').value.trim() || null,
       recordingPlaybackId: $('yb-la-recording-id').value.trim() || null,
       recordingAssetId: ($('yb-la-recording-asset-id') ? $('yb-la-recording-asset-id').value.trim() : '') || null,

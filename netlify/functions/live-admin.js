@@ -493,48 +493,27 @@ async function getUserPermissionsWithCohort(user) {
 /**
  * Derive which catalog program IDs (course_id) a user belongs to,
  * based on their role and roleDetails.
+ *
+ * SECURITY: For trainees, the ONLY source of program-scoped access is
+ * roleDetails.courseId. Legacy program/method fields are not used as a
+ * fallback — a missing courseId means no program-scoped access (user will
+ * only see unrestricted sessions, which is safe-fail behaviour).
  */
 function deriveProgramIds(role, roleDetails) {
   var ids = [];
   roleDetails = roleDetails || {};
 
-  if (role === 'trainee' || role === 'teacher' || role === 'admin') {
-    // PRIMARY: explicit courseId from catalogue (set by catalogue-driven admin flow or activate-applicant)
-    if (roleDetails.courseId) {
-      ids.push(roleDetails.courseId);
-    }
-
-    // FALLBACK: infer from legacy program + method fields
-    var prog = roleDetails.program || '';
-    var method = roleDetails.method || '';
-
-    if (prog === '200h' || prog === '100h') {
-      if (method === 'vinyasa') {
-        if (ids.indexOf('YTT200-4W-VP') === -1) ids.push('YTT200-4W-VP');
-      }
-      // All 200h trainees match all 200h formats (fallback when courseId missing)
-      if (!roleDetails.courseId) {
-        ['YTT200-4W', 'YTT200-18W', 'YTT200-8W'].forEach(function (p) {
-          if (ids.indexOf(p) === -1) ids.push(p);
-        });
-      }
-    }
-    if (prog === '300h' && ids.indexOf('YTT300-ADV') === -1) ids.push('YTT300-ADV');
-    if (prog === '500h') {
-      ['YTT300-ADV', 'YTT200-4W', 'YTT200-18W', 'YTT200-8W'].forEach(function (p) {
-        if (ids.indexOf(p) === -1) ids.push(p);
-      });
-    }
-  }
-
-  // Teachers get all YTT programs
+  // Teachers + admins see every YTT program (they may teach any of them)
   if (role === 'teacher' || role === 'admin') {
     ['YTT200-4W', 'YTT200-4W-VP', 'YTT200-18W', 'YTT200-8W', 'YTT300-ADV'].forEach(function (p) {
-      if (ids.indexOf(p) === -1) ids.push(p);
+      ids.push(p);
     });
+  } else if (roleDetails.courseId) {
+    // Trainees (and everyone else): strict courseId match, no fallback.
+    ids.push(roleDetails.courseId);
   }
 
-  // Course students
+  // Course students (Inversions / Splits / Backbends) — separate from YTT
   if (roleDetails.courseTypes && Array.isArray(roleDetails.courseTypes)) {
     var courseMap = {
       inversions: 'INV-4W',
