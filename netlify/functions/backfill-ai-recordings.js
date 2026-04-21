@@ -509,15 +509,26 @@ async function handleFetchTranscripts(params) {
       if (vtt && vtt.length < 900000) update.captionVtt = vtt;
 
       await updateDoc(COLLECTION, s.id, update);
+      console.log('[backfill-ai] Saved transcript for', s.id, '(' + transcriptTxt.length, 'chars) — triggering Claude');
 
-      triggerAiProcess(s.id, s.recordingAssetId, true);
+      // Await the trigger so the POST actually lands before this lambda returns.
+      // Netlify would otherwise freeze us and kill the in-flight request.
+      var triggerResult = await triggerAiProcess(s.id, s.recordingAssetId, true);
+      if (!triggerResult.ok) {
+        errors.push({
+          id: s.id,
+          error: 'trigger failed: ' + (triggerResult.error || ('HTTP ' + triggerResult.status + ' ' + (triggerResult.body || '')))
+        });
+        continue;
+      }
+
       queued.push({
         id: s.id,
         title: s.title_da || s.title_en || '',
         assetId: s.recordingAssetId,
         chars: transcriptTxt.length
       });
-      console.log('[backfill-ai] Fetched transcript for', s.id, '(' + transcriptTxt.length, 'chars) — triggered Claude');
+      console.log('[backfill-ai] Triggered Claude for', s.id);
 
       if (i < targets.length - 1) await sleep(STAGGER_MS);
     } catch (err) {
@@ -645,43 +656,51 @@ function muxFetch(method, path, body) {
   });
 }
 
+// Awaitable trigger — Netlify background functions return 202 immediately,
+// but the POST must finish *before* this lambda returns or the request gets
+// killed in-flight (lambda freeze) and ai-process-recording-background never
+// starts. That manifests as `queued: 0` even when the transcript saved.
 function triggerAiProcess(sessionId, assetId, transcriptReady) {
-  var payloadObj = {
-    sessionId: sessionId,
-    assetId: assetId,
-    secret: process.env.AI_INTERNAL_SECRET || ''
-  };
-  if (transcriptReady) payloadObj.transcriptReady = true;
-  var payload = JSON.stringify(payloadObj);
-  var opts = {
-    hostname: 'yogabible.dk',
-    path: '/.netlify/functions/ai-process-recording-background',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(payload)
-    },
-    timeout: 30000
-  };
-  var req = https.request(opts, function (res) {
-    var chunks = [];
-    res.on('data', function (c) { chunks.push(c); });
-    res.on('end', function () {
-      var body = Buffer.concat(chunks).toString();
-      if (res.statusCode === 200 || res.statusCode === 202) {
-        console.log('[backfill-ai] Trigger response:', sessionId, 'status:', res.statusCode, 'body:', body);
-      } else {
-        console.error('[backfill-ai] Trigger response:', sessionId, 'status:', res.statusCode, 'body:', body);
+  return new Promise(function (resolve) {
+    var payloadObj = {
+      sessionId: sessionId,
+      assetId: assetId,
+      secret: process.env.AI_INTERNAL_SECRET || ''
+    };
+    if (transcriptReady) payloadObj.transcriptReady = true;
+    var payload = JSON.stringify(payloadObj);
+    var opts = {
+      hostname: 'yogabible.dk',
+      path: '/.netlify/functions/ai-process-recording-background',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
       }
+    };
+    var req = https.request(opts, function (res) {
+      var chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () {
+        var body = Buffer.concat(chunks).toString();
+        if (res.statusCode === 200 || res.statusCode === 202) {
+          console.log('[backfill-ai] Trigger response:', sessionId, 'status:', res.statusCode, 'body:', body.substring(0, 200));
+          resolve({ ok: true, status: res.statusCode });
+        } else {
+          console.error('[backfill-ai] Trigger response:', sessionId, 'status:', res.statusCode, 'body:', body.substring(0, 200));
+          resolve({ ok: false, status: res.statusCode, body: body.substring(0, 200) });
+        }
+      });
     });
+    req.setTimeout(15000, function () {
+      console.error('[backfill-ai] Trigger TIMED OUT for session:', sessionId);
+      req.destroy(new Error('timeout'));
+    });
+    req.on('error', function (err) {
+      console.error('[backfill-ai] Trigger error:', sessionId, err.message);
+      resolve({ ok: false, error: err.message });
+    });
+    req.write(payload);
+    req.end();
   });
-  req.on('error', function (err) {
-    console.error('[backfill-ai] Trigger error (non-fatal):', sessionId, err.message);
-  });
-  req.on('timeout', function () {
-    console.error('[backfill-ai] Trigger TIMED OUT for session:', sessionId, '— background function may not have started');
-    req.destroy();
-  });
-  req.write(payload);
-  req.end();
 }
