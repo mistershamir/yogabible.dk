@@ -403,6 +403,7 @@
   function getFilteredItems() {
     var filter = ($('yb-live-admin-filter') || {}).value || 'upcoming';
     var sourceFilter = ($('yb-live-admin-source-filter') || {}).value || '';
+    var searchRaw = (($('yb-live-admin-search-input') || {}).value || '').trim().toLowerCase();
     var now = new Date().toISOString();
 
     return items.filter(function (item) {
@@ -412,6 +413,15 @@
 
       // Source filter
       if (sourceFilter && item.source !== sourceFilter) return false;
+
+      // Search: title DA/EN, instructor, session id, mux playback id, recording playback id
+      if (searchRaw) {
+        var haystack = [
+          item.title_da, item.title_en, item.instructor, item.id,
+          item.muxPlaybackId, item.recordingPlaybackId
+        ].filter(Boolean).join(' ').toLowerCase();
+        if (haystack.indexOf(searchRaw) === -1) return false;
+      }
 
       return true;
     });
@@ -2114,6 +2124,24 @@
     if (filterEl) filterEl.addEventListener('change', renderTable);
     var sourceFilterEl = $('yb-live-admin-source-filter');
     if (sourceFilterEl) sourceFilterEl.addEventListener('change', renderTable);
+
+    // Search: filters-as-you-type
+    var searchInput = $('yb-live-admin-search-input');
+    var searchClear = $('yb-live-admin-search-clear');
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        if (searchClear) searchClear.hidden = !searchInput.value;
+        renderTable();
+      });
+    }
+    if (searchClear && searchInput) {
+      searchClear.addEventListener('click', function () {
+        searchInput.value = '';
+        searchClear.hidden = true;
+        searchInput.focus();
+        renderTable();
+      });
+    }
 
     // Live list: select-all checkbox
     var liveSelectAll = $('yb-live-select-all');

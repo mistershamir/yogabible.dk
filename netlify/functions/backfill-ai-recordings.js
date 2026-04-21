@@ -81,6 +81,7 @@ exports.handler = async function (event) {
     if (action === 'find-orphans') return await handleFindOrphans(params);
     if (action === 'list-unmatched') return await handleListUnmatched();
     if (action === 'generate-captions') return await handleGenerateCaptions(params);
+    if (action === 'fetch-transcripts') return await handleFetchTranscripts(params);
 
     // Default: backfill
     if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
@@ -376,6 +377,152 @@ async function handleGenerateCaptions(params) {
   });
 }
 
+/**
+ * Fetch Mux-generated transcripts for sessions whose captions exist on Mux
+ * but whose aiTranscript is empty locally (webhook missed the track.ready
+ * event, e.g. before the webhook was configured).
+ */
+async function handleFetchTranscripts(params) {
+  var limit = Math.min(parseInt(params.limit, 10) || DEFAULT_LIMIT, MAX_LIMIT);
+  var dryRun = params.dry_run === 'true' || params.dry_run === '1';
+  var sessionId = params.session_id || '';
+
+  var all = await getCollection(COLLECTION, { orderBy: 'startDateTime', orderDir: 'desc' });
+
+  var candidates;
+  if (sessionId) {
+    var single = all.find(function (s) { return s.id === sessionId; });
+    if (!single) return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessionId });
+    if (!single.recordingAssetId || !single.recordingPlaybackId) {
+      return jsonResponse(400, { ok: false, error: 'Session missing recordingAssetId or recordingPlaybackId' });
+    }
+    candidates = [single];
+  } else {
+    candidates = all.filter(function (s) {
+      return s.recordingAssetId && s.recordingPlaybackId && !s.aiTranscript;
+    });
+  }
+
+  var targets = candidates.slice(0, limit);
+
+  if (dryRun) {
+    return jsonResponse(200, {
+      ok: true,
+      dry_run: true,
+      matched: candidates.length,
+      wouldProcess: targets.length,
+      sessions: targets.map(function (s) {
+        return { id: s.id, title: s.title_da || s.title_en || '', assetId: s.recordingAssetId };
+      })
+    });
+  }
+
+  var queued = [];
+  var errors = [];
+  var skipped = [];
+
+  for (var i = 0; i < targets.length; i++) {
+    var s = targets[i];
+    try {
+      var assetResult = await muxFetch('GET', '/video/v1/assets/' + s.recordingAssetId);
+      var tracks = (assetResult.data && assetResult.data.tracks) || [];
+      var captionTrack = null;
+      for (var t = 0; t < tracks.length; t++) {
+        var tr = tracks[t];
+        if (tr.type === 'text' &&
+            (tr.text_source === 'generated_vod' || tr.text_source === 'generated_live') &&
+            tr.status === 'ready') {
+          captionTrack = tr;
+          break;
+        }
+      }
+      if (!captionTrack) {
+        skipped.push({ id: s.id, reason: 'no ready generated caption track' });
+        continue;
+      }
+
+      var trackId = captionTrack.id;
+      var langCode = captionTrack.language_code || 'en';
+
+      var txtUrl = 'https://stream.mux.com/' + s.recordingPlaybackId + '/text/' + trackId + '.txt';
+      var vttUrl = 'https://stream.mux.com/' + s.recordingPlaybackId + '/text/' + trackId + '.vtt';
+
+      var transcriptTxt = '';
+      var vtt = '';
+      try { transcriptTxt = await httpsGetText(txtUrl); } catch (e) {
+        errors.push({ id: s.id, error: 'txt fetch: ' + e.message });
+        continue;
+      }
+      try { vtt = await httpsGetText(vttUrl); } catch (e) {
+        console.log('[backfill-ai] VTT fetch failed (non-fatal) for', s.id, ':', e.message);
+      }
+
+      if (!transcriptTxt || transcriptTxt.length < 50) {
+        skipped.push({ id: s.id, reason: 'transcript too short (' + transcriptTxt.length + ' chars)' });
+        continue;
+      }
+
+      var update = {
+        aiTranscript: transcriptTxt.substring(0, 50000),
+        captionTrackId: trackId,
+        aiCaptionTrackId: trackId,
+        captionLang: langCode,
+        aiStatus: 'transcript_ready',
+        aiError: null
+      };
+      if (vtt && vtt.length < 900000) update.captionVtt = vtt;
+
+      await updateDoc(COLLECTION, s.id, update);
+
+      triggerAiProcess(s.id, s.recordingAssetId, true);
+      queued.push({
+        id: s.id,
+        title: s.title_da || s.title_en || '',
+        assetId: s.recordingAssetId,
+        chars: transcriptTxt.length
+      });
+      console.log('[backfill-ai] Fetched transcript for', s.id, '(' + transcriptTxt.length, 'chars) — triggered Claude');
+
+      if (i < targets.length - 1) await sleep(STAGGER_MS);
+    } catch (err) {
+      errors.push({ id: s.id, error: err.message });
+      console.error('[backfill-ai] fetch-transcripts error for', s.id, ':', err.message);
+    }
+  }
+
+  return jsonResponse(200, {
+    ok: true,
+    matched: candidates.length,
+    queued: queued.length,
+    skipped: skipped.length,
+    skippedDetails: skipped,
+    errors: errors,
+    sessions: queued
+  });
+}
+
+function httpsGetText(url) {
+  return new Promise(function (resolve, reject) {
+    var req = https.get(url, function (res) {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        res.resume();
+        httpsGetText(res.headers.location).then(resolve, reject);
+        return;
+      }
+      if (res.statusCode !== 200) {
+        res.resume();
+        reject(new Error('HTTP ' + res.statusCode + ' from ' + url));
+        return;
+      }
+      var chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () { resolve(Buffer.concat(chunks).toString('utf8')); });
+    });
+    req.on('error', reject);
+    req.setTimeout(60000, function () { req.destroy(new Error('timeout')); });
+  });
+}
+
 async function handleListUnmatched() {
   var db = getDb();
   var snap = await db.collection(UNMATCHED_COLLECTION).get();
@@ -462,12 +609,14 @@ function muxFetch(method, path, body) {
   });
 }
 
-function triggerAiProcess(sessionId, assetId) {
-  var payload = JSON.stringify({
+function triggerAiProcess(sessionId, assetId, transcriptReady) {
+  var payloadObj = {
     sessionId: sessionId,
     assetId: assetId,
     secret: process.env.AI_INTERNAL_SECRET || ''
-  });
+  };
+  if (transcriptReady) payloadObj.transcriptReady = true;
+  var payload = JSON.stringify(payloadObj);
   var opts = {
     hostname: 'yogabible.dk',
     path: '/.netlify/functions/ai-process-recording-background',

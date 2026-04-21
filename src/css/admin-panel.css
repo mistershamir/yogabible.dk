@@ -1434,6 +1434,17 @@
 }
 .yb-lead__search-input:focus { border-color: #f75c03; outline: none; }
 .yb-lead__filter { min-width: 120px; font-size: 0.82rem; }
+.yb-live__search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #6F6A66;
+}
+#yb-live-admin-search-form { position: relative; }
+#yb-live-admin-search-form .yb-lead__search-input { padding-right: 32px; }
 
 /* ── Result count ── */
 .yb-lead__result-bar { margin-bottom: 0.5rem; }

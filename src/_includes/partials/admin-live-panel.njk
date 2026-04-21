@@ -9,8 +9,12 @@
     </div>
   </div>
 
-  {# Filters #}
+  {# Search + Filters #}
   <div class="yb-lead__filter-bar">
+    <form id="yb-live-admin-search-form" class="yb-lead__search-form" onsubmit="return false;">
+      <input type="text" id="yb-live-admin-search-input" placeholder="Search sessions..." class="yb-lead__search-input" autocomplete="off">
+      <button type="button" id="yb-live-admin-search-clear" class="yb-admin__icon-btn yb-live__search-clear" title="Clear" hidden>&times;</button>
+    </form>
     <select id="yb-live-admin-filter" class="yb-admin__select yb-lead__filter">
       <option value="all">{{ t.live_filter_all }}</option>
       <option value="upcoming" selected>{{ t.live_filter_upcoming }}</option>
