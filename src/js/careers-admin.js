@@ -951,15 +951,20 @@
 
     bindCareerEvents();
 
-    // Hook into tab switching
+    // Hook into tab switching — click OR initial URL activation
+    function handleCareersTab(tab) {
+      if (tab === 'careers' && !careersLoaded) {
+        loadCareers();
+        careersLoaded = true;
+      }
+    }
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var tab = btn.getAttribute('data-yb-admin-tab');
-        if (tab === 'careers' && !careersLoaded) {
-          loadCareers();
-          careersLoaded = true;
-        }
+        handleCareersTab(btn.getAttribute('data-yb-admin-tab'));
       });
+    });
+    document.addEventListener('yb:admin-tab', function (e) {
+      handleCareersTab(e.detail && e.detail.tab);
     });
   }
 

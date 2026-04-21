@@ -1326,11 +1326,14 @@
       firebase.auth().onAuthStateChanged(function (user) {
         if (user) {
           window._ybFirebaseUser = user;
-          // Load on tab click
+          // Load on tab click OR initial URL activation
           document.querySelectorAll('[data-yb-admin-tab="appointments"]').forEach(function (btn) {
             btn.addEventListener('click', function () {
               if (!apptLoaded) loadAppointments();
             });
+          });
+          document.addEventListener('yb:admin-tab', function (e) {
+            if (e.detail && e.detail.tab === 'appointments' && !apptLoaded) loadAppointments();
           });
           // CRM tabs on profile page (marketing/admin)
           document.querySelectorAll('[data-yb-tab="crm-appointments"]').forEach(function (btn) {

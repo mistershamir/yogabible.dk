@@ -513,15 +513,20 @@
     T = window._ybAdminT || {};
     bindCatalogEvents();
 
-    // Hook into tab switching
+    // Hook into tab switching — click OR initial URL activation
+    function handleCatalogTab(tab) {
+      if (tab === 'catalog' && !catalogLoaded) {
+        loadCatalog();
+        catalogLoaded = true;
+      }
+    }
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var tab = btn.getAttribute('data-yb-admin-tab');
-        if (tab === 'catalog' && !catalogLoaded) {
-          loadCatalog();
-          catalogLoaded = true;
-        }
+        handleCatalogTab(btn.getAttribute('data-yb-admin-tab'));
       });
+    });
+    document.addEventListener('yb:admin-tab', function (e) {
+      handleCatalogTab(e.detail && e.detail.tab);
     });
   }
 

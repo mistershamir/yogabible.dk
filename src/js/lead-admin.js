@@ -6016,19 +6016,26 @@
     bindLeadEvents();
     renderLeadFilterChips();
 
-    // Hook into tab switching — Leads (admin page)
+    // Hook into tab switching — Leads (admin page). Listen for both:
+    // (a) click on tab button (user-initiated switch)
+    // (b) yb:admin-tab event (fired by course-admin when the URL activates the tab initially)
+    function handleTabSwitch(tab) {
+      if (tab === 'leads' && !leadsLoaded) {
+        loadLeads();
+        leadsLoaded = true;
+      }
+      if (tab === 'applications' && !appLoaded) {
+        loadApplications();
+        appLoaded = true;
+      }
+    }
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var tab = btn.getAttribute('data-yb-admin-tab');
-        if (tab === 'leads' && !leadsLoaded) {
-          loadLeads();
-          leadsLoaded = true;
-        }
-        if (tab === 'applications' && !appLoaded) {
-          loadApplications();
-          appLoaded = true;
-        }
+        handleTabSwitch(btn.getAttribute('data-yb-admin-tab'));
       });
+    });
+    document.addEventListener('yb:admin-tab', function (e) {
+      handleTabSwitch(e.detail && e.detail.tab);
     });
 
     // Hook into tab switching — CRM tabs on profile page (marketing/admin)

@@ -1907,10 +1907,13 @@
       monthInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     }
 
-    // Load settings when billing tab is activated
+    // Load settings when billing tab is activated — click OR initial URL
     document.addEventListener('click', function (e) {
       var tab = e.target.closest('[data-yb-admin-tab="billing"]');
       if (tab && !settingsLoaded && !settingsLoading) loadSettings();
+    });
+    document.addEventListener('yb:admin-tab', function (e) {
+      if (e.detail && e.detail.tab === 'billing' && !settingsLoaded && !settingsLoading) loadSettings();
     });
 
     console.log('[billing] Ready');

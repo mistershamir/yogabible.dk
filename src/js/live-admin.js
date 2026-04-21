@@ -2334,14 +2334,20 @@
       });
     });
 
-    // Tab listener — lazy load on first visit
+    // Tab listener — lazy load on first visit (click OR initial URL activation)
+    function handleLiveTab(tab) {
+      if (tab === 'live' && !loaded) {
+        loadItems();
+        fetchCatalog();
+      }
+    }
     document.querySelectorAll('[data-yb-admin-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        if (btn.getAttribute('data-yb-admin-tab') === 'live' && !loaded) {
-          loadItems();
-          fetchCatalog();
-        }
+        handleLiveTab(btn.getAttribute('data-yb-admin-tab'));
       });
+    });
+    document.addEventListener('yb:admin-tab', function (e) {
+      handleLiveTab(e.detail && e.detail.tab);
     });
   }
 

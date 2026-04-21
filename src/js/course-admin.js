@@ -306,6 +306,10 @@
       loadConversionAnalytics();
       analyticsLoaded = true;
     }
+
+    // Notify other admin modules (lead-admin, live-admin, catalog-admin, etc.)
+    // so they can load tab-specific data on initial URL activation, not just on click.
+    document.dispatchEvent(new CustomEvent('yb:admin-tab', { detail: { tab: tabName } }));
   }
 
   function initTabs() {

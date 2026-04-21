@@ -84,13 +84,18 @@
     loadLists();
   }
 
-  // Listen for tab activation
+  // Listen for tab activation — click OR initial URL activation
+  var _elInitialized = false;
+  function triggerInit() {
+    if (_elInitialized) return;
+    _elInitialized = true;
+    setTimeout(init, 50);
+  }
   document.addEventListener('click', function (e) {
-    var tab = e.target.closest('[data-yb-admin-tab="email-lists"]');
-    if (tab && !tab._elInit) {
-      tab._elInit = true;
-      setTimeout(init, 50);
-    }
+    if (e.target.closest('[data-yb-admin-tab="email-lists"]')) triggerInit();
+  });
+  document.addEventListener('yb:admin-tab', function (e) {
+    if (e.detail && e.detail.tab === 'email-lists') triggerInit();
   });
 
   // Campaign reports state

@@ -905,10 +905,15 @@
     loadAccounts();
   }
 
-  /* ── Wait for tab activation ── */
+  /* ── Wait for tab activation — click OR initial URL activation ── */
   document.addEventListener('click', function (e) {
     var tabBtn = e.target.closest('[data-yb-admin-tab="ads"]');
     if (tabBtn && !loaded) {
+      setTimeout(initAdsAdmin, 100);
+    }
+  });
+  document.addEventListener('yb:admin-tab', function (e) {
+    if (e.detail && e.detail.tab === 'ads' && !loaded) {
       setTimeout(initAdsAdmin, 100);
     }
   });
