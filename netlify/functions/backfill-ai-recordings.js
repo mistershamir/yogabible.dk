@@ -82,6 +82,7 @@ exports.handler = async function (event) {
     if (action === 'list-unmatched') return await handleListUnmatched();
     if (action === 'generate-captions') return await handleGenerateCaptions(params);
     if (action === 'fetch-transcripts') return await handleFetchTranscripts(params);
+    if (action === 'inspect-asset') return await handleInspectAsset(params);
 
     // Default: backfill
     if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
@@ -382,6 +383,41 @@ async function handleGenerateCaptions(params) {
  * but whose aiTranscript is empty locally (webhook missed the track.ready
  * event, e.g. before the webhook was configured).
  */
+/**
+ * Read-only debug: dump the tracks array (plus key asset metadata) for an
+ * asset or session. Use to diagnose why fetch-transcripts skips a session.
+ *   ?action=inspect-asset&session_id=RvC1AVM5Zjh7ruWboHun
+ *   ?action=inspect-asset&asset_id=Z0269olyWzGjdIKu00cxTooZiICbOJ9bfICsBYuyC2DAI
+ */
+async function handleInspectAsset(params) {
+  var assetId = params.asset_id || '';
+  var sessionId = params.session_id || '';
+
+  if (!assetId && sessionId) {
+    var all = await getCollection(COLLECTION);
+    var s = all.find(function (x) { return x.id === sessionId; });
+    if (!s) return jsonResponse(404, { ok: false, error: 'Session not found: ' + sessionId });
+    assetId = s.recordingAssetId;
+    if (!assetId) return jsonResponse(400, { ok: false, error: 'Session has no recordingAssetId' });
+  }
+  if (!assetId) return jsonResponse(400, { ok: false, error: 'asset_id or session_id required' });
+
+  var assetResult = await muxFetch('GET', '/video/v1/assets/' + assetId);
+  var data = (assetResult && assetResult.data) || {};
+
+  return jsonResponse(200, {
+    ok: true,
+    asset_id: assetId,
+    status: data.status || null,
+    duration: data.duration || null,
+    created_at: data.created_at || null,
+    live_stream_id: data.live_stream_id || null,
+    master: data.master || null,
+    tracks: data.tracks || [],
+    playback_ids: data.playback_ids || []
+  });
+}
+
 async function handleFetchTranscripts(params) {
   var limit = Math.min(parseInt(params.limit, 10) || DEFAULT_LIMIT, MAX_LIMIT);
   var dryRun = params.dry_run === 'true' || params.dry_run === '1';
