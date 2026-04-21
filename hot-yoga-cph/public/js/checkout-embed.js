@@ -1797,19 +1797,15 @@
             var code = err.code || '';
             if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
               // Try migrating from Mindbody — create account with their password
-              fetch(API_BASE + '/migrate-mb-user', {
+              fetch(API_BASE + '/mb-auth', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email, password: password })
               })
                 .then(function(res) { return res.json(); })
                 .then(function(data) {
-                  if (data.created) {
-                    doLogin(email, password, function(err2) {
-                      if (err2) {
-                        showError('ycf-login-error', authErrorMsg(err2));
-                        return;
-                      }
+                  if (data.success) {
+                    var afterSignIn = function() {
                       if (!modal || modal.getAttribute('aria-hidden') === 'true') return;
                       authOriginStep = 'login';
                       trackAuthComplete();
@@ -1829,25 +1825,16 @@
                         (user && user.email) || email,
                         ''
                       );
-                    });
-                    return;
-                  }
-                  // Account exists in Firebase — wrong password. Auto-send reset email.
-                  if (data.hasFirebaseAccount) {
-                    var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
-                    fetch(apiBase + '/send-password-reset', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
-                    }).catch(function() {});
-                    var el = $('ycf-login-error');
-                    if (el) {
-                      el.innerHTML = t(
-                        'Forkert adgangskode. Vi har sendt en email til <strong>' + email + '</strong> s\u00e5 du kan nulstille din adgangskode. Tjek din indbakke (og spam).',
-                        'Incorrect password. We\u2019ve sent an email to <strong>' + email + '</strong> to reset your password. Check your inbox (and spam).'
-                      );
-                      el.hidden = false;
+                    };
+                    if (data.customToken) {
+                      return firebase.auth().signInWithCustomToken(data.customToken)
+                        .then(afterSignIn)
+                        .catch(function(err2) { showError('ycf-login-error', authErrorMsg(err2)); });
                     }
+                    doLogin(email, password, function(err2) {
+                      if (err2) { showError('ycf-login-error', authErrorMsg(err2)); return; }
+                      afterSignIn();
+                    });
                     return;
                   }
                   var el = $('ycf-login-error');

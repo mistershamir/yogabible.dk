@@ -634,15 +634,22 @@
           var code = err.code || '';
           if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
             // Try migrating from Mindbody with their password
-            fetch(API_BASE + '/migrate-mb-user', {
+            fetch(API_BASE + '/mb-auth', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: email, password: password })
             })
               .then(function(res) { return res.json(); })
               .then(function(data) {
-                if (data.created) {
-                  // Account created — sign in seamlessly
+                if (data.success) {
+                  if (data.customToken) {
+                    return firebase.auth().signInWithCustomToken(data.customToken)
+                      .then(function() { closeModal(); })
+                      .catch(function(err2) {
+                        errorEl.textContent = authErrorMsg(err2);
+                        errorEl.classList.add('is-visible');
+                      });
+                  }
                   doLogin(email, password, function(err2) {
                     if (err2) {
                       errorEl.textContent = authErrorMsg(err2);
@@ -651,21 +658,6 @@
                     }
                     closeModal();
                   });
-                  return;
-                }
-                // Account exists in Firebase — wrong password. Auto-send reset email.
-                if (data.hasFirebaseAccount) {
-                  var apiBase = 'https://www.hotyogacph.dk/.netlify/functions';
-                  fetch(apiBase + '/send-password-reset', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, lang: isDa ? 'da' : 'en' })
-                  }).catch(function() {});
-                  errorEl.innerHTML = t(
-                    'Forkert adgangskode. Vi har sendt en email til <strong>' + email + '</strong> s\u00e5 du kan nulstille din adgangskode. Tjek din indbakke (og spam).',
-                    'Incorrect password. We\u2019ve sent an email to <strong>' + email + '</strong> to reset your password. Check your inbox (and spam).'
-                  );
-                  errorEl.classList.add('is-visible');
                   return;
                 }
                 // Not in MB — show generic error

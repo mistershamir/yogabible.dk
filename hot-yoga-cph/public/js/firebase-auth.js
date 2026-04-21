@@ -479,33 +479,20 @@
         })
         .catch(function(error) {
           if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-            fetch('/.netlify/functions/migrate-mb-user', {
+            fetch('/.netlify/functions/mb-auth', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: email, password: password })
             })
               .then(function(res) { return res.json(); })
               .then(function(data) {
-                if (data.created) {
+                if (data.success) {
+                  if (data.customToken) {
+                    return auth.signInWithCustomToken(data.customToken)
+                      .then(function() { closeAuthModal(); });
+                  }
                   return auth.signInWithEmailAndPassword(email, password)
                     .then(function() { closeAuthModal(); });
-                }
-                // Account exists in Firebase — wrong password. Auto-send reset email.
-                if (data.hasFirebaseAccount) {
-                  fetch('/.netlify/functions/send-password-reset', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, lang: detectLocale() })
-                  }).catch(function() {});
-                  if (errorEl) {
-                    var isDaLoc = detectLocale() === 'da';
-                    errorEl.innerHTML = isDaLoc
-                      ? 'Forkert adgangskode. Vi har sendt en email til <strong>' + email + '</strong> s\u00e5 du kan nulstille din adgangskode. Tjek din indbakke (og spam).'
-                      : 'Incorrect password. We\u2019ve sent an email to <strong>' + email + '</strong> to reset your password. Check your inbox (and spam).';
-                    errorEl.style.color = '';
-                    errorEl.hidden = false;
-                  }
-                  return;
                 }
                 showErrorWithReset(errorEl);
               })
