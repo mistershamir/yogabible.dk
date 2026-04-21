@@ -117,35 +117,17 @@ exports.handler = async function (event) {
 
       console.log('[ai-process] (mux-captions) Sending to Claude — transcript chars:', muxTranscript.length);
       var muxAi = await generateSummaryAndQuiz(muxTranscript, muxSessionTitle, muxSessionInstructor, null, muxIsInteractive);
-      var muxPrimaryLang = muxAi.lang || 'da';
-
-      await updateDoc(COLLECTION, sessionId, { aiStatus: 'translating' });
-      var muxTranslated = { summary: '', quiz: [] };
-      try {
-        muxTranslated = await translateSummaryAndQuiz(muxAi.summary, muxAi.quiz, muxPrimaryLang);
-      } catch (translErr) {
-        console.error('[ai-process] Translation failed (non-fatal):', translErr.message);
-      }
-
-      var muxSummaryDa = muxPrimaryLang === 'da' ? muxAi.summary : (muxTranslated.summary || '');
-      var muxSummaryEn = muxPrimaryLang === 'en' ? muxAi.summary : (muxTranslated.summary || '');
-      var muxQuizDa = muxPrimaryLang === 'da' ? muxAi.quiz : (muxTranslated.quiz || []);
-      var muxQuizEn = muxPrimaryLang === 'en' ? muxAi.quiz : (muxTranslated.quiz || []);
 
       await updateDoc(COLLECTION, sessionId, {
         aiStatus: 'complete',
         aiSummary: muxAi.summary || '',
-        aiSummaryLang: muxPrimaryLang,
-        aiSummary_da: muxSummaryDa,
-        aiSummary_en: muxSummaryEn,
+        aiSummaryLang: 'en',
         aiQuiz: JSON.stringify(muxAi.quiz || []),
-        aiQuiz_da: JSON.stringify(muxQuizDa),
-        aiQuiz_en: JSON.stringify(muxQuizEn),
         aiProcessedAt: new Date().toISOString(),
         aiError: null
       });
 
-      console.log('[ai-process] (mux-captions) Complete! Session:', sessionId, 'Primary:', muxPrimaryLang);
+      console.log('[ai-process] (mux-captions) Complete! Session:', sessionId);
 
       // Fire-and-forget Mux Robots bonus jobs (summarize + chapters) on the asset
       if (assetId) fireMuxRobotsJobs(assetId, sessionId);
@@ -154,7 +136,7 @@ exports.handler = async function (event) {
         ok: true,
         status: 'complete',
         sessionId: sessionId,
-        lang: muxAi.lang,
+        lang: 'en',
         source: 'mux-captions'
       });
     }
@@ -279,48 +261,25 @@ exports.handler = async function (event) {
 
     console.log('[ai-process] Sending to Claude for summary + quiz...', isInteractive ? '(interactive/panel)' : '');
     var aiResult = await generateSummaryAndQuiz(transcript, sessionTitle, sessionInstructor, null, isInteractive);
-    var primaryLang = aiResult.lang || 'da';
-    var secondaryLang = primaryLang === 'da' ? 'en' : 'da';
 
-    // ── Step 5: Translate to the other language ──
-    console.log('[ai-process] Translating summary + quiz from', primaryLang, 'to', secondaryLang + '...');
-    await updateDoc(COLLECTION, sessionId, { aiStatus: 'translating' });
-    var translated = { summary: '', quiz: [] };
-    try {
-      translated = await translateSummaryAndQuiz(aiResult.summary, aiResult.quiz, primaryLang);
-      console.log('[ai-process] Translation complete. Summary length:', (translated.summary || '').length);
-    } catch (err) {
-      console.error('[ai-process] Translation failed (non-fatal):', err.message);
-    }
-
-    // Build bilingual fields
-    var summary_da = primaryLang === 'da' ? aiResult.summary : (translated.summary || '');
-    var summary_en = primaryLang === 'en' ? aiResult.summary : (translated.summary || '');
-    var quiz_da = primaryLang === 'da' ? aiResult.quiz : (translated.quiz || []);
-    var quiz_en = primaryLang === 'en' ? aiResult.quiz : (translated.quiz || []);
-
-    // ── Step 6: Save results ──
+    // ── Step 5: Save results (English only — no Danish translation) ──
     await updateDoc(COLLECTION, sessionId, {
       aiStatus: 'complete',
       aiTranscript: transcript.substring(0, 50000),
       aiSummary: aiResult.summary || '',
-      aiSummaryLang: primaryLang,
-      aiSummary_da: summary_da,
-      aiSummary_en: summary_en,
+      aiSummaryLang: 'en',
       aiQuiz: JSON.stringify(aiResult.quiz || []),
-      aiQuiz_da: JSON.stringify(quiz_da),
-      aiQuiz_en: JSON.stringify(quiz_en),
       aiProcessedAt: new Date().toISOString(),
       aiError: null
     });
 
-    console.log('[ai-process] Complete! Session:', sessionId, 'Primary:', primaryLang);
+    console.log('[ai-process] Complete! Session:', sessionId);
 
     return jsonResponse(200, {
       ok: true,
       status: 'complete',
       sessionId: sessionId,
-      lang: aiResult.lang
+      lang: 'en'
     });
 
   } catch (err) {

@@ -466,14 +466,16 @@ async function handleFetchTranscripts(params) {
       for (var t = 0; t < tracks.length; t++) {
         var tr = tracks[t];
         if (tr.type === 'text' &&
-            (tr.text_source === 'generated_vod' || tr.text_source === 'generated_live') &&
+            (tr.text_source === 'generated_vod' ||
+             tr.text_source === 'generated_live' ||
+             tr.text_source === 'uploaded') &&
             tr.status === 'ready') {
           captionTrack = tr;
           break;
         }
       }
       if (!captionTrack) {
-        skipped.push({ id: s.id, reason: 'no ready generated caption track' });
+        skipped.push({ id: s.id, reason: 'no ready caption track (generated or uploaded)' });
         continue;
       }
 
