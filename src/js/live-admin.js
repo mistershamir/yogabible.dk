@@ -564,9 +564,8 @@
       toggleTeacherSection(formScope);
     }
 
-    // Recording asset id (hidden field)
-    var recAssetEl = $('yb-la-recording-asset-id');
-    if (recAssetEl) recAssetEl.value = (item && item.recordingAssetId) || '';
+    // Recording asset id (hidden field + visible hint)
+    setAssetIdField((item && item.recordingAssetId) || '');
     // Show/hide inline Preview button based on whether a recording is linked
     refreshRecPreviewButton();
 
@@ -1670,6 +1669,50 @@
     if (!val && slot) { slot.innerHTML = ''; slot.hidden = true; }
   }
 
+  // Sync the hidden recordingAssetId input with a visible hint line.
+  function setAssetIdField(assetId) {
+    var input = $('yb-la-recording-asset-id');
+    var hint = $('yb-la-recording-asset-hint');
+    var display = $('yb-la-recording-asset-display');
+    var val = (assetId || '').trim();
+    if (input) input.value = val;
+    if (display) display.textContent = val;
+    if (hint) hint.hidden = !val;
+  }
+
+  // Call Mux via live-admin backend to resolve a playback ID → asset ID.
+  function lookupAssetIdForPlaybackId() {
+    var recInput = $('yb-la-recording-id');
+    var playbackId = recInput ? (recInput.value || '').trim() : '';
+    if (!playbackId) {
+      toast('Enter a Recording Playback ID first', true);
+      return;
+    }
+    var btn = $('yb-la-lookup-asset-btn');
+    var originalLabel = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Looking up…'; }
+
+    getToken().then(function (token) {
+      if (!token) throw new Error('Not authenticated');
+      var url = '/.netlify/functions/live-admin?action=resolve-playback-id&playbackId=' + encodeURIComponent(playbackId);
+      return fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+    }).then(function (r) {
+      return r.json().then(function (data) { return { status: r.status, data: data }; });
+    }).then(function (res) {
+      if (!res.data.ok) {
+        var msg = res.data.error || ('HTTP ' + res.status);
+        toast('Lookup failed: ' + msg, true);
+        return;
+      }
+      setAssetIdField(res.data.assetId);
+      toast('Asset ID resolved: ' + res.data.assetId);
+    }).catch(function (err) {
+      toast('Lookup failed: ' + err.message, true);
+    }).then(function () {
+      if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
+    });
+  }
+
   function toggleRecPreview() {
     var recInput = $('yb-la-recording-id');
     var slot = $('yb-la-rec-preview-slot');
@@ -1690,9 +1733,8 @@
 
   function selectMuxAsset(playbackId, assetId, createdAt) {
     var recInput = $('yb-la-recording-id');
-    var recAssetInput = $('yb-la-recording-asset-id');
     if (recInput) recInput.value = playbackId || '';
-    if (recAssetInput) recAssetInput.value = assetId || '';
+    setAssetIdField(assetId);
 
     // If "Link existing recording" toggle is active on a new session, pre-fill start time
     var linkToggle = $('yb-la-link-existing-toggle');
@@ -2081,6 +2123,9 @@
 
       btn = e.target.closest('[data-action="live-rec-preview"]');
       if (btn) { toggleRecPreview(); return; }
+
+      btn = e.target.closest('[data-action="live-lookup-asset-id"]');
+      if (btn) { lookupAssetIdForPlaybackId(); return; }
     });
 
     // Mux date filter + load more
@@ -2121,6 +2166,9 @@
     if (recIdInput) {
       recIdInput.addEventListener('input', applyNotRecordedVisibility);
       recIdInput.addEventListener('input', refreshRecPreviewButton);
+      // Clear the resolved asset ID when the playback ID is edited manually,
+      // so stale pairings aren't saved silently.
+      recIdInput.addEventListener('input', function () { setAssetIdField(''); });
     }
 
     // List view filters

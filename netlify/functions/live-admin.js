@@ -80,6 +80,7 @@ exports.handler = async function (event) {
       case 'update': return handleUpdate(event, user);
       case 'delete': return handleDelete(event, user);
       case 'bulk-update': return handleBulkUpdate(event, user);
+      case 'resolve-playback-id': return handleResolvePlaybackId(params);
       default:
         return jsonResponse(400, { ok: false, error: 'Unknown action: ' + action });
     }
@@ -271,6 +272,67 @@ async function handleBulkUpdate(event, user) {
 
   console.log('[live-admin] Bulk updated', updated, '/', ids.length, 'by', user.email);
   return jsonResponse(200, { ok: true, updated: updated });
+}
+
+// ═══════════════════════════════════════════════════════
+// Admin: Resolve a Mux playback ID → asset ID
+// ═══════════════════════════════════════════════════════
+async function handleResolvePlaybackId(params) {
+  var playbackId = (params.playbackId || '').trim();
+  if (!playbackId) {
+    return jsonResponse(400, { ok: false, error: 'playbackId required' });
+  }
+
+  try {
+    var result = await muxGet('/video/v1/playback-ids/' + encodeURIComponent(playbackId));
+    var data = result && result.data;
+    var assetId = data && (data.object && data.object.type === 'asset' ? data.object.id : null);
+    if (!assetId) {
+      return jsonResponse(404, { ok: false, error: 'Playback ID does not map to an asset' });
+    }
+    return jsonResponse(200, { ok: true, playbackId: playbackId, assetId: assetId });
+  } catch (err) {
+    console.error('[live-admin] resolve-playback-id failed:', err.message);
+    return jsonResponse(502, { ok: false, error: err.message });
+  }
+}
+
+function muxGet(path) {
+  var https = require('https');
+  var tokenId = process.env.MUX_TOKEN_ID;
+  var tokenSecret = process.env.MUX_TOKEN_SECRET;
+  if (!tokenId || !tokenSecret) {
+    return Promise.reject(new Error('MUX_TOKEN_ID / MUX_TOKEN_SECRET not configured'));
+  }
+  return new Promise(function (resolve, reject) {
+    var opts = {
+      hostname: 'api.mux.com',
+      path: path,
+      method: 'GET',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(tokenId + ':' + tokenSecret).toString('base64'),
+        'Content-Type': 'application/json'
+      }
+    };
+    var req = https.request(opts, function (res) {
+      var chunks = [];
+      res.on('data', function (c) { chunks.push(c); });
+      res.on('end', function () {
+        var raw = Buffer.concat(chunks).toString();
+        if (res.statusCode === 404) return reject(new Error('Playback ID not found'));
+        try {
+          var json = JSON.parse(raw);
+          if (res.statusCode >= 200 && res.statusCode < 300) resolve(json);
+          else reject(new Error('Mux API ' + res.statusCode + ': ' + raw.substring(0, 200)));
+        } catch (e) {
+          reject(new Error('Mux parse error: ' + raw.substring(0, 200)));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(15000, function () { req.destroy(new Error('Mux request timeout')); });
+    req.end();
+  });
 }
 
 // ═══════════════════════════════════════════════════════
