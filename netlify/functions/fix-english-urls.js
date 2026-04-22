@@ -19,11 +19,13 @@ const { jsonResponse, optionsResponse } = require('./shared/utils');
 // Danish schedule path → English schedule path
 var SCHEDULE_MAP = {
   '/skema/4-uger/': '/en/schedule/4-weeks/',
+  '/skema/4-uger-juni/': '/en/schedule/4-weeks-june/',
   '/skema/4-uger-juli/': '/en/schedule/4-weeks-july-plan/',
   '/skema/8-uger/': '/en/schedule/8-weeks/',
   '/skema/18-uger/': '/en/schedule/18-weeks/',
   '/skema/18-uger-august/': '/en/schedule/18-weeks-august/',
   '/tidsplan/4-uger/': '/en/schedule/4-weeks/',
+  '/tidsplan/4-uger-juni/': '/en/schedule/4-weeks-june/',
   '/tidsplan/4-uger-juli/': '/en/schedule/4-weeks-july-plan/',
   '/tidsplan/8-uger/': '/en/schedule/8-weeks/',
   '/tidsplan/18-uger/': '/en/schedule/18-weeks/',

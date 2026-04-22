@@ -346,8 +346,10 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
     switch (action) {
       case 'lead_schedule_4w':
       case 'lead_schedule_4w-apr':
-      case 'lead_schedule_4w-jun':
         result = await sendEmail4wYTT(leadData, tokenData);
+        break;
+      case 'lead_schedule_4w-jun':
+        result = await sendEmail4wJuneYTT(leadData, tokenData);
         break;
       case 'lead_schedule_4w-jul':
         result = await sendJulyVinyasaPlusDaEmail(leadData, tokenData);
@@ -486,6 +488,70 @@ async function sendEmail4wYTT(leadData, tokenData = {}) {
   bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
   bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
   bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
+  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+
+  const result = await sendRawEmail({
+    to: leadData.email,
+    subject,
+    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
+    text: bodyPlain
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
+// 4-Week June YTT Email (Complete Program — new cohort after April sold out)
+// =========================================================================
+
+async function sendEmail4wJuneYTT(leadData, tokenData = {}) {
+  const firstName = leadData.first_name || '';
+  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
+  const cityCountry = leadData.city_country || '';
+  const subject = firstName + ', her er alle datoer til 4-ugers yogauddannelsen (juni)';
+
+  const fullPrice = '23.750';
+  const remaining = '20.000';
+  const rateNote = 'fleksibel ratebetaling';
+
+  const scheduleUrl = tokenData.leadId && tokenData.token
+    ? 'https://www.yogabible.dk/skema/4-uger-juni/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
+    : 'https://www.yogabible.dk/skema/4-uger-juni/';
+
+  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>4-ugers intensive 200-timers yogalæreruddannelse</strong> i <strong>juni 2026</strong>.</p>';
+  bodyHtml += '<p>Her finder du alle træningsdage og tidspunkter for juni-holdet:</p>';
+  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se juni-skemaet →</a></p>';
+  bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilføje alle datoer direkte til din kalender — og se præcis, hvad der sker hver dag fra 1. juni til graduation 28. juni.</p>';
+
+  bodyHtml += '<p style="margin-top:16px;">Det intensive format er til dig, der vil fordybe dig fuldt ud. På 4 uger gennemfører du hele certificeringen med daglig træning og teori — Hatha, Vinyasa, Yin, Hot Yoga og Meditation. Mange af vores dimittender fortæller, at det intensive format hjalp dem med at lære mere, fordi de var 100% dedikerede.</p>';
+  bodyHtml += programHighlightsHtml();
+  bodyHtml += '<p style="margin-top:12px;">Vi har uddannet yogalærere siden 2014, og vores dimittender underviser i hele Europa og videre. Kan du ikke møde op en dag, tilbyder vi online backup på udvalgte workshops.</p>';
+
+  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
+
+  bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
+  bodyHtml += '<strong>Pris:</strong> ' + fullPrice + ' kr.<br>';
+  bodyHtml += '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>';
+  bodyHtml += '<strong>Rest:</strong> ' + remaining + ' kr. (' + rateNote + ')';
+  bodyHtml += '</div>';
+
+  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
+
+  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">Læs mere om 4-ugers programmet</a>';
+  bodyHtml += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
+  bodyHtml += bookingCta() + questionPrompt();
+  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
+
+  // Plain text
+  let bodyPlain = 'Hej ' + firstName + ',\n\n';
+  bodyPlain += 'Tak fordi du viste interesse for vores 4-ugers intensive 200-timers yogalæreruddannelse i juni 2026.\n\n';
+  bodyPlain += 'Uddannelsesskema og datoer (juni-holdet):\n' + scheduleUrl + '\n\n';
+  bodyPlain += programHighlightsPlain();
+  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
+  bodyPlain += '\nPris: ' + fullPrice + ' kr.\nForberedelsesfasen: 3.750 kr.\nRest: ' + remaining + ' kr. (' + rateNote + ')\n\n';
+  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
+  bodyPlain += '\nLæs mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
+  bodyPlain += 'Book infomøde: ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
   const result = await sendRawEmail({
@@ -1445,11 +1511,11 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
       programType: '8-week'
     },
     '4w': {
-      name: '4-ugers intensive program (april)',
-      period: 'april 2026',
+      name: '4-ugers intensive program (juni)',
+      period: 'juni 2026',
       desc: 'Fuldt fordybende \u2014 daglig tr\u00e6ning og teori i 4 uger. Complete Program: Hatha, Vinyasa, Yin, Hot Yoga og Meditation.',
       url: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
-      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger/' + scheduleBase,
+      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger-juni/' + scheduleBase,
       programType: '4-week'
     },
     '4w-jun': {
