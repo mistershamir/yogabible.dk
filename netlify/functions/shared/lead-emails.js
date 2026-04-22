@@ -253,7 +253,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
     if (isGerman) {
       let result;
       const programKeyMap = {
-        'lead_schedule_4w': '4-week', 'lead_schedule_4w-apr': '4-week',
+        'lead_schedule_4w': '4-week', 'lead_schedule_4w-apr': '4-week', 'lead_schedule_4w-jun': '4-week-jun',
         'lead_schedule_4w-jul': '4-week-jul', 'lead_schedule_8w': '8-week',
         'lead_schedule_18w': '18-week', 'lead_schedule_18w-mar': '18-week',
         'lead_schedule_18w-aug': '18-week-aug', 'lead_schedule_300h': '300h',
@@ -294,7 +294,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
     if (!isDanish) {
       let result;
       const programKeyMap = {
-        'lead_schedule_4w': '4-week', 'lead_schedule_4w-apr': '4-week',
+        'lead_schedule_4w': '4-week', 'lead_schedule_4w-apr': '4-week', 'lead_schedule_4w-jun': '4-week-jun',
         'lead_schedule_4w-jul': '4-week-jul', 'lead_schedule_8w': '8-week',
         'lead_schedule_18w': '18-week', 'lead_schedule_18w-mar': '18-week',
         'lead_schedule_18w-aug': '18-week-aug', 'lead_schedule_300h': '300h',
@@ -346,6 +346,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
     switch (action) {
       case 'lead_schedule_4w':
       case 'lead_schedule_4w-apr':
+      case 'lead_schedule_4w-jun':
         result = await sendEmail4wYTT(leadData, tokenData);
         break;
       case 'lead_schedule_4w-jul':
@@ -1451,8 +1452,16 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
       scheduleUrl: 'https://www.yogabible.dk/skema/4-uger/' + scheduleBase,
       programType: '4-week'
     },
+    '4w-jun': {
+      name: '4-ugers Complete Program (juni)',
+      period: 'juni 2026',
+      desc: 'Fuldt fordybende — daglig træning og teori i 4 uger. Hatha, Vinyasa, Yin, Hot Yoga og Meditation.',
+      url: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
+      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger-juni/' + scheduleBase,
+      programType: '4-week'
+    },
     '4w-apr': {
-      name: '4-ugers Complete Program (april)',
+      name: '4-ugers Complete Program (april - udsolgt)',
       period: 'april 2026',
       desc: 'Fuldt fordybende \u2014 daglig tr\u00e6ning og teori i 4 uger. Hatha, Vinyasa, Yin, Hot Yoga og Meditation.',
       url: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
@@ -1608,11 +1617,11 @@ async function sendEmailUndecidedYTT(leadData, tokenData = {}) {
   const formats = [
     {
       name: '4-ugers intensiv',
-      period: 'April 2026',
+      period: 'Juni 2026',
       emoji: '🔥',
       desc: 'Fuldt fordybende daglig træning i 4 uger. Det mest intense format \u2014 perfekt hvis du kan sætte alt andet på pause og vil have den dybeste oplevelse.',
       goodFor: 'Dig der vil have en komplet immersion og kan dedikere 4 uger fuld tid.',
-      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger/' + scheduleBase,
+      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger-juni/' + scheduleBase,
       pageUrl: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs'
     },
     {

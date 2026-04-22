@@ -124,7 +124,8 @@ exports.handler = async (event) => {
         '4-weeks': '4w', '4-week': '4w', '4w': '4w',
         '8-weeks': '8w', '8-week': '8w', '8w': '8w',
         '18-weeks': '18w', '18-week': '18w', '18w': '18w',
-        '4-weeks-july': '4w-jul', '4-week-jul': '4w-jul', '4w-jul': '4w-jul'
+        '4-weeks-july': '4w-jul', '4-week-jul': '4w-jul', '4w-jul': '4w-jul',
+        '4-weeks-june': '4w-jun', '4-week-jun': '4w-jun', '4w-jun': '4w-jun', '4-uger-juni': '4w-jun'
       };
       const formatKey = SLUG_TO_FORMAT[slug];
       if (formatKey) {

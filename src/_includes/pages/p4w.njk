@@ -14,10 +14,17 @@
 <div class="yb-float-picker" id="p4w-picker">
   <div class="yb-float-picker__sheet">
     <p class="yb-float-picker__title">{{ t.float_pick_title }}</p>
-    <button class="yb-float-picker__option" data-checkout-product="100121">
+    <button class="yb-float-picker__option" disabled style="opacity:.5;pointer-events:none;">
       <div>
         {{ t.float_pick_april }}
         <div class="yb-float-picker__option-period">{{ t.float_pick_april_period }}</div>
+      </div>
+      <span class="yb-float-picker__option-arrow">→</span>
+    </button>
+    <button class="yb-float-picker__option" data-checkout-product="100213">
+      <div>
+        {{ t.float_pick_june }}
+        <div class="yb-float-picker__option-period">{{ t.float_pick_june_period }}</div>
       </div>
       <span class="yb-float-picker__option-arrow">→</span>
     </button>
@@ -80,7 +87,7 @@
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
       <button onclick="openYBScheduleModal('4w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
-      <a href="?product=100121" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100121">{{ t.april_cta }}</a>
+      <a href="?product=100213" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100213">{{ t.juni_cta }}</a>
       <a href="?product=100211" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100211">{{ t.juli_cta }}</a>
     </div>
     <p class="yb-hero__read-more">
@@ -538,8 +545,23 @@
           <p class="yb-track-card__text">{{ t.april_desc }}</p>
           <p class="yb-track-card__styles">{{ t.april_styles }}</p>
           <div class="yb-track-card__ctas">
-            <a href="?product=100121" class="yb-btn yb-btn--cta yb-btn--small" data-checkout-product="100121">{{ t.april_cta }}</a>
+            <span class="yb-btn yb-btn--small" style="opacity:.5;pointer-events:none;">{{ t.april_cta }}</span>
             <button onclick="openYBScheduleModal('4w-apr')" class="yb-btn yb-btn--outline yb-btn--small">{{ t.april_schedule_cta }}</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="yb-track-card">
+        <div class="yb-track-card__icon">{{ t.juni_icon }}</div>
+        <div class="yb-track-card__content">
+          <span class="yb-track-card__badge">{{ t.juni_badge }}</span>
+          <h3 class="yb-track-card__title">{{ t.juni_title }}</h3>
+          <p class="yb-track-card__time">{{ t.juni_time }}</p>
+          <p class="yb-track-card__text">{{ t.juni_desc }}</p>
+          <p class="yb-track-card__styles">{{ t.juni_styles }}</p>
+          <div class="yb-track-card__ctas">
+            <a href="?product=100213" class="yb-btn yb-btn--cta yb-btn--small" data-checkout-product="100213">{{ t.juni_cta }}</a>
+            <button onclick="openYBScheduleModal('4w-jun')" class="yb-btn yb-btn--outline yb-btn--small">{{ t.juni_schedule_cta }}</button>
           </div>
         </div>
       </article>
@@ -741,7 +763,7 @@
         </ul>
 
         <div class="p4w-early-card__cta">
-          <a href="?product=100121" class="yb-btn yb-btn--cta" data-checkout-product="100121">{{ t.april_cta }}</a>
+          <a href="?product=100213" class="yb-btn yb-btn--cta" data-checkout-product="100213">{{ t.juni_cta }}</a>
           <a href="?product=100211" class="yb-btn yb-btn--cta" data-checkout-product="100211" style="margin-top:.5rem">{{ t.juli_cta }}</a>
           <div class="p4w-early-card__pricing">
             <span class="p4w-early-card__deposit">{{ t.early_deposit_label }}</span>
@@ -782,7 +804,7 @@
     <p class="p18-final-cta__text">{{ t.final_text }}</p>
     <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
       <button onclick="openYBScheduleModal('4w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
-      <a href="?product=100121" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100121">{{ t.april_cta }}</a>
+      <a href="?product=100213" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100213">{{ t.juni_cta }}</a>
       <a href="?product=100211" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100211">{{ t.juli_cta }}</a>
     </div>
   </div>

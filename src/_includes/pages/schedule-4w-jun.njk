@@ -1,5 +1,5 @@
 {# CLOUDINARY: yoga-bible-DK/schedule-pages/4w/ — hero and og images #}
-{% set t = i18n.schedule_4w[lang or "da"] %}
+{% set t = i18n.schedule_4w_jun[lang or "da"] %}
 
 <section id="schedule-4w">
 
@@ -11,7 +11,7 @@
       <p style="font-size:.95rem;color:rgba(255,255,255,.4);letter-spacing:.04em;">{{ t.heroPeriod }}</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
         <button onclick="openBookingModal('info-session')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</button>
-        <button disabled style="background:#6F6A66;color:#fff;border:none;padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:default;font-family:inherit;opacity:.6;">{{ t.ctaStart }}</button>
+        <button onclick="startCheckoutFunnel('100213')" style="background:#f75c03;color:#fff;border:none;padding:13px 24px;border-radius:50px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
       </div>
     </div>
   </div>
@@ -148,40 +148,35 @@
     </div>
 
     {% set months4w = [
-      { name: "April", name_en: "April", year: "2026", weeks: [
-        { num: 1, label: "Introduktion", label_en: "Introduction", range: "13–19 apr", range_en: "Apr 13–19", days: [
-          { dn: "13", dd: "Man", dd_en: "Mon", time: "09:00–15:00", topic: "Hatha & Class Management — Introduktion", topic_en: "Hatha & Class Management — Introduction", type: "workshop" },
-          { dn: "14", dd: "Tir", dd_en: "Tue", time: "11:00–17:00", topic: "Vinyasa & Yin Yoga — Introduktion", topic_en: "Vinyasa & Yin Yoga — Introduction", type: "workshop" },
-          { dn: "16", dd: "Tor", dd_en: "Thu", time: "11:00–17:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
-          { dn: "18", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
-          { dn: "19", dd: "Søn", dd_en: "Sun", time: "14:00–18:00", topic: "Yogafilosofi 01 — Online", topic_en: "Yoga Philosophy 01 — Online", type: "online" }
+      { name: "Juni", name_en: "June", year: "2026", weeks: [
+        { num: 1, label: "Introduktion", label_en: "Introduction", range: "1–7 jun", range_en: "Jun 1–7", days: [
+          { dn: "1", dd: "Man", dd_en: "Mon", time: "09:00–15:00", topic: "Hatha Yoga", type: "workshop" },
+          { dn: "2", dd: "Tir", dd_en: "Tue", time: "11:00–17:00", topic: "Vinyasa Yoga", type: "workshop" },
+          { dn: "4", dd: "Tor", dd_en: "Thu", time: "11:00–17:00", topic: "Vinyasa Yoga", type: "workshop" },
+          { dn: "6", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
+          { dn: "7", dd: "Søn", dd_en: "Sun", time: "14:00–18:00", topic: "Yogafilosofi", topic_en: "Yoga Philosophy", type: "workshop" }
         ]},
-        { num: 2, range: "20–26 apr", range_en: "Apr 20–26", days: [
-          { dn: "20", dd: "Man", dd_en: "Mon", time: "09:00–15:00", topic: "Hatha & Class Management", type: "workshop" },
-          { dn: "21", dd: "Tir", dd_en: "Tue", time: "11:00–17:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
-          { dn: "22", dd: "Ons", dd_en: "Wed", time: "10:00–15:00", topic: "Hatha & Class Management", type: "workshop" },
-          { dn: "23", dd: "Tor", dd_en: "Thu", time: "11:00–17:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
-          { dn: "25", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
-          { dn: "26", dd: "Søn", dd_en: "Sun", time: "13:00–17:00", topic: "Yogafilosofi 02 — Online", topic_en: "Yoga Philosophy 02 — Online", type: "online" }
+        { num: 2, range: "8–14 jun", range_en: "Jun 8–14", days: [
+          { dn: "8", dd: "Man", dd_en: "Mon", time: "09:00–15:00", topic: "Hatha Yoga", type: "workshop" },
+          { dn: "9", dd: "Tir", dd_en: "Tue", time: "11:00–17:00", topic: "Vinyasa Yoga", type: "workshop" },
+          { dn: "10", dd: "Ons", dd_en: "Wed", time: "10:00–16:00", topic: "Vinyasa Yoga", type: "workshop" },
+          { dn: "11", dd: "Tor", dd_en: "Thu", time: "11:00–16:00", topic: "Hatha Yoga", type: "workshop" },
+          { dn: "13", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
+          { dn: "14", dd: "Søn", dd_en: "Sun", time: "13:00–17:00", topic: "Yogafilosofi", topic_en: "Yoga Philosophy", type: "workshop" }
         ]},
-        { num: 3, range: "27 apr – 3 maj", range_en: "Apr 27 – May 3", days: [
-          { dn: "27", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Hatha & Class Management", type: "workshop" },
-          { dn: "28", dd: "Tir", dd_en: "Tue", time: "09:00–15:00", topic: "Vinyasa & Yin Yoga", type: "workshop" }
-        ]}
-      ]},
-      { name: "Maj", name_en: "May", year: "2026", weeks: [
-        { num: 3, range: "27 apr – 3 maj", range_en: "Apr 27 – May 3", continuesFrom: true, days: [
-          { dn: "30", dd: "Tor", dd_en: "Thu", time: "11:00–15:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
-          { dn: "1",  dd: "Fre", dd_en: "Fri", time: "11:00–16:00", topic: "Hatha & Class Management", type: "workshop" },
-          { dn: "2",  dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
-          { dn: "3",  dd: "Søn", dd_en: "Sun", time: "13:00–17:00", topic: "Yogafilosofi 03 — Online", topic_en: "Yoga Philosophy 03 — Online", type: "online" }
+        { num: 3, range: "15–21 jun", range_en: "Jun 15–21", days: [
+          { dn: "15", dd: "Man", dd_en: "Mon", time: "09:00–15:00", topic: "Vinyasa Yoga", type: "workshop" },
+          { dn: "16", dd: "Tir", dd_en: "Tue", time: "11:00–17:00", topic: "Hatha Yoga", type: "workshop" },
+          { dn: "18", dd: "Tor", dd_en: "Thu", time: "11:00–15:00", topic: "Vinyasa Yoga", type: "workshop" },
+          { dn: "20", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Yoga Anatomi", topic_en: "Yoga Anatomy", type: "workshop" },
+          { dn: "21", dd: "Søn", dd_en: "Sun", time: "13:00–17:00", topic: "Yogafilosofi", topic_en: "Yoga Philosophy", type: "workshop" }
         ]},
-        { num: 4, label: "Eksamen & Graduation", label_en: "Exam & Graduation", range: "4–10 maj", range_en: "May 4–10", graduation: true, days: [
-          { dn: "4",  dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
-          { dn: "6",  dd: "Ons", dd_en: "Wed", time: "09:00–15:00", topic: "Business of Yoga", type: "workshop" },
-          { dn: "7",  dd: "Fre", dd_en: "Fri", time: "11:00–17:00", topic: "Vinyasa & Yin Yoga", type: "workshop" },
-          { dn: "9",  dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa & Yin Yoga — Eksamen", topic_en: "Vinyasa & Yin Yoga — Exam", type: "exam" },
-          { dn: "10", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Hatha & Class Management — Eksamen + Graduation 🎓", topic_en: "Hatha & Class Management — Exam + Graduation 🎓", type: "graduation" }
+        { num: 4, label: "Eksamen & Graduation", label_en: "Exam & Graduation", range: "22–28 jun", range_en: "Jun 22–28", graduation: true, days: [
+          { dn: "22", dd: "Man", dd_en: "Mon", time: "10:00–15:00", topic: "Vinyasa Yoga", type: "workshop" },
+          { dn: "24", dd: "Ons", dd_en: "Wed", time: "09:00–15:00", topic: "Business of Yoga", type: "workshop" },
+          { dn: "25", dd: "Tor", dd_en: "Thu", time: "11:00–17:00", topic: "Vinyasa Yoga", type: "workshop" },
+          { dn: "27", dd: "Lør", dd_en: "Sat", time: "13:00–18:00", topic: "Vinyasa Yoga — Eksamen", topic_en: "Vinyasa Yoga — Exam", type: "exam" },
+          { dn: "28", dd: "Søn", dd_en: "Sun", time: "14:00–17:00", topic: "Hatha Yoga + Graduation 🎓", topic_en: "Hatha Yoga + Graduation 🎓", type: "graduation" }
         ]}
       ]}
     ] %}
@@ -194,25 +189,7 @@
     </div>
 
     {% for week in month.weeks %}
-      {% if week.continuesFrom %}
-      {# Continuation of previous week in new month — no new header #}
-      <div style="border:1px solid #E8E4E0;border-radius:14px;overflow:hidden;margin-bottom:10px;background:#fff;">
-        <div style="padding:6px 22px 18px;">
-          {% for day in week.days %}
-          <div style="display:flex;gap:16px;align-items:center;padding:12px 0;{% if not loop.last %}border-bottom:1px solid #F0EDE9;{% endif %}">
-            <div style="background:#f75c03;color:#fff;width:46px;height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;{% if day.type == 'online' %}box-shadow:0 0 0 2px #fff, 0 0 0 3px #f75c03;{% endif %}">
-              <span style="font-size:1.1rem;font-weight:700;line-height:1;">{{ day.dn }}</span>
-              <span style="font-size:.52rem;text-transform:uppercase;letter-spacing:.06em;opacity:.75;">{{ day.dd_en if lang == "en" else day.dd }}</span>
-            </div>
-            <div style="flex:1;min-width:0;">
-              <p style="font-weight:600;font-size:.92rem;color:#0F0F0F;">{{ day.topic_en if lang == "en" else day.topic }}</p>
-              <p style="font-size:.78rem;color:#6F6A66;margin-top:2px;">{{ day.time }}{% if day.type == 'online' %} · <span style="color:#f75c03;font-weight:600;">{{ t.onlineLabel }}</span>{% endif %}</p>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      {% elif week.graduation %}
+      {% if week.graduation %}
       <details class="s4w-combo-accordion" open style="margin-bottom:10px;">
         <summary class="s4w-combo-summary" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;list-style:none;-webkit-appearance:none;background:linear-gradient(135deg,#f0fff0,#e8f5e8);border:1.5px solid #2ecc71;border-radius:14px;transition:all .2s;">
           <div style="display:flex;align-items:center;gap:14px;">
@@ -312,7 +289,7 @@
         <p style="font-weight:700;font-size:.95rem;color:#0F0F0F;margin-bottom:4px;">{{ t.crossLinkTitle }}</p>
         <p style="font-size:.82rem;color:#6F6A66;line-height:1.5;">{{ t.crossLinkDesc }}</p>
       </div>
-      <a href="{% if lang == 'en' %}/en/schedule/4-weeks-june/{% else %}/skema/4-uger-juni/{% endif %}" style="display:inline-block;background:#f75c03;color:#fff;padding:10px 20px;border-radius:50px;font-size:.85rem;font-weight:600;text-decoration:none;white-space:nowrap;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.crossLinkCta }} →</a>
+      <a href="{% if lang == 'en' %}/en/schedule/4-weeks-july/{% else %}/skema/4-uger-juli/{% endif %}" style="display:inline-block;background:#f75c03;color:#fff;padding:10px 20px;border-radius:50px;font-size:.85rem;font-weight:600;text-decoration:none;white-space:nowrap;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.crossLinkCta }} →</a>
     </div>
   </div>
 
@@ -323,7 +300,7 @@
       <p style="color:rgba(255,255,255,.68);margin-bottom:28px;line-height:1.55;">{{ t.ctaSectionDesc }}</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
         <button onclick="openBookingModal('info-session')" style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseenter="this.style.borderColor='#fff';this.style.background='rgba(255,255,255,.08)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.5)';this.style.background='transparent'">{{ t.ctaBook }}</button>
-        <button disabled style="background:#6F6A66;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:default;font-family:inherit;opacity:.6;">{{ t.ctaStart }}</button>
+        <button onclick="startCheckoutFunnel('100213')" style="background:#f75c03;color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;" onmouseenter="this.style.background='#d94f02'" onmouseleave="this.style.background='#f75c03'">{{ t.ctaStart }}</button>
       </div>
     </div>
   </div>
@@ -363,12 +340,12 @@
 
   function s4wTimeMin(t) { var p = t.split(':'); return parseInt(p[0]) * 60 + parseInt(p[1]); }
 
-  /* All 4w training dates: [year, month(0-based), day, startTime, endTime, topic] */
+  /* All 4w June training dates */
   var s4wSchedule = [
-    {d:'2026-04-13',s:'09:00',e:'15:00'},{d:'2026-04-14',s:'11:00',e:'17:00'},{d:'2026-04-16',s:'11:00',e:'17:00'},{d:'2026-04-18',s:'13:00',e:'18:00'},{d:'2026-04-19',s:'14:00',e:'18:00'},
-    {d:'2026-04-20',s:'09:00',e:'15:00'},{d:'2026-04-21',s:'11:00',e:'17:00'},{d:'2026-04-22',s:'10:00',e:'15:00'},{d:'2026-04-23',s:'11:00',e:'17:00'},{d:'2026-04-25',s:'13:00',e:'18:00'},{d:'2026-04-26',s:'13:00',e:'17:00'},
-    {d:'2026-04-27',s:'10:00',e:'15:00'},{d:'2026-04-28',s:'09:00',e:'15:00'},{d:'2026-04-30',s:'11:00',e:'15:00'},{d:'2026-05-01',s:'11:00',e:'16:00'},{d:'2026-05-02',s:'13:00',e:'18:00'},{d:'2026-05-03',s:'13:00',e:'17:00'},
-    {d:'2026-05-04',s:'10:00',e:'15:00'},{d:'2026-05-06',s:'09:00',e:'15:00'},{d:'2026-05-07',s:'11:00',e:'17:00'},{d:'2026-05-09',s:'13:00',e:'18:00'},{d:'2026-05-10',s:'14:00',e:'17:00'}
+    {d:'2026-06-01',s:'09:00',e:'15:00'},{d:'2026-06-02',s:'11:00',e:'17:00'},{d:'2026-06-04',s:'11:00',e:'17:00'},{d:'2026-06-06',s:'13:00',e:'18:00'},{d:'2026-06-07',s:'14:00',e:'18:00'},
+    {d:'2026-06-08',s:'09:00',e:'15:00'},{d:'2026-06-09',s:'11:00',e:'17:00'},{d:'2026-06-10',s:'10:00',e:'16:00'},{d:'2026-06-11',s:'11:00',e:'16:00'},{d:'2026-06-13',s:'13:00',e:'18:00'},{d:'2026-06-14',s:'13:00',e:'17:00'},
+    {d:'2026-06-15',s:'09:00',e:'15:00'},{d:'2026-06-16',s:'11:00',e:'17:00'},{d:'2026-06-18',s:'11:00',e:'15:00'},{d:'2026-06-20',s:'13:00',e:'18:00'},{d:'2026-06-21',s:'13:00',e:'17:00'},
+    {d:'2026-06-22',s:'10:00',e:'15:00'},{d:'2026-06-24',s:'09:00',e:'15:00'},{d:'2026-06-25',s:'11:00',e:'17:00'},{d:'2026-06-27',s:'13:00',e:'18:00'},{d:'2026-06-28',s:'14:00',e:'17:00'}
   ];
   s4wSchedule.forEach(function(item) {
     var dt = new Date(item.d + 'T12:00:00');

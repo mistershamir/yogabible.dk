@@ -165,6 +165,7 @@ function scheduleUrl(path, lang, tokenData) {
 const SCHEDULE_PATHS = {
   da: {
     '4-week':      '/skema/4-uger/',
+    '4-week-jun':  '/skema/4-uger-juni/',
     '4-week-jul':  '/skema/4-uger-juli/',
     '8-week':      '/skema/8-uger/',
     '18-week':     '/skema/18-uger/',
@@ -172,6 +173,7 @@ const SCHEDULE_PATHS = {
   },
   en: {
     '4-week':      '/en/schedule/4-weeks/',
+    '4-week-jun':  '/en/schedule/4-weeks-june/',
     '4-week-jul':  '/en/schedule/4-weeks-july-plan/',
     '8-week':      '/en/schedule/8-weeks/',
     '18-week':     '/en/schedule/18-weeks/',
@@ -183,6 +185,7 @@ const SCHEDULE_PATHS = {
 const PROGRAM_PAGES = {
   da: {
     '4-week':    'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
+    '4-week-jun':'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
     '4-week-jul':'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
     '8-week':    'https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs',
     '18-week':   'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',
@@ -191,6 +194,7 @@ const PROGRAM_PAGES = {
   },
   en: {
     '4-week':    'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs',
+    '4-week-jun':'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs',
     '4-week-jul':'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs',
     '8-week':    'https://www.yogabible.dk/en/200-hours-8-weeks-semi-intensive-programs',
     '18-week':   'https://www.yogabible.dk/en/200-hours-18-weeks-flexible-programs',
@@ -206,7 +210,7 @@ const PROGRAMS = {
       subject: '{{name}}, her er alle datoer til 4-ugers yogauddannelsen',
       intro: 'Tak fordi du viste interesse for vores <strong>4-ugers intensive 200-timers yogal\u00e6reruddannelse</strong>.',
       description: 'Det intensive format er for dig, der kan dedikere sig fuldt ud i 4 uger. Daglig tr\u00e6ning og teori, hvor du fordyber dig fuldst\u00e6ndigt. Mange dimittender fort\u00e6ller, at det intensive format hjalp dem med at l\u00e6re mere, fordi de dedikerede sig 100%.',
-      period: 'April 2026',
+      period: 'Juni 2026',
       extras: ['Online backup hvis du ikke kan deltage en dag'],
       rateNote: 'fleksibel ratebetaling'
     },
@@ -214,9 +218,27 @@ const PROGRAMS = {
       subject: '{{name}}, here are all the dates for the 4-week yoga training',
       intro: 'Thank you for your interest in our <strong>4-Week Intensive 200-Hour Yoga Teacher Training</strong>.',
       description: 'The intensive format is for those who can fully dedicate themselves for 4 weeks. Daily training and theory where you immerse yourself completely. Many graduates report that the intensive format helped them learn more because they dedicated 100% of their time.',
-      period: 'April 2026',
+      period: 'June 2026',
       extras: ['Online backup if you can\u2019t attend a day'],
       rateNote: 'flexible instalments'
+    }
+  },
+  '4-week-jun': {
+    da: {
+      subject: '{{name}}, her er alle datoer til 4-ugers yogauddannelsen (juni)',
+      intro: 'Tak fordi du viste interesse for vores <strong>4-ugers intensive 200-timers yogalæreruddannelse</strong> i juni.',
+      description: 'Det intensive format er for dig, der kan dedikere sig fuldt ud i 4 uger. Du lærer Hatha, Vinyasa, Yin, Hot Yoga og Meditation.',
+      period: 'Juni 2026',
+      extras: ['Online backup hvis du ikke kan deltage en dag'],
+      rateNote: 'fleksibel ratebetaling'
+    },
+    en: {
+      subject: '{{name}}, here are all dates for the 4-week yoga teacher training (June)',
+      intro: 'Thank you for your interest in our <strong>4-Week Intensive 200-Hour Yoga Teacher Training</strong> in June.',
+      description: 'The intensive format is for those who can fully dedicate 4 weeks. You will learn Hatha, Vinyasa, Yin, Hot Yoga, and Meditation.',
+      period: 'June 2026',
+      extras: ['Online backup if you cannot attend a day'],
+      rateNote: 'flexible installment plan'
     }
   },
   '4-week-jul': {
@@ -446,7 +468,8 @@ const MULTI_FORMAT_INFO = {
       '18w-aug': { name: '18-ugers fleksible program (efter\u00e5r)', period: 'august\u2013december 2026', desc: 'Efter\u00e5rsholdet \u2014 v\u00e6lg hverdags- eller weekendspor og skift frit undervejs. Start 10. august, graduation 13. december.', programType: '18-week-aug' },
       '8w':      { name: '8-ugers semi-intensive program', period: 'maj\u2013juni 2026', desc: 'En god balance mellem intensitet og hverdagsliv. Nok fokus til reelle fremskridt, men stadig plads til andre forpligtelser.', programType: '8-week' },
       '4w':      { name: '4-ugers intensive program (april)', period: 'april 2026', desc: 'Fuldt fordybende \u2014 daglig tr\u00e6ning og teori i 4 uger. Complete Program: Hatha, Vinyasa, Yin, Hot Yoga og Meditation.', programType: '4-week' },
-      '4w-apr':  { name: '4-ugers Complete Program (april)', period: 'april 2026', desc: 'Fuldt fordybende \u2014 daglig tr\u00e6ning og teori i 4 uger. Hatha, Vinyasa, Yin, Hot Yoga og Meditation.', programType: '4-week' },
+      '4w-jun':  { name: '4-ugers Complete Program (juni)', period: 'juni 2026', desc: 'Fuldt fordybende — daglig træning og teori i 4 uger. Hatha, Vinyasa, Yin, Hot Yoga og Meditation.', programType: '4-week' },
+      '4w-apr':  { name: '4-ugers Complete Program (april - udsolgt)', period: 'april 2026', desc: 'Fuldt fordybende \u2014 daglig tr\u00e6ning og teori i 4 uger. Hatha, Vinyasa, Yin, Hot Yoga og Meditation.', programType: '4-week' },
       '4w-jul':  { name: '4-ugers Vinyasa Plus (juli)', period: 'juli 2026', desc: '70% Vinyasa Flow \u2014 kreativ sekvensering, klasseledelse og undervisningsteknikker. Plus 30% Yin Yoga + Hot Yoga.', programType: '4-week-jul' }
     }
   },
@@ -467,7 +490,8 @@ const MULTI_FORMAT_INFO = {
       '18w-aug': { name: '18-Week Flexible Program (Autumn)', period: 'August\u2013December 2026', desc: 'The autumn cohort \u2014 choose weekday or weekend track and switch freely. Start 10 August, graduation 13 December.', programType: '18-week-aug' },
       '8w':      { name: '8-Week Semi-Intensive Program', period: 'May\u2013June 2026', desc: 'A great balance between intensity and daily life. Enough focus for real progress, yet still room for other commitments.', programType: '8-week' },
       '4w':      { name: '4-Week Intensive Program (April)', period: 'April 2026', desc: 'Fully immersive \u2014 daily training and theory over 4 weeks. Complete Program: Hatha, Vinyasa, Yin, Hot Yoga and Meditation.', programType: '4-week' },
-      '4w-apr':  { name: '4-Week Complete Program (April)', period: 'April 2026', desc: 'Fully immersive \u2014 daily training and theory over 4 weeks. Hatha, Vinyasa, Yin, Hot Yoga and Meditation.', programType: '4-week' },
+      '4w-jun':  { name: '4-Week Complete Program (June)', period: 'June 2026', desc: 'Fully immersive — daily training and theory over 4 weeks. Hatha, Vinyasa, Yin, Hot Yoga and Meditation.', programType: '4-week' },
+      '4w-apr':  { name: '4-Week Complete Program (April - Sold Out)', period: 'April 2026', desc: 'Fully immersive \u2014 daily training and theory over 4 weeks. Hatha, Vinyasa, Yin, Hot Yoga and Meditation.', programType: '4-week' },
       '4w-jul':  { name: '4-Week Vinyasa Plus (July)', period: 'July 2026', desc: '70% Vinyasa Flow \u2014 creative sequencing, class leadership and teaching techniques. Plus 30% Yin Yoga + Hot Yoga.', programType: '4-week-jul' }
     }
   }

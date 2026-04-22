@@ -128,6 +128,7 @@
       { id: '100121', name_da: '4 Ugers Complete Program (Apr)', name_en: '4-Week Complete Program (Apr)', cohorts: [{ label_da: 'April 2026', label_en: 'April 2026' }] },
       { id: '100211', name_da: '4 Ugers Vinyasa Plus (Jul)', name_en: '4-Week Vinyasa Plus (Jul)', cohorts: [{ label_da: 'Juli 2026', label_en: 'July 2026' }] },
       { id: '100209', name_da: '8 Ugers Semi-Intensiv (Maj-Jun)', name_en: '8 Weeks Semi-Intensive (May-Jun)', cohorts: [{ label_da: 'Maj\u2013Juni 2026', label_en: 'May\u2013June 2026' }] },
+      { id: '100213', name_da: '4 Ugers Complete Program (Jun)', name_en: '4-Week Complete Program (Jun)', cohorts: [{ label_da: 'Juni 2026', label_en: 'June 2026' }] },
       { id: '100210', name_da: '18 Ugers Fleksibelt Program (Aug-Dec)', name_en: '18 Weeks Flexible Program (Aug-Dec)', cohorts: [{ label_da: 'August\u2013December 2026', label_en: 'August\u2013December 2026' }] }
     ],
     course: [
@@ -857,7 +858,8 @@
 
   var FALLBACK_COHORT_OPTIONS = {
     '4-week': [
-      { id: '4w-apr',      label: 'April' },
+      { id: '4w-apr',      label: 'April (sold out)' },
+      { id: '4w-jun',      label: 'June' },
       { id: '4w-jul',      label: 'July' },
       { id: '4w-jul-dk',   label: 'July DK' },
       { id: '4w-jul-intl', label: 'July Intl' }

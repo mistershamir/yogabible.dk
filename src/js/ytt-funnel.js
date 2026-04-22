@@ -19,6 +19,7 @@
     '100211': { da: '4 Ugers Vinyasa Plus — Juli 2026', en: '4-Week Vinyasa Plus — July 2026', category: 'teacher' },
     '100209': { da: '8 Ugers Semi-Intensiv — Maj–Juni 2026', en: '8-Week Semi-Intensive — May–June 2026', category: 'teacher' },
     '100210': { da: '18 Ugers Fleksibelt Program — August–December 2026', en: '18-Week Flexible Program — August–December 2026', category: 'teacher' },
+    '100213': { da: '4 Ugers Complete Program — Juni 2026', en: '4-Week Complete Program — June 2026', category: 'teacher' },
     // 300-Hour Advanced Teacher Training
     '100212': { da: '300-Timer Advanced Teacher Training — Maj–December 2026', en: '300-Hour Advanced Teacher Training — May–December 2026', category: 'teacher' },
     // Courses
