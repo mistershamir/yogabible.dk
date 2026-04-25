@@ -348,7 +348,6 @@ function processLead(payload, action) {
         source: 'Website'
       };
 
-    case 'lead_schedule_4w':
     case 'lead_schedule_4w-apr':
       return {
         ...base,
@@ -357,6 +356,25 @@ function processLead(payload, action) {
         program: payload.program || '4-Week Intensive YTT (April 2026)',
         course_id: '',
         cohort_label: payload.program || 'April 2026',
+        preferred_month: '',
+        accommodation: normalizeYesNo(payload.accommodation || 'No'),
+        city_country: payload.cityCountry || '',
+        housing_months: '',
+        service: '',
+        subcategories: '',
+        message: '',
+        source: 'Website'
+      };
+
+    case 'lead_schedule_4w':
+    case 'lead_schedule_4w-jun':
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: '4-week-jun',
+        program: payload.program || '4-Week Complete Program YTT (June 2026)',
+        course_id: '',
+        cohort_label: 'June 2026',
         preferred_month: '',
         accommodation: normalizeYesNo(payload.accommodation || 'No'),
         city_country: payload.cityCountry || '',
@@ -406,11 +424,12 @@ function processLead(payload, action) {
     case 'lead_schedule_multi': {
       // User selected multiple 200h formats (e.g. 4w,8w,18w)
       const allFmts = (payload.allFormats || '').split(',').filter(f => f);
-      const fmtMap = { '4w': '4-week', '8w': '8-week', '18w': '18-week', '4w-apr': '4-week', '4w-jul': '4-week-jul', '18w-aug': '18-week-aug' };
+      const fmtMap = { '4w': '4-week', '8w': '8-week', '18w': '18-week', '4w-apr': '4-week', '4w-jun': '4-week-jun', '4w-jul': '4-week-jul', '18w-aug': '18-week-aug' };
       const programTypes = allFmts.map(f => fmtMap[f] || f);
       // Human-readable names with cohort dates
       const displayMap = {
         '4-week': '4-Week Intensive (April 2026)',
+        '4-week-jun': '4 Weeks Intensive (June 2026)',
         '4-week-jul': '4-Week Vinyasa Plus (July 2026)',
         '8-week': '8-Week Semi-Intensive (May–June 2026)',
         '18-week': '18-Week Flexible (March–June 2026)',
