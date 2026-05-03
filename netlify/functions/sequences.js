@@ -750,18 +750,36 @@ async function handleProcess() {
         // Select language-appropriate email content.
         // For schedule-view-aware steps the field name carries an extra
         // "_viewed" suffix when the lead has already viewed the schedule.
+        // Dynamic-content steps (Personal Outreach) only carry DA + EN bodies;
+        // German leads fall through to EN, never to a bare DA field.
         var selectedSubject, selectedBody;
-        var langSuffix = isGerman ? '_de' : (isDanish ? '' : '_en');
+        var dynamicLangOnly = step.content_type === 'dynamic';
+        var langSuffix;
+        if (dynamicLangOnly) {
+          langSuffix = isDanish ? '' : '_en';
+        } else {
+          langSuffix = isGerman ? '_de' : (isDanish ? '' : '_en');
+        }
         var variantSuffix = useViewedVariant ? '_viewed' : '';
 
         if (step.schedule_view_aware === true) {
           selectedSubject = step['email_subject' + variantSuffix + langSuffix];
           selectedBody = step['email_body' + variantSuffix + langSuffix];
           // Fall back across language and variant combinations if a particular
-          // pair is missing — variant first, then language.
+          // pair is missing — variant first, then language. EN is the final
+          // fallback for any non-Danish lead so DE leads never see DA copy.
           if (!selectedSubject) {
-            selectedSubject = step['email_subject' + langSuffix] || step['email_subject' + variantSuffix] || step.email_subject;
-            selectedBody = step['email_body' + langSuffix] || step['email_body' + variantSuffix] || step.email_body || selectedBody;
+            selectedSubject = step['email_subject' + langSuffix]
+              || step['email_subject' + variantSuffix + '_en']
+              || step['email_subject_en']
+              || step['email_subject' + variantSuffix]
+              || step.email_subject;
+            selectedBody = step['email_body' + langSuffix]
+              || step['email_body' + variantSuffix + '_en']
+              || step['email_body_en']
+              || step['email_body' + variantSuffix]
+              || step.email_body
+              || selectedBody;
           }
         } else if (isGerman && step.email_subject_de) {
           selectedSubject = step.email_subject_de;
