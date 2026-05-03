@@ -111,9 +111,11 @@ function buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bc
     message.bcc = Array.isArray(bcc) ? bcc : [bcc];
   }
 
-  // Attach campaign ID as tag so Resend webhooks can link events back
+  // Attach campaign ID as tag so Resend webhooks can link events back.
+  // Resend tag values only allow ASCII letters, numbers, underscores or dashes.
   if (campaignId) {
-    message.tags = [{ name: 'campaign_id', value: campaignId }];
+    var safeCampaignId = String(campaignId).replace(/[^a-zA-Z0-9_-]/g, '-');
+    message.tags = [{ name: 'campaign_id', value: safeCampaignId }];
   }
 
   // Attachments: Resend REST API expects base64-encoded `content` strings
