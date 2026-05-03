@@ -26,6 +26,7 @@ const { prepareTrackedEmail } = require('./shared/email-tracking');
 const { createSequenceSyncPost } = require('./shared/social-sync');
 const { checkDailySendLimit } = require('./shared/send-limiter');
 const { resolveCohortForLead, buildScheduleUrl } = require('./shared/cohort-resolver');
+const { processDeferredWelcomes } = require('./shared/deferred-welcomes');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
@@ -445,6 +446,18 @@ async function handleProcess() {
   var sentSummary = []; // Track sent items for digest email
   var invocationId = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
 
+  // Deferred welcome emails — fire any rows whose 30-min wait has elapsed.
+  // Runs unconditionally each tick (independent of sequence enrollments).
+  var deferredSummary = { fired: 0, failed: 0, skipped: 0 };
+  try {
+    deferredSummary = await processDeferredWelcomes();
+    if (deferredSummary.fired || deferredSummary.failed) {
+      console.log('[sequences] Deferred welcomes:', JSON.stringify(deferredSummary));
+    }
+  } catch (defErr) {
+    console.error('[sequences] Deferred welcomes pass error:', defErr.message);
+  }
+
   try {
     // Resolve July International sequence ID (for completion → educational chaining)
     await resolveJulyIntlSequenceId(db);
@@ -459,7 +472,7 @@ async function handleProcess() {
       .get();
 
     if (snapshot.empty) {
-      return jsonResponse(200, { ok: true, processed: 0, errors: [] });
+      return jsonResponse(200, { ok: true, processed: 0, deferred_welcomes: deferredSummary, errors: [] });
     }
 
     // Cache sequences to avoid repeated lookups
@@ -1075,7 +1088,7 @@ async function handleProcess() {
       }
     }
 
-    return jsonResponse(200, { ok: true, processed, errors });
+    return jsonResponse(200, { ok: true, processed, deferred_welcomes: deferredSummary, errors });
 
   } catch (error) {
     console.error('[sequences] Process error:', error);

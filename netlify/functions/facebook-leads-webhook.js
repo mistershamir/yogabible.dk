@@ -26,7 +26,7 @@ const https = require('https');
 const { getDb } = require('./shared/firestore');
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
-const { sendWelcomeEmail } = require('./shared/lead-emails');
+const { scheduleDeferredWelcome } = require('./shared/deferred-welcomes');
 const { sendLeadEvent } = require('./shared/meta-events');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 const { detectLeadCountry } = require('./shared/country-detect');
@@ -323,9 +323,9 @@ async function processLeadgenChange(value) {
     process.env.GMAIL_APP_PASSWORD
       ? sendAdminNotification(lead).catch(e => console.error('[fb-leads] Admin email failed:', e.message))
       : Promise.resolve(),
-    process.env.GMAIL_APP_PASSWORD && email
-      ? sendWelcomeEmail(lead, emailAction, { leadId: docRef.id, token: scheduleToken })
-          .catch(e => console.error('[fb-leads] Welcome email failed:', e.message))
+    email
+      ? scheduleDeferredWelcome({ lead, action: emailAction, leadId: docRef.id, scheduleToken })
+          .catch(e => console.error('[fb-leads] Deferred welcome scheduling failed:', e.message))
       : Promise.resolve(),
     process.env.GATEWAYAPI_TOKEN && phone
       ? sendWelcomeSMS(lead, docRef.id).catch(e => console.error('[fb-leads] SMS failed:', e.message))

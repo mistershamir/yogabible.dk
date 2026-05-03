@@ -15,7 +15,7 @@ const {
 } = require('./shared/utils');
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
-const { sendWelcomeEmail } = require('./shared/lead-emails');
+const { scheduleDeferredWelcome } = require('./shared/deferred-welcomes');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 const { detectLeadCountry } = require('./shared/country-detect');
 const { createMilestonePost } = require('./shared/social-sync');
@@ -739,12 +739,14 @@ async function triggerNotifications(leadData, leadDocId, action) {
     );
   }
 
-  // 2. Welcome email to the lead (with tokenized schedule link)
-  if (process.env.GMAIL_APP_PASSWORD && leadData.email) {
+  // 2. Welcome email — deferred 30 minutes via deferred_welcomes collection,
+  //    fired by the process-sequences cron pass. Reads as written by a human
+  //    rather than fired by a bot.
+  if (leadData.email) {
     const scheduleToken = generateScheduleToken(leadDocId, leadData.email);
     promises.push(
-      sendWelcomeEmail(leadData, action, { leadId: leadDocId, token: scheduleToken }).catch(err => {
-        console.error('[lead] Welcome email failed:', err.message);
+      scheduleDeferredWelcome({ lead: leadData, action, leadId: leadDocId, scheduleToken }).catch(err => {
+        console.error('[lead] Deferred welcome scheduling failed:', err.message);
       })
     );
   }
