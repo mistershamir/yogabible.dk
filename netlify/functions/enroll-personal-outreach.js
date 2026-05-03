@@ -166,8 +166,10 @@ async function fetchSegmentD(db) {
 }
 
 // ── Per-lead enrollment guard ───────────────────────────────────────────────
+// Takes a pre-built Set of lead_ids already enrolled in Personal Outreach
+// so we don't issue one Firestore read per lead (was timing out at 600+).
 
-async function evaluateLead(db, leadDoc, sequenceId) {
+async function evaluateLead(leadDoc, alreadyEnrolledSet) {
   const data = leadDoc.data();
   const reasons = [];
 
@@ -182,12 +184,8 @@ async function evaluateLead(db, leadDoc, sequenceId) {
     else cohortHint = cohortCtx.cohort.id || cohortCtx.cohort._docId;
   }
 
-  if (reasons.length === 0) {
-    const enrollId = sequenceId + '_' + leadDoc.id;
-    const existing = await db.collection(ENROLLMENTS_COL).doc(enrollId).get();
-    if (existing.exists && existing.data().status === 'active') {
-      reasons.push('already_enrolled');
-    }
+  if (reasons.length === 0 && alreadyEnrolledSet.has(leadDoc.id)) {
+    reasons.push('already_enrolled');
   }
 
   return { skip: reasons.length > 0, reasons, cohort_hint: cohortHint };
@@ -221,42 +219,67 @@ exports.handler = async (event) => {
 
   const now = new Date();
 
-  const segments = {
-    A: { label: 'Interested In Next Round (immediate-ish)', fetch: () => fetchSegmentA(db) },
-    B: { label: 'Orphaned (no welcome_email_sent_at, created within ' + ORPHAN_LOOKBACK_DAYS + 'd)', fetch: () => fetchSegmentB(db, now) },
-    C: { label: 'Recent New / Strongly Interested (created within ' + RECENT_LOOKBACK_DAYS + 'd)', fetch: () => fetchSegmentC(db, now) },
-    D: { label: 'Follow-up status', fetch: () => fetchSegmentD(db) }
-  };
+  // Pre-fetch all leads already actively enrolled in Personal Outreach.
+  // One query → in-memory Set → constant-time membership check per lead.
+  const enrolledSnap = await db.collection(ENROLLMENTS_COL)
+    .where('sequence_id', '==', sequenceId)
+    .where('status', '==', 'active')
+    .get();
+  const alreadyEnrolled = new Set();
+  enrolledSnap.forEach((d) => {
+    const lid = d.data().lead_id;
+    if (lid) alreadyEnrolled.add(lid);
+  });
+
+  // Fetch all four segment queries in parallel — main wall-clock saver.
+  const segmentDefs = [
+    { id: 'A', label: 'Interested In Next Round (immediate-ish)' },
+    { id: 'B', label: 'Orphaned (no welcome_email_sent_at, created within ' + ORPHAN_LOOKBACK_DAYS + 'd)' },
+    { id: 'C', label: 'Recent New / Strongly Interested (created within ' + RECENT_LOOKBACK_DAYS + 'd)' },
+    { id: 'D', label: 'Follow-up status' }
+  ];
+  const fetchers = [
+    fetchSegmentA(db),
+    fetchSegmentB(db, now),
+    fetchSegmentC(db, now),
+    fetchSegmentD(db)
+  ];
+  const fetched = await Promise.all(fetchers);
 
   const report = {};
   let totalEligible = 0, totalEnrolled = 0;
   const skipReasonTally = {};
+  const allWrites = []; // collected for batched commit on apply
 
-  for (const [segId, segDef] of Object.entries(segments)) {
-    const docs = await segDef.fetch();
+  for (let i = 0; i < segmentDefs.length; i++) {
+    const segDef = segmentDefs[i];
+    const docs = fetched[i];
+    const segId = segDef.id;
 
     const eligible = [];
     const skipped = [];
 
+    // evaluateLead is now read-free (uses pre-built Set) — fast loop.
     for (const doc of docs) {
-      const ev = await evaluateLead(db, doc, sequenceId);
+      const ev = await evaluateLead(doc, alreadyEnrolled);
       if (ev.skip) {
         skipped.push({ lead: leadSummary(doc), reasons: ev.reasons });
         ev.reasons.forEach((r) => { skipReasonTally[r] = (skipReasonTally[r] || 0) + 1; });
       } else {
         eligible.push({ lead: leadSummary(doc), cohort_hint: ev.cohort_hint, doc });
+        // Mark as enrolled so the SAME lead isn't double-enrolled if it falls
+        // into multiple segments (e.g. Follow-up + recent New).
+        alreadyEnrolled.add(doc.id);
       }
     }
 
-    let enrolledThisSeg = 0;
-    let writeErrors = [];
-
     if (isApply) {
       for (const e of eligible) {
-        try {
-          const enrollId = sequenceId + '_' + e.doc.id;
-          const nextSendAt = nextSendForSegment(segId, baseDelayMinutes);
-          await db.collection(ENROLLMENTS_COL).doc(enrollId).set({
+        const enrollId = sequenceId + '_' + e.doc.id;
+        const nextSendAt = nextSendForSegment(segId, baseDelayMinutes);
+        allWrites.push({
+          ref: db.collection(ENROLLMENTS_COL).doc(enrollId),
+          data: {
             sequence_id: sequenceId,
             sequence_name: PERSONAL_OUTREACH_NAME,
             lead_id: e.doc.id,
@@ -271,23 +294,20 @@ exports.handler = async (event) => {
             step_history: [],
             trigger: 'backfill:personal_outreach',
             backfill_segment: segId
-          });
-          enrolledThisSeg++;
-        } catch (err) {
-          writeErrors.push({ lead_id: e.doc.id, error: err.message });
-        }
+          },
+          segId
+        });
       }
     }
 
     totalEligible += eligible.length;
-    totalEnrolled += enrolledThisSeg;
 
     report[segId] = {
       label: segDef.label,
       raw_count: docs.length,
       eligible_count: eligible.length,
       skipped_count: skipped.length,
-      enrolled_count: isApply ? enrolledThisSeg : null,
+      enrolled_count: null, // filled after batched writes
       sample_eligible: eligible.slice(0, SAMPLE_LIMIT).map((e) => ({
         lead_id: e.doc.id,
         email: e.lead.email,
@@ -301,8 +321,32 @@ exports.handler = async (event) => {
       send_policy: segId === 'A'
         ? 'now + 0–30min jitter'
         : 'now + ' + baseDelayMinutes + 'min + 0–2h jitter',
-      write_errors: writeErrors
+      write_errors: []
     };
+  }
+
+  // Batched commit on apply — Firestore allows up to 500 ops per batch.
+  // Use 400 for safety. Per-segment counts come from the batched commit.
+  const writeErrors = [];
+  if (isApply && allWrites.length > 0) {
+    const BATCH_SIZE = 400;
+    for (let i = 0; i < allWrites.length; i += BATCH_SIZE) {
+      const chunk = allWrites.slice(i, i + BATCH_SIZE);
+      const batch = db.batch();
+      chunk.forEach((w) => batch.set(w.ref, w.data));
+      try {
+        await batch.commit();
+        chunk.forEach((w) => {
+          report[w.segId].enrolled_count = (report[w.segId].enrolled_count || 0) + 1;
+          totalEnrolled++;
+        });
+      } catch (err) {
+        chunk.forEach((w) => {
+          report[w.segId].write_errors.push({ lead_id: w.data.lead_id, error: err.message });
+          writeErrors.push({ lead_id: w.data.lead_id, segment: w.segId, error: err.message });
+        });
+      }
+    }
   }
 
   return jsonResponse(200, {
@@ -311,16 +355,19 @@ exports.handler = async (event) => {
     sequence_id: sequenceId,
     sequence_name: PERSONAL_OUTREACH_NAME,
     base_delay_minutes: baseDelayMinutes,
+    already_enrolled_at_start: enrolledSnap.size,
     totals: {
       eligible: totalEligible,
       enrolled: isApply ? totalEnrolled : null,
+      write_errors: writeErrors.length,
       skip_reasons: skipReasonTally
     },
     segments: report,
     notes: [
       'Cold leads (Contacted/No Answer + 14d inactive + 30d old) are excluded — they need a re-engagement campaign, not a drip.',
       'Idempotent: re-running apply skips leads already enrolled in Personal Outreach.',
-      'Send-time jitter spreads bursts across 0–2 hours to stay polite to Resend and the inbox.'
+      'Send-time jitter spreads bursts across 0–2 hours to stay polite to Resend and the inbox.',
+      'Pre-fetches active enrollments + parallel segment queries + batched writes (400/batch) to fit Netlify\'s sync function budget.'
     ]
   });
 };
