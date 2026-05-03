@@ -39,6 +39,11 @@ exports.handler = async (event) => {
     return jsonResponse(401, { ok: false, error: 'Unauthorized' });
   }
 
+  var params = event.queryStringParameters || {};
+  if (params.mode === 'debug') {
+    return await runDebug();
+  }
+
   var db = getDb();
   var snap = await db.collection('leads').where('lead_type', '==', 'ytt').get();
 
@@ -102,3 +107,94 @@ exports.handler = async (event) => {
     sample_processed_en: processSample(enLeads[0], EN)
   });
 };
+
+// ── Debug: distinct field values across the entire leads collection ──────────
+
+async function runDebug() {
+  var db = getDb();
+  var snap = await db.collection('leads').get();
+
+  var total = 0;
+  var leadTypeCounts = {};
+  var typeCounts = {};
+  var statusCounts = {};
+  var langCounts = {};
+  var unsubscribedCount = 0;
+  var bouncedCount = 0;
+  var hasEmailCount = 0;
+  var sampleByLeadType = {};
+  var sampleByType = {};
+
+  function bump(map, key) {
+    var k = (key === undefined || key === null || key === '') ? '(empty)' : String(key);
+    map[k] = (map[k] || 0) + 1;
+  }
+
+  snap.forEach(function (doc) {
+    total++;
+    var d = doc.data();
+    bump(leadTypeCounts, d.lead_type);
+    bump(typeCounts, d.type);
+    bump(statusCounts, d.status);
+    bump(langCounts, d.lang);
+    if (d.unsubscribed) unsubscribedCount++;
+    if (d.email_bounced) bouncedCount++;
+    if (d.email) hasEmailCount++;
+
+    // Capture one sample doc per lead_type and type value
+    var lt = d.lead_type || '(empty)';
+    var t = d.type || '(empty)';
+    if (!sampleByLeadType[lt]) {
+      sampleByLeadType[lt] = {
+        id: doc.id,
+        email: d.email || '(none)',
+        lead_type: d.lead_type,
+        type: d.type,
+        status: d.status,
+        lang: d.lang,
+        ytt_program_type: d.ytt_program_type,
+        cohort_label: d.cohort_label,
+        source: d.source
+      };
+    }
+    if (!sampleByType[t]) {
+      sampleByType[t] = {
+        id: doc.id,
+        email: d.email || '(none)',
+        lead_type: d.lead_type,
+        type: d.type,
+        status: d.status,
+        lang: d.lang,
+        ytt_program_type: d.ytt_program_type,
+        cohort_label: d.cohort_label,
+        source: d.source
+      };
+    }
+  });
+
+  // Sort each map by count desc for readability
+  function sortMap(m) {
+    return Object.keys(m)
+      .map(function (k) { return { value: k, count: m[k] }; })
+      .sort(function (a, b) { return b.count - a.count; });
+  }
+
+  return jsonResponse(200, {
+    ok: true,
+    mode: 'debug',
+    total_leads: total,
+    has_email: hasEmailCount,
+    unsubscribed: unsubscribedCount,
+    email_bounced: bouncedCount,
+    distinct_lead_type: sortMap(leadTypeCounts),
+    distinct_type: sortMap(typeCounts),
+    distinct_status: sortMap(statusCounts),
+    distinct_lang: sortMap(langCounts),
+    sample_per_lead_type: sampleByLeadType,
+    sample_per_type: sampleByType,
+    current_exclude_statuses: [
+      'Not too keen', 'Lost', 'Converted', 'Existing Applicant',
+      'Unsubscribed', 'Closed', 'Archived'
+    ]
+  });
+}
