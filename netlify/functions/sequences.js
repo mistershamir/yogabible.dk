@@ -25,6 +25,7 @@ const { detectLeadCountry } = require('./shared/country-detect');
 const { prepareTrackedEmail } = require('./shared/email-tracking');
 const { createSequenceSyncPost } = require('./shared/social-sync');
 const { checkDailySendLimit } = require('./shared/send-limiter');
+const { resolveCohortForLead, buildScheduleUrl } = require('./shared/cohort-resolver');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
@@ -687,11 +688,69 @@ async function handleProcess() {
           '{{unsubscribe_url}}': buildUnsubscribeUrl(lead.email || '', leadLang)
         };
 
-        // Select language-appropriate email content
-        // Priority: DE (if available) → EN (non-Danish) → DA (default)
-        // Safety: if selected content is empty, fall back to EN then DA
+        // Dynamic-cohort steps (Personal Outreach): resolve the nearest open
+        // cohort for this lead. If none, mark enrollment complete and skip.
+        var cohortContext = null;
+        if (step.content_type === 'dynamic') {
+          cohortContext = await resolveCohortForLead(lead);
+          if (!cohortContext) {
+            await db.collection(ENROLLMENTS_COL).doc(enrollId).update({
+              status: 'completed',
+              completed_at: new Date(),
+              exit_reason: 'no_active_cohort',
+              processing_lock: null,
+              updated_at: now
+            });
+            console.log('[sequences] No active cohort for lead ' + enrollment.lead_id + ' — completing enrollment ' + enrollId);
+            processed++;
+            continue;
+          }
+        }
+
+        // Schedule-view-aware variant selection (Personal Outreach Step 2).
+        // Pick the "_viewed" variant when the lead viewed any schedule page
+        // after the previous email in this enrollment was sent.
+        var useViewedVariant = false;
+        if (step.schedule_view_aware === true) {
+          var prevSentAt = enrollment.last_email_sent_at;
+          var prevSentDate = prevSentAt && prevSentAt.toDate ? prevSentAt.toDate()
+            : (prevSentAt ? new Date(prevSentAt) : null);
+          if (prevSentDate) {
+            try {
+              var leadDocSnap = await db.collection('leads').doc(enrollment.lead_id).get();
+              var schedEng = (leadDocSnap.exists && leadDocSnap.data().schedule_engagement) || {};
+              var pageMap = schedEng.pages || {};
+              for (var slug in pageMap) {
+                var lv = pageMap[slug] && pageMap[slug].last_visit;
+                var lvDate = lv && lv.toDate ? lv.toDate() : (lv ? new Date(lv) : null);
+                if (lvDate && lvDate > prevSentDate) {
+                  useViewedVariant = true;
+                  break;
+                }
+              }
+            } catch (svErr) {
+              console.warn('[sequences] schedule_engagement lookup failed for lead ' + enrollment.lead_id + ':', svErr.message);
+            }
+          }
+        }
+
+        // Select language-appropriate email content.
+        // For schedule-view-aware steps the field name carries an extra
+        // "_viewed" suffix when the lead has already viewed the schedule.
         var selectedSubject, selectedBody;
-        if (isGerman && step.email_subject_de) {
+        var langSuffix = isGerman ? '_de' : (isDanish ? '' : '_en');
+        var variantSuffix = useViewedVariant ? '_viewed' : '';
+
+        if (step.schedule_view_aware === true) {
+          selectedSubject = step['email_subject' + variantSuffix + langSuffix];
+          selectedBody = step['email_body' + variantSuffix + langSuffix];
+          // Fall back across language and variant combinations if a particular
+          // pair is missing — variant first, then language.
+          if (!selectedSubject) {
+            selectedSubject = step['email_subject' + langSuffix] || step['email_subject' + variantSuffix] || step.email_subject;
+            selectedBody = step['email_body' + langSuffix] || step['email_body' + variantSuffix] || step.email_body || selectedBody;
+          }
+        } else if (isGerman && step.email_subject_de) {
           selectedSubject = step.email_subject_de;
           selectedBody = step.email_body_de || step.email_body_en || step.email_body;
         } else if (!isDanish) {
@@ -722,6 +781,23 @@ async function handleProcess() {
             // DA/DE emails or no country_blocks — remove placeholder
             selectedBody = selectedBody.replace('{{country_block}}', '');
           }
+        }
+
+        // Inject cohort variables for dynamic steps. injectScheduleTokens (later)
+        // will tokenise the {{schedule_url}} value since it points at /skema/*
+        // or /en/schedule/* — the same URL shapes it matches.
+        if (cohortContext) {
+          var c = cohortContext.cohort;
+          var pickDa = isDanish;
+          var pick = function (da, en) { return (pickDa ? da : en) || en || da || ''; };
+          vars['{{cohort_name}}'] = pick(c.name_da, c.name_en);
+          vars['{{cohort_label}}'] = pick(c.cohort_label_da, c.cohort_label_en);
+          vars['{{method}}'] = pick(c.method_da, c.method_en);
+          vars['{{schedule_url}}'] = buildScheduleUrl(c, pickDa ? 'da' : 'en');
+          vars['{{checkout_url}}'] = c.checkout_url || '';
+          vars['{{prep_phase_price}}'] = pick(c.prep_phase_price_da, c.prep_phase_price_en);
+          vars['{{full_price}}'] = pick(c.full_price_da, c.full_price_en);
+          vars['{{start_date}}'] = pick(c.start_date_formatted_da, c.start_date_formatted_en);
         }
 
         // Check if step has sendable content — don't advance past empty steps
@@ -807,7 +883,7 @@ async function handleProcess() {
 
             // Log to email_log — use new Date() to match Timestamp format
             // used by lead-emails.js, email-service.js, etc.
-            await db.collection('email_log').add({
+            var emailLogEntry = {
               lead_id: enrollment.lead_id,
               to: lead.email,
               subject: substituteVars(selectedSubject, vars),
@@ -818,7 +894,15 @@ async function handleProcess() {
               sequence_id: seqId,
               lang: isDanish ? 'da' : leadLang,
               created_at: serverTimestamp()
-            });
+            };
+            if (cohortContext) {
+              emailLogEntry.cohort_id = cohortContext.cohort.id || cohortContext.cohort._docId;
+              emailLogEntry.urgency = cohortContext.isUrgent ? 'urgent' : 'normal';
+            }
+            if (step.schedule_view_aware === true) {
+              emailLogEntry.variant = useViewedVariant ? 'viewed' : 'not_viewed';
+            }
+            await db.collection('email_log').add(emailLogEntry);
             } // end else (not already sent)
           }
         }
@@ -941,13 +1025,24 @@ async function handleProcess() {
           processing_lock: null
         };
 
+        // Track when the most recent email actually went out — Step 2 of the
+        // Personal Outreach sequence reads this to decide which variant to send.
+        if (emailSent) {
+          updateData.last_email_sent_at = new Date();
+        }
+
         if (nextStep > sequence.steps.length) {
           // Last step done
           updateData.status = 'completed';
           updateData.next_send_at = null;
         } else {
           var upcoming = sequence.steps[nextStep - 1];
-          updateData.next_send_at = calculateNextSendAt(now, upcoming);
+          // Urgency override: when the resolved cohort starts in <3 days,
+          // halve the delay for non-final upcoming steps so the lead hears
+          // back faster. The final step (cleanup ask) keeps its full delay.
+          var compress = !!(cohortContext && cohortContext.isUrgent && nextStep < sequence.steps.length);
+          updateData.next_send_at = calculateNextSendAt(now, upcoming, compress);
+          if (compress) updateData.urgency_applied = true;
         }
 
         await db.collection(ENROLLMENTS_COL).doc(enrollId).update(updateData);
@@ -1098,11 +1193,19 @@ async function enrollInEducationalSequence(db, leadId, lead, now) {
   console.log('[sequences] Auto-enrolled lead ' + leadId + ' into educational sequence');
 }
 
-function calculateNextSendAt(fromISO, step) {
+function calculateNextSendAt(fromISO, step, urgent) {
   var date = new Date(fromISO);
   var delayDays = (step && step.delay_days) || 0;
   var delayHours = (step && step.delay_hours) || 0;
   var delayMinutes = (step && step.delay_minutes) || 0;
+
+  // Urgency override (Personal Outreach with cohort starting <3 days):
+  // halve the delay so the lead hears back faster.
+  if (urgent) {
+    delayDays = Math.floor(delayDays / 2);
+    delayHours = Math.floor(delayHours / 2);
+    delayMinutes = Math.floor(delayMinutes / 2);
+  }
 
   // Support delay_minutes (used by seed scripts & sequence-trigger.js)
   // as well as delay_days + delay_hours (used by admin UI step builder)
