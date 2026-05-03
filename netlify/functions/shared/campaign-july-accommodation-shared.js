@@ -19,25 +19,22 @@ const EXCLUDE_STATUSES = new Set([
   'Unsubscribed', 'Closed', 'Archived'
 ]);
 
-// Possible field names where accommodation preference might live.
-// Until we confirm via debug mode, we check all of them and treat the
-// lead as ineligible if ANY of these fields holds a "lives in DK" marker.
-const ACCOMMODATION_FIELDS = [
-  'accommodation',
-  'housing',
-  'accommodation_preference',
-  'housing_preference',
-  'accommodation_status',
-  'accommodation_needed',
-  'lives_in'
-];
+// Field name confirmed via debug: 'accommodation'. Kept as a list for
+// the debug endpoint's introspection only.
+const ACCOMMODATION_FIELDS = ['accommodation'];
 
-const LIVES_LOCAL_VALUES = new Set([
+// Values on the accommodation field that REMOVE a lead from this campaign.
+// (No → explicitly declined accommodation help. self_arranged → has their own.
+//  lives_in_* → already living locally, doesn't need housing.)
+const ACCOMMODATION_EXCLUDE_VALUES = new Set([
+  'no',
+  'self_arranged',
   'lives_in_copenhagen',
-  'lives_in_denmark',
-  'copenhagen',
-  'denmark'
+  'lives_in_denmark'
 ]);
+
+// Kept for backwards-compat with the debug endpoint output.
+const LIVES_LOCAL_VALUES = ACCOMMODATION_EXCLUDE_VALUES;
 
 const DA = {
   subject: 'Bolig til juli-holdet',
@@ -76,18 +73,16 @@ function injectScheduleTokens(html, leadId, email) {
   );
 }
 
-// Check whether the lead "lives in DK / Copenhagen" by inspecting all
-// possible accommodation field names. If ANY of them holds a DK-local
-// value, the lead is excluded.
-function livesLocally(lead) {
+// Returns true if lead.accommodation is in the EXCLUDE set.
+// Empty/missing/null is treated as "unknown — keep" (might need accommodation).
+function accommodationExcluded(lead) {
   if (!lead) return false;
-  for (var i = 0; i < ACCOMMODATION_FIELDS.length; i++) {
-    var v = lead[ACCOMMODATION_FIELDS[i]];
-    if (typeof v === 'string' && LIVES_LOCAL_VALUES.has(v.trim().toLowerCase())) {
-      return true;
-    }
-  }
-  return false;
+  var v = lead.accommodation;
+  if (v === undefined || v === null) return false;
+  if (typeof v !== 'string') return false;
+  var norm = v.trim().toLowerCase();
+  if (norm === '') return false;
+  return ACCOMMODATION_EXCLUDE_VALUES.has(norm);
 }
 
 function programMatchesJulyFourWeek(lead) {
@@ -104,7 +99,7 @@ function isEligible(lead) {
   if (lead.email_bounced) return false;
   var status = (lead.status || '').trim();
   if (EXCLUDE_STATUSES.has(status)) return false;
-  if (livesLocally(lead)) return false;
+  if (accommodationExcluded(lead)) return false;
   return true;
 }
 
@@ -123,10 +118,11 @@ module.exports = {
   EN,
   EXCLUDE_STATUSES,
   ACCOMMODATION_FIELDS,
+  ACCOMMODATION_EXCLUDE_VALUES,
   LIVES_LOCAL_VALUES,
   generateScheduleToken,
   injectScheduleTokens,
-  livesLocally,
+  accommodationExcluded,
   programMatchesJulyFourWeek,
   isEligible,
   detectLang

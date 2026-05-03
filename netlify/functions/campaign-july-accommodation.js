@@ -20,8 +20,9 @@ const { jsonResponse, optionsResponse } = require('./shared/utils');
 const { substituteVars } = require('./shared/email-service');
 const { prepareTrackedEmail } = require('./shared/email-tracking');
 const {
-  CAMPAIGN_ID, SOURCE_TAG, DA, EN, EXCLUDE_STATUSES, ACCOMMODATION_FIELDS, LIVES_LOCAL_VALUES,
-  injectScheduleTokens, isEligible, detectLang, programMatchesJulyFourWeek, livesLocally
+  CAMPAIGN_ID, SOURCE_TAG, DA, EN, EXCLUDE_STATUSES,
+  ACCOMMODATION_FIELDS, ACCOMMODATION_EXCLUDE_VALUES,
+  injectScheduleTokens, isEligible, detectLang, programMatchesJulyFourWeek, accommodationExcluded
 } = require('./shared/campaign-july-accommodation-shared');
 
 exports.handler = async (event) => {
@@ -123,7 +124,7 @@ async function runDebug() {
     july_4week_total: julyLeads.length,
     candidate_fields: shape(fieldReport),
     other_accom_like_fields_found: shape(dynamicFieldHits),
-    forbidden_values_treated_as_local: Array.from(LIVES_LOCAL_VALUES),
+    forbidden_accommodation_values: Array.from(ACCOMMODATION_EXCLUDE_VALUES),
     sample_leads: samples
   });
 }
@@ -142,8 +143,11 @@ async function runPreview() {
     unsubscribed: 0,
     bounced: 0,
     no_email: 0,
-    lives_locally: 0
+    accommodation_excluded: 0
   };
+
+  // Track accommodation-value distribution among kept leads so we can sanity-check
+  var keptAccommodationValues = {};
 
   snap.forEach(function (doc) {
     var d = doc.data();
@@ -153,7 +157,10 @@ async function runPreview() {
     if (d.email_bounced) { skipped.bounced++; return; }
     var status = (d.status || '').trim();
     if (EXCLUDE_STATUSES.has(status)) { skipped.status_excluded++; return; }
-    if (livesLocally(d)) { skipped.lives_locally++; return; }
+    if (accommodationExcluded(d)) { skipped.accommodation_excluded++; return; }
+
+    var accomKey = (d.accommodation === undefined || d.accommodation === null || d.accommodation === '') ? '(empty)' : String(d.accommodation);
+    keptAccommodationValues[accomKey] = (keptAccommodationValues[accomKey] || 0) + 1;
 
     var lang = detectLang(d);
     var entry = {
@@ -163,6 +170,7 @@ async function runPreview() {
       status: status || '(none)',
       lang: d.lang || '(unset)',
       country: d.country || '',
+      accommodation: d.accommodation || '(empty)',
       ytt_program_type: d.ytt_program_type || ''
     };
     if (lang === 'da') daLeads.push(entry); else enLeads.push(entry);
@@ -192,6 +200,10 @@ async function runPreview() {
       en: enLeads.length
     },
     skipped: skipped,
+    kept_accommodation_values: Object.keys(keptAccommodationValues)
+      .map(function (k) { return { value: k, count: keptAccommodationValues[k] }; })
+      .sort(function (a, b) { return b.count - a.count; }),
+    forbidden_accommodation_values: Array.from(ACCOMMODATION_EXCLUDE_VALUES),
     samples_da: daLeads.slice(0, 3),
     samples_en: enLeads.slice(0, 3),
     subjects: { da: DA.subject, en: EN.subject },
