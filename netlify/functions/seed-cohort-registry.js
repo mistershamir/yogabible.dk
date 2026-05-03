@@ -1,52 +1,30 @@
-#!/usr/bin/env node
 /**
- * Seed Cohort Registry — Standalone Script
+ * Seed Cohort Registry — Netlify Function
  *
- * Idempotently upserts the four 2026 YTT cohort docs into the
- * `cohort_registry` Firestore collection. Safe to re-run.
+ * GET  /.netlify/functions/seed-cohort-registry?mode=preview
+ *      → returns the 4 cohort docs that would be written, plus per-doc
+ *        action (CREATE | UPDATE) based on what's already in Firestore.
+ * POST /.netlify/functions/seed-cohort-registry?mode=apply
+ *      → upserts (merge) all 4 cohorts in cohort_registry. Idempotent.
  *
- * Usage:
- *   node scripts/admin/seed-cohort-registry.js              # Dry run (prints diff)
- *   node scripts/admin/seed-cohort-registry.js --apply      # Write to Firestore
+ * Auth: X-Internal-Secret header must equal AI_INTERNAL_SECRET.
  *
- * Requires firebase-service-account.json in project root or lead-agent/ dir,
- * or FIREBASE_PROJECT_ID/CLIENT_EMAIL/PRIVATE_KEY env vars.
+ * Example:
+ *   curl -H "x-internal-secret: $AI_INTERNAL_SECRET" \
+ *     "https://yogabible.dk/.netlify/functions/seed-cohort-registry?mode=preview"
+ *   curl -X POST -H "x-internal-secret: $AI_INTERNAL_SECRET" \
+ *     "https://yogabible.dk/.netlify/functions/seed-cohort-registry?mode=apply"
  */
 
-const path = require('path');
 const admin = require('firebase-admin');
-
-// ── Firebase setup (matches scripts/audit-and-fix-sequences.js) ─────────────
-let serviceAccount;
-try {
-  serviceAccount = require(path.join(__dirname, '..', '..', 'firebase-service-account.json'));
-} catch (_) {
-  try {
-    serviceAccount = require(path.join(__dirname, '..', '..', 'lead-agent', 'firebase-service-account.json'));
-  } catch (__) {
-    if (process.env.FIREBASE_PROJECT_ID) {
-      serviceAccount = {
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
-      };
-    } else {
-      console.error('No Firebase credentials. Place firebase-service-account.json in project root or lead-agent/ dir, or set FIREBASE_PROJECT_ID/CLIENT_EMAIL/PRIVATE_KEY.');
-      process.exit(1);
-    }
-  }
-}
-
-if (!admin.apps.length) {
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-}
-const db = admin.firestore();
+const { getDb } = require('./shared/firestore');
+const { jsonResponse, optionsResponse } = require('./shared/utils');
 
 const COL = 'cohort_registry';
-const APPLY = process.argv.includes('--apply');
 
 // ── Cohort definitions ──────────────────────────────────────────────────────
-// enrollment_closes defaults to start_date - 3 days.
+// enrollment_closes defaults to start_date - 3 days. Pricing is identical
+// across all four cohorts (23.750 kr full / 3.750 kr Preparation Phase).
 const COHORTS = [
   {
     id: '4-week-jun-2026',
@@ -150,35 +128,57 @@ const COHORTS = [
   }
 ];
 
-async function main() {
-  console.log((APPLY ? '[APPLY]' : '[DRY RUN]') + ' Seeding ' + COHORTS.length + ' cohorts to ' + COL);
-  console.log('---');
+exports.handler = async (event) => {
+  if (event.httpMethod === 'OPTIONS') return optionsResponse();
+
+  const secret = process.env.AI_INTERNAL_SECRET;
+  const provided = (event.headers['x-internal-secret'] || event.headers['X-Internal-Secret'] || '').trim();
+  if (!secret || provided !== secret) {
+    return jsonResponse(401, { error: 'Unauthorized' });
+  }
+
+  const params = event.queryStringParameters || {};
+  const mode = (params.mode || 'preview').toLowerCase();
+  const isApply = mode === 'apply';
+
+  if (isApply && event.httpMethod !== 'POST') {
+    return jsonResponse(405, { error: 'mode=apply requires POST' });
+  }
+
+  const db = getDb();
+  const results = [];
 
   for (const cohort of COHORTS) {
     const ref = db.collection(COL).doc(cohort.id);
     const existing = await ref.get();
     const action = existing.exists ? 'UPDATE' : 'CREATE';
 
-    const payload = Object.assign({}, cohort, {
-      updated_at: admin.firestore.FieldValue.serverTimestamp()
-    });
-    if (!existing.exists) {
-      payload.created_at = admin.firestore.FieldValue.serverTimestamp();
-    }
+    const entry = {
+      id: cohort.id,
+      action,
+      summary: cohort.name_en + ' · starts ' + cohort.start_date + ' · enrollment_closes ' + cohort.enrollment_closes,
+      doc: cohort
+    };
 
-    console.log('[' + action + '] ' + cohort.id + '  (' + cohort.name_en + ' · starts ' + cohort.start_date + ')');
-
-    if (APPLY) {
+    if (isApply) {
+      const payload = Object.assign({}, cohort, {
+        updated_at: admin.firestore.FieldValue.serverTimestamp()
+      });
+      if (!existing.exists) {
+        payload.created_at = admin.firestore.FieldValue.serverTimestamp();
+      }
       await ref.set(payload, { merge: true });
+      entry.written = true;
     }
+
+    results.push(entry);
   }
 
-  console.log('---');
-  console.log(APPLY ? 'Done.' : 'Dry run complete. Re-run with --apply to write.');
-  process.exit(0);
-}
-
-main().catch((err) => {
-  console.error('Error:', err.message);
-  process.exit(1);
-});
+  return jsonResponse(200, {
+    ok: true,
+    mode: isApply ? 'apply' : 'preview',
+    collection: COL,
+    count: results.length,
+    cohorts: results
+  });
+};
