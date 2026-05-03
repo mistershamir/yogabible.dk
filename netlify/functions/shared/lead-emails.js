@@ -1,29 +1,28 @@
 /**
  * Lead Welcome Emails — Yoga Bible
- * Auto-reply emails sent to leads when they submit a form.
- * Ported from Apps Script (06 emails.js) to Netlify Functions.
+ * Auto-reply emails sent to leads after a 30-minute defer window.
  *
- * Each program type has its own Danish email template with:
- * - Program info, pricing, schedule attachment (if available)
- * - Accommodation section (if needed)
- * - Booking CTA, English note, signature, unsubscribe
+ * Style: plain-text feel. Just <p> tags, inline orange links, no boxes,
+ * no buttons, no bullet lists. Resend's wrapHtml auto-appends the
+ * standard signature + unsubscribe footer.
  *
- * Schedule PDFs are now hosted on Cloudinary (not Google Drive).
+ * Conventions:
+ *   - Subject lines never include the lead's name (looks automated).
+ *   - All info kept; conditional logic kept.
+ *   - Refund language is forbidden everywhere (Prep Phase is non-refundable
+ *     if student cancels; only mention refunds if a lead asks directly).
  */
 
-const { CONFIG, COURSE_CONFIG, SCHEDULE_PDFS, getDisplayProgram } = require('./config');
+const { CONFIG, COURSE_CONFIG, SCHEDULE_PDFS } = require('./config');
 const {
   escapeHtml,
   getCoursePaymentUrl,
-  getBundlePaymentUrl,
-  buildUnsubscribeUrl
+  getBundlePaymentUrl
 } = require('./utils');
-const {
-  getAccommodationSectionHtml,
-  getPricingSectionHtml
-} = require('./email-service');
 const { sendSingleViaResend } = require('./resend-service');
 const { getDb } = require('./firestore');
+
+const i18n = require('./lead-email-i18n');
 
 // Form ID → language map (same as facebook-leads-webhook.js)
 const FORM_LANG_MAP = {
@@ -38,94 +37,46 @@ const FORM_LANG_MAP = {
 };
 
 // =========================================================================
-// Shared HTML helpers
+// Inline-link helper — keeps every <a> in one consistent shape
 // =========================================================================
-
-function bookingCta() {
-  return '<p style="margin-top:20px;">Har du lyst til at h\u00f8re mere eller stille sp\u00f8rgsm\u00e5l? Book et gratis og uforpligtende infom\u00f8de:</p>' +
-    '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infom\u00f8de</a></p>';
-}
-
-function questionPrompt() {
-  return '<p style="margin-top:20px;">Jeg vil ogs\u00e5 gerne h\u00f8re: <strong>Hvad fik dig til at overveje en yogauddannelse?</strong> Du er velkommen til bare at svare p\u00e5 denne mail.</p>' +
-    '<p>Gl\u00e6der mig til at h\u00f8re fra dig.</p>';
-}
-
-function programHighlightsHtml(extras) {
-  let html = '<p style="margin-top:16px;">Kort om uddannelsen:</p>';
-  html += '<ul style="margin:8px 0;padding-left:20px;color:#333;">';
-  html += '<li>200 timer \u00b7 Yoga Alliance-certificeret</li>';
-  html += '<li>Hatha, Vinyasa, Yin, Hot Yoga & Meditation</li>';
-  html += '<li>Anatomi, filosofi, sekvensering & undervisningsmetodik</li>';
-  if (extras) extras.forEach(e => { html += '<li>' + e + '</li>'; });
-  html += '<li>Alle niveauer er velkomne</li>';
-  html += '</ul>';
-  return html;
-}
-
-function programHighlightsPlain(extras) {
-  let text = 'Kort om uddannelsen:\n';
-  text += '- 200 timer \u00b7 Yoga Alliance-certificeret\n';
-  text += '- Hatha, Vinyasa, Yin, Hot Yoga & Meditation\n';
-  text += '- Anatomi, filosofi, sekvensering & undervisningsmetodik\n';
-  if (extras) extras.forEach(e => { text += '- ' + e + '\n'; });
-  text += '- Alle niveauer velkomne\n';
-  return text;
-}
-
-function alumniNote() {
-  return '<p style="margin-top:12px;">Vi har uddannet yogal\u00e6rere siden 2014, og vores dimittender underviser i hele Europa og videre.</p>';
-}
-
-function getAccommodationSectionPlain(cityCountry) {
-  return '\n\nBolig: Jeg kan se du' + (cityCountry ? ' kommer fra ' + cityCountry + ' og' : '') + ' har brug for bolig i K\u00f8benhavn.\n' +
-    'Se muligheder: https://yogabible.dk/accommodation\n' +
-    'Har du sp\u00f8rgsm\u00e5l? Svar bare p\u00e5 denne e-mail.\n';
-}
-
-function getPricingSectionPlain(fullPrice, deposit, remaining, rateNote) {
-  return 'Pris: ' + fullPrice + ' kr. (ingen ekstra gebyrer)\n' +
-    'Forberedelsesfasen: ' + deposit + ' kr.\n' +
-    'Rest: ' + remaining + ' kr. (' + rateNote + ')\n';
+const ORANGE = 'style="color:#f75c03;"';
+function link(url, text) {
+  return '<a href="' + url + '" ' + ORANGE + '>' + text + '</a>';
 }
 
 // =========================================================================
-// Preparation Phase promotion block
+// Localized Preparation Phase price (international leads)
 // =========================================================================
-
-function getPreparationPhaseHtml(programPageUrl) {
-  return '<div style="margin-top:16px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:4px;">' +
-    '<strong style="color:#166534;">\ud83d\udca1 Vidste du?</strong> De fleste studerende starter med forberedelsesfasen allerede nu \u2014 og det er der en god grund til:<br><br>' +
-    '\u2705 Du kan begynde at deltage i klasser i studiet med det samme<br>' +
-    '\u2705 Du opbygger styrke, fleksibilitet og rutine inden uddannelsesstart<br>' +
-    '\u2705 Du m\u00f8der dine kommende medstuderende i et afslappet milj\u00f8<br>' +
-    '\u2705 Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer<br><br>' +
-    '<a href="' + programPageUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">Start forberedelsesfasen \u2014 3.750 kr.</a>' +
-    '</div>';
-}
-
-function getPreparationPhasePlain(programPageUrl) {
-  return '\nVidste du? De fleste studerende starter med forberedelsesfasen allerede nu:\n' +
-    '- Deltag i klasser i studiet med det samme\n' +
-    '- Opbyg styrke, fleksibilitet og rutine inden uddannelsesstart\n' +
-    '- M\u00f8d dine kommende medstuderende\n' +
-    '- Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer\n' +
-    'Start forberedelsesfasen: ' + programPageUrl + '\n';
+function getLocalizedPrepPrice(country) {
+  switch ((country || '').toUpperCase()) {
+    case 'NO': return '3,750 DKK (approx. 5,400 NOK)';
+    case 'SE': return '3,750 DKK (approx. 5,600 SEK)';
+    case 'DE': case 'AT': case 'CH': return '3.750 DKK (ca. 500 EUR)';
+    case 'FI': return '3,750 DKK (approx. 500 EUR)';
+    case 'NL': return '3,750 DKK (approx. 500 EUR)';
+    case 'UK': return '3,750 DKK (approx. £425)';
+    case 'DK': return '3.750 kr.';
+    default:   return '3,750 DKK (approx. 500 EUR)';
+  }
 }
 
 // =========================================================================
-// Schedule PDF attachment helper
+// Tokenized schedule URL builder
+// =========================================================================
+function tokenize(url, tokenData) {
+  if (!tokenData || !tokenData.leadId || !tokenData.token) return url;
+  var sep = url.indexOf('?') >= 0 ? '&' : '?';
+  return url + sep + 'tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token);
+}
+
+// =========================================================================
+// Schedule PDF attachment helper (300h + Courses)
 // =========================================================================
 
-/**
- * Look up schedule PDF URL from config by program type and cohort.
- * Falls back to 'default' if no cohort match.
- */
 function getSchedulePdfUrl(programType, program) {
   const urls = SCHEDULE_PDFS[programType];
   if (!urls) return '';
 
-  // Try to match cohort from program string
   const prog = (program || '').toLowerCase();
   for (const cohortKey of Object.keys(urls)) {
     if (cohortKey === 'default') continue;
@@ -133,8 +84,6 @@ function getSchedulePdfUrl(programType, program) {
       return urls[cohortKey] || '';
     }
   }
-
-  // Try keyword matching
   if (prog.includes('aug') || prog.includes('dec')) {
     for (const key of Object.keys(urls)) {
       if (key.toLowerCase().includes('aug') || key.toLowerCase().includes('dec')) return urls[key] || '';
@@ -150,23 +99,47 @@ function getSchedulePdfUrl(programType, program) {
       if (key.toLowerCase().includes('jul')) return urls[key] || '';
     }
   }
-
   return urls['default'] || '';
 }
 
 async function fetchSchedulePdfAttachment(programType, program) {
   const url = getSchedulePdfUrl(programType, program);
   if (!url) return null;
-
   try {
     const response = await fetch(url);
     if (!response.ok) return null;
     const buffer = Buffer.from(await response.arrayBuffer());
-    const filename = `yoga-bible-schedule-${programType}.pdf`;
+    const filename = 'yoga-bible-schedule-' + programType + '.pdf';
     return { filename, content: buffer, contentType: 'application/pdf' };
   } catch (err) {
-    console.error(`[lead-emails] Failed to fetch schedule PDF for ${programType}:`, err.message);
+    console.error('[lead-emails] Failed to fetch schedule PDF for ' + programType + ':', err.message);
     return null;
+  }
+}
+
+// =========================================================================
+// Country-specific travel sentence (English / German Vinyasa Plus)
+// =========================================================================
+function travelSentenceEn(country) {
+  switch ((country || '').toUpperCase()) {
+    case 'NO': return 'Copenhagen is just a short flight from most Norwegian cities — many of our students fly in from Oslo, Bergen and Trondheim.';
+    case 'SE': return 'Copenhagen is right next door — a quick flight from Stockholm, or just 30 minutes by train from Malmö.';
+    case 'DE': case 'AT': return 'Copenhagen is well connected from all major German-speaking airports, with frequent direct flights.';
+    case 'FI': return 'Direct flights from Helsinki to Copenhagen take under two hours.';
+    case 'NL': return 'Copenhagen is just a short direct flight from Amsterdam and other Dutch airports.';
+    case 'UK': return 'Copenhagen is just a short direct flight from most UK airports — many of our students fly in from London, Manchester and Edinburgh.';
+    case 'DK': return '';
+    default:   return 'Copenhagen has direct flight connections from most major European cities.';
+  }
+}
+
+function travelSentenceDe(country) {
+  switch ((country || '').toUpperCase()) {
+    case 'DE': return 'Kopenhagen ist von allen großen deutschen Flughäfen gut erreichbar, mit regelmäßigen Direktflügen.';
+    case 'AT': return 'Kopenhagen ist von Wien und anderen österreichischen Flughäfen leicht erreichbar, mit regelmäßigen Direktflügen.';
+    case 'CH': return 'Kopenhagen ist von der Schweiz aus gut erreichbar, mit Direktflügen ab Zürich, Basel und Genf.';
+    case 'DK': return '';
+    default:   return 'Kopenhagen hat direkte Flugverbindungen von den meisten großen europäischen Städten.';
   }
 }
 
@@ -180,15 +153,13 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
     return { success: false, reason: 'no_email' };
   }
 
-  // Check if lead is unsubscribed
   if (leadData.unsubscribed) {
-    console.log(`[lead-emails] Lead ${leadData.email} is unsubscribed, skipping`);
+    console.log('[lead-emails] Lead ' + leadData.email + ' is unsubscribed, skipping');
     return { success: false, reason: 'unsubscribed' };
   }
 
-  // ── Dedup: check if welcome email was already sent to this email recently ──
-  // Prevents duplicate welcome emails when lead.js or facebook-leads-webhook.js
-  // is called multiple times for the same lead (Meta retries, form resubmits).
+  // Dedup: skip if a welcome email was sent to this address in the past 24h.
+  // Catches retries from Meta webhooks and form double-submits.
   try {
     const db = getDb();
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -199,20 +170,15 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       .where('status', 'in', ['sent', 'pending'])
       .limit(1)
       .get();
-
     if (!recentWelcomeSnap.empty) {
-      console.log(`[lead-emails] Welcome email already sent to ${leadData.email} within 24h — skipping duplicate`);
+      console.log('[lead-emails] Welcome already sent to ' + leadData.email + ' within 24h — skipping duplicate');
       return { success: true, reason: 'already_sent' };
     }
   } catch (dedupErr) {
-    // Non-blocking — if dedup check fails (e.g. missing Firestore composite index),
-    // proceed with sending. A duplicate welcome email is far better than zero email.
-    // The dedup is a safety net, not a gate. Fix the missing index separately.
     console.error('[lead-emails] Welcome dedup check failed (PROCEEDING with send):', dedupErr.message);
   }
 
   try {
-    // Waitlist 300h — bilingual, handles lang internally
     if (action === 'lead_waitlist_300h') {
       const result = await sendWaitlist300hEmail(leadData, tokenData);
       if (result && result.success) {
@@ -221,34 +187,26 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       return result;
     }
 
-    // Determine language — simple two-source logic:
-    //   1. Meta leads: FORM_LANG_MAP determines language from form_id
-    //   2. Website leads: lang field (set by /en/ path detection) determines language
-    //   3. Default: Danish
     const formLang = FORM_LANG_MAP[leadData.meta_form_id];
     const lang = (formLang || leadData.lang || leadData.meta_lang || 'da').toLowerCase().trim().substring(0, 2);
     const isDanish = ['da', 'dk'].includes(lang);
     const isGerman = lang === 'de';
 
-    // German leads get DE templates (falling back to EN via i18n lookups)
+    const programKeyMap = {
+      'lead_schedule_4w': '4-week', 'lead_schedule_4w-apr': '4-week', 'lead_schedule_4w-jun': '4-week-jun',
+      'lead_schedule_4w-jul': '4-week-jul', 'lead_schedule_8w': '8-week',
+      'lead_schedule_18w': '18-week', 'lead_schedule_18w-mar': '18-week',
+      'lead_schedule_18w-aug': '18-week-aug', 'lead_schedule_300h': '300h',
+      'lead_schedule_50h': 'specialty', 'lead_schedule_30h': 'specialty'
+    };
+
     if (isGerman) {
       let result;
-      const programKeyMap = {
-        'lead_schedule_4w': '4-week', 'lead_schedule_4w-apr': '4-week', 'lead_schedule_4w-jun': '4-week-jun',
-        'lead_schedule_4w-jul': '4-week-jul', 'lead_schedule_8w': '8-week',
-        'lead_schedule_18w': '18-week', 'lead_schedule_18w-mar': '18-week',
-        'lead_schedule_18w-aug': '18-week-aug', 'lead_schedule_300h': '300h',
-        'lead_schedule_50h': 'specialty', 'lead_schedule_30h': 'specialty'
-      };
-
-      // July Vinyasa Plus — use conditional German template
       var isJulyActionDe = action === 'lead_schedule_4w-jul' ||
         (action === 'lead_meta' && leadData.type === 'ytt' && leadData.ytt_program_type === '4-week-jul');
       if (isJulyActionDe) {
         result = await sendJulyVinyasaPlusDeEmail(leadData, tokenData);
-      } else if (leadData.multi_format === 'Yes' && leadData.all_formats) {
-        result = await sendMultiFormatEmail(leadData, 'de', tokenData);
-      } else if (action === 'lead_schedule_multi') {
+      } else if ((leadData.multi_format === 'Yes' && leadData.all_formats) || action === 'lead_schedule_multi') {
         result = await sendMultiFormatEmail(leadData, 'de', tokenData);
       } else if (action === 'lead_undecided') {
         result = await sendUndecidedEmail(leadData, 'de', tokenData);
@@ -259,9 +217,9 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       } else if (programKeyMap[action]) {
         result = await sendProgramEmail(leadData, programKeyMap[action], 'de', tokenData);
       } else if (action === 'lead_meta' && leadData.type === 'ytt') {
-        var metaKey = leadData.ytt_program_type || '4-week';
-        if (!i18n.PROGRAMS[metaKey]) metaKey = '4-week';
-        result = await sendProgramEmail(leadData, metaKey, 'de', tokenData);
+        var metaKeyDe = leadData.ytt_program_type || '4-week';
+        if (!i18n.PROGRAMS[metaKeyDe]) metaKeyDe = '4-week';
+        result = await sendProgramEmail(leadData, metaKeyDe, 'de', tokenData);
       } else {
         result = await sendEmailGenericBilingual(leadData, 'de', tokenData);
       }
@@ -271,25 +229,13 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       return result;
     }
 
-    // English leads get full English email templates matching Danish detail
     if (!isDanish) {
       let result;
-      const programKeyMap = {
-        'lead_schedule_4w': '4-week', 'lead_schedule_4w-apr': '4-week', 'lead_schedule_4w-jun': '4-week-jun',
-        'lead_schedule_4w-jul': '4-week-jul', 'lead_schedule_8w': '8-week',
-        'lead_schedule_18w': '18-week', 'lead_schedule_18w-mar': '18-week',
-        'lead_schedule_18w-aug': '18-week-aug', 'lead_schedule_300h': '300h',
-        'lead_schedule_50h': 'specialty', 'lead_schedule_30h': 'specialty'
-      };
-
-      // July Vinyasa Plus — use conditional template with Q1/Q2/Q3/country blocks
-      var isJulyAction = action === 'lead_schedule_4w-jul' ||
+      var isJulyActionEn = action === 'lead_schedule_4w-jul' ||
         (action === 'lead_meta' && leadData.type === 'ytt' && leadData.ytt_program_type === '4-week-jul');
-      if (isJulyAction) {
+      if (isJulyActionEn) {
         result = await sendJulyVinyasaPlusEnEmail(leadData, tokenData);
-      } else if (leadData.multi_format === 'Yes' && leadData.all_formats) {
-        result = await sendMultiFormatEmail(leadData, 'en', tokenData);
-      } else if (action === 'lead_schedule_multi') {
+      } else if ((leadData.multi_format === 'Yes' && leadData.all_formats) || action === 'lead_schedule_multi') {
         result = await sendMultiFormatEmail(leadData, 'en', tokenData);
       } else if (action === 'lead_undecided') {
         result = await sendUndecidedEmail(leadData, 'en', tokenData);
@@ -300,10 +246,9 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       } else if (programKeyMap[action]) {
         result = await sendProgramEmail(leadData, programKeyMap[action], 'en', tokenData);
       } else if (action === 'lead_meta' && leadData.type === 'ytt') {
-        // Meta YTT leads: detect program key from ytt_program_type
-        var metaKey = leadData.ytt_program_type || '4-week';
-        if (!i18n.PROGRAMS[metaKey]) metaKey = '4-week';
-        result = await sendProgramEmail(leadData, metaKey, 'en', tokenData);
+        var metaKeyEn = leadData.ytt_program_type || '4-week';
+        if (!i18n.PROGRAMS[metaKeyEn]) metaKeyEn = '4-week';
+        result = await sendProgramEmail(leadData, metaKeyEn, 'en', tokenData);
       } else {
         result = await sendEmailGenericBilingual(leadData, 'en', tokenData);
       }
@@ -313,8 +258,7 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
       return result;
     }
 
-    // Danish leads get detailed Danish program-specific emails
-    // Multi-format request: user selected 2+ formats in the modal
+    // Danish lead
     if (leadData.multi_format === 'Yes' && leadData.all_formats) {
       const result = await sendEmailMultiYTT(leadData, tokenData);
       if (result && result.success) {
@@ -327,58 +271,37 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
     switch (action) {
       case 'lead_schedule_4w':
       case 'lead_schedule_4w-apr':
-        result = await sendEmail4wYTT(leadData, tokenData);
-        break;
+        result = await sendEmail4wYTT(leadData, tokenData); break;
       case 'lead_schedule_4w-jun':
-        result = await sendEmail4wJuneYTT(leadData, tokenData);
-        break;
+        result = await sendEmail4wJuneYTT(leadData, tokenData); break;
       case 'lead_schedule_4w-jul':
-        result = await sendJulyVinyasaPlusDaEmail(leadData, tokenData);
-        break;
+        result = await sendJulyVinyasaPlusDaEmail(leadData, tokenData); break;
       case 'lead_schedule_8w':
-        result = await sendEmail8wYTT(leadData, tokenData);
-        break;
+        result = await sendEmail8wYTT(leadData, tokenData); break;
       case 'lead_schedule_18w':
       case 'lead_schedule_18w-mar':
-        result = await sendEmail18wYTT(leadData, tokenData);
-        break;
+        result = await sendEmail18wYTT(leadData, tokenData); break;
       case 'lead_schedule_18w-aug':
-        result = await sendEmail18wAugYTT(leadData, tokenData);
-        break;
+        result = await sendEmail18wAugYTT(leadData, tokenData); break;
       case 'lead_schedule_multi':
-        result = await sendEmailMultiYTT(leadData, tokenData);
-        break;
+        result = await sendEmailMultiYTT(leadData, tokenData); break;
       case 'lead_schedule_300h':
-        result = await sendEmail300hYTT(leadData, tokenData);
-        break;
-      case 'lead_waitlist_300h':
-        result = await sendWaitlist300hEmail(leadData, tokenData);
-        break;
+        result = await sendEmail300hYTT(leadData, tokenData); break;
       case 'lead_schedule_50h':
       case 'lead_schedule_30h':
-        result = await sendEmailSpecialtyYTT(leadData, tokenData);
-        break;
+        result = await sendEmailSpecialtyYTT(leadData, tokenData); break;
       case 'lead_courses':
-        result = await sendEmailCourses(leadData, tokenData);
-        break;
+        result = await sendEmailCourses(leadData, tokenData); break;
       case 'lead_mentorship':
-        result = await sendEmailMentorship(leadData, tokenData);
-        break;
+        result = await sendEmailMentorship(leadData, tokenData); break;
       case 'lead_undecided':
-        result = await sendEmailUndecidedYTT(leadData, tokenData);
-        break;
+        result = await sendEmailUndecidedYTT(leadData, tokenData); break;
       case 'lead_meta':
-        result = await sendEmailGeneric(leadData, tokenData);
-        break;
       case 'contact':
-        result = await sendEmailGeneric(leadData, tokenData);
-        break;
       default:
-        result = await sendEmailGeneric(leadData, tokenData);
-        break;
+        result = await sendEmailGeneric(leadData, tokenData); break;
     }
 
-    // Log to email_log + record sent timestamp on lead for timing signals
     if (result && result.success) {
       await logWelcomeEmail(leadData.email, result.subject || 'Welcome email', (tokenData || {}).leadId);
       if (tokenData && tokenData.leadId) {
@@ -389,7 +312,6 @@ async function sendWelcomeEmail(leadData, action, tokenData = {}) {
         }).catch(() => {});
       }
     }
-
     return result;
   } catch (err) {
     console.error('[lead-emails] sendWelcomeEmail error:', err.message);
@@ -414,1369 +336,606 @@ async function logWelcomeEmail(to, subject, leadId) {
 }
 
 // =========================================================================
-// 4-Week YTT Email
+// 4-Week April YTT (Danish) — keep for legacy lead_schedule_4w action
 // =========================================================================
-
 async function sendEmail4wYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
-  const program = leadData.program || '4-Week Intensive YTT';
+  const program = leadData.program || '';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const subject = firstName + ', her er alle datoer til 4-ugers yogauddannelsen';
+  const subject = 'Datoer til 4-ugers yogalæreruddannelsen';
 
   const isFebruary = program.toLowerCase().includes('feb');
   const fullPrice = isFebruary ? '20.750' : '23.750';
   const remaining = isFebruary ? '17.000' : '20.000';
   const discountNote = isFebruary ? ' (inkl. 3.000 kr. early bird-rabat)' : '';
-  const rateNote = 'fleksibel ratebetaling';
 
-  const scheduleUrl = tokenData.leadId && tokenData.token
-    ? 'https://www.yogabible.dk/skema/4-uger/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://www.yogabible.dk/skema/4-uger/';
+  const sUrl = tokenize('https://www.yogabible.dk/skema/4-uger/', tokenData);
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>4-ugers intensive 200-timers yogal\u00e6reruddannelse</strong>.</p>';
-  bodyHtml += '<p>Her finder du alle tr\u00e6ningsdage og tidspunkter for uddannelsen:</p>';
-  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
-  bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilf\u00f8je alle datoer direkte til din kalender \u2014 og se pr\u00e6cis, hvad der sker hver dag i de 4 uger.</p>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores 4-ugers intensive 200-timers yogalæreruddannelse. Her er alle træningsdage og tidspunkter: ' + link(sUrl, 'Se skemaet her') + '. Du kan tilføje datoerne direkte til din kalender.</p>';
+  html += '<p>Det intensive format er til dig, der vil fordybe dig fuldt ud. På 4 uger gennemfører du hele certificeringen med daglig træning og teori — Hatha, Vinyasa, Yin, Hot Yoga og Meditation. Mange dimittender fortæller, at det intensive format hjalp dem med at lære mere, fordi de var 100% dedikerede.</p>';
+  html += '<p>200 timer, Yoga Alliance-certificeret. Anatomi, filosofi, sekvensering og undervisningsmetodik. Alle niveauer er velkomne. Vi har uddannet yogalærere siden 2014, og vores dimittender underviser i hele Europa og videre.</p>';
+  if (needsHousing) {
+    html += '<p>Om bolig: jeg kan se du' + (cityCountry ? ' kommer fra ' + escapeHtml(cityCountry) + ' og' : '') + ' har brug for sted at bo i København. Vi samarbejder med lokale udbydere — ' + link('https://yogabible.dk/accommodation', 'se boligmuligheder her') + '. Sig til, hvis du har spørgsmål.</p>';
+  }
+  html += '<p>Pris: ' + fullPrice + ' kr.' + discountNote + '. Forberedelsesfasen på 3.750 kr. sikrer din plads — beløbet trækkes fra den fulde pris, så resten på ' + remaining + ' kr. kan betales i fleksible rater. ' + link('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs', 'Start Forberedelsesfasen her') + '.</p>';
+  html += '<p>Hvis du vil snakke om uddannelsen, ' + link(CONFIG.MEETING_LINK, 'book et gratis infomøde her') + ' — eller bare svar på denne mail.</p>';
+  html += '<p>Shamir</p>';
 
-  bodyHtml += '<p style="margin-top:16px;">Det intensive format er til dig, der vil fordybe dig fuldt ud. P\u00e5 4 uger gennemf\u00f8rer du hele certificeringen med daglig tr\u00e6ning og teori \u2014 mange af vores dimittender fort\u00e6ller, at det intensive format hjalp dem med at l\u00e6re mere, fordi de var 100% dedikerede.</p>';
-  bodyHtml += programHighlightsHtml();
-  bodyHtml += '<p style="margin-top:12px;">Vi har uddannet yogal\u00e6rere siden 2014, og vores dimittender underviser i hele Europa og videre. Kan du ikke m\u00f8de op en dag, tilbyder vi online backup p\u00e5 udvalgte workshops.</p>';
-
-  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
-
-  bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
-  bodyHtml += '<strong>Pris:</strong> ' + fullPrice + ' kr.' + discountNote + '<br>';
-  bodyHtml += '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>';
-  bodyHtml += '<strong>Rest:</strong> ' + remaining + ' kr. (' + rateNote + ')';
-  bodyHtml += '</div>';
-
-  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
-
-  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 4-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
-  bodyHtml += bookingCta() + questionPrompt();
-
-  // Plain text
-  let bodyPlain = 'Hej ' + firstName + ',\n\n';
-  bodyPlain += 'Tak fordi du viste interesse for vores 4-ugers intensive 200-timers yogal\u00e6reruddannelse.\n\n';
-  bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl + '\n\n';
-  bodyPlain += programHighlightsPlain();
-  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += '\nPris: ' + fullPrice + ' kr.' + discountNote + '\nForberedelsesfasen: 3.750 kr.\nRest: ' + remaining + ' kr. (' + rateNote + ')\n\n';
-  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
-  bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
-  bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
+  let plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Tak for din interesse i vores 4-ugers intensive 200-timers yogalæreruddannelse. Her er alle træningsdage og tidspunkter:\n' + sUrl + '\n\n';
+  plain += 'Det intensive format er til dig, der vil fordybe dig fuldt ud. På 4 uger gennemfører du hele certificeringen med daglig træning og teori — Hatha, Vinyasa, Yin, Hot Yoga og Meditation.\n\n';
+  plain += '200 timer, Yoga Alliance-certificeret. Anatomi, filosofi, sekvensering og undervisningsmetodik. Alle niveauer er velkomne.\n\n';
+  if (needsHousing) plain += 'Om bolig: vi samarbejder med lokale udbydere — se: https://yogabible.dk/accommodation\n\n';
+  plain += 'Pris: ' + fullPrice + ' kr.' + discountNote + '. Forberedelsesfasen på 3.750 kr. sikrer din plads. Resten (' + remaining + ' kr.) kan betales i fleksible rater.\nStart her: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n\n';
+  plain += 'Vil du snakke? Book et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n\n';
+  plain += 'Shamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:4-week',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:4-week', lang: 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// 4-Week June YTT Email (Complete Program — new cohort after April sold out)
+// 4-Week June YTT (Danish)
 // =========================================================================
-
 async function sendEmail4wJuneYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const subject = firstName + ', her er alle datoer til 4-ugers yogauddannelsen (juni)';
+  const subject = 'Datoer til 4-ugers yogalæreruddannelsen (juni)';
 
-  const fullPrice = '23.750';
-  const remaining = '20.000';
-  const rateNote = 'fleksibel ratebetaling';
+  const sUrl = tokenize('https://www.yogabible.dk/skema/4-uger-juni/', tokenData);
 
-  const scheduleUrl = tokenData.leadId && tokenData.token
-    ? 'https://www.yogabible.dk/skema/4-uger-juni/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://www.yogabible.dk/skema/4-uger-juni/';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores 4-ugers intensive 200-timers yogalæreruddannelse i juni 2026. Her er alle træningsdage og tidspunkter for juni-holdet: ' + link(sUrl, 'Se juni-skemaet her') + '. Du kan tilføje datoerne direkte til din kalender og se præcis, hvad der sker hver dag fra 1. juni til graduation 28. juni.</p>';
+  html += '<p>Det intensive format er til dig, der vil fordybe dig fuldt ud. På 4 uger gennemfører du hele certificeringen med daglig træning og teori — Hatha, Vinyasa, Yin, Hot Yoga og Meditation. Mange dimittender fortæller, at det intensive format hjalp dem med at lære mere, fordi de var 100% dedikerede.</p>';
+  html += '<p>200 timer, Yoga Alliance-certificeret. Anatomi, filosofi, sekvensering og undervisningsmetodik. Alle niveauer er velkomne. Vi har uddannet yogalærere siden 2014, og vores dimittender underviser i hele Europa og videre.</p>';
+  if (needsHousing) {
+    html += '<p>Om bolig: jeg kan se du' + (cityCountry ? ' kommer fra ' + escapeHtml(cityCountry) + ' og' : '') + ' har brug for sted at bo i København. Vi samarbejder med lokale udbydere — ' + link('https://yogabible.dk/accommodation', 'se boligmuligheder her') + '. Sig til, hvis du har spørgsmål.</p>';
+  }
+  html += '<p>Pris: 23.750 kr. Forberedelsesfasen på 3.750 kr. sikrer din plads — beløbet trækkes fra den fulde pris, så resten på 20.000 kr. kan betales i fleksible rater. ' + link('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs', 'Start Forberedelsesfasen her') + '.</p>';
+  html += '<p>Hvis du vil snakke om uddannelsen, ' + link(CONFIG.MEETING_LINK, 'book et gratis infomøde her') + ' — eller bare svar på denne mail.</p>';
+  html += '<p>Shamir</p>';
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>4-ugers intensive 200-timers yogalæreruddannelse</strong> i <strong>juni 2026</strong>.</p>';
-  bodyHtml += '<p>Her finder du alle træningsdage og tidspunkter for juni-holdet:</p>';
-  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se juni-skemaet →</a></p>';
-  bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilføje alle datoer direkte til din kalender — og se præcis, hvad der sker hver dag fra 1. juni til graduation 28. juni.</p>';
-
-  bodyHtml += '<p style="margin-top:16px;">Det intensive format er til dig, der vil fordybe dig fuldt ud. På 4 uger gennemfører du hele certificeringen med daglig træning og teori — Hatha, Vinyasa, Yin, Hot Yoga og Meditation. Mange af vores dimittender fortæller, at det intensive format hjalp dem med at lære mere, fordi de var 100% dedikerede.</p>';
-  bodyHtml += programHighlightsHtml();
-  bodyHtml += '<p style="margin-top:12px;">Vi har uddannet yogalærere siden 2014, og vores dimittender underviser i hele Europa og videre. Kan du ikke møde op en dag, tilbyder vi online backup på udvalgte workshops.</p>';
-
-  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
-
-  bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
-  bodyHtml += '<strong>Pris:</strong> ' + fullPrice + ' kr.<br>';
-  bodyHtml += '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>';
-  bodyHtml += '<strong>Rest:</strong> ' + remaining + ' kr. (' + rateNote + ')';
-  bodyHtml += '</div>';
-
-  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
-
-  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">Læs mere om 4-ugers programmet</a>';
-  bodyHtml += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
-  bodyHtml += bookingCta() + questionPrompt();
-
-  // Plain text
-  let bodyPlain = 'Hej ' + firstName + ',\n\n';
-  bodyPlain += 'Tak fordi du viste interesse for vores 4-ugers intensive 200-timers yogalæreruddannelse i juni 2026.\n\n';
-  bodyPlain += 'Uddannelsesskema og datoer (juni-holdet):\n' + scheduleUrl + '\n\n';
-  bodyPlain += programHighlightsPlain();
-  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += '\nPris: ' + fullPrice + ' kr.\nForberedelsesfasen: 3.750 kr.\nRest: ' + remaining + ' kr. (' + rateNote + ')\n\n';
-  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
-  bodyPlain += '\nLæs mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
-  bodyPlain += 'Book infomøde: ' + CONFIG.MEETING_LINK + '\n';
+  let plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Tak for din interesse i vores 4-ugers intensive 200-timers yogalæreruddannelse i juni 2026. Her er alle træningsdage og tidspunkter:\n' + sUrl + '\n\n';
+  plain += '4 uger med daglig træning og teori — Hatha, Vinyasa, Yin, Hot Yoga og Meditation. 1. juni til graduation 28. juni.\n\n';
+  plain += '200 timer, Yoga Alliance-certificeret. Anatomi, filosofi, sekvensering og undervisningsmetodik. Alle niveauer er velkomne.\n\n';
+  if (needsHousing) plain += 'Om bolig: vi samarbejder med lokale udbydere — se: https://yogabible.dk/accommodation\n\n';
+  plain += 'Pris: 23.750 kr. Forberedelsesfasen på 3.750 kr. sikrer din plads. Resten (20.000 kr.) kan betales i fleksible rater.\nStart her: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n\n';
+  plain += 'Vil du snakke? Book et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n\n';
+  plain += 'Shamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:4-week-jun',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:4-week-jun', lang: 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// 4-Week July (Vinyasa Plus) YTT Email
+// 4-Week July (Vinyasa Plus) — Danish CPH version (router uses this when
+// the lead is Danish AND in Copenhagen). Non-CPH Danish leads route through
+// sendJulyVinyasaPlusDaEmail below.
 // =========================================================================
-
 async function sendEmail4wJulyYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const subject = firstName + ', her er alle datoer til 4-ugers Vinyasa Plus yogauddannelsen (juli)';
+  const subject = 'Datoer til 4-ugers Vinyasa Plus uddannelsen (juli)';
 
-  const fullPrice = '23.750';
-  const remaining = '20.000';
-  const rateNote = 'fleksibel ratebetaling';
-
-  // Non-CPH Danish leads get the enhanced EN schedule page (includes accommodation info)
   const isCph = i18n.isCopenhagenLead(leadData);
   const schedPath = isCph ? '/skema/4-uger-juli/' : '/en/schedule/4-weeks-july-plan/';
-  const scheduleUrl = tokenData.leadId && tokenData.token
-    ? 'https://www.yogabible.dk' + schedPath + '?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://www.yogabible.dk' + schedPath;
+  const sUrl = tokenize('https://www.yogabible.dk' + schedPath, tokenData);
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>4-ugers Vinyasa Plus yogal\u00e6reruddannelse</strong> (juli 2026).</p>';
-  bodyHtml += '<p>Her finder du alle tr\u00e6ningsdage og tidspunkter for uddannelsen:</p>';
-  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
-  bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilf\u00f8je alle datoer direkte til din kalender \u2014 og se pr\u00e6cis, hvad der sker hver dag i de 4 uger.</p>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores 4-ugers Vinyasa Plus yogalæreruddannelse i juli 2026. Her er alle træningsdage og tidspunkter: ' + link(sUrl, 'Se skemaet her') + '. Du kan tilføje datoerne direkte til din kalender.</p>';
+  html += '<p>Om formatet: 70% Vinyasa Flow — kreativ sekvensering, klasseledelse og avancerede undervisningsteknikker — og 30% Yin Yoga + Hot Yoga — restitution, dybe stræk og undervisning i opvarmet miljø. Du bliver certificeret til at undervise både opvarmede og ikke-opvarmede Vinyasa-, Yin- og Hot Yoga-klasser. ' + link('https://yogabible.dk/yoga-journal/vinyasa-plus-metoden/', 'Læs mere om Vinyasa Plus-metoden her') + '.</p>';
+  html += '<p>200 timer, Yoga Alliance-certificeret. Anatomi, filosofi, sekvensering og undervisningsmetodik. Alle niveauer er velkomne. Vi har uddannet yogalærere siden 2014.</p>';
+  if (needsHousing) {
+    html += '<p>Om bolig: jeg kan se du' + (cityCountry ? ' kommer fra ' + escapeHtml(cityCountry) + ' og' : '') + ' har brug for sted at bo i København. Vi samarbejder med lokale udbydere — ' + link('https://yogabible.dk/accommodation', 'se boligmuligheder her') + '.</p>';
+  }
+  html += '<p>Pris: 23.750 kr. Forberedelsesfasen på 3.750 kr. sikrer din plads — beløbet trækkes fra den fulde pris, så resten på 20.000 kr. kan betales i fleksible rater. ' + link('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs/?product=100211', 'Start Forberedelsesfasen her') + '.</p>';
+  html += '<p>Hvis du vil snakke om uddannelsen, ' + link(CONFIG.MEETING_LINK, 'book et gratis infomøde her') + ' — eller bare svar på denne mail.</p>';
+  html += '<p>Shamir</p>';
 
-  bodyHtml += '<div style="margin:16px 0;padding:14px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">';
-  bodyHtml += '<strong style="color:#c2410c;">Vinyasa Plus \u2014 hvad g\u00f8r dette hold s\u00e6rligt?</strong><br><br>';
-  bodyHtml += '<strong>70% Vinyasa Flow:</strong> Kreativ sekvensering, klasseledelse og avancerede undervisningsteknikker<br>';
-  bodyHtml += '<strong>30% Yin Yoga + Hot Yoga:</strong> Restitution, dybe stræk og undervisning i opvarmet milj\u00f8<br><br>';
-  bodyHtml += 'Du bliver certificeret til at undervise b\u00e5de opvarmede og ikke-opvarmede Vinyasa-klasser samt Yin Yoga.';
-  bodyHtml += '</div>';
-
-  bodyHtml += programHighlightsHtml();
-
-  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
-
-  bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
-  bodyHtml += '<strong>Pris:</strong> ' + fullPrice + ' kr.<br>';
-  bodyHtml += '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>';
-  bodyHtml += '<strong>Rest:</strong> ' + remaining + ' kr. (' + rateNote + ')';
-  bodyHtml += '</div>';
-
-  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
-
-  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 4-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
-  bodyHtml += bookingCta() + questionPrompt();
-
-  // Plain text
-  let bodyPlain = 'Hej ' + firstName + ',\n\n';
-  bodyPlain += 'Tak fordi du viste interesse for vores 4-ugers Vinyasa Plus yogal\u00e6reruddannelse (juli 2026).\n\n';
-  bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl + '\n\n';
-  bodyPlain += 'VINYASA PLUS \u2014 hvad g\u00f8r dette hold s\u00e6rligt?\n';
-  bodyPlain += '70% Vinyasa Flow: Kreativ sekvensering, klasseledelse og undervisningsteknikker\n';
-  bodyPlain += '30% Yin Yoga + Hot Yoga: Restitution og undervisning i opvarmet milj\u00f8\n\n';
-  bodyPlain += programHighlightsPlain();
-  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += '\nPris: ' + fullPrice + ' kr.\nForberedelsesfasen: 3.750 kr.\nRest: ' + remaining + ' kr. (' + rateNote + ')\n\n';
-  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
-  bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
-  bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
+  let plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Tak for din interesse i vores 4-ugers Vinyasa Plus yogalæreruddannelse i juli 2026. Her er alle træningsdage og tidspunkter:\n' + sUrl + '\n\n';
+  plain += 'Om formatet: 70% Vinyasa Flow + 30% Yin Yoga + Hot Yoga. Du bliver certificeret til at undervise både opvarmede og ikke-opvarmede klasser.\n\n';
+  plain += '200 timer, Yoga Alliance-certificeret. Alle niveauer er velkomne.\n\n';
+  if (needsHousing) plain += 'Om bolig: se: https://yogabible.dk/accommodation\n\n';
+  plain += 'Pris: 23.750 kr. Forberedelsesfasen på 3.750 kr. sikrer din plads. Resten (20.000 kr.) kan betales i rater.\nStart her: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs/?product=100211\n\n';
+  plain += 'Book infomøde: ' + CONFIG.MEETING_LINK + '\n\n';
+  plain += 'Shamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:4-week-jul',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:4-week-jul', lang: 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// July Vinyasa Plus — Conditional Welcome Email (EN/DE/DA)
-// New template with conditional blocks based on form answers (Q1–Q3),
-// country-based travel/price blocks, and accommodation variants.
+// July Vinyasa Plus — English (international)
+// Conditional on country (travel sentence + localized price), Q1 (yoga
+// experience), Q2 (accommodation), Q3 (English comfort).
 // =========================================================================
-
-/**
- * Get localized Preparation Phase price string based on country code.
- */
-function getLocalizedPrepPrice(country) {
-  switch (country) {
-    case 'NO': return '3,750 DKK (approx. 5,400 NOK)';
-    case 'SE': return '3,750 DKK (approx. 5,600 SEK)';
-    case 'DE': case 'AT': case 'CH': return '3.750 DKK (ca. 500 EUR)';
-    case 'FI': return '3,750 DKK (approx. 500 EUR)';
-    case 'NL': return '3,750 DKK (approx. 500 EUR)';
-    case 'UK': return '3,750 DKK (approx. £425)';
-    case 'DK': return '3.750 kr.';
-    default:   return '3,750 DKK (approx. 500 EUR)';
-  }
-}
-
-/**
- * Travel block — country-specific paragraph + "Discover Copenhagen" link.
- */
-function julyTravelBlockHtml(country) {
-  var text = '';
-  switch (country) {
-    case 'NO':
-      text = 'Copenhagen is just a short flight from most Norwegian cities — many of our students fly in from Oslo, Bergen and Trondheim.';
-      break;
-    case 'SE':
-      text = 'Copenhagen is right next door — a quick flight from Stockholm, or just 30 minutes by train from Malmö.';
-      break;
-    case 'DE': case 'AT':
-      text = 'Copenhagen is well connected from all major German-speaking airports, with frequent direct flights.';
-      break;
-    case 'FI':
-      text = 'Direct flights from Helsinki to Copenhagen take under two hours.';
-      break;
-    case 'NL':
-      text = 'Copenhagen is just a short direct flight from Amsterdam and other Dutch airports.';
-      break;
-    case 'UK':
-      text = 'Copenhagen is just a short direct flight from most UK airports — many of our students fly in from London, Manchester and Edinburgh.';
-      break;
-    case 'DK':
-      return ''; // No travel block for Danish leads
-    default:
-      text = 'Copenhagen has direct flight connections from most major European cities.';
-      break;
-  }
-  return '<p style="margin-top:16px;">' + text + '</p>' +
-    '<p><a href="https://yogabible.dk/en/about-copenhagen/" style="color:#f75c03;">Discover Copenhagen →</a></p>';
-}
-
-/**
- * Accommodation block — conditional on Q2 answer.
- */
-function julyAccommodationBlockHtml(accommodation) {
-  if (accommodation === 'accommodation') {
-    return '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">' +
-      '<strong style="color:#2E7D32;">🏠 Accommodation</strong><br><br>' +
-      'We can see you\'d like help with accommodation — great, we\'ve got you. Once you secure your spot through the Preparation Phase, we\'ll help you reserve accommodation in Copenhagen.<br><br>' +
-      '<strong><a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">See accommodation options →</a></strong><br>' +
-      '<span style="color:#666;">Questions about housing? Just reply to this email.</span>' +
-      '</div>';
-  }
-  if (accommodation === 'accommodation_plus') {
-    return '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">' +
-      '<strong style="color:#2E7D32;">🏠 Accommodation & Logistics</strong><br><br>' +
-      'We can see you\'d like help with accommodation and logistics — great, we\'ve got you covered. Once you secure your spot through the Preparation Phase, we\'ll help you with accommodation, getting around Copenhagen, and everything else you need for your stay.<br><br>' +
-      '<strong><a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">See accommodation options →</a></strong><br>' +
-      '<span style="color:#666;">Questions? Just reply to this email.</span>' +
-      '</div>';
-  }
-  if (accommodation === 'self_arranged') {
-    return '<p style="margin-top:16px;color:#666;">If you change your mind about accommodation, we\'re always happy to help. <a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">See accommodation options →</a></p>';
-  }
-  // lives_in_denmark, lives_in_copenhagen → no accommodation block
-  return '';
-}
-
-/**
- * Preparation Phase block — conditional on Q2 answer + localized price.
- */
-function julyPrepPhaseBlockHtml(accommodation, localizedPrice) {
-  var html = '<div style="margin-top:16px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:6px;">';
-  html += '<strong style="color:#166534;">💡 Secure your spot</strong><br><br>';
-
-  if (accommodation === 'accommodation' || accommodation === 'accommodation_plus' || accommodation === 'self_arranged') {
-    html += 'The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort. You\'ll get access to the member area with optional study materials to help you prepare. Once paid, we can also help you reserve accommodation in Copenhagen. The Preparation Phase is fully refundable if the course is cancelled.<br><br>';
-    html += '✅ Secures your place in the July cohort<br>';
-    html += '✅ Access to member area with preparation materials<br>';
-    html += '✅ We help you reserve accommodation once enrolled<br>';
-    html += '✅ Fully refundable if the course is cancelled<br>';
-  } else if (accommodation === 'lives_in_denmark') {
-    html += 'The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort. You\'ll get access to the member area with optional study materials to help you prepare. The Preparation Phase is fully refundable if the course is cancelled.<br><br>';
-    html += '✅ Secures your place in the July cohort<br>';
-    html += '✅ Access to member area with preparation materials<br>';
-    html += '✅ Fully refundable if the course is cancelled<br>';
-  } else if (accommodation === 'lives_in_copenhagen') {
-    html += 'The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort. You\'ll get access to the member area with optional study materials to help you prepare. You can also start practising at our studio in Christianshavn right away — the more hours you complete before July, the stronger your foundation will be. The Preparation Phase is fully refundable if the course is cancelled.<br><br>';
-    html += '✅ Secures your place in the July cohort<br>';
-    html += '✅ Start practising at the studio straight away<br>';
-    html += '✅ Access to member area with preparation materials<br>';
-    html += '✅ Fully refundable if the course is cancelled<br>';
-  } else {
-    // Fallback — no Q2 answer (generic international)
-    html += 'The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort. You\'ll get access to the member area with optional study materials to help you prepare. The Preparation Phase is fully refundable if the course is cancelled.<br><br>';
-    html += '✅ Secures your place in the July cohort<br>';
-    html += '✅ Access to member area with preparation materials<br>';
-    html += '✅ Fully refundable if the course is cancelled<br>';
-  }
-
-  html += '<br><a href="https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Start Preparation Phase →</a>';
-  html += '</div>';
-  return html;
-}
-
-/**
- * July Vinyasa Plus — English conditional email template.
- * Used for lang = en, no, sv, fi, nl (all non-DE, non-DA leads).
- * Conditional blocks based on Q1 (yoga experience), Q2 (accommodation),
- * Q3 (English comfort), and country (travel + price localization).
- */
 async function sendJulyVinyasaPlusEnEmail(leadData, tokenData) {
-  var firstName = leadData.first_name || '';
-  var country = (leadData.country || 'OTHER').toUpperCase();
-  var yogaExp = leadData.yoga_experience || '';
-  var accommodation = leadData.accommodation || '';
-  var englishComfort = leadData.english_comfort || '';
-  var lang = (leadData.lang || leadData.meta_lang || 'en').toLowerCase().substring(0, 2);
+  const firstName = leadData.first_name || '';
+  const country = (leadData.country || 'OTHER').toUpperCase();
+  const yogaExp = leadData.yoga_experience || '';
+  const accommodation = leadData.accommodation || '';
+  const englishComfort = leadData.english_comfort || '';
+  const lang = (leadData.lang || leadData.meta_lang || 'en').toLowerCase().substring(0, 2);
 
-  var subject = firstName + ', here are all the dates for the 4-week Vinyasa Plus training (July)';
+  const subject = 'Dates for the July Vinyasa Plus training';
+  const sUrl = tokenize('https://yogabible.dk/en/schedule/4-weeks-july-plan/', tokenData);
+  const localizedPrice = getLocalizedPrepPrice(country);
+  const checkoutUrl = 'https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211';
 
-  // Schedule URL (tokenized) — points to the international planning page
-  var sUrl = tokenData && tokenData.leadId && tokenData.token
-    ? 'https://yogabible.dk/en/schedule/4-weeks-july-plan/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://yogabible.dk/en/schedule/4-weeks-july-plan/';
-
-  var localizedPrice = getLocalizedPrepPrice(country);
-
-  // ---- HTML ----
-  var html = '';
-
-  // Block 1: Greeting
+  let html = '';
   html += '<p>Hi ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Thanks for your interest in our 4-Week Vinyasa Plus Yoga Teacher Training (July 2026). Here are all the training days and times: ' + link(sUrl, 'View your schedule') + '. You can add all dates directly to your calendar.</p>';
+  html += '<p>About the format: 70% Vinyasa Flow — creative sequencing, class leadership and advanced teaching techniques — and 30% Yin Yoga + Hot Yoga — restoration, deep stretches and teaching in a heated environment. You\'ll be certified to teach both non-heated and heated Vinyasa, Yin and Hot Yoga classes. ' + link('https://yogabible.dk/en/yoga-journal/vinyasa-plus-metoden/', 'Read more about the Vinyasa Plus method here') + '.</p>';
+  html += '<p>A few practicals: 200 hours, Yoga Alliance certified (RYT-200). Vinyasa Flow, Yin Yoga, Hot Yoga and Meditation. Anatomy, philosophy, sequencing and teaching methodology. All levels welcome.</p>';
 
-  // Block 2: Thank you
-  html += '<p>Thank you for your interest in our <strong>4-Week Vinyasa Plus Yoga Teacher Training</strong> (July 2026).</p>';
-
-  // Block 3: Schedule CTA
-  html += '<p>Here are all the training days and times:</p>';
-  html += '<p style="margin:20px 0;"><a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">View your schedule →</a></p>';
-  html += '<p style="font-size:14px;color:#666;">You can add all dates directly to your calendar.</p>';
-
-  // Block 4: Vinyasa Plus detail box
-  html += '<div style="margin:16px 0;padding:14px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">';
-  html += '<strong style="color:#c2410c;">What is the Vinyasa Plus format?</strong><br><br>';
-  html += '<strong>70% Vinyasa Flow</strong> — creative sequencing, class leadership and advanced teaching techniques<br>';
-  html += '<strong>30% Yin Yoga + Hot Yoga</strong> — restoration, deep stretches and teaching in a heated environment<br><br>';
-  html += 'You will be certified to teach both non-heated and heated Vinyasa, Yin and Hot Yoga classes.<br><br>';
-  html += '<a href="https://yogabible.dk/en/yoga-journal/vinyasa-plus-metoden/" style="color:#f75c03;">Read more about the Vinyasa Plus method →</a>';
-  html += '</div>';
-
-  // Block 5: Program highlights
-  html += '<p style="margin-top:16px;">About the training:</p>';
-  html += '<ul style="margin:8px 0;padding-left:20px;color:#333;">';
-  html += '<li>200 hours · Yoga Alliance certified (RYT-200)</li>';
-  html += '<li>Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation</li>';
-  html += '<li>Anatomy, philosophy, sequencing & teaching methodology</li>';
-  html += '<li>Certified to teach both non-heated and hot yoga classes</li>';
-  html += '<li>All levels welcome</li>';
-  html += '</ul>';
-
-  // Block 6: Yoga experience (conditional on Q1)
   if (yogaExp === 'regular') {
-    html += '<p style="margin-top:16px;">Great — your existing practice gives you a strong foundation. The training will deepen your understanding and add teaching methodology, sequencing and anatomy to what you already know.</p>';
+    html += '<p>Great — your existing practice gives you a strong foundation. The training will deepen your understanding and add teaching methodology, sequencing and anatomy to what you already know.</p>';
   } else if (yogaExp === 'beginner') {
-    html += '<p style="margin-top:16px;">You\'re welcome exactly as you are. Many of our graduates started in the same place. The Preparation Phase gives you time to build strength, flexibility and confidence before training starts in July.</p>';
+    html += '<p>You\'re welcome exactly as you are. Many of our graduates started in the same place. The Preparation Phase gives you time to build strength, flexibility and confidence before training starts in July.</p>';
   } else if (yogaExp === 'previous_ytt') {
-    html += '<p style="margin-top:16px;">Welcome back to the mat. Vinyasa Plus will add a new dimension to your teaching — especially the 70/30 flow-to-yin ratio and heated teaching techniques.</p>';
+    html += '<p>Welcome back to the mat. Vinyasa Plus will add a new dimension to your teaching — especially the 70/30 flow-to-yin ratio and heated teaching techniques.</p>';
   }
 
-  // Block 7: English comfort (only if lang ≠ en, lang ≠ da, and Q3 answer exists)
-  if (lang !== 'en' && lang !== 'da' && englishComfort) {
-    if (englishComfort === 'needs_patience') {
-      html += '<p style="margin-top:16px;">Don\'t worry — the English we use is clear and practical, not academic. Your classmates will be international too, so everyone supports each other. We go at a pace that works for the whole group.</p>';
-    } else if (englishComfort === 'unsure') {
-      html += '<p style="margin-top:16px;">We completely understand. The English we use is clear and practical, not academic. Many of our graduates had the same concern before starting — and it was never an issue. Your classmates will be international too, so everyone supports each other. If you\'d like to talk about this, just reply to this email.</p>';
-    }
-    // comfortable → do not show this block
-  }
-
-  // Block 8: Alumni note
-  html += '<p style="margin-top:12px;">We have trained yoga teachers since 2014, and our graduates teach across Europe and beyond.</p>';
-
-  // Block 9: Travel block (conditional on country)
-  html += julyTravelBlockHtml(country);
-
-  // Block 10: Accommodation block (conditional on Q2)
-  html += julyAccommodationBlockHtml(accommodation);
-
-  // Block 11: Preparation Phase (conditional on Q2 + localized price)
-  html += julyPrepPhaseBlockHtml(accommodation, localizedPrice);
-
-  // Block 12: Booking CTA
-  html += '<p style="margin-top:20px;">Want to learn more or ask questions? Book a free online consultation:</p>';
-  html += '<p style="margin:16px 0;"><a href="https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Book a Free Online Consultation →</a></p>';
-
-
-  // ---- Plain text ----
-  var plain = 'Hi ' + firstName + ',\n\n';
-  plain += 'Thank you for your interest in our 4-Week Vinyasa Plus Yoga Teacher Training (July 2026).\n\n';
-  plain += 'Here are all the training days and times:\n' + sUrl + '\nYou can add all dates directly to your calendar.\n\n';
-  plain += 'What is the Vinyasa Plus format?\n';
-  plain += '70% Vinyasa Flow — creative sequencing, class leadership and advanced teaching techniques\n';
-  plain += '30% Yin Yoga + Hot Yoga — restoration, deep stretches and teaching in a heated environment\n';
-  plain += 'You will be certified to teach both non-heated and heated Vinyasa, Yin and Hot Yoga classes.\n\n';
-  plain += 'About the training:\n';
-  plain += '• 200 hours · Yoga Alliance certified (RYT-200)\n';
-  plain += '• Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation\n';
-  plain += '• Anatomy, philosophy, sequencing & teaching methodology\n';
-  plain += '• Certified to teach both non-heated and hot yoga classes\n';
-  plain += '• All levels welcome\n\n';
-  if (yogaExp === 'regular') {
-    plain += 'Great — your existing practice gives you a strong foundation. The training will deepen your understanding and add teaching methodology, sequencing and anatomy to what you already know.\n\n';
-  } else if (yogaExp === 'beginner') {
-    plain += 'You\'re welcome exactly as you are. Many of our graduates started in the same place. The Preparation Phase gives you time to build strength, flexibility and confidence before training starts in July.\n\n';
-  } else if (yogaExp === 'previous_ytt') {
-    plain += 'Welcome back to the mat. Vinyasa Plus will add a new dimension to your teaching — especially the 70/30 flow-to-yin ratio and heated teaching techniques.\n\n';
-  }
   if (lang !== 'en' && lang !== 'da' && englishComfort === 'needs_patience') {
-    plain += 'Don\'t worry — the English we use is clear and practical, not academic. Your classmates will be international too, so everyone supports each other.\n\n';
+    html += '<p>Don\'t worry — the English we use is clear and practical, not academic. Your classmates will be international too, so everyone supports each other.</p>';
   } else if (lang !== 'en' && lang !== 'da' && englishComfort === 'unsure') {
-    plain += 'We completely understand. The English we use is clear and practical, not academic. Many of our graduates had the same concern before starting — and it was never an issue.\n\n';
+    html += '<p>We completely understand. The English we use is clear and practical, not academic. Many of our graduates had the same concern before starting — and it was never an issue. If you\'d like to talk about this, just reply to this email.</p>';
   }
-  plain += 'We have trained yoga teachers since 2014, and our graduates teach across Europe and beyond.\n\n';
-  plain += 'Secure your spot: The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort.\n';
-  plain += 'Start Preparation Phase: https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211\n\n';
-  plain += 'Book a Free Online Consultation: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
 
-  var result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: html,
-      bodyPlain: plain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:4-week-jul',
-      lang: lang
-    });
-  return { ...result, subject: subject };
+  html += '<p>We\'ve been training yoga teachers since 2014, and our graduates teach across Europe and beyond.</p>';
+
+  const travel = travelSentenceEn(country);
+  if (travel) html += '<p>' + travel + ' ' + link('https://yogabible.dk/en/about-copenhagen/', 'Here\'s a bit about Copenhagen') + ' if you\'d like a sense of the city.</p>';
+
+  if (accommodation === 'accommodation') {
+    html += '<p>About accommodation — we can see you\'d like a hand. Once you secure your spot through the Preparation Phase, we\'ll help you reserve accommodation in Copenhagen. ' + link('https://yogabible.dk/en/accommodation/', 'See accommodation options here') + ', and just reply to this email if you have questions about housing.</p>';
+  } else if (accommodation === 'accommodation_plus') {
+    html += '<p>About accommodation and logistics — we\'ve got you covered. Once you secure your spot through the Preparation Phase, we\'ll help with accommodation, getting around Copenhagen, and everything else you need for your stay. ' + link('https://yogabible.dk/en/accommodation/', 'See accommodation options here') + ' — reply to this email anytime with questions.</p>';
+  } else if (accommodation === 'self_arranged') {
+    html += '<p>If you change your mind about accommodation, we\'re always happy to help. ' + link('https://yogabible.dk/en/accommodation/', 'See accommodation options here') + '.</p>';
+  }
+
+  if (accommodation === 'accommodation' || accommodation === 'accommodation_plus' || accommodation === 'self_arranged') {
+    html += '<p>The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort. You\'ll get access to the member area with optional study materials, and once paid we can help you reserve accommodation in Copenhagen too. ' + link(checkoutUrl, 'Start the Preparation Phase here') + '.</p>';
+  } else if (accommodation === 'lives_in_copenhagen') {
+    html += '<p>The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort. You\'ll get access to the member area with optional study materials, and you can start practising at our studio in Christianshavn right away — the more hours you complete before July, the stronger your foundation will be. ' + link(checkoutUrl, 'Start the Preparation Phase here') + '.</p>';
+  } else {
+    html += '<p>The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort. You\'ll get access to the member area with optional study materials. ' + link(checkoutUrl, 'Start the Preparation Phase here') + '.</p>';
+  }
+
+  html += '<p>If you\'d like to talk through any of this, ' + link('https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation', 'book a free online consultation here') + ', or just reply to this email — easier than you\'d think.</p>';
+  html += '<p>Shamir</p>';
+
+  let plain = 'Hi ' + firstName + ',\n\n';
+  plain += 'Thanks for your interest in our 4-Week Vinyasa Plus Yoga Teacher Training (July 2026). Here are all the training days and times:\n' + sUrl + '\n\n';
+  plain += 'About the format: 70% Vinyasa Flow + 30% Yin Yoga + Hot Yoga. You\'ll be certified to teach both non-heated and heated classes.\n\n';
+  plain += '200 hours, Yoga Alliance certified (RYT-200). All levels welcome.\n\n';
+  if (yogaExp === 'regular') plain += 'Your existing practice gives you a strong foundation. The training will deepen your understanding.\n\n';
+  else if (yogaExp === 'beginner') plain += 'You\'re welcome exactly as you are. The Preparation Phase gives you time to build strength and confidence before training starts.\n\n';
+  else if (yogaExp === 'previous_ytt') plain += 'Welcome back to the mat. Vinyasa Plus will add a new dimension to your teaching.\n\n';
+  if (lang !== 'en' && lang !== 'da' && englishComfort === 'needs_patience') plain += 'Don\'t worry — the English we use is clear and practical, not academic.\n\n';
+  else if (lang !== 'en' && lang !== 'da' && englishComfort === 'unsure') plain += 'The English we use is clear and practical. Many graduates had the same concern before starting — it was never an issue.\n\n';
+  if (travel) plain += travel + '\n\n';
+  if (accommodation === 'accommodation') plain += 'Accommodation: once you secure your spot, we\'ll help you reserve accommodation in Copenhagen.\n\n';
+  else if (accommodation === 'accommodation_plus') plain += 'Accommodation and logistics: once you secure your spot, we\'ll help with everything you need for your stay.\n\n';
+  plain += 'The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort.\nStart here: ' + checkoutUrl + '\n\n';
+  plain += 'Want to talk? https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
+  plain += 'Shamir';
+
+  const result = await sendSingleViaResend({
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:4-week-jul', lang: lang
+  });
+  return { ...result, subject };
 }
 
-/**
- * July Vinyasa Plus — German conditional email template.
- * Used for lang = de (and AT/CH leads).
- */
+// =========================================================================
+// July Vinyasa Plus — German
+// =========================================================================
 async function sendJulyVinyasaPlusDeEmail(leadData, tokenData) {
-  var firstName = leadData.first_name || '';
-  var country = (leadData.country || 'OTHER').toUpperCase();
-  var yogaExp = leadData.yoga_experience || '';
-  var accommodation = leadData.accommodation || '';
-  var englishComfort = leadData.english_comfort || '';
+  const firstName = leadData.first_name || '';
+  const country = (leadData.country || 'OTHER').toUpperCase();
+  const yogaExp = leadData.yoga_experience || '';
+  const accommodation = leadData.accommodation || '';
+  const englishComfort = leadData.english_comfort || '';
 
-  var subject = firstName + ', hier sind alle Termine für die 4-Wochen Vinyasa Plus Ausbildung (Juli)';
+  const subject = 'Termine für die 4-Wochen Vinyasa Plus Ausbildung (Juli)';
+  const sUrl = tokenize('https://yogabible.dk/en/schedule/4-weeks-july-plan/', tokenData);
+  const localizedPrice = getLocalizedPrepPrice(country);
+  const checkoutUrl = 'https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211';
 
-  var sUrl = tokenData && tokenData.leadId && tokenData.token
-    ? 'https://yogabible.dk/en/schedule/4-weeks-july-plan/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://yogabible.dk/en/schedule/4-weeks-july-plan/';
-
-  var localizedPrice = getLocalizedPrepPrice(country);
-
-  var html = '';
-
-  // Block 1: Greeting
+  let html = '';
   html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Vielen Dank für dein Interesse an unserer 4-wöchigen Vinyasa Plus Yogalehrerausbildung (Juli 2026). Ich schreibe dir auf Deutsch, damit du dich direkt wohlfühlst — im Alltag spreche ich Englisch, und du kannst mir jederzeit auf Deutsch oder Englisch antworten.</p>';
+  html += '<p>Hier sind alle Trainingstage und -zeiten: ' + link(sUrl, 'Deinen Stundenplan ansehen') + '. Du kannst alle Termine direkt in deinen Kalender übernehmen.</p>';
+  html += '<p>Zum Format: 70% Vinyasa Flow — kreatives Sequencing, Klassenleitung und fortgeschrittene Unterrichtstechniken — und 30% Yin Yoga + Hot Yoga — Regeneration, tiefe Dehnungen und Unterrichten in einer beheizten Umgebung. Du wirst zertifiziert, um sowohl unbeheizte als auch beheizte Vinyasa-, Yin- und Hot-Yoga-Stunden zu unterrichten. ' + link('https://yogabible.dk/en/yoga-journal/vinyasa-plus-metoden/', 'Mehr über die Vinyasa Plus Methode erfahren') + '.</p>';
+  html += '<p>Praktisches: 200 Stunden, Yoga Alliance zertifiziert (RYT-200). Vinyasa Flow, Yin Yoga, Hot Yoga und Meditation. Anatomie, Philosophie, Sequencing und Unterrichtsmethodik. Alle Levels willkommen.</p>';
 
-  // Block 2: Thank you + language note
-  html += '<p>Vielen Dank für dein Interesse an unserer <strong>4-wöchigen Vinyasa Plus Yogalehrerausbildung</strong> (Juli 2026).</p>';
-  html += '<p>Ich schreibe dir auf Deutsch, damit du dich direkt wohlfühlst — im Alltag spreche ich Englisch, und du kannst mir jederzeit auf Deutsch oder Englisch antworten.</p>';
-
-  // Block 3: Schedule CTA
-  html += '<p>Hier sind alle Trainingstage und -zeiten:</p>';
-  html += '<p style="margin:20px 0;"><a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Deinen Stundenplan ansehen →</a></p>';
-  html += '<p style="font-size:14px;color:#666;">Du kannst alle Termine direkt in deinen Kalender übernehmen.</p>';
-
-  // Block 4: Vinyasa Plus detail box
-  html += '<div style="margin:16px 0;padding:14px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">';
-  html += '<strong style="color:#c2410c;">Was ist das Vinyasa Plus Format?</strong><br><br>';
-  html += '<strong>70% Vinyasa Flow</strong> — kreatives Sequencing, Klassenleitung und fortgeschrittene Unterrichtstechniken<br>';
-  html += '<strong>30% Yin Yoga + Hot Yoga</strong> — Regeneration, tiefe Dehnungen und Unterrichten in einer beheizten Umgebung<br><br>';
-  html += 'Du wirst zertifiziert, um sowohl unbeheizte als auch beheizte Vinyasa-, Yin- und Hot-Yoga-Stunden zu unterrichten.<br><br>';
-  html += '<a href="https://yogabible.dk/en/yoga-journal/vinyasa-plus-metoden/" style="color:#f75c03;">Mehr über die Vinyasa Plus Methode erfahren →</a>';
-  html += '</div>';
-
-  // Block 5: Program highlights
-  html += '<p style="margin-top:16px;">Über die Ausbildung:</p>';
-  html += '<ul style="margin:8px 0;padding-left:20px;color:#333;">';
-  html += '<li>200 Stunden · Yoga Alliance zertifiziert (RYT-200)</li>';
-  html += '<li>Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation</li>';
-  html += '<li>Anatomie, Philosophie, Sequencing & Unterrichtsmethodik</li>';
-  html += '<li>Zertifiziert für unbeheizten und Hot-Yoga-Unterricht</li>';
-  html += '<li>Alle Levels willkommen</li>';
-  html += '</ul>';
-
-  // Block 6: Yoga experience (conditional)
   if (yogaExp === 'regular') {
-    html += '<p style="margin-top:16px;">Super — deine bestehende Praxis gibt dir eine starke Grundlage. Die Ausbildung vertieft dein Verständnis und fügt Unterrichtsmethodik, Sequencing und Anatomie zu dem hinzu, was du bereits weißt.</p>';
+    html += '<p>Super — deine bestehende Praxis gibt dir eine starke Grundlage. Die Ausbildung vertieft dein Verständnis und fügt Unterrichtsmethodik, Sequencing und Anatomie zu dem hinzu, was du bereits weißt.</p>';
   } else if (yogaExp === 'beginner') {
-    html += '<p style="margin-top:16px;">Du bist genau richtig, so wie du bist. Viele unserer Absolventen haben an derselben Stelle angefangen. Die Vorbereitungsphase gibt dir Zeit, Kraft, Flexibilität und Selbstvertrauen aufzubauen, bevor das Training im Juli beginnt.</p>';
+    html += '<p>Du bist genau richtig, so wie du bist. Viele unserer Absolventen haben an derselben Stelle angefangen. Die Vorbereitungsphase gibt dir Zeit, Kraft, Flexibilität und Selbstvertrauen aufzubauen, bevor das Training im Juli beginnt.</p>';
   } else if (yogaExp === 'previous_ytt') {
-    html += '<p style="margin-top:16px;">Willkommen zurück auf der Matte. Vinyasa Plus wird deinem Unterrichten eine neue Dimension verleihen — besonders das 70/30-Verhältnis von Flow zu Yin und die Techniken für beheizten Unterricht.</p>';
+    html += '<p>Willkommen zurück auf der Matte. Vinyasa Plus wird deinem Unterrichten eine neue Dimension verleihen — besonders das 70/30-Verhältnis von Flow zu Yin und die Techniken für beheizten Unterricht.</p>';
   }
 
-  // Block 7: English comfort (conditional — DE always has Q3)
   if (englishComfort === 'needs_patience') {
-    html += '<p style="margin-top:16px;">Keine Sorge — das Englisch, das wir verwenden, ist klar und praktisch, nicht akademisch. Deine Mitschüler werden ebenfalls international sein, sodass sich alle gegenseitig unterstützen. Wir gehen in einem Tempo vor, das für die ganze Gruppe passt.</p>';
+    html += '<p>Keine Sorge — das Englisch, das wir verwenden, ist klar und praktisch, nicht akademisch. Deine Mitschüler werden ebenfalls international sein, sodass sich alle gegenseitig unterstützen.</p>';
   } else if (englishComfort === 'unsure') {
-    html += '<p style="margin-top:16px;">Das verstehen wir vollkommen. Das Englisch, das wir verwenden, ist klar und praktisch, nicht akademisch. Viele unserer Absolventen hatten vor dem Start dieselbe Sorge — und es war nie ein Problem. Deine Mitschüler werden ebenfalls international sein, sodass sich alle gegenseitig unterstützen. Wenn du darüber sprechen möchtest, antworte einfach auf diese E-Mail.</p>';
-  }
-  // comfortable → do not show
-
-  // Block 8: Alumni note
-  html += '<p style="margin-top:12px;">Wir bilden seit 2014 Yogalehrer aus, und unsere Absolventen unterrichten in ganz Europa und darüber hinaus.</p>';
-
-  // Block 9: Travel block
-  var travelText = '';
-  if (country === 'DE') {
-    travelText = 'Kopenhagen ist von allen großen deutschen Flughäfen gut erreichbar, mit regelmäßigen Direktflügen.';
-  } else if (country === 'AT') {
-    travelText = 'Kopenhagen ist von Wien und anderen österreichischen Flughäfen leicht erreichbar, mit regelmäßigen Direktflügen.';
-  } else if (country !== 'DK') {
-    travelText = 'Kopenhagen hat direkte Flugverbindungen von den meisten großen europäischen Städten.';
-  }
-  if (travelText) {
-    html += '<p style="margin-top:16px;">' + travelText + '</p>';
-    html += '<p><a href="https://yogabible.dk/en/about-copenhagen/" style="color:#f75c03;">Kopenhagen entdecken →</a></p>';
+    html += '<p>Das verstehen wir vollkommen. Viele unserer Absolventen hatten vor dem Start dieselbe Sorge — und es war nie ein Problem. Wenn du darüber sprechen möchtest, antworte einfach auf diese E-Mail.</p>';
   }
 
-  // Block 10: Accommodation block
+  html += '<p>Wir bilden seit 2014 Yogalehrer aus, und unsere Absolventen unterrichten in ganz Europa und darüber hinaus.</p>';
+
+  const travel = travelSentenceDe(country);
+  if (travel) html += '<p>' + travel + ' ' + link('https://yogabible.dk/en/about-copenhagen/', 'Hier findest du etwas über Kopenhagen') + ', falls du einen Eindruck von der Stadt bekommen möchtest.</p>';
+
   if (accommodation === 'accommodation') {
-    html += '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">';
-    html += '<strong style="color:#2E7D32;">🏠 Unterkunft</strong><br><br>';
-    html += 'Wir sehen, dass du Hilfe bei der Unterkunft wünschst — super, wir kümmern uns darum. Sobald du deinen Platz über die Vorbereitungsphase gesichert hast, helfen wir dir, eine Unterkunft in Kopenhagen zu reservieren.<br><br>';
-    html += '<strong><a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">Unterkunftsoptionen ansehen →</a></strong><br>';
-    html += '<span style="color:#666;">Fragen zur Unterkunft? Antworte einfach auf diese E-Mail.</span>';
-    html += '</div>';
+    html += '<p>Zur Unterkunft: Wir sehen, dass du Hilfe wünschst. Sobald du deinen Platz über die Vorbereitungsphase gesichert hast, helfen wir dir, eine Unterkunft in Kopenhagen zu reservieren. ' + link('https://yogabible.dk/en/accommodation/', 'Hier findest du Unterkunftsoptionen') + '.</p>';
   } else if (accommodation === 'accommodation_plus') {
-    html += '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">';
-    html += '<strong style="color:#2E7D32;">🏠 Unterkunft & Logistik</strong><br><br>';
-    html += 'Wir sehen, dass du Hilfe bei Unterkunft und Logistik wünschst — super, wir kümmern uns um alles. Sobald du deinen Platz über die Vorbereitungsphase gesichert hast, helfen wir dir mit Unterkunft, Fortbewegung in Kopenhagen und allem anderen, was du für deinen Aufenthalt brauchst.<br><br>';
-    html += '<strong><a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">Unterkunftsoptionen ansehen →</a></strong><br>';
-    html += '<span style="color:#666;">Fragen? Antworte einfach auf diese E-Mail.</span>';
-    html += '</div>';
+    html += '<p>Zur Unterkunft und Logistik: Wir kümmern uns darum. Sobald du deinen Platz gesichert hast, helfen wir dir mit Unterkunft, Fortbewegung in Kopenhagen und allem anderen, was du für deinen Aufenthalt brauchst. ' + link('https://yogabible.dk/en/accommodation/', 'Hier findest du Unterkunftsoptionen') + '.</p>';
   } else if (accommodation === 'self_arranged') {
-    html += '<p style="margin-top:16px;color:#666;">Falls du es dir mit der Unterkunft anders überlegst, helfen wir dir gerne. <a href="https://yogabible.dk/en/accommodation/" style="color:#f75c03;">Unterkunftsoptionen ansehen →</a></p>';
+    html += '<p>Falls du es dir mit der Unterkunft anders überlegst, helfen wir dir gerne. ' + link('https://yogabible.dk/en/accommodation/', 'Hier findest du Unterkunftsoptionen') + '.</p>';
   }
-  // lives_in_denmark, lives_in_copenhagen → no accommodation block
-
-  // Block 11: Preparation Phase
-  html += '<div style="margin-top:16px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:6px;">';
-  html += '<strong style="color:#166534;">💡 Sichere deinen Platz</strong><br><br>';
 
   if (accommodation === 'accommodation' || accommodation === 'accommodation_plus' || accommodation === 'self_arranged') {
-    html += 'Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz im Juli-Kurs. Du erhältst Zugang zum Mitgliederbereich mit optionalen Lernmaterialien zur Vorbereitung. Nach der Zahlung helfen wir dir auch, eine Unterkunft in Kopenhagen zu reservieren. Die Vorbereitungsphase ist vollständig erstattbar, falls der Kurs abgesagt wird.<br><br>';
-    html += '✅ Sichert deinen Platz im Juli-Kurs<br>';
-    html += '✅ Zugang zum Mitgliederbereich mit Vorbereitungsmaterialien<br>';
-    html += '✅ Wir helfen dir, eine Unterkunft zu reservieren<br>';
-    html += '✅ Vollständig erstattbar, falls der Kurs abgesagt wird<br>';
+    html += '<p>Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz im Juli-Kurs. Du erhältst Zugang zum Mitgliederbereich mit optionalen Lernmaterialien, und nach der Zahlung helfen wir dir auch, eine Unterkunft in Kopenhagen zu reservieren. ' + link(checkoutUrl, 'Vorbereitungsphase hier starten') + '.</p>';
   } else if (accommodation === 'lives_in_copenhagen') {
-    html += 'Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz im Juli-Kurs. Du erhältst Zugang zum Mitgliederbereich mit optionalen Lernmaterialien zur Vorbereitung. Du kannst auch sofort in unserem Studio in Christianshavn mit dem Üben beginnen — je mehr Stunden du vor Juli absolvierst, desto stärker ist dein Fundament. Die Vorbereitungsphase ist vollständig erstattbar, falls der Kurs abgesagt wird.<br><br>';
-    html += '✅ Sichert deinen Platz im Juli-Kurs<br>';
-    html += '✅ Sofort im Studio üben<br>';
-    html += '✅ Zugang zum Mitgliederbereich mit Vorbereitungsmaterialien<br>';
-    html += '✅ Vollständig erstattbar, falls der Kurs abgesagt wird<br>';
+    html += '<p>Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz im Juli-Kurs. Du erhältst Zugang zum Mitgliederbereich mit optionalen Lernmaterialien und kannst sofort in unserem Studio in Christianshavn mit dem Üben beginnen. ' + link(checkoutUrl, 'Vorbereitungsphase hier starten') + '.</p>';
   } else {
-    // lives_in_denmark or fallback
-    html += 'Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz im Juli-Kurs. Du erhältst Zugang zum Mitgliederbereich mit optionalen Lernmaterialien zur Vorbereitung. Die Vorbereitungsphase ist vollständig erstattbar, falls der Kurs abgesagt wird.<br><br>';
-    html += '✅ Sichert deinen Platz im Juli-Kurs<br>';
-    html += '✅ Zugang zum Mitgliederbereich mit Vorbereitungsmaterialien<br>';
-    html += '✅ Vollständig erstattbar, falls der Kurs abgesagt wird<br>';
+    html += '<p>Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz im Juli-Kurs. Du erhältst Zugang zum Mitgliederbereich mit optionalen Lernmaterialien. ' + link(checkoutUrl, 'Vorbereitungsphase hier starten') + '.</p>';
   }
 
-  html += '<br><a href="https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Vorbereitungsphase starten →</a>';
-  html += '</div>';
+  html += '<p>Wenn du darüber sprechen möchtest, ' + link('https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation', 'buche hier ein kostenloses Online-Gespräch') + ', oder antworte einfach auf diese E-Mail.</p>';
+  html += '<p>Shamir</p>';
 
-  // Block 12: Booking CTA
-  html += '<p style="margin-top:20px;">Möchtest du mehr erfahren oder Fragen stellen? Buche ein kostenloses Online-Gespräch:</p>';
-  html += '<p style="margin:16px 0;"><a href="https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Kostenloses Online-Gespräch buchen →</a></p>';
-
-
-  // ---- Plain text ----
-  var plain = 'Hej ' + firstName + ',\n\n';
+  let plain = 'Hej ' + firstName + ',\n\n';
   plain += 'Vielen Dank für dein Interesse an unserer 4-wöchigen Vinyasa Plus Yogalehrerausbildung (Juli 2026).\n\n';
-  plain += 'Ich schreibe dir auf Deutsch, damit du dich direkt wohlfühlst — im Alltag spreche ich Englisch, und du kannst mir jederzeit auf Deutsch oder Englisch antworten.\n\n';
-  plain += 'Hier sind alle Trainingstage und -zeiten:\n' + sUrl + '\nDu kannst alle Termine direkt in deinen Kalender übernehmen.\n\n';
-  plain += 'Was ist das Vinyasa Plus Format?\n';
-  plain += '70% Vinyasa Flow — kreatives Sequencing, Klassenleitung und fortgeschrittene Unterrichtstechniken\n';
-  plain += '30% Yin Yoga + Hot Yoga — Regeneration, tiefe Dehnungen und Unterrichten in einer beheizten Umgebung\n\n';
-  plain += 'Über die Ausbildung:\n';
-  plain += '• 200 Stunden · Yoga Alliance zertifiziert (RYT-200)\n';
-  plain += '• Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation\n';
-  plain += '• Anatomie, Philosophie, Sequencing & Unterrichtsmethodik\n';
-  plain += '• Alle Levels willkommen\n\n';
-  plain += 'Wir bilden seit 2014 Yogalehrer aus, und unsere Absolventen unterrichten in ganz Europa und darüber hinaus.\n\n';
-  plain += 'Sichere deinen Platz: Vorbereitungsphase (' + localizedPrice + ')\n';
-  plain += 'Vorbereitungsphase starten: https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211\n\n';
-  plain += 'Kostenloses Online-Gespräch buchen: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
+  plain += 'Trainingstage und -zeiten:\n' + sUrl + '\n\n';
+  plain += 'Format: 70% Vinyasa Flow + 30% Yin Yoga + Hot Yoga. Du wirst zertifiziert, sowohl unbeheizte als auch beheizte Stunden zu unterrichten.\n\n';
+  plain += '200 Stunden, Yoga Alliance zertifiziert (RYT-200). Alle Levels willkommen.\n\n';
+  if (travel) plain += travel + '\n\n';
+  plain += 'Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz im Juli-Kurs.\nHier starten: ' + checkoutUrl + '\n\n';
+  plain += 'Möchtest du sprechen? https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
+  plain += 'Shamir';
 
-  var result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: html,
-      bodyPlain: plain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:4-week-jul',
-      lang: 'de'
-    });
-  return { ...result, subject: subject };
+  const result = await sendSingleViaResend({
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:4-week-jul', lang: 'de'
+  });
+  return { ...result, subject };
 }
 
-/**
- * July Vinyasa Plus — Danish conditional email template.
- * Used for lang = da. All links use Danish URLs (no /en/ prefix).
- */
+// =========================================================================
+// July Vinyasa Plus — Danish (international DA, non-CPH)
+// =========================================================================
 async function sendJulyVinyasaPlusDaEmail(leadData, tokenData) {
-  var firstName = leadData.first_name || '';
-  var yogaExp = leadData.yoga_experience || '';
-  var accommodation = leadData.accommodation || '';
-  var cityCountry = (leadData.city_country || '').toLowerCase();
+  const firstName = leadData.first_name || '';
+  const yogaExp = leadData.yoga_experience || '';
+  const accommodation = leadData.accommodation || '';
 
-  var subject = firstName + ', her er alle datoer til 4-ugers Vinyasa Plus uddannelsen (juli)';
+  const subject = 'Datoer til 4-ugers Vinyasa Plus uddannelsen (juli)';
+  const sUrl = tokenize('https://yogabible.dk/skema/4-uger-juli/', tokenData);
 
-  var sUrl = tokenData && tokenData.leadId && tokenData.token
-    ? 'https://yogabible.dk/skema/4-uger-juli/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://yogabible.dk/skema/4-uger-juli/';
-
-  var html = '';
-
-  // Block 1: Greeting
+  let html = '';
   html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores 4-ugers Vinyasa Plus yogalæreruddannelse i juli 2026. Her er alle træningsdage og -tidspunkter: ' + link(sUrl, 'Se din tidsplan') + '. Du kan tilføje datoerne direkte til din kalender.</p>';
+  html += '<p>Om formatet: 70% Vinyasa Flow — kreativ sekvensering, klasseledelse og avancerede undervisningsteknikker — og 30% Yin Yoga + Hot Yoga — restitution, dybe stræk og undervisning i opvarmet miljø. Du bliver certificeret til at undervise både opvarmede og ikke-opvarmede klasser. ' + link('https://yogabible.dk/yoga-journal/vinyasa-plus-metoden/', 'Læs mere om Vinyasa Plus-metoden her') + '.</p>';
+  html += '<p>200 timer, Yoga Alliance-certificeret. Anatomi, filosofi, sekvensering og undervisningsmetodik. Alle niveauer er velkomne. Vi har uddannet yogalærere siden 2014.</p>';
 
-  // Block 2: Thank you
-  html += '<p>Tak for din interesse i vores <strong>4-ugers Vinyasa Plus yogalæreruddannelse</strong> (juli 2026).</p>';
-
-  // Block 3: Schedule CTA
-  html += '<p>Her er alle træningsdage og -tidspunkter:</p>';
-  html += '<p style="margin:20px 0;"><a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se din tidsplan →</a></p>';
-  html += '<p style="font-size:14px;color:#666;">Du kan tilføje alle datoer direkte i din kalender.</p>';
-
-  // Block 4: Vinyasa Plus detail box
-  html += '<div style="margin:16px 0;padding:14px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">';
-  html += '<strong style="color:#c2410c;">Hvad er Vinyasa Plus-formatet?</strong><br><br>';
-  html += '<strong>70% Vinyasa Flow</strong> — kreativ sequencing, klasseledelse og avancerede undervisningsteknikker<br>';
-  html += '<strong>30% Yin Yoga + Hot Yoga</strong> — restitution, dybe stræk og undervisning i et opvarmet miljø<br><br>';
-  html += 'Du bliver certificeret til at undervise i både uopvarmede og opvarmede Vinyasa-, Yin- og Hot Yoga-klasser.<br><br>';
-  html += '<a href="https://yogabible.dk/yoga-journal/vinyasa-plus-metoden/" style="color:#f75c03;">Læs mere om Vinyasa Plus-metoden →</a>';
-  html += '</div>';
-
-  // Block 5: Program highlights
-  html += '<p style="margin-top:16px;">Om uddannelsen:</p>';
-  html += '<ul style="margin:8px 0;padding-left:20px;color:#333;">';
-  html += '<li>200 timer · Yoga Alliance-certificeret (RYT-200)</li>';
-  html += '<li>Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation</li>';
-  html += '<li>Anatomi, filosofi, sequencing & undervisningsmetodik</li>';
-  html += '<li>Certificeret til at undervise både uopvarmet og hot yoga</li>';
-  html += '<li>Alle niveauer er velkomne</li>';
-  html += '</ul>';
-
-  // Block 6: Yoga experience (conditional)
   if (yogaExp === 'regular') {
-    html += '<p style="margin-top:16px;">Fedt — din eksisterende praksis giver dig et stærkt fundament. Uddannelsen vil uddybe din forståelse og tilføje undervisningsmetodik, sequencing og anatomi til det, du allerede kan.</p>';
+    html += '<p>Din nuværende praksis giver dig et godt fundament. Uddannelsen vil uddybe din forståelse og tilføje undervisningsmetodik, sekvensering og anatomi til det, du allerede ved.</p>';
   } else if (yogaExp === 'beginner') {
-    html += '<p style="margin-top:16px;">Du er velkommen præcis som du er. Mange af vores dimittender startede det samme sted. Forberedelsesfasen giver dig tid til at opbygge styrke, fleksibilitet og selvtillid inden træningen starter i juli.</p>';
+    html += '<p>Du er velkommen præcis som du er. Mange af vores dimittender startede samme sted. Forberedelsesfasen giver dig tid til at opbygge styrke, fleksibilitet og selvtillid før uddannelsen starter i juli.</p>';
   } else if (yogaExp === 'previous_ytt') {
-    html += '<p style="margin-top:16px;">Velkommen tilbage på måtten. Vinyasa Plus vil tilføje en ny dimension til din undervisning — især 70/30-forholdet mellem flow og yin og teknikker til opvarmet undervisning.</p>';
+    html += '<p>Velkommen tilbage på måtten. Vinyasa Plus tilføjer en ny dimension til din undervisning — særligt 70/30-forholdet mellem Flow og Yin og teknikker til opvarmet undervisning.</p>';
   }
 
-  // Block 7: English comfort — NOT SHOWN for Danish leads
-
-  // Block 8: Alumni note
-  html += '<p style="margin-top:12px;">Vi har uddannet yogalærere siden 2014, og vores dimittender underviser i hele Europa og videre.</p>';
-
-  // Block 9: Travel block — studio location for non-CPH Danish leads
-  var isCph = accommodation === 'lives_in_copenhagen' ||
-    cityCountry.includes('københavn') || cityCountry.includes('copenhagen');
-  if (!isCph) {
-    html += '<p style="margin-top:16px;">Studiet ligger på Torvegade 66 i Christianshavn — lige ved kanalen og tæt på metroen. Mange af vores studerende pendler eller finder overnatning i København under uddannelsen.</p>';
-  }
-
-  // Block 10: Accommodation block
   if (accommodation === 'accommodation') {
-    html += '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">';
-    html += '<strong style="color:#2E7D32;">🏠 Overnatning</strong><br><br>';
-    html += 'Vi kan se, at du gerne vil have hjælp med overnatning — det klarer vi. Når du har sikret din plads via Forberedelsesfasen, hjælper vi dig med at finde overnatning i København.<br><br>';
-    html += '<strong><a href="https://yogabible.dk/accommodation/" style="color:#f75c03;">Se overnatningsmuligheder →</a></strong><br>';
-    html += '<span style="color:#666;">Spørgsmål om bolig? Bare svar på denne e-mail.</span>';
-    html += '</div>';
+    html += '<p>Om bolig: vi kan se, du gerne vil have hjælp. Når du har sikret din plads gennem Forberedelsesfasen, hjælper vi dig med at booke et sted at bo i København. ' + link('https://yogabible.dk/accommodation', 'Se boligmuligheder her') + '.</p>';
   } else if (accommodation === 'accommodation_plus') {
-    html += '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-left:3px solid #4CAF50;border-radius:6px;">';
-    html += '<strong style="color:#2E7D32;">🏠 Overnatning & logistik</strong><br><br>';
-    html += 'Vi kan se, at du gerne vil have hjælp med overnatning og praktiske ting — det klarer vi. Når du har sikret din plads via Forberedelsesfasen, hjælper vi dig med overnatning og alt andet, du har brug for under dit ophold i København.<br><br>';
-    html += '<strong><a href="https://yogabible.dk/accommodation/" style="color:#f75c03;">Se overnatningsmuligheder →</a></strong><br>';
-    html += '<span style="color:#666;">Spørgsmål? Bare svar på denne e-mail.</span>';
-    html += '</div>';
-  } else if (accommodation === 'self_arranged') {
-    html += '<p style="margin-top:16px;color:#666;">Hvis du ombestemmer dig vedrørende overnatning, hjælper vi gerne. <a href="https://yogabible.dk/accommodation/" style="color:#f75c03;">Se overnatningsmuligheder →</a></p>';
+    html += '<p>Om bolig og logistik: vi tager os af det. Når du har sikret din plads, hjælper vi dig med bolig, transport i København og alt andet du har brug for. ' + link('https://yogabible.dk/accommodation', 'Se boligmuligheder her') + '.</p>';
   }
-  // lives_in_copenhagen → no accommodation block
 
-  // Block 11: Preparation Phase
-  html += '<div style="margin-top:16px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:6px;">';
-  html += '<strong style="color:#166534;">💡 Sikr din plads</strong><br><br>';
-
-  if (accommodation === 'accommodation' || accommodation === 'accommodation_plus' || accommodation === 'self_arranged') {
-    html += 'Forberedelsesfasen (3.750 kr.) reserverer din plads på juli-holdet. Du får adgang til medlemsområdet med valgfrit studiemateriale til at forberede dig. Når du har betalt, kan vi også hjælpe dig med at finde overnatning i København. Forberedelsesfasen er fuldt refunderbar, hvis kurset aflyses.<br><br>';
-    html += '✅ Sikrer din plads på juli-holdet<br>';
-    html += '✅ Adgang til medlemsområdet med forberedelsesmaterialer<br>';
-    html += '✅ Vi hjælper dig med at finde overnatning<br>';
-    html += '✅ Fuldt refunderbar, hvis kurset aflyses<br>';
-  } else if (accommodation === 'lives_in_copenhagen') {
-    html += 'Forberedelsesfasen (3.750 kr.) reserverer din plads på juli-holdet. Du får adgang til medlemsområdet med valgfrit studiemateriale til at forberede dig. Du kan også begynde at træne i vores studie i Christianshavn med det samme — jo flere timer du når inden juli, desto stærkere er dit fundament. Forberedelsesfasen er fuldt refunderbar, hvis kurset aflyses.<br><br>';
-    html += '✅ Sikrer din plads på juli-holdet<br>';
-    html += '✅ Begynd at træne i studiet med det samme<br>';
-    html += '✅ Adgang til medlemsområdet med forberedelsesmaterialer<br>';
-    html += '✅ Fuldt refunderbar, hvis kurset aflyses<br>';
+  if (accommodation === 'lives_in_copenhagen') {
+    html += '<p>Forberedelsesfasen (3.750 kr.) sikrer din plads på juli-holdet. Du får adgang til medlemsområdet med valgfrit studiemateriale og kan begynde at træne i vores studie i Christianshavn med det samme — jo flere timer du når inden juli, desto stærkere er dit fundament. ' + link('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs/?product=100211', 'Start Forberedelsesfasen her') + '.</p>';
   } else {
-    // Fallback
-    html += 'Forberedelsesfasen (3.750 kr.) reserverer din plads på juli-holdet. Du får adgang til medlemsområdet med valgfrit studiemateriale til at forberede dig. Forberedelsesfasen er fuldt refunderbar, hvis kurset aflyses.<br><br>';
-    html += '✅ Sikrer din plads på juli-holdet<br>';
-    html += '✅ Adgang til medlemsområdet med forberedelsesmaterialer<br>';
-    html += '✅ Fuldt refunderbar, hvis kurset aflyses<br>';
+    html += '<p>Forberedelsesfasen (3.750 kr.) sikrer din plads på juli-holdet. Du får adgang til medlemsområdet med valgfrit studiemateriale, og hvis du har brug for det, hjælper vi dig også med at booke et sted at bo i København. ' + link('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs/?product=100211', 'Start Forberedelsesfasen her') + '.</p>';
   }
 
-  html += '<br><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs?product=100211" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Start Forberedelsesfasen →</a>';
-  html += '</div>';
+  html += '<p>Hvis du vil snakke om det, ' + link(CONFIG.MEETING_LINK, 'book et gratis infomøde her') + ' — eller bare svar på denne mail.</p>';
+  html += '<p>Shamir</p>';
 
-  // Block 12: Booking CTA
-  html += '<p style="margin-top:20px;">Vil du vide mere eller stille spørgsmål? Book en gratis online samtale:</p>';
-  html += '<p style="margin:16px 0;"><a href="https://yogabible.dk/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Book en gratis online samtale →</a></p>';
+  let plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Tak for din interesse i vores 4-ugers Vinyasa Plus yogalæreruddannelse i juli 2026.\n\n';
+  plain += 'Træningsdage og tidspunkter:\n' + sUrl + '\n\n';
+  plain += 'Formatet: 70% Vinyasa Flow + 30% Yin Yoga + Hot Yoga. Du bliver certificeret til både opvarmede og ikke-opvarmede klasser.\n\n';
+  plain += '200 timer, Yoga Alliance-certificeret. Alle niveauer er velkomne.\n\n';
+  plain += 'Forberedelsesfasen (3.750 kr.) sikrer din plads på juli-holdet.\nStart her: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs/?product=100211\n\n';
+  plain += 'Book infomøde: ' + CONFIG.MEETING_LINK + '\n\n';
+  plain += 'Shamir';
 
-
-  // ---- Plain text ----
-  var plain = 'Hej ' + firstName + ',\n\n';
-  plain += 'Tak for din interesse i vores 4-ugers Vinyasa Plus yogalæreruddannelse (juli 2026).\n\n';
-  plain += 'Her er alle træningsdage og -tidspunkter:\n' + sUrl + '\nDu kan tilføje alle datoer direkte i din kalender.\n\n';
-  plain += 'Hvad er Vinyasa Plus-formatet?\n';
-  plain += '70% Vinyasa Flow — kreativ sequencing, klasseledelse og avancerede undervisningsteknikker\n';
-  plain += '30% Yin Yoga + Hot Yoga — restitution, dybe stræk og undervisning i et opvarmet miljø\n\n';
-  plain += 'Om uddannelsen:\n';
-  plain += '• 200 timer · Yoga Alliance-certificeret (RYT-200)\n';
-  plain += '• Vinyasa Flow, Yin Yoga, Hot Yoga & Meditation\n';
-  plain += '• Anatomi, filosofi, sequencing & undervisningsmetodik\n';
-  plain += '• Alle niveauer er velkomne\n\n';
-  plain += 'Vi har uddannet yogalærere siden 2014, og vores dimittender underviser i hele Europa og videre.\n\n';
-  plain += 'Sikr din plads: Forberedelsesfasen (3.750 kr.)\n';
-  plain += 'Start Forberedelsesfasen: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs?product=100211\n\n';
-  plain += 'Book en gratis online samtale: https://yogabible.dk/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
-
-  var result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: html,
-      bodyPlain: plain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:4-week-jul',
-      lang: 'da'
-    });
-  return { ...result, subject: subject };
+  const result = await sendSingleViaResend({
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:4-week-jul', lang: 'da'
+  });
+  return { ...result, subject };
 }
 
 // =========================================================================
-// 8-Week YTT Email
+// 8-Week YTT (Danish)
 // =========================================================================
-
 async function sendEmail8wYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
-  const program = leadData.program || '8-Week Semi-Intensive YTT';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const subject = firstName + ', her er alle datoer til 8-ugers yogauddannelsen';
+  const subject = 'Datoer til 8-ugers yogalæreruddannelsen';
 
-  const scheduleUrl8w = tokenData.leadId && tokenData.token
-    ? 'https://www.yogabible.dk/skema/8-uger/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://www.yogabible.dk/skema/8-uger/';
+  const sUrl = tokenize('https://www.yogabible.dk/skema/8-uger/', tokenData);
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>8-ugers semi-intensive 200-timers yogal\u00e6reruddannelse</strong>.</p>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores 8-ugers semi-intensive 200-timers yogalæreruddannelse. Her er alle 22 workshopdatoer og tidspunkter: ' + link(sUrl, 'Se skemaet her') + '. Du kan tilføje datoerne direkte til din kalender.</p>';
+  html += '<p>8-ugers formatet giver en god balance: nok intensitet til at holde fokus og gøre reelle fremskridt, men stadig plads til arbejde, familie eller andre forpligtelser. Et populært valg for dem, der gerne vil have en dyb oplevelse uden at sætte hele livet på pause.</p>';
+  html += '<p>200 timer, Yoga Alliance-certificeret. Hatha, Vinyasa, Yin, Hot Yoga og Meditation. Anatomi, filosofi, sekvensering og undervisningsmetodik. Online backup hvis du ikke kan møde op en dag. Alle niveauer er velkomne. Vi har uddannet yogalærere siden 2014.</p>';
+  if (needsHousing) html += '<p>Om bolig: jeg kan se du' + (cityCountry ? ' kommer fra ' + escapeHtml(cityCountry) + ' og' : '') + ' har brug for sted at bo i København. ' + link('https://yogabible.dk/accommodation', 'Se boligmuligheder her') + '.</p>';
+  html += '<p>Pris: 23.750 kr. Forberedelsesfasen på 3.750 kr. sikrer din plads — beløbet trækkes fra den fulde pris, så resten på 20.000 kr. kan betales i fleksible rater. ' + link('https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs', 'Start Forberedelsesfasen her') + '.</p>';
+  html += '<p>Hvis du vil snakke om uddannelsen, ' + link(CONFIG.MEETING_LINK, 'book et gratis infomøde her') + ' — eller bare svar på denne mail.</p>';
+  html += '<p>Shamir</p>';
 
-  bodyHtml += '<p>Her finder du alle 22 workshopdatoer og tidspunkter:</p>';
-  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl8w + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
-  bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilf\u00f8je alle datoer direkte til din kalender \u2014 og se pr\u00e6cis, hvad der sker hver dag i de 8 uger.</p>';
-
-  bodyHtml += '<p style="margin-top:16px;">8-ugers formatet giver en god balance: nok intensitet til at holde fokus og g\u00f8re reelle fremskridt, men stadig plads til arbejde, familie eller andre forpligtelser. Det er et popul\u00e6rt valg for dem, der gerne vil have en dyb oplevelse uden at s\u00e6tte hele livet p\u00e5 pause.</p>';
-  bodyHtml += programHighlightsHtml(['Online backup hvis du ikke kan m\u00f8de op en dag']);
-  bodyHtml += alumniNote();
-
-  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
-  bodyHtml += getPricingSectionHtml('23.750', '3.750', '20.000', 'fleksibel ratebetaling');
-  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs');
-
-  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 8-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
-  bodyHtml += bookingCta() + questionPrompt();
-
-  let bodyPlain = 'Hej ' + firstName + ',\n\n';
-  bodyPlain += 'Tak fordi du viste interesse for vores 8-ugers semi-intensive 200-timers yogal\u00e6reruddannelse.\n\n';
-  bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl8w + '\n\n';
-  bodyPlain += programHighlightsPlain(['Online backup hvis du ikke kan m\u00f8de op']);
-  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += '\n' + getPricingSectionPlain('23.750', '3.750', '20.000', 'fleksibel ratebetaling') + '\n';
-  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs');
-  bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs\n';
-  bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
+  let plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Tak for din interesse i vores 8-ugers semi-intensive 200-timers yogalæreruddannelse.\n\nSkema og datoer:\n' + sUrl + '\n\n';
+  plain += '8 uger giver balance: nok intensitet til reelle fremskridt, men stadig plads til arbejde og familie.\n\n';
+  plain += '200 timer, Yoga Alliance-certificeret. Online backup hvis du ikke kan deltage en dag. Alle niveauer er velkomne.\n\n';
+  if (needsHousing) plain += 'Om bolig: https://yogabible.dk/accommodation\n\n';
+  plain += 'Pris: 23.750 kr. Forberedelsesfasen 3.750 kr. Resten (20.000 kr.) i rater.\nStart: https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs\n\n';
+  plain += 'Book infomøde: ' + CONFIG.MEETING_LINK + '\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:8-week',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:8-week', lang: 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// 18-Week YTT Email
+// 18-Week YTT — Spring (Danish, "just started this week" tone)
 // =========================================================================
-
 async function sendEmail18wYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
-  const program = leadData.program || '18-Week Flexible YTT';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const subject = firstName + ', uddannelsen er netop startet \u2014 tilmeld dig stadig denne uge';
+  const subject = 'Uddannelsen er startet — du kan stadig nå med denne uge';
 
-  const scheduleUrl18w = tokenData.leadId && tokenData.token
-    ? 'https://www.yogabible.dk/skema/18-uger/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://www.yogabible.dk/skema/18-uger/';
+  const sUrl = tokenize('https://www.yogabible.dk/skema/18-uger/', tokenData);
 
-  // Started + last-minute discount banner
-  const startedBannerHtml =
-    '<div style="margin-bottom:20px;padding:14px 16px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">' +
-    '<p style="margin:0 0 8px;"><strong style="color:#c2410c;">\ud83c\udf1f Uddannelsen er netop g\u00e5et i gang \u2014 og du kan stadig n\u00e5 med denne uge.</strong></p>' +
-    '<p style="margin:0;color:#444;">Intromodulerne er allerede afholdt, men vi har dem p\u00e5 optagelse \u2014 s\u00e5 du nemt kan indhente det p\u00e5 ingen tid. Som tak for din hurtige beslutning f\u00e5r du <strong style="color:#c2410c;">1.000 kr. i last-minute-rabat</strong>.</p>' +
-    '</div>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores 18-ugers fleksible yogalæreruddannelse. Holdet er netop gået i gang — intromodulerne er allerede afholdt, men vi har dem på optagelse, så du nemt kan indhente det. Som tak for din hurtige beslutning får du 1.000 kr. i last-minute-rabat.</p>';
+  html += '<p>Her er alle datoer og tidspunkter: ' + link(sUrl, 'Se skemaet her') + '. Du kan tilføje datoerne direkte til din kalender og se præcis hvilke dage der er hverdagshold og weekendhold.</p>';
+  html += '<p>Det unikke ved formatet er fleksibiliteten. Hver workshop kører to gange — én på en hverdag og én i weekenden — så du altid kan følge med, uanset hvordan din uge ser ud. Du kan vælge hverdags- eller weekendspor og skifte frit undervejs. Online backup hvis du ikke kan møde op en dag, og 60 yogaklasser i studiet er inkluderet.</p>';
+  html += '<p>200 timer, Yoga Alliance-certificeret. Hatha, Vinyasa, Yin, Hot Yoga og Meditation. Alle niveauer er velkomne. Vi har uddannet yogalærere siden 2014.</p>';
+  if (needsHousing) html += '<p>Om bolig: jeg kan se du' + (cityCountry ? ' kommer fra ' + escapeHtml(cityCountry) + ' og' : '') + ' har brug for sted at bo i København. ' + link('https://yogabible.dk/accommodation', 'Se boligmuligheder her') + '.</p>';
+  html += '<p>Normalpris er 23.750 kr. — med last-minute-rabatten er din pris 22.750 kr. Forberedelsesfasen på 3.750 kr. sikrer din plads, og resten på 19.000 kr. kan betales i fleksible rater. ' + link('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs', 'Start Forberedelsesfasen her') + ' — last-minute-rabatten gælder kun denne uge.</p>';
+  html += '<p>Hvis du vil snakke om det, ' + link(CONFIG.MEETING_LINK, 'book et gratis infomøde her') + '.</p>';
+  html += '<p>Shamir</p>';
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>18-ugers fleksible yogal\u00e6reruddannelse</strong>.</p>';
-  bodyHtml += startedBannerHtml;
-
-  bodyHtml += '<p>Her finder du alle datoer og tidspunkter for uddannelsen:</p>';
-  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl18w + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
-  bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilf\u00f8je alle datoer direkte til din kalender \u2014 og se pr\u00e6cis hvilke dage der er hverdagshold og weekendhold.</p>';
-
-  bodyHtml += programHighlightsHtml([
-    'V\u00e6lg hverdags- eller weekendspor \u2014 og skift frit undervejs',
-    'Online backup hvis du ikke kan m\u00f8de op en dag',
-    '60 yogaklasser i studiet inkluderet'
-  ]);
-
-  bodyHtml += '<p style="margin-top:12px;">Det, der g\u00f8r dette program unikt, er fleksibiliteten. Hver workshop k\u00f8rer to gange \u2014 \u00e9n p\u00e5 en hverdag og \u00e9n i weekenden \u2014 s\u00e5 du altid kan f\u00f8lge med, uanset hvad din uge ser ud.</p>';
-  bodyHtml += '<p style="margin-top:12px;">Holdet er <strong>netop g\u00e5et i gang</strong>, og vi holder holdene sm\u00e5 for at sikre personlig feedback. <strong>Der er kun f\u00e5 pladser tilbage</strong> \u2014 og last-minute-rabatten g\u00e6lder kun denne uge.</p>';
-
-  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
-  bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">' +
-    '<strong>Normalpris:</strong> <span style="text-decoration:line-through;color:#999;">23.750 kr.</span> &rarr; <strong style="color:#166534;">22.750 kr.</strong> med last-minute-rabat<br>' +
-    '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>' +
-    '<strong>Rest:</strong> 19.000 kr. (fleksibel ratebetaling)' +
-    '</div>';
-  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
-
-  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 18-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
-  bodyHtml += bookingCta() + questionPrompt();
-
-  let bodyPlain = 'Hej ' + firstName + ',\n\n';
-  bodyPlain += 'Tak fordi du viste interesse for vores 18-ugers fleksible yogal\u00e6reruddannelse.\n\n';
-  bodyPlain += '\ud83c\udf1f UDDANNELSEN ER NETOP G\u00c5ET I GANG \u2014 DU KAN STADIG N\u00c5 MED DENNE UGE\n\n';
-  bodyPlain += 'Intromodulerne er allerede afholdt, men vi har dem p\u00e5 optagelse \u2014 s\u00e5 du nemt kan indhente det.\n';
-  bodyPlain += 'Som tak for din hurtige beslutning f\u00e5r du 1.000 kr. i last-minute-rabat.\n\n';
-  bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl18w + '\n\n';
-  bodyPlain += programHighlightsPlain([
-    'V\u00e6lg hverdags- eller weekendspor \u2014 skift frit undervejs',
-    'Online backup hvis du ikke kan m\u00f8de op',
-    '60 yogaklasser inkluderet'
-  ]);
-  bodyPlain += '\nDet unikke er fleksibiliteten: hver workshop k\u00f8rer to gange, \u00e9n hverdag og \u00e9n weekend.\n\n';
-  bodyPlain += 'Holdet er netop g\u00e5et i gang. Kun f\u00e5 pladser tilbage \u2014 last-minute-rabatten g\u00e6lder kun denne uge.\n\n';
-  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += 'Normalpris: 23.750 kr. \u2014 din pris med last-minute-rabat: 22.750 kr.\n';
-  bodyPlain += 'Forberedelsesfasen: 3.750 kr. \u00b7 Rest: 19.000 kr. (fleksibel ratebetaling)\n';
-  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
-  bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
-  bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
+  let plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Tak for din interesse i vores 18-ugers fleksible yogalæreruddannelse. Holdet er netop gået i gang — du kan stadig nå med denne uge. Du får 1.000 kr. i last-minute-rabat for din hurtige beslutning.\n\nSkema og datoer:\n' + sUrl + '\n\n';
+  plain += 'Hver workshop kører to gange (hverdag + weekend). Du kan skifte spor undervejs. Online backup hvis du ikke kan møde op. 60 yogaklasser inkluderet.\n\n';
+  plain += '200 timer, Yoga Alliance-certificeret. Alle niveauer er velkomne.\n\n';
+  if (needsHousing) plain += 'Om bolig: https://yogabible.dk/accommodation\n\n';
+  plain += 'Normalpris: 23.750 kr. Din pris med last-minute-rabat: 22.750 kr. Forberedelsesfasen 3.750 kr. Resten (19.000 kr.) i rater.\nStart: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n\n';
+  plain += 'Book infomøde: ' + CONFIG.MEETING_LINK + '\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:18-week',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:18-week', lang: 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// 18-Week Flexible YTT — August–December 2026
+// 18-Week YTT — Autumn (Danish)
 // =========================================================================
-
 async function sendEmail18wAugYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const subject = firstName + ', dit skema til efter\u00e5rets 18-ugers program er klar';
+  const subject = 'Skemaet til efterårets 18-ugers program';
 
-  const scheduleUrl18wAug = tokenData.leadId && tokenData.token
-    ? 'https://www.yogabible.dk/skema/18-uger-august/?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : 'https://www.yogabible.dk/skema/18-uger-august/';
+  const sUrl = tokenize('https://www.yogabible.dk/skema/18-uger-august/', tokenData);
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>18-ugers fleksible yogal\u00e6reruddannelse</strong> \u2014 efter\u00e5rsholdet august\u2013december 2026.</p>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores 18-ugers fleksible yogalæreruddannelse — efterårsholdet august–december 2026. Her er alle datoer og tidspunkter: ' + link(sUrl, 'Se skemaet her') + '. Du kan tilføje datoerne direkte til din kalender og se præcis hvilke dage der er hverdagshold og weekendhold.</p>';
+  html += '<p>Det unikke ved formatet er fleksibiliteten. Hver workshop kører to gange — én på en hverdag og én i weekenden — så du altid kan følge med, uanset hvordan din uge ser ud. Du kan vælge hverdags- eller weekendspor og skifte frit undervejs. Online backup hvis du ikke kan møde op en dag, og 60 yogaklasser i studiet er inkluderet. Start 10. august, graduation 13. december.</p>';
+  html += '<p>200 timer, Yoga Alliance-certificeret. Hatha, Vinyasa, Yin, Hot Yoga og Meditation. Alle niveauer er velkomne. Vi har uddannet yogalærere siden 2014. Holdene er små for personlig feedback, så tilmeld dig tidligt — pladser fyldes.</p>';
+  if (needsHousing) html += '<p>Om bolig: jeg kan se du' + (cityCountry ? ' kommer fra ' + escapeHtml(cityCountry) + ' og' : '') + ' har brug for sted at bo i København. ' + link('https://yogabible.dk/accommodation', 'Se boligmuligheder her') + '.</p>';
+  html += '<p>Pris: 23.750 kr. Forberedelsesfasen på 3.750 kr. sikrer din plads — beløbet trækkes fra den fulde pris, så resten på 20.000 kr. kan betales i fleksible rater. ' + link('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs', 'Start Forberedelsesfasen her') + '.</p>';
+  html += '<p>Hvis du vil snakke om uddannelsen, ' + link(CONFIG.MEETING_LINK, 'book et gratis infomøde her') + '.</p>';
+  html += '<p>Shamir</p>';
 
-  bodyHtml += '<p>Her finder du alle datoer og tidspunkter for uddannelsen:</p>';
-  bodyHtml += '<p style="margin:20px 0;"><a href="' + scheduleUrl18wAug + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Se skemaet \u2192</a></p>';
-  bodyHtml += '<p style="font-size:14px;color:#666;">Du kan tilf\u00f8je alle datoer direkte til din kalender \u2014 og se pr\u00e6cis hvilke dage der er hverdagshold og weekendhold.</p>';
-
-  bodyHtml += programHighlightsHtml([
-    'V\u00e6lg hverdags- eller weekendspor \u2014 og skift frit undervejs',
-    'Online backup hvis du ikke kan m\u00f8de op en dag',
-    '60 yogaklasser i studiet inkluderet',
-    'Start: 10. august 2026 \u00b7 Graduation: 13. december 2026'
-  ]);
-
-  bodyHtml += '<p style="margin-top:12px;">Det, der g\u00f8r dette program unikt, er fleksibiliteten. Hver workshop k\u00f8rer to gange \u2014 \u00e9n p\u00e5 en hverdag og \u00e9n i weekenden \u2014 s\u00e5 du altid kan f\u00f8lge med, uanset hvad din uge ser ud.</p>';
-  bodyHtml += '<p style="margin-top:12px;">Holdene er sm\u00e5 (max 12 studerende) for at sikre personlig feedback og n\u00e6rv\u00e6rende undervisning. <strong>Tilmeld dig tidligt</strong> \u2014 pladser fyldes.</p>';
-
-  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
-  bodyHtml += '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">' +
-    '<strong>Pris:</strong> 23.750 kr.<br>' +
-    '<strong>Forberedelsesfasen:</strong> 3.750 kr. sikrer din plads<br>' +
-    '<strong>Rest:</strong> 20.000 kr. (fleksibel ratebetaling)' +
-    '</div>';
-  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
-
-  bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 18-ugers programmet</a>';
-  bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
-  bodyHtml += bookingCta() + questionPrompt();
-
-  let bodyPlain = 'Hej ' + firstName + ',\n\n';
-  bodyPlain += 'Tak fordi du viste interesse for vores 18-ugers fleksible yogal\u00e6reruddannelse \u2014 efter\u00e5rsholdet august\u2013december 2026.\n\n';
-  bodyPlain += 'Uddannelsesskema og datoer:\n' + scheduleUrl18wAug + '\n\n';
-  bodyPlain += programHighlightsPlain([
-    'V\u00e6lg hverdags- eller weekendspor \u2014 skift frit undervejs',
-    'Online backup hvis du ikke kan m\u00f8de op',
-    '60 yogaklasser inkluderet',
-    'Start: 10. august 2026 \u00b7 Graduation: 13. december 2026'
-  ]);
-  bodyPlain += '\nDet unikke er fleksibiliteten: hver workshop k\u00f8rer to gange, \u00e9n hverdag og \u00e9n weekend.\n\n';
-  bodyPlain += 'Max 12 studerende pr. hold. Tilmeld dig tidligt.\n\n';
-  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += 'Pris: 23.750 kr.\n';
-  bodyPlain += 'Forberedelsesfasen: 3.750 kr. \u00b7 Rest: 20.000 kr. (fleksibel ratebetaling)\n';
-  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
-  bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
-  bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
+  let plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Tak for din interesse i vores 18-ugers fleksible yogalæreruddannelse — efterårsholdet august–december 2026.\n\nSkema og datoer:\n' + sUrl + '\n\n';
+  plain += 'Hver workshop kører to gange (hverdag + weekend). Du kan skifte spor undervejs. 60 yogaklasser inkluderet. Start 10. august, graduation 13. december.\n\n';
+  plain += '200 timer, Yoga Alliance-certificeret. Alle niveauer er velkomne.\n\n';
+  if (needsHousing) plain += 'Om bolig: https://yogabible.dk/accommodation\n\n';
+  plain += 'Pris: 23.750 kr. Forberedelsesfasen 3.750 kr. Resten (20.000 kr.) i rater.\nStart: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n\n';
+  plain += 'Book infomøde: ' + CONFIG.MEETING_LINK + '\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:18-week-aug',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:18-week-aug', lang: 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// Multi-Format YTT Email (user requested 2–3 formats at once)
+// Multi-format YTT (Danish, lead requested 2+ formats)
 // =========================================================================
+
+const FORMAT_INFO_DA = {
+  '18w':     { name: '18-ugers fleksible program (forår)',     period: 'marts–juni 2026',     sched: 'https://www.yogabible.dk/skema/18-uger/',         page: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',  desc: 'Det mest fleksible format — vælg hverdags- eller weekendspor og skift frit. Perfekt hvis du har arbejde, studie eller familie ved siden af.' },
+  '18w-mar': { name: '18-ugers fleksible program (forår)',     period: 'marts–juni 2026',     sched: 'https://www.yogabible.dk/skema/18-uger/',         page: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',  desc: 'Forårsholdet — vælg hverdags- eller weekendspor og skift frit undervejs.' },
+  '18w-aug': { name: '18-ugers fleksible program (efterår)',   period: 'august–december 2026',page: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs', sched: 'https://www.yogabible.dk/skema/18-uger-august/', desc: 'Efterårsholdet — start 10. august, graduation 13. december.' },
+  '8w':      { name: '8-ugers semi-intensive program',         period: 'maj–juni 2026',       sched: 'https://www.yogabible.dk/skema/8-uger/',          page: 'https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs', desc: 'En god balance mellem intensitet og hverdagsliv.' },
+  '4w':      { name: '4-ugers intensive program (juni)',       period: 'juni 2026',           sched: 'https://www.yogabible.dk/skema/4-uger-juni/',     page: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs', desc: 'Fuldt fordybende — daglig træning og teori i 4 uger.' },
+  '4w-jun':  { name: '4-ugers Complete Program (juni)',        period: 'juni 2026',           sched: 'https://www.yogabible.dk/skema/4-uger-juni/',     page: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs', desc: 'Daglig træning og teori i 4 uger. Hatha, Vinyasa, Yin, Hot Yoga og Meditation.' },
+  '4w-apr':  { name: '4-ugers Complete Program (april - udsolgt)', period: 'april 2026',      sched: 'https://www.yogabible.dk/skema/4-uger/',          page: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs', desc: 'Daglig træning og teori i 4 uger.' },
+  '4w-jul':  { name: '4-ugers Vinyasa Plus (juli)',            period: 'juli 2026',           sched: 'https://www.yogabible.dk/skema/4-uger-juli/',     page: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs', desc: '70% Vinyasa Flow + 30% Yin Yoga + Hot Yoga.' }
+};
 
 async function sendEmailMultiYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
-  const formats = (leadData.all_formats || '').split(',').filter(f => f);
+  const formats = (leadData.all_formats || '').split(',').map(s => s.trim()).filter(Boolean);
 
-  const scheduleBase = tokenData.leadId && tokenData.token
-    ? '?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : '';
+  const formatNames = formats.map(f => (FORMAT_INFO_DA[f] || {}).name || f);
+  const formatList = formatNames.length > 1
+    ? formatNames.slice(0, -1).join(', ') + ' og ' + formatNames[formatNames.length - 1]
+    : (formatNames[0] || '');
 
-  const FORMAT_INFO = {
-    '18w': {
-      name: '18-ugers fleksible program (for\u00e5r)',
-      period: 'marts\u2013juni 2026',
-      desc: 'Det mest fleksible format \u2014 v\u00e6lg hverdags- eller weekendspor og skift frit undervejs. Perfekt hvis du har arbejde, studie eller familie ved siden af.',
-      url: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',
-      scheduleUrl: 'https://www.yogabible.dk/skema/18-uger/' + scheduleBase,
-      programType: '18-week'
-    },
-    '18w-mar': {
-      name: '18-ugers fleksible program (for\u00e5r)',
-      period: 'marts\u2013juni 2026',
-      desc: 'For\u00e5rsholdet \u2014 v\u00e6lg hverdags- eller weekendspor og skift frit undervejs. Perfekt hvis du har arbejde, studie eller familie ved siden af.',
-      url: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',
-      scheduleUrl: 'https://www.yogabible.dk/skema/18-uger/' + scheduleBase,
-      programType: '18-week'
-    },
-    '18w-aug': {
-      name: '18-ugers fleksible program (efter\u00e5r)',
-      period: 'august\u2013december 2026',
-      desc: 'Efter\u00e5rsholdet \u2014 v\u00e6lg hverdags- eller weekendspor og skift frit undervejs. Start 10. august, graduation 13. december.',
-      url: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',
-      scheduleUrl: 'https://www.yogabible.dk/skema/18-uger-august/' + scheduleBase,
-      programType: '18-week'
-    },
-    '8w': {
-      name: '8-ugers semi-intensive program',
-      period: 'maj\u2013juni 2026',
-      desc: 'En god balance mellem intensitet og hverdagsliv. Nok fokus til reelle fremskridt, men stadig plads til andre forpligtelser.',
-      url: 'https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs',
-      scheduleUrl: 'https://www.yogabible.dk/skema/8-uger/' + scheduleBase,
-      programType: '8-week'
-    },
-    '4w': {
-      name: '4-ugers intensive program (juni)',
-      period: 'juni 2026',
-      desc: 'Fuldt fordybende \u2014 daglig tr\u00e6ning og teori i 4 uger. Complete Program: Hatha, Vinyasa, Yin, Hot Yoga og Meditation.',
-      url: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
-      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger-juni/' + scheduleBase,
-      programType: '4-week'
-    },
-    '4w-jun': {
-      name: '4-ugers Complete Program (juni)',
-      period: 'juni 2026',
-      desc: 'Fuldt fordybende — daglig træning og teori i 4 uger. Hatha, Vinyasa, Yin, Hot Yoga og Meditation.',
-      url: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
-      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger-juni/' + scheduleBase,
-      programType: '4-week'
-    },
-    '4w-apr': {
-      name: '4-ugers Complete Program (april - udsolgt)',
-      period: 'april 2026',
-      desc: 'Fuldt fordybende \u2014 daglig tr\u00e6ning og teori i 4 uger. Hatha, Vinyasa, Yin, Hot Yoga og Meditation.',
-      url: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
-      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger/' + scheduleBase,
-      programType: '4-week'
-    },
-    '4w-jul': {
-      name: '4-ugers Vinyasa Plus (juli)',
-      period: 'juli 2026',
-      desc: '70% Vinyasa Flow \u2014 kreativ sekvensering, klasseledelse og undervisningsteknikker. Plus 30% Yin Yoga + Hot Yoga. Underviser opvarmede og ikke-opvarmede klasser.',
-      url: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
-      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger-juli/' + scheduleBase,
-      programType: '4-week'
-    }
-  };
+  const subject = 'Dine YTT-skemaer';
 
-  // Build Danish format list with "og" before last item
-  const formatNames = formats.map(f => (FORMAT_INFO[f] || {}).name || f);
-  let formatList;
-  if (formatNames.length > 1) {
-    formatList = formatNames.slice(0, -1).join(', ') + ' og ' + formatNames[formatNames.length - 1];
-  } else {
-    formatList = formatNames[0] || '';
-  }
-
-  const subject = firstName + ', dine YTT-skemaer er klar';
-
-  // ---- HTML ----
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak fordi du viste interesse for vores <strong>200-timers yogal\u00e6reruddannelse</strong>!</p>';
-
-  bodyHtml += '<p>Jeg kan se, at du gerne vil sammenligne vores <strong>' + escapeHtml(formatList) + '</strong>. ';
-  bodyHtml += 'Godt t\u00e6nkt \u2014 herunder finder du skemaer og datoer for hvert format.</p>';
-
-  // Comparison prompt box
-  bodyHtml += '<div style="margin:20px 0;padding:14px;background:#E3F2FD;border-radius:6px;border-left:3px solid #1976D2;">';
-  bodyHtml += '<strong style="color:#1565C0;">\ud83d\udcad Et hurtigt sp\u00f8rgsm\u00e5l:</strong><br>';
-  bodyHtml += 'Jeg kan se du sammenligner flere formater. Er det fordi du har arbejde, studie eller andre forpligtelser, der p\u00e5virker hvilken form der passer bedst?<br><br>';
-  bodyHtml += '<span style="color:#666;">Svar gerne p\u00e5 denne e-mail \u2014 s\u00e5 hj\u00e6lper jeg dig med at finde det perfekte match!</span>';
-  bodyHtml += '</div>';
-
-  // Format descriptions
-  bodyHtml += '<p style="margin-top:20px;"><strong>Her er en oversigt over de formater du valgte:</strong></p>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores 200-timers yogalæreruddannelse. Jeg kan se, du gerne vil sammenligne vores ' + escapeHtml(formatList) + '. Godt tænkt — herunder finder du skemaer og datoer for hvert format.</p>';
+  html += '<p>Et hurtigt spørgsmål mens jeg har dig: er det fordi du har arbejde, studie eller andre forpligtelser, der påvirker hvilken form der passer bedst? Svar gerne på denne mail, så hjælper jeg dig med at finde det rigtige match.</p>';
   formats.forEach(f => {
-    const info = FORMAT_INFO[f];
+    const info = FORMAT_INFO_DA[f];
     if (!info) return;
-    bodyHtml += '<div style="margin:12px 0;padding:12px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
-    bodyHtml += '<strong>' + escapeHtml(info.name) + '</strong> <span style="color:#888;">(' + escapeHtml(info.period) + ')</span><br>';
-    bodyHtml += '<span style="color:#555;">' + info.desc + '</span><br>';
-    if (info.scheduleUrl) {
-      bodyHtml += '<p style="margin:10px 0 4px;"><a href="' + info.scheduleUrl + '" style="display:inline-block;background:#f75c03;color:#fff;padding:8px 18px;text-decoration:none;border-radius:50px;font-weight:600;font-size:14px;">Se dit skema \u2192</a></p>';
-    }
-    bodyHtml += '<a href="' + info.url + '" style="color:#f75c03;font-size:13px;">L\u00e6s mere om programmet \u2192</a>';
-    bodyHtml += '</div>';
+    var sUrl = tokenize(info.sched, tokenData);
+    html += '<p><strong>' + escapeHtml(info.name) + '</strong> (' + escapeHtml(info.period) + '): ' + info.desc + ' ' + link(sUrl, 'Se skemaet') + ' · ' + link(info.page, 'læs mere om programmet') + '.</p>';
   });
+  html += '<p>Alle formater giver det samme certifikat — 200 timer, Yoga Alliance, samme pensum. Hatha, Vinyasa, Yin, Hot Yoga og Meditation. Anatomi, filosofi, sekvensering og undervisningsmetodik. Vi har uddannet yogalærere siden 2014.</p>';
+  if (needsHousing) html += '<p>Om bolig: jeg kan se du' + (cityCountry ? ' kommer fra ' + escapeHtml(cityCountry) + ' og' : '') + ' har brug for sted at bo i København. ' + link('https://yogabible.dk/accommodation', 'Se boligmuligheder her') + '.</p>';
+  html += '<p>Pris: 23.750 kr. — samme for alle formater. Forberedelsesfasen på 3.750 kr. sikrer din plads (beløbet trækkes fra den fulde pris), og resten kan betales i fleksible rater. Du får øjeblikkelig adgang til alle yogaklasser i studiet, så du kan opbygge styrke og rutine inden uddannelsesstart. ' + link('https://www.yogabible.dk/om-200hrs-yogalaereruddannelser', 'Start Forberedelsesfasen her') + '.</p>';
+  html += '<p>Hvis du vil se studiet eller have hjælp til at vælge, ' + link(CONFIG.MEETING_LINK, 'book et infomøde her') + '.</p>';
+  html += '<p>Shamir</p>';
 
-  bodyHtml += programHighlightsHtml();
-  bodyHtml += alumniNote();
-
-  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
-  bodyHtml += getPricingSectionHtml('23.750', '3.750', '20.000', 'samme pris for alle formater \u2014 fleksibel ratebetaling');
-
-  // Preparation Phase — single block that covers all formats
-  bodyHtml += '<div style="margin-top:20px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:4px;">';
-  bodyHtml += '<strong style="color:#166534;">\ud83d\udca1 Smart tr\u00e6k: Start forberedelsesfasen nu</strong><br><br>';
-  bodyHtml += 'De fleste studerende starter med forberedelsesfasen allerede nu \u2014 og det er der en god grund til:<br><br>';
-  bodyHtml += '\u2705 \u00d8jeblikkelig adgang til alle yogaklasser i studiet<br>';
-  bodyHtml += '\u2705 Opbyg styrke, fleksibilitet og rutine inden uddannelsesstart<br>';
-  bodyHtml += '\u2705 M\u00f8d dine kommende medstuderende i et afslappet milj\u00f8<br>';
-  bodyHtml += '\u2705 Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer<br><br>';
-  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">Start forberedelsesfasen \u2014 3.750 kr.</a>';
-  bodyHtml += '</div>';
-
-  // Links + compare
-  bodyHtml += '<p style="margin-top:20px;">';
+  let plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Tak for din interesse. Du sammenligner: ' + formatList + '\n\n';
+  plain += 'Et hurtigt spørgsmål — er det fordi du har andre forpligtelser der påvirker dit valg? Svar gerne, så hjælper jeg.\n\n';
   formats.forEach(f => {
-    const info = FORMAT_INFO[f];
-    if (info) bodyHtml += '<a href="' + info.url + '" style="color:#f75c03;">' + escapeHtml(info.name.replace('program', 'detaljer')) + '</a> \u00b7 ';
+    const info = FORMAT_INFO_DA[f];
+    if (!info) return;
+    var sUrl = tokenize(info.sched, tokenData);
+    plain += info.name + ' (' + info.period + '): ' + info.desc + '\nSkema: ' + sUrl + '\nLæs mere: ' + info.page + '\n\n';
   });
-  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Sammenlign alle formater</a>';
-  bodyHtml += '</p>';
-
-  bodyHtml += '<p style="margin-top:20px;">Har du lyst til at se studiet eller f\u00e5 hj\u00e6lp til at v\u00e6lge det rigtige format?</p>';
-  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book infom\u00f8de eller samtale</a></p>';
-  bodyHtml += '<p>Gl\u00e6der mig til at h\u00f8re fra dig!</p>';
-
-  // ---- Plain text ----
-  let bodyPlain = 'Hej ' + firstName + ',\n\n';
-  bodyPlain += 'Tak fordi du viste interesse for vores 200-timers yogal\u00e6reruddannelse!\n\n';
-  bodyPlain += 'Jeg kan se du gerne vil sammenligne vores ' + formatList + '. ';
-  bodyPlain += 'Herunder finder du skemaer og datoer for hvert format.\n\n';
-  bodyPlain += 'Et hurtigt sp\u00f8rgsm\u00e5l: Er det fordi du har andre forpligtelser der p\u00e5virker dit valg? Svar gerne s\u00e5 jeg kan hj\u00e6lpe!\n\n';
-  formats.forEach(f => {
-    const info = FORMAT_INFO[f];
-    if (info) {
-      bodyPlain += '--- ' + info.name + ' (' + info.period + ') ---\n';
-      bodyPlain += info.desc + '\n';
-      if (info.scheduleUrl) bodyPlain += 'Skema og datoer: ' + info.scheduleUrl + '\n';
-      bodyPlain += 'L\u00e6s mere: ' + info.url + '\n\n';
-    }
-  });
-  bodyPlain += programHighlightsPlain();
-  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += '\n' + getPricingSectionPlain('23.750', '3.750', '20.000', 'samme pris for alle formater \u2014 fleksibel ratebetaling') + '\n';
-  bodyPlain += '\nSmart tr\u00e6k: Start forberedelsesfasen nu (3.750 kr.)\n';
-  bodyPlain += '- \u00d8jeblikkelig adgang til alle yogaklasser i studiet\n';
-  bodyPlain += '- Opbyg styrke og rutine inden uddannelsesstart\n';
-  bodyPlain += '- M\u00f8d dine kommende medstuderende\n';
-  bodyPlain += '- Dine klasser t\u00e6ller med i dine tr\u00e6ningstimer\n';
-  bodyPlain += 'Start her: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
-  bodyPlain += 'Book infom\u00f8de eller samtale: ' + CONFIG.MEETING_LINK + '\n';
-  bodyPlain += 'Gl\u00e6der mig til at h\u00f8re fra dig!';
+  plain += 'Alle formater giver samme certifikat. Pris: 23.750 kr. Forberedelsesfasen 3.750 kr. Resten i rater.\nStart: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
+  plain += 'Book infomøde: ' + CONFIG.MEETING_LINK + '\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:multi-format',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:multi-format', lang: 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// Undecided YTT Email — lead chose "Ved ikke endnu" on the program question
-// Showcases all available program formats with descriptions + comparison links
+// Undecided YTT (Danish — overview of all formats)
 // =========================================================================
-
 async function sendEmailUndecidedYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
   const cityCountry = leadData.city_country || '';
 
-  const scheduleBase = tokenData.leadId && tokenData.token
-    ? '?tid=' + encodeURIComponent(tokenData.leadId) + '&tok=' + encodeURIComponent(tokenData.token)
-    : '';
+  const subject = 'Find dit perfekte yogalæreruddannelses-format';
 
-  const subject = firstName + ', find dit perfekte yogauddannelsesformat';
-
-  // ---- HTML ----
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak for din interesse i vores <strong>200-timers yogalæreruddannelse</strong>!</p>';
-  bodyHtml += '<p>Det er helt normalt ikke at vide, hvilket format der passer bedst \u2014 det afhænger af din hverdag, dine mål og din læringsstil. Lad mig give dig et overblik, så du lettere kan vælge.</p>';
-
-  // Intro box
-  bodyHtml += '<div style="margin:20px 0;padding:14px;background:#E3F2FD;border-radius:6px;border-left:3px solid #1976D2;">';
-  bodyHtml += '<strong style="color:#1565C0;">💡 Alle formater giver dig det samme certifikat</strong><br>';
-  bodyHtml += 'Uanset hvilket format du vælger, får du en <strong>200-timers Yoga Alliance-certificering</strong> med samme pensum: Hatha, Vinyasa, Yin, Hot Yoga, Meditation, anatomi, filosofi og undervisningsmetodik. Max 12 studerende pr. hold.';
-  bodyHtml += '</div>';
-
-  // Format cards
   const formats = [
-    {
-      name: '4-ugers intensiv',
-      period: 'Juni 2026',
-      emoji: '🔥',
-      desc: 'Fuldt fordybende daglig træning i 4 uger. Det mest intense format \u2014 perfekt hvis du kan sætte alt andet på pause og vil have den dybeste oplevelse.',
-      goodFor: 'Dig der vil have en komplet immersion og kan dedikere 4 uger fuld tid.',
-      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger-juni/' + scheduleBase,
-      pageUrl: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs'
-    },
-    {
-      name: '8-ugers semi-intensiv',
-      period: 'Maj\u2013Juni 2026',
-      emoji: '⚡',
-      desc: 'En god balance mellem intensitet og hverdagsliv. Nok fokus til reelle fremskridt, men stadig plads til arbejde eller studie ved siden af.',
-      goodFor: 'Dig der vil have fokuseret uddannelse men har brug for lidt mere tid end 4 uger.',
-      scheduleUrl: 'https://www.yogabible.dk/skema/8-uger/' + scheduleBase,
-      pageUrl: 'https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs'
-    },
-    {
-      name: '4-ugers Vinyasa Plus',
-      period: 'Juli 2026',
-      emoji: '🌊',
-      desc: '70% Vinyasa Flow \u2014 kreativ sekvensering, klasseledelse og avancerede undervisningsteknikker. Plus 30% Yin Yoga + Hot Yoga. For dig der brænder for Vinyasa.',
-      goodFor: 'Dig der allerede ved du vil specialisere dig i Vinyasa Flow.',
-      scheduleUrl: 'https://www.yogabible.dk/skema/4-uger-juli/' + scheduleBase,
-      pageUrl: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs'
-    },
-    {
-      name: '18-ugers fleksibel',
-      period: 'August\u2013December 2026',
-      emoji: '🧘',
-      desc: 'Det mest fleksible format \u2014 vælg hverdags- eller weekendspor og skift frit undervejs. Perfekt hvis du har arbejde, studie eller familie ved siden af. 60 yogaklasser inkluderet.',
-      goodFor: 'Dig der vil tage uddannelsen uden at sætte hverdagen på pause.',
-      scheduleUrl: 'https://www.yogabible.dk/skema/18-uger-august/' + scheduleBase,
-      pageUrl: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs'
-    }
+    { name: '4-ugers intensiv', period: 'Juni 2026', sched: 'https://www.yogabible.dk/skema/4-uger-juni/', page: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs', desc: 'Fuldt fordybende daglig træning i 4 uger — det mest intense format.', good: 'Dig der vil have komplet immersion og kan dedikere 4 uger fuld tid.' },
+    { name: '8-ugers semi-intensiv', period: 'Maj–Juni 2026', sched: 'https://www.yogabible.dk/skema/8-uger/', page: 'https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs', desc: 'God balance mellem intensitet og hverdagsliv.', good: 'Dig der vil have fokuseret uddannelse men har brug for lidt mere tid end 4 uger.' },
+    { name: '4-ugers Vinyasa Plus', period: 'Juli 2026', sched: 'https://www.yogabible.dk/skema/4-uger-juli/', page: 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs', desc: '70% Vinyasa Flow + 30% Yin Yoga + Hot Yoga.', good: 'Dig der vil specialisere dig i Vinyasa Flow.' },
+    { name: '18-ugers fleksibel', period: 'August–December 2026', sched: 'https://www.yogabible.dk/skema/18-uger-august/', page: 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs', desc: 'Det mest fleksible format — vælg hverdags- eller weekendspor og skift frit undervejs. 60 yogaklasser inkluderet.', good: 'Dig der vil tage uddannelsen uden at sætte hverdagen på pause.' }
   ];
 
-  bodyHtml += '<p style="margin-top:24px;"><strong>Her er dine muligheder:</strong></p>';
-
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores 200-timers yogalæreruddannelse. Det er helt normalt ikke at vide, hvilket format der passer bedst — det afhænger af din hverdag, dine mål og din læringsstil. Lad mig give dig et overblik.</p>';
+  html += '<p>Alle formater giver dig det samme 200-timers Yoga Alliance-certifikat med samme pensum: Hatha, Vinyasa, Yin, Hot Yoga, Meditation, anatomi, filosofi og undervisningsmetodik.</p>';
   formats.forEach(f => {
-    bodyHtml += '<div style="margin:16px 0;padding:16px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
-    bodyHtml += '<strong style="font-size:17px;">' + f.emoji + ' ' + escapeHtml(f.name) + '</strong> <span style="color:#888;">(' + escapeHtml(f.period) + ')</span><br>';
-    bodyHtml += '<span style="color:#555;">' + f.desc + '</span><br><br>';
-    bodyHtml += '<span style="color:#166534;font-size:14px;"><strong>God til:</strong> ' + f.goodFor + '</span><br>';
-    bodyHtml += '<p style="margin:10px 0 4px;">';
-    bodyHtml += '<a href="' + f.scheduleUrl + '" style="display:inline-block;background:#f75c03;color:#fff;padding:8px 18px;text-decoration:none;border-radius:50px;font-weight:600;font-size:14px;">Se skema og datoer \u2192</a>';
-    bodyHtml += ' <a href="' + f.pageUrl + '" style="color:#f75c03;font-size:13px;margin-left:12px;">Læs mere \u2192</a>';
-    bodyHtml += '</p></div>';
+    var sUrl = tokenize(f.sched, tokenData);
+    html += '<p><strong>' + escapeHtml(f.name) + '</strong> (' + escapeHtml(f.period) + '): ' + f.desc + ' God til: ' + f.good + ' ' + link(sUrl, 'Se skema') + ' · ' + link(f.page, 'læs mere') + '.</p>';
   });
+  html += '<p>Hvis du vil sammenligne formaterne side om side: ' + link('https://www.yogabible.dk/om-200hrs-yogalaereruddannelser', 'Sammenlign alle formater her') + '. Vi har uddannet yogalærere siden 2014.</p>';
+  if (needsHousing) html += '<p>Om bolig: jeg kan se du' + (cityCountry ? ' kommer fra ' + escapeHtml(cityCountry) + ' og' : '') + ' har brug for sted at bo i København. ' + link('https://yogabible.dk/accommodation', 'Se boligmuligheder her') + '.</p>';
+  html += '<p>Pris: 23.750 kr. — samme for alle formater. Forberedelsesfasen på 3.750 kr. sikrer din plads, og resten kan betales i fleksible rater. ' + link('https://www.yogabible.dk/om-200hrs-yogalaereruddannelser', 'Start Forberedelsesfasen her') + '.</p>';
+  html += '<p>Det bedste du kan gøre nu er at ' + link(CONFIG.MEETING_LINK, 'booke et gratis infomøde') + ' — så hjælper jeg dig personligt med at finde det rigtige format. Du er også velkommen til bare at svare på denne mail.</p>';
+  html += '<p>Shamir</p>';
 
-  // Compare link
-  bodyHtml += '<div style="margin:24px 0;padding:16px;background:#F5F3F0;border-radius:6px;text-align:center;">';
-  bodyHtml += '<p style="margin:0 0 10px;"><strong>Stadig i tvivl?</strong></p>';
-  bodyHtml += '<a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="display:inline-block;background:#1a1a1a;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Sammenlign alle formater side om side \u2192</a>';
-  bodyHtml += '</div>';
-
-  // Pricing — same for all formats
-  bodyHtml += programHighlightsHtml();
-  bodyHtml += alumniNote();
-
-  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
-  bodyHtml += getPricingSectionHtml('23.750', '3.750', '20.000', 'samme pris for alle formater \u2014 fleksibel ratebetaling');
-  bodyHtml += getPreparationPhaseHtml('https://www.yogabible.dk/om-200hrs-yogalaereruddannelser');
-
-  // Meeting CTA
-  bodyHtml += '<p style="margin-top:24px;">Det bedste du kan gøre nu? <strong>Book et gratis infomøde</strong> \u2014 så hjælper jeg dig personligt med at finde det rigtige format:</p>';
-  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>';
-  bodyHtml += '<p>Du er også velkommen til bare at svare på denne e-mail med dine spørgsmål.</p>';
-  bodyHtml += '<p>Glæder mig til at høre fra dig!</p>';
-
-  // ---- Plain text ----
-  let bodyPlain = 'Hej ' + firstName + ',\n\n';
-  bodyPlain += 'Tak for din interesse i vores 200-timers yogalæreruddannelse!\n\n';
-  bodyPlain += 'Det er helt normalt ikke at vide, hvilket format der passer bedst. Her er et overblik:\n\n';
-  bodyPlain += 'Alle formater giver dig det samme 200-timers Yoga Alliance-certifikat med samme pensum. Max 12 studerende pr. hold.\n\n';
-
+  let plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Tak for din interesse. Det er helt normalt ikke at vide hvilket format der passer bedst. Her er et overblik:\n\n';
+  plain += 'Alle formater giver samme 200-timers Yoga Alliance-certifikat.\n\n';
   formats.forEach(f => {
-    bodyPlain += '--- ' + f.name + ' (' + f.period + ') ---\n';
-    bodyPlain += f.desc + '\n';
-    bodyPlain += 'God til: ' + f.goodFor + '\n';
-    bodyPlain += 'Skema: ' + f.scheduleUrl + '\n';
-    bodyPlain += 'Læs mere: ' + f.pageUrl + '\n\n';
+    var sUrl = tokenize(f.sched, tokenData);
+    plain += f.name + ' (' + f.period + '): ' + f.desc + '\nGod til: ' + f.good + '\nSkema: ' + sUrl + '\nLæs mere: ' + f.page + '\n\n';
   });
-
-  bodyPlain += 'Sammenlign alle formater: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
-  bodyPlain += programHighlightsPlain();
-  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += '\n' + getPricingSectionPlain('23.750', '3.750', '20.000', 'samme pris for alle formater — fleksibel ratebetaling') + '\n';
-  bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/om-200hrs-yogalaereruddannelser');
-  bodyPlain += '\nBook et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n';
-  bodyPlain += 'Du kan også svare på denne e-mail med dine spørgsmål.\n\nGlæder mig til at høre fra dig!';
+  plain += 'Sammenlign formater: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
+  plain += 'Pris: 23.750 kr. Forberedelsesfasen 3.750 kr. Resten i rater.\n\n';
+  plain += 'Book infomøde: ' + CONFIG.MEETING_LINK + '\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:undecided',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:undecided', lang: 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// 300h Advanced YTT Email
+// 300h Advanced YTT (Danish, with optional schedule PDF attachment)
 // =========================================================================
-
 async function sendEmail300hYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const program = leadData.program || '300-Hour Advanced YTT';
-  const subject = 'Din foresp\u00f8rgsel \u2014 300-timers avanceret yogal\u00e6reruddannelse';
+  const subject = '300-timers avanceret yogalæreruddannelse — din forespørgsel';
 
   const attachment = await fetchSchedulePdfAttachment('300h', program);
   const hasSchedule = !!attachment;
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak for din interesse i vores <strong>300-timers avancerede yogal\u00e6reruddannelse</strong> (24 uger, maj\u2013december 2026)!</p>';
-  bodyHtml += '<p>Dette program er designet til certificerede yogal\u00e6rere, der \u00f8nsker at fordybe deres praksis og undervisning p\u00e5 h\u00f8jeste niveau.</p>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores 300-timers avancerede yogalæreruddannelse — 24 uger, maj–december 2026. Programmet er designet til certificerede yogalærere, der vil fordybe deres praksis og undervisning på højeste niveau.</p>';
+  if (hasSchedule) html += '<p>Jeg har vedhæftet det fulde skema, så du kan se hvordan programmet er bygget op.</p>';
+  else html += '<p>Vi er ved at lægge sidste hånd på det detaljerede skema — jeg sender det til dig, så snart det er klart.</p>';
+  html += '<p>Hvis du vil snakke om det, ' + link(CONFIG.MEETING_LINK, 'book en uforpligtende samtale her') + ' — eller bare svar på denne mail med dine spørgsmål.</p>';
+  html += '<p>Shamir</p>';
 
-  if (hasSchedule) {
-    bodyHtml += '<p>Jeg har vedh\u00e6ftet det fulde skema, s\u00e5 du kan se hvordan programmet er bygget op.</p>';
-  } else {
-    bodyHtml += '<p>Vi er ved at l\u00e6gge sidste h\u00e5nd p\u00e5 det detaljerede skema \u2014 jeg sender det til dig, s\u00e5 snart det er klar.</p>';
-  }
-
-  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book en uforpligtende samtale</a></p>';
-  bodyHtml += '<p>Du er ogs\u00e5 velkommen til at svare p\u00e5 denne e-mail med dine sp\u00f8rgsm\u00e5l.</p>';
-
-  let bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores 300-timers avancerede yogal\u00e6reruddannelse (24 uger, maj\u2013december 2026)!\n\n';
-  bodyPlain += hasSchedule ? 'Jeg har vedh\u00e6ftet det fulde skema.\n\n' : 'Det detaljerede skema er snart klar \u2014 jeg sender det til dig.\n\n';
-  bodyPlain += 'Book en samtale: ' + CONFIG.MEETING_LINK;
+  let plain = 'Hej ' + firstName + ',\n\n';
+  plain += 'Tak for din interesse i vores 300-timers avancerede yogalæreruddannelse (24 uger, maj–december 2026).\n\n';
+  plain += hasSchedule ? 'Det fulde skema er vedhæftet.\n\n' : 'Det detaljerede skema er snart klart — jeg sender det til dig.\n\n';
+  plain += 'Book en samtale: ' + CONFIG.MEETING_LINK + '\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:300h',
-      lang: 'da',
-      attachments: attachment ? [attachment] : []
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:300h', lang: 'da',
+    attachments: attachment ? [attachment] : []
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// 300h Waitlist Confirmation Email (Bilingual)
+// 300h Waitlist (bilingual)
 // =========================================================================
-
 async function sendWaitlist300hEmail(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const lang = (leadData.lang || 'da').toLowerCase();
@@ -1786,96 +945,59 @@ async function sendWaitlist300hEmail(leadData, tokenData = {}) {
     ? 'You\'re on the waitlist — 300-Hour Advanced Yoga Teacher Training'
     : 'Du er på ventelisten — 300-timers avanceret yogalæreruddannelse';
 
-  let bodyHtml, bodyPlain;
-
+  let html, plain;
   if (isEn) {
-    bodyHtml = '<p>Hi ' + escapeHtml(firstName) + ',</p>';
-    bodyHtml += '<p>Thank you for your interest in our <strong>300-Hour Advanced Yoga Teacher Training</strong> — we\'re thrilled to have you on the waitlist.</p>';
-    bodyHtml += '<p>We are currently designing the most comprehensive 300-hour program in Scandinavia. As soon as the program opens for applications, you will be <strong>among the first to know</strong>.</p>';
-    bodyHtml += '<p>Here\'s what you can expect:</p>';
-    bodyHtml += '<ul style="margin:10px 0;padding-left:20px;">';
-    bodyHtml += '<li><strong>24 weeks</strong> of advanced training in Copenhagen</li>';
-    bodyHtml += '<li><strong>RYT-500 certification</strong> through Yoga Alliance</li>';
-    bodyHtml += '<li>Specializations in Yin Yoga, Yoga Therapy, Pre/Postnatal, Ayurveda &amp; more</li>';
-    bodyHtml += '<li>Max <strong>12 participants</strong> for close mentoring</li>';
-    bodyHtml += '</ul>';
-    bodyHtml += '<p>In the meantime, feel free to reply to this email if you have any questions — I\'m happy to chat.</p>';
-    bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book a free info session</a></p>';
+    html = '<p>Hi ' + escapeHtml(firstName) + ',</p>';
+    html += '<p>Thank you for your interest in our 300-Hour Advanced Yoga Teacher Training — we\'re thrilled to have you on the waitlist. We\'re currently designing the most comprehensive 300-hour program in Scandinavia, and as soon as it opens for applications you\'ll be among the first to know.</p>';
+    html += '<p>What to expect: 24 weeks of advanced training in Copenhagen, RYT-500 certification through Yoga Alliance, specializations in Yin Yoga, Yoga Therapy, Pre/Postnatal, Ayurveda and more, with small cohorts for close mentoring.</p>';
+    html += '<p>Feel free to reply to this email if you have any questions, or ' + link(CONFIG.MEETING_LINK, 'book a free info session here') + '.</p>';
+    html += '<p>Shamir</p>';
 
-    bodyPlain = 'Hi ' + firstName + ',\n\n';
-    bodyPlain += 'Thank you for your interest in our 300-Hour Advanced Yoga Teacher Training — we\'re thrilled to have you on the waitlist.\n\n';
-    bodyPlain += 'We are currently designing the most comprehensive 300-hour program in Scandinavia. As soon as the program opens for applications, you will be among the first to know.\n\n';
-    bodyPlain += 'In the meantime, feel free to reply to this email if you have any questions.\n\n';
-    bodyPlain += 'Book a free info session: ' + CONFIG.MEETING_LINK;
+    plain = 'Hi ' + firstName + ',\n\nThank you for your interest in our 300-Hour Advanced Yoga Teacher Training — you\'re on the waitlist. We\'ll be in touch as soon as it opens for applications.\n\n24 weeks · RYT-500 certification · small cohorts.\n\nBook a free info session: ' + CONFIG.MEETING_LINK + '\n\nShamir';
   } else {
-    bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-    bodyHtml += '<p>Tak for din interesse i vores <strong>300-timers avancerede yogalæreruddannelse</strong> — vi er glade for at have dig på ventelisten.</p>';
-    bodyHtml += '<p>Vi er i gang med at designe det mest ambitiøse 300-timers program i Skandinavien. Så snart uddannelsen åbner for ansøgning, vil du være <strong>blandt de første til at høre det</strong>.</p>';
-    bodyHtml += '<p>Her er hvad du kan forvente:</p>';
-    bodyHtml += '<ul style="margin:10px 0;padding-left:20px;">';
-    bodyHtml += '<li><strong>24 ugers</strong> avanceret uddannelse i København</li>';
-    bodyHtml += '<li><strong>RYT-500 certificering</strong> gennem Yoga Alliance</li>';
-    bodyHtml += '<li>Specialiseringer i Yin Yoga, Yoga Terapi, Pre/Postnatal, Ayurveda og mere</li>';
-    bodyHtml += '<li>Max <strong>12 deltagere</strong> for tæt mentoring</li>';
-    bodyHtml += '</ul>';
-    bodyHtml += '<p>I mellemtiden er du meget velkommen til at svare på denne e-mail, hvis du har spørgsmål — jeg svarer gerne.</p>';
-    bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>';
+    html = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+    html += '<p>Tak for din interesse i vores 300-timers avancerede yogalæreruddannelse — vi er glade for at have dig på ventelisten. Vi er i gang med at designe det mest ambitiøse 300-timers program i Skandinavien, og så snart uddannelsen åbner for ansøgning, vil du være blandt de første til at høre det.</p>';
+    html += '<p>Hvad du kan forvente: 24 ugers avanceret uddannelse i København, RYT-500 certificering gennem Yoga Alliance, specialiseringer i Yin Yoga, Yoga Terapi, Pre/Postnatal, Ayurveda og mere, og små hold for tæt mentoring.</p>';
+    html += '<p>Du er velkommen til at svare på denne mail med spørgsmål, eller ' + link(CONFIG.MEETING_LINK, 'book et gratis infomøde her') + '.</p>';
+    html += '<p>Shamir</p>';
 
-    bodyPlain = 'Hej ' + firstName + ',\n\n';
-    bodyPlain += 'Tak for din interesse i vores 300-timers avancerede yogalæreruddannelse — vi er glade for at have dig på ventelisten.\n\n';
-    bodyPlain += 'Vi er i gang med at designe det mest ambitiøse 300-timers program i Skandinavien. Så snart uddannelsen åbner for ansøgning, vil du være blandt de første til at høre det.\n\n';
-    bodyPlain += 'I mellemtiden er du meget velkommen til at svare på denne e-mail.\n\n';
-    bodyPlain += 'Book et gratis infomøde: ' + CONFIG.MEETING_LINK;
+    plain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores 300-timers avancerede yogalæreruddannelse — du er på ventelisten. Vi vender tilbage så snart uddannelsen åbner for ansøgning.\n\n24 uger · RYT-500 certificering · små hold.\n\nBook et infomøde: ' + CONFIG.MEETING_LINK + '\n\nShamir';
   }
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:waitlist-300h',
-      lang: (leadData.lang || 'da')
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:waitlist-300h', lang: isEn ? 'en' : 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// Specialty YTT Email (50h, 30h)
+// Specialty YTT 50h / 30h (Danish)
 // =========================================================================
-
 async function sendEmailSpecialtyYTT(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const program = leadData.program || 'Specialty Teacher Training';
   const specialty = leadData.subcategories || '';
-  const subject = 'Din foresp\u00f8rgsel \u2014 ' + program;
+  const subject = program + ' — din forespørgsel';
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak for din interesse i vores <strong>' + escapeHtml(program) + '</strong>!</p>';
-  if (specialty) bodyHtml += '<p>Du n\u00e6vnte interesse for: <strong>' + escapeHtml(specialty) + '</strong></p>';
-  bodyHtml += '<p>Vores specialmoduler er perfekte for l\u00e6rere, der vil fordybe sig inden for specifikke omr\u00e5der.</p>';
-  bodyHtml += '<p>Vi er ved at finalisere 2026-skemaet. Vil du vide mere?</p>';
-  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book en uforpligtende samtale</a></p>';
-  bodyHtml += '<p>Svar ogs\u00e5 gerne p\u00e5 denne e-mail med dine sp\u00f8rgsm\u00e5l.</p>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores ' + escapeHtml(program) + '.' + (specialty ? ' Du nævnte interesse for: ' + escapeHtml(specialty) + '.' : '') + ' Vores specialmoduler er perfekte for lærere, der vil fordybe sig inden for specifikke områder. Vi er ved at finalisere 2026-skemaet.</p>';
+  html += '<p>Hvis du vil vide mere, ' + link(CONFIG.MEETING_LINK, 'book en uforpligtende samtale her') + ' — eller bare svar på denne mail med dine spørgsmål.</p>';
+  html += '<p>Shamir</p>';
 
-  const bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores ' + program + '!\n\nBook en samtale: ' + CONFIG.MEETING_LINK;
+  const plain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores ' + program + '.' + (specialty ? ' Interesse: ' + specialty + '.' : '') + '\n\nBook en samtale: ' + CONFIG.MEETING_LINK + '\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:specialty',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:specialty', lang: 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// Courses Email
+// Courses (Danish, with optional schedule PDF attachment)
 // =========================================================================
-
 async function sendEmailCourses(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const courses = leadData.program || '';
@@ -1885,654 +1007,424 @@ async function sendEmailCourses(leadData, tokenData = {}) {
 
   const courseList = courses.split(/[,+]/).map(c => c.trim()).filter(c => c);
   const isBundle = courseList.length > 1;
-  const subject = isBundle ? 'Dine kursus-detaljer \u2014 Yoga Bible' : 'Dit kursus \u2014 Yoga Bible';
+  const subject = isBundle ? 'Dine kursus-detaljer' : 'Dit kursus';
 
-  // Try to attach course schedule for preferred month
   const attachment = preferredMonth ? await fetchSchedulePdfAttachment('courses', preferredMonth) : null;
   const hasSchedule = !!attachment;
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
 
   if (isBundle) {
-    bodyHtml += '<p>Tak for din interesse i vores kursusbundle! Du valgte:</p><ul style="margin:10px 0;padding-left:20px;">';
-    courseList.forEach(course => {
-      const config = COURSE_CONFIG[course] || {};
-      bodyHtml += '<li><strong>' + escapeHtml(course) + '</strong>' + (config.description ? ' \u2014 ' + config.description : '') + '</li>';
+    var bundleDescParts = courseList.map(c => {
+      var cfg = COURSE_CONFIG[c] || {};
+      return escapeHtml(c) + (cfg.description ? ' (' + cfg.description + ')' : '');
     });
-    bodyHtml += '</ul>';
-    if (courseList.length === 2) bodyHtml += '<p><strong>Bundle-pris (2 kurser):</strong> 4.140 kr. (spar 10%!)</p>';
-    else if (courseList.length === 3) bodyHtml += '<p><strong>All-In Bundle:</strong> 5.865 kr. (spar 15% + GRATIS 1-m\u00e5neds yogapas!)</p>';
+    var bundlePrice = '';
+    if (courseList.length === 2) bundlePrice = ' Bundle-pris (2 kurser): 4.140 kr. — du sparer 10%.';
+    else if (courseList.length === 3) bundlePrice = ' All-In Bundle: 5.865 kr. — du sparer 15% og får et gratis 1-måneds yogapas.';
+    html += '<p>Tak for din interesse i vores kursusbundle. Du valgte: ' + bundleDescParts.join(', ') + '.' + bundlePrice + '</p>';
   } else {
-    bodyHtml += '<p>Tak for din interesse i vores <strong>' + escapeHtml(courses) + '</strong>-kursus!</p>';
-    bodyHtml += '<p><strong>Pris:</strong> 2.300 kr.</p>';
+    html += '<p>Tak for din interesse i vores ' + escapeHtml(courses) + '-kursus. Pris: 2.300 kr.</p>';
   }
 
-  if (preferredMonth) bodyHtml += '<p><strong>Foretrukken m\u00e5ned:</strong> ' + escapeHtml(preferredMonth) + '</p>';
+  if (preferredMonth) html += '<p>Foretrukken måned: ' + escapeHtml(preferredMonth) + '. ' + (hasSchedule ? 'Jeg har vedhæftet kursusskemaet for ' + escapeHtml(preferredMonth) + '.' : 'Skemaet er ved at blive finaliseret — jeg sender det til dig snart.') + '</p>';
 
-  if (hasSchedule) {
-    bodyHtml += '<p>Jeg har vedh\u00e6ftet kursusskemaet for <strong>' + escapeHtml(preferredMonth) + '</strong>, s\u00e5 du kan se datoer og tidspunkter.</p>';
-  } else if (preferredMonth) {
-    bodyHtml += '<p>Vi er ved at l\u00e6gge sidste h\u00e5nd p\u00e5 kursusskemaet for ' + escapeHtml(preferredMonth) + '. Jeg sender det til dig, s\u00e5 snart det er klar.</p>';
-  }
+  if (needsHousing) html += '<p>Om bolig: jeg kan se du' + (cityCountry ? ' kommer fra ' + escapeHtml(cityCountry) + ' og' : '') + ' har brug for sted at bo i København. ' + link('https://yogabible.dk/accommodation', 'Se boligmuligheder her') + '.</p>';
 
-  if (needsHousing) bodyHtml += getAccommodationSectionHtml(cityCountry);
-
-  bodyHtml += '<p style="margin-top:16px;">Du kan tilmelde dig direkte p\u00e5 vores hjemmeside, eller book en kort samtale hvis du har sp\u00f8rgsm\u00e5l:</p>';
-  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book en samtale</a></p>';
-
+  // Direct enrollment link (if single course + month known)
   if (!isBundle && courseList.length === 1 && preferredMonth) {
-    const paymentUrl = getCoursePaymentUrl(courseList[0], preferredMonth);
-    if (paymentUrl) bodyHtml += '<p>Klar til at tilmelde dig? <a href="' + paymentUrl + '" style="color:#f75c03;font-weight:600;">Tilmeld dig her \u2192</a></p>';
+    var paymentUrl = getCoursePaymentUrl(courseList[0], preferredMonth);
+    if (paymentUrl) html += '<p>Klar til at tilmelde dig? ' + link(paymentUrl, 'Tilmeld dig her') + '.</p>';
   } else if (isBundle && preferredMonth) {
-    const bundleUrl = getBundlePaymentUrl(courseList, preferredMonth);
-    if (bundleUrl) bodyHtml += '<p>Klar til at tilmelde dig? <a href="' + bundleUrl + '" style="color:#f75c03;font-weight:600;">F\u00e5 din bundle her \u2192</a></p>';
+    var bundleUrl = getBundlePaymentUrl(courseList, preferredMonth);
+    if (bundleUrl) html += '<p>Klar til at tilmelde dig? ' + link(bundleUrl, 'Få din bundle her') + '.</p>';
   }
 
-  bodyHtml += '<p>Svar gerne p\u00e5 denne e-mail hvis du har sp\u00f8rgsm\u00e5l!</p>';
+  html += '<p>Hvis du har spørgsmål, ' + link(CONFIG.MEETING_LINK, 'book en samtale her') + ' — eller bare svar på denne mail.</p>';
+  html += '<p>Shamir</p>';
 
-  let bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores kurser!\n\n';
-  if (isBundle) {
-    bodyPlain += 'Du valgte: ' + courseList.join(', ') + '\n';
-    if (courseList.length === 2) bodyPlain += 'Bundle-pris (2 kurser): 4.140 kr. (spar 10%!)\n\n';
-    else if (courseList.length === 3) bodyPlain += 'All-In Bundle: 5.865 kr. (spar 15% + GRATIS 1-måneds yogapas!)\n\n';
-  } else {
-    bodyPlain += 'Kursus: ' + courses + '\nPris: 2.300 kr.\n\n';
-  }
-  if (preferredMonth) bodyPlain += 'Foretrukken måned: ' + preferredMonth + '\n';
-  if (hasSchedule) bodyPlain += 'Jeg har vedhæftet kursusskemaet for ' + preferredMonth + '.\n\n';
-  else if (preferredMonth) bodyPlain += 'Kursusskemaet for ' + preferredMonth + ' er snart klar.\n\n';
-  if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
-  bodyPlain += 'Book en samtale: ' + CONFIG.MEETING_LINK;
+  let plain = 'Hej ' + firstName + ',\n\n';
+  if (isBundle) plain += 'Du valgte: ' + courseList.join(', ') + '\n';
+  else plain += 'Kursus: ' + courses + '. Pris: 2.300 kr.\n';
+  if (preferredMonth) plain += 'Foretrukken måned: ' + preferredMonth + '\n';
+  plain += '\n';
+  if (needsHousing) plain += 'Om bolig: https://yogabible.dk/accommodation\n\n';
+  plain += 'Book en samtale: ' + CONFIG.MEETING_LINK + '\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:courses',
-      lang: 'da',
-      attachments: attachment ? [attachment] : []
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:courses', lang: 'da',
+    attachments: attachment ? [attachment] : []
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// Mentorship Email
+// Mentorship (Danish)
 // =========================================================================
-
 async function sendEmailMentorship(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
   const service = leadData.service || 'Mentorship';
   const subcategories = leadData.subcategories || '';
   const message = leadData.message || '';
-  const subject = 'Din mentorship-foresp\u00f8rgsel \u2014 Yoga Bible';
+  const subject = 'Din mentorship-forespørgsel';
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak for din interesse i vores <strong>' + escapeHtml(service) + '</strong>-program!</p>';
-  if (subcategories) bodyHtml += '<p><strong>Interesseomr\u00e5der:</strong> ' + escapeHtml(subcategories) + '</p>';
-  if (message) bodyHtml += '<p><strong>Din besked:</strong> ' + escapeHtml(message) + '</p>';
-  bodyHtml += '<p>Jeg vil gerne h\u00f8re mere om dine m\u00e5l. Lad os booke en kort samtale:</p>';
-  bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book en gratis samtale</a></p>';
-  bodyHtml += '<p>Du er ogs\u00e5 velkommen til at svare direkte p\u00e5 denne e-mail.</p>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak for din interesse i vores ' + escapeHtml(service) + '-program.' + (subcategories ? ' Interesseområder: ' + escapeHtml(subcategories) + '.' : '') + (message ? ' Din besked: ' + escapeHtml(message) : '') + '</p>';
+  html += '<p>Jeg vil gerne høre mere om dine mål. Lad os ' + link(CONFIG.MEETING_LINK, 'booke en kort samtale her') + ' — eller bare svar direkte på denne mail.</p>';
+  html += '<p>Shamir</p>';
 
-  const bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores ' + service + '-program!\n\nBook en gratis samtale: ' + CONFIG.MEETING_LINK;
+  const plain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores ' + service + '-program.\n\nBook en gratis samtale: ' + CONFIG.MEETING_LINK + '\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:mentorship',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:mentorship', lang: 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// Generic / Contact Email (Danish)
+// Generic / Contact (Danish)
 // =========================================================================
-
-// =========================================================================
-// Bilingual Email Builder — uses lead-email-i18n.js translations
-// Builds program-specific emails in both DA and EN with matching structure
-// =========================================================================
-
-const i18n = require('./lead-email-i18n');
-
-function i18nBookingCta(lang) {
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  return '<p style="margin-top:20px;">' + t.bookingCta + '</p>' +
-    '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">' + t.bookingBtn + '</a></p>';
-}
-
-function i18nQuestionPrompt(lang) {
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  return '<p style="margin-top:20px;">' + t.questionPrompt + '</p>' +
-    '<p>' + t.lookingForward + '</p>';
-}
-
-function i18nHighlightsHtml(lang, extras) {
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  let html = '<p style="margin-top:16px;">' + t.highlightsIntro + '</p>';
-  html += '<ul style="margin:8px 0;padding-left:20px;color:#333;">';
-  t.highlights.forEach(function (h) { html += '<li>' + h + '</li>'; });
-  if (extras) extras.forEach(function (e) { html += '<li>' + e + '</li>'; });
-  html += '</ul>';
-  return html;
-}
-
-function i18nHighlightsPlain(lang, extras) {
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  let text = t.highlightsIntro + '\n';
-  t.highlights.forEach(function (h) { text += '- ' + h + '\n'; });
-  if (extras) extras.forEach(function (e) { text += '- ' + e + '\n'; });
-  return text;
-}
-
-function i18nAlumniNote(lang) {
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  return '<p style="margin-top:12px;">' + t.alumniNote + '</p>';
-}
-
-function i18nPricingHtml(lang, fullPrice, deposit, remaining, rateNote) {
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  var currency = lang === 'da' ? ' kr.' : ' DKK';
-  return '<div style="margin-top:20px;padding:14px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">' +
-    '<strong>' + t.priceLabel + ':</strong> ' + fullPrice + currency + ' (' + t.noFees + ')<br>' +
-    '<strong>' + t.prepLabel + ':</strong> ' + deposit + currency + '<br>' +
-    '<strong>' + t.remainLabel + ':</strong> ' + remaining + currency + ' (' + rateNote + ')' +
-    '</div>';
-}
-
-function i18nPrepPhaseHtml(lang, programPageUrl) {
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  var html = '<div style="margin-top:16px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:4px;">';
-  html += '<strong style="color:#166534;">' + t.prepPhaseTitle + '</strong> ' + t.prepPhaseIntro + '<br><br>';
-  t.prepPhaseBullets.forEach(function (b) { html += '\u2705 ' + b + '<br>'; });
-  html += '<br><a href="' + programPageUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">' + t.prepPhaseBtn + '</a>';
-  html += '</div>';
-  return html;
-}
-
-function i18nAccommodationHtml(lang, cityCountry) {
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  var html = '<div style="margin-top:16px;padding:14px;background:#E8F5E9;border-radius:6px;border-left:3px solid #4CAF50;">';
-  html += '<strong style="color:#2E7D32;">' + t.accommodationTitle + '</strong> ';
-  html += t.accommodationIntro;
-  var accommodationConnector = lang === 'da' ? ' og' : lang === 'de' ? '' : ' and';
-  if (cityCountry) html += t.accommodationFromCity + escapeHtml(cityCountry) + accommodationConnector;
-  html += t.accommodationNeedHousing + '<br><br>';
-  html += '<strong><a href="' + t.accommodationLinkUrl + '" style="color:#f75c03;">' + t.accommodationLink + '</a></strong><br>';
-  html += '<span style="color:#666;">' + t.accommodationQuestion + '</span>';
-  html += '</div>';
-  return html;
-}
-
-/**
- * Build a full YTT program email in any language.
- * Used for: 4w, 4w-jul, 8w, 18w, 18w-aug, 300h, specialty programs.
- */
-async function sendProgramEmail(leadData, programKey, lang, tokenData) {
-  const firstName = leadData.first_name || '';
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  const p = (i18n.PROGRAMS[programKey] || {})[lang] || (i18n.PROGRAMS[programKey] || {}).en;
-  if (!p) return sendEmailGenericBilingual(leadData, lang);
-
-  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
-  const cityCountry = leadData.city_country || '';
-  const subject = (p.subject || '').replace('{{name}}', firstName).replace('{{program}}', leadData.program || '');
-
-  // Schedule URL
-  // Non-CPH Danish leads for July get the enhanced EN schedule page (includes accommodation info)
-  var schedLang = lang;
-  if (programKey === '4-week-jul' && lang === 'da' && !i18n.isCopenhagenLead(leadData)) {
-    schedLang = 'en';
-  }
-  var schedPath = (i18n.SCHEDULE_PATHS[schedLang] || i18n.SCHEDULE_PATHS.en)[programKey] || '';
-  var sUrl = schedPath ? i18n.scheduleUrl(schedPath, schedLang, tokenData) : '';
-
-  // Program page URL
-  var pages = i18n.PROGRAM_PAGES[lang] || i18n.PROGRAM_PAGES.en;
-  var programPageUrl = pages[programKey] || pages['about200h'];
-  var about200hUrl = pages['about200h'];
-
-  // ---- HTML ----
-  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>' + p.intro + '</p>';
-
-  if (sUrl) {
-    var schedIntro = lang === 'da' ? 'Her finder du alle tr\u00e6ningsdage og tidspunkter:' : lang === 'de' ? 'Hier findest du alle Trainingstage und Zeiten:' : 'Here are all the training days and times:';
-    var calNote = lang === 'da' ? 'Du kan tilf\u00f8je alle datoer direkte til din kalender.' : lang === 'de' ? 'Du kannst alle Termine direkt in deinen Kalender eintragen.' : 'You can add all dates directly to your calendar.';
-    bodyHtml += '<p>' + schedIntro + '</p>';
-    bodyHtml += '<p style="margin:20px 0;"><a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">' + t.viewScheduleBtn + '</a></p>';
-    bodyHtml += '<p style="font-size:14px;color:#666;">' + calNote + '</p>';
-  }
-
-  bodyHtml += '<p style="margin-top:16px;">' + p.description + '</p>';
-
-  // Vinyasa Plus special box
-  if (p.vinyasaDetail) {
-    bodyHtml += '<div style="margin:16px 0;padding:14px;background:#FFF7ED;border-left:3px solid #f75c03;border-radius:6px;">';
-    bodyHtml += '<strong style="color:#c2410c;">' + p.vinyasaTitle + '</strong><br><br>';
-    bodyHtml += p.vinyasaFlow + '<br>';
-    bodyHtml += p.vinyasaYin + '<br><br>';
-    bodyHtml += p.vinyasaCert;
-    bodyHtml += '</div>';
-  }
-
-  bodyHtml += i18nHighlightsHtml(lang, p.extras);
-  bodyHtml += i18nAlumniNote(lang);
-
-  if (needsHousing) bodyHtml += i18nAccommodationHtml(lang, cityCountry);
-  bodyHtml += i18nPricingHtml(lang, lang === 'da' ? '23.750' : '23,750', lang === 'da' ? '3.750' : '3,750', lang === 'da' ? '20.000' : '20,000', p.rateNote || t.noFees);
-  bodyHtml += i18nPrepPhaseHtml(lang, programPageUrl);
-
-  bodyHtml += '<p style="margin-top:20px;"><a href="' + programPageUrl + '" style="color:#f75c03;">' + t.readMore + '</a>';
-  bodyHtml += ' \u00b7 <a href="' + about200hUrl + '" style="color:#f75c03;">' + t.compareFormats + '</a></p>';
-  bodyHtml += i18nBookingCta(lang) + i18nQuestionPrompt(lang);
-
-  // ---- Plain text ----
-  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
-  bodyPlain += p.intro.replace(/<[^>]+>/g, '') + '\n\n';
-  var schedLabel = lang === 'da' ? 'Skema og datoer: ' : lang === 'de' ? 'Stundenplan und Termine: ' : 'Schedule and dates: ';
-  if (sUrl) bodyPlain += schedLabel + sUrl + '\n\n';
-  bodyPlain += p.description + '\n\n';
-  bodyPlain += i18nHighlightsPlain(lang, p.extras);
-  bodyPlain += '\n' + t.priceLabel + ': ' + (lang === 'da' ? '23.750 kr.' : '23,750 DKK') + '\n';
-  bodyPlain += t.prepLabel + ': ' + (lang === 'da' ? '3.750 kr.' : '3,750 DKK') + '\n';
-  bodyPlain += t.remainLabel + ': ' + (lang === 'da' ? '20.000 kr.' : '20,000 DKK') + ' (' + (p.rateNote || '') + ')\n\n';
-  bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
-  bodyPlain += t.lookingForward;
-
-  var result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:' + programKey,
-      lang: lang
-    });
-  return { ...result, subject: subject };
-}
-
-/**
- * Multi-format comparison email — bilingual
- */
-async function sendMultiFormatEmail(leadData, lang, tokenData) {
-  const firstName = leadData.first_name || '';
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  const m = i18n.MULTI_FORMAT_INFO[lang] || i18n.MULTI_FORMAT_INFO.en;
-  const formats = (leadData.all_formats || '').split(',').filter(function (f) { return f; });
-  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
-  const cityCountry = leadData.city_country || '';
-
-  // Build format list with proper joiner
-  var formatNames = formats.map(function (f) { return (m.formats[f] || {}).name || f; });
-  var formatList;
-  if (formatNames.length > 1) {
-    formatList = formatNames.slice(0, -1).join(', ') + m.joiner + formatNames[formatNames.length - 1];
-  } else {
-    formatList = formatNames[0] || '';
-  }
-
-  var subject = m.subject.replace('{{name}}', firstName);
-  var pages = i18n.PROGRAM_PAGES[lang] || i18n.PROGRAM_PAGES.en;
-  var schedPaths = i18n.SCHEDULE_PATHS[lang] || i18n.SCHEDULE_PATHS.en;
-
-  // ---- HTML ----
-  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>' + m.intro + '</p>';
-  bodyHtml += '<p>' + m.compareIntro.replace('{{formats}}', escapeHtml(formatList)) + '</p>';
-
-  // Comparison prompt
-  bodyHtml += '<div style="margin:20px 0;padding:14px;background:#E3F2FD;border-radius:6px;border-left:3px solid #1976D2;">';
-  bodyHtml += '<strong style="color:#1565C0;">' + m.comparisonPromptTitle + '</strong><br>';
-  bodyHtml += m.comparisonPromptBody + '<br><br>';
-  bodyHtml += '<span style="color:#666;">' + m.comparisonPromptReply + '</span>';
-  bodyHtml += '</div>';
-
-  // Format cards
-  bodyHtml += '<p style="margin-top:20px;"><strong>' + m.overviewTitle + '</strong></p>';
-  formats.forEach(function (f) {
-    var info = m.formats[f];
-    if (!info) return;
-    var sPath = schedPaths[info.programType] || '';
-    var sUrl = sPath ? i18n.scheduleUrl(sPath, lang, tokenData) : '';
-    var pUrl = pages[info.programType] || pages['about200h'];
-    bodyHtml += '<div style="margin:12px 0;padding:12px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
-    bodyHtml += '<strong>' + escapeHtml(info.name) + '</strong> <span style="color:#888;">(' + escapeHtml(info.period) + ')</span><br>';
-    bodyHtml += '<span style="color:#555;">' + info.desc + '</span><br>';
-    if (sUrl) {
-      bodyHtml += '<p style="margin:10px 0 4px;"><a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#fff;padding:8px 18px;text-decoration:none;border-radius:50px;font-weight:600;font-size:14px;">' + t.viewScheduleBtn + '</a></p>';
-    }
-    bodyHtml += '<a href="' + pUrl + '" style="color:#f75c03;font-size:13px;">' + t.readMore + '</a>';
-    bodyHtml += '</div>';
-  });
-
-  bodyHtml += i18nHighlightsHtml(lang);
-  bodyHtml += i18nAlumniNote(lang);
-  if (needsHousing) bodyHtml += i18nAccommodationHtml(lang, cityCountry);
-  bodyHtml += i18nPricingHtml(lang, lang === 'da' ? '23.750' : '23,750', lang === 'da' ? '3.750' : '3,750', lang === 'da' ? '20.000' : '20,000', m.samePriceNote);
-
-  // Prep phase CTA
-  bodyHtml += '<div style="margin-top:20px;padding:16px;background:#F0FDF4;border-left:3px solid #22C55E;border-radius:4px;">';
-  bodyHtml += '<strong style="color:#166534;">' + t.prepPhaseSmart + '</strong><br><br>';
-  bodyHtml += t.prepPhaseIntro + '<br><br>';
-  t.prepPhaseBullets.forEach(function (b) { bodyHtml += '\u2705 ' + b + '<br>'; });
-  bodyHtml += '<br><a href="' + pages['about200h'] + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:600;">' + t.prepPhaseBtn + '</a>';
-  bodyHtml += '</div>';
-
-  bodyHtml += '<p style="margin-top:20px;">' + m.seeStudio + '</p>';
-  bodyHtml += i18nBookingCta(lang);
-  bodyHtml += '<p>' + t.lookingForward + '</p>';
-
-  // ---- Plain text ----
-  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
-  bodyPlain += m.intro.replace(/<[^>]+>/g, '') + '\n\n';
-  bodyPlain += m.compareIntro.replace(/<[^>]+>/g, '').replace('{{formats}}', formatList) + '\n\n';
-  formats.forEach(function (f) {
-    var info = m.formats[f];
-    if (!info) return;
-    var sPath = schedPaths[info.programType] || '';
-    var sUrl = sPath ? i18n.scheduleUrl(sPath, lang, tokenData) : '';
-    bodyPlain += '--- ' + info.name + ' (' + info.period + ') ---\n';
-    bodyPlain += info.desc + '\n';
-    if (sUrl) bodyPlain += (lang === 'da' ? 'Skema: ' : lang === 'de' ? 'Stundenplan: ' : 'Schedule: ') + sUrl + '\n';
-    bodyPlain += '\n';
-  });
-  bodyPlain += i18nHighlightsPlain(lang);
-  bodyPlain += '\n' + t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
-  bodyPlain += t.lookingForward;
-
-  var result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:multi-format',
-      lang: lang
-    });
-  return { ...result, subject: subject };
-}
-
-/**
- * Undecided YTT email — bilingual
- */
-async function sendUndecidedEmail(leadData, lang, tokenData) {
-  const firstName = leadData.first_name || '';
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  const u = i18n.UNDECIDED_INFO[lang] || i18n.UNDECIDED_INFO.en;
-  const needsHousing = (leadData.accommodation || '').toLowerCase() === 'yes';
-  const cityCountry = leadData.city_country || '';
-  var schedPaths = i18n.SCHEDULE_PATHS[lang] || i18n.SCHEDULE_PATHS.en;
-  var pages = i18n.PROGRAM_PAGES[lang] || i18n.PROGRAM_PAGES.en;
-
-  var subject = u.subject.replace('{{name}}', firstName);
-
-  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>' + u.intro + '</p>';
-  bodyHtml += '<p>' + u.normalText + '</p>';
-
-  // Same cert info box
-  bodyHtml += '<div style="margin:20px 0;padding:14px;background:#E3F2FD;border-radius:6px;border-left:3px solid #1976D2;">';
-  bodyHtml += '<strong style="color:#1565C0;">' + u.sameCertTitle + '</strong><br>';
-  bodyHtml += u.sameCertBody;
-  bodyHtml += '</div>';
-
-  // Format cards
-  bodyHtml += '<p style="margin-top:24px;"><strong>' + u.optionsTitle + '</strong></p>';
-  u.formats.forEach(function (f) {
-    var sPath = schedPaths[f.programType] || '';
-    var sUrl = sPath ? i18n.scheduleUrl(sPath, lang, tokenData) : '';
-    var pUrl = pages[f.programType] || pages['about200h'];
-    bodyHtml += '<div style="margin:16px 0;padding:16px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
-    bodyHtml += '<strong style="font-size:17px;">' + f.emoji + ' ' + escapeHtml(f.name) + '</strong> <span style="color:#888;">(' + escapeHtml(f.period) + ')</span><br>';
-    bodyHtml += '<span style="color:#555;">' + f.desc + '</span><br><br>';
-    bodyHtml += '<span style="color:#166534;font-size:14px;"><strong>' + u.goodFor + '</strong> ' + f.goodFor + '</span><br>';
-    bodyHtml += '<p style="margin:10px 0 4px;">';
-    if (sUrl) bodyHtml += '<a href="' + sUrl + '" style="display:inline-block;background:#f75c03;color:#fff;padding:8px 18px;text-decoration:none;border-radius:50px;font-weight:600;font-size:14px;">' + t.viewScheduleBtn + '</a> ';
-    bodyHtml += '<a href="' + pUrl + '" style="color:#f75c03;font-size:13px;margin-left:12px;">' + t.readMore + '</a>';
-    bodyHtml += '</p></div>';
-  });
-
-  // Compare CTA
-  bodyHtml += '<div style="margin:24px 0;padding:16px;background:#F5F3F0;border-radius:6px;text-align:center;">';
-  bodyHtml += '<p style="margin:0 0 10px;"><strong>' + u.stillUndecided + '</strong></p>';
-  bodyHtml += '<a href="' + pages['about200h'] + '" style="display:inline-block;background:#1a1a1a;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">' + u.compareBtn + '</a>';
-  bodyHtml += '</div>';
-
-  bodyHtml += i18nHighlightsHtml(lang);
-  bodyHtml += i18nAlumniNote(lang);
-  if (needsHousing) bodyHtml += i18nAccommodationHtml(lang, cityCountry);
-  bodyHtml += i18nPricingHtml(lang, lang === 'da' ? '23.750' : '23,750', lang === 'da' ? '3.750' : '3,750', lang === 'da' ? '20.000' : '20,000', u.samePriceNote);
-  bodyHtml += i18nPrepPhaseHtml(lang, pages['about200h']);
-
-  bodyHtml += '<p style="margin-top:24px;">' + u.meetingCta + '</p>';
-  bodyHtml += i18nBookingCta(lang);
-  bodyHtml += '<p>' + u.replyOk + '</p>';
-
-  // Plain text
-  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
-  bodyPlain += u.intro.replace(/<[^>]+>/g, '') + '\n\n';
-  u.formats.forEach(function (f) {
-    bodyPlain += f.emoji + ' ' + f.name + ' (' + f.period + ')\n';
-    bodyPlain += f.desc + '\n';
-    bodyPlain += u.goodFor + ' ' + f.goodFor + '\n\n';
-  });
-  bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
-
-  var result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:undecided',
-      lang: lang
-    });
-  return { ...result, subject: subject };
-}
-
-/**
- * Generic / Contact email — bilingual
- */
-async function sendEmailGenericBilingual(leadData, lang, tokenData = {}) {
-  const firstName = leadData.first_name || '';
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  const g = (i18n.PROGRAMS['generic'] || {})[lang] || i18n.PROGRAMS['generic'].en;
-
-  var subject = g.subject;
-  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>' + g.intro + '</p>';
-  bodyHtml += '<p>' + g.body + '</p>';
-  bodyHtml += '<p>' + g.meanwhile + '</p>';
-  bodyHtml += '<ul style="margin:10px 0;padding-left:20px;">';
-  bodyHtml += '<li>' + g.bookLink + ': <a href="' + CONFIG.MEETING_LINK + '" style="color:#f75c03;">' + (lang === 'da' ? 'Klik her' : lang === 'de' ? 'Hier klicken' : 'Click here') + '</a></li>';
-  bodyHtml += '<li>' + g.visitLink + ': <a href="' + g.visitUrl + '" style="color:#f75c03;">yogabible.dk</a></li>';
-  bodyHtml += '</ul>';
-  bodyHtml += '<p>' + t.replyInvite + '</p>';
-
-  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + g.intro.replace(/<[^>]+>/g, '') + '\n\n' +
-    g.body + '\n\n' + g.bookLink + ': ' + CONFIG.MEETING_LINK + '\n' + g.visitLink + ': ' + g.visitUrl;
-
-  var result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:generic',
-      lang: lang
-    });
-  return { ...result, subject: subject };
-}
-
-/**
- * Mentorship email — bilingual
- */
-async function sendMentorshipEmail(leadData, lang, tokenData = {}) {
-  const firstName = leadData.first_name || '';
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  const p = (i18n.PROGRAMS['mentorship'] || {})[lang] || i18n.PROGRAMS['mentorship'].en;
-  var service = leadData.service || leadData.program || 'Mentorship';
-
-  var subject = p.subject.replace('{{service}}', service);
-  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>' + p.intro.replace('{{service}}', escapeHtml(service)) + '</p>';
-  bodyHtml += '<p>' + p.description + '</p>';
-  bodyHtml += i18nBookingCta(lang);
-  bodyHtml += '<p>' + t.replyInvite + '</p>';
-
-  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + p.intro.replace(/<[^>]+>/g, '').replace('{{service}}', service) + '\n\n' +
-    p.description + '\n\n' + t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
-
-  var result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:mentorship',
-      lang: lang
-    });
-  return { ...result, subject: subject };
-}
-
-/**
- * Courses email — bilingual
- */
-async function sendCoursesEmail(leadData, lang, tokenData = {}) {
-  const firstName = leadData.first_name || '';
-  const t = i18n.SHARED[lang] || i18n.SHARED.en;
-  const c = (i18n.PROGRAMS['courses'] || {})[lang] || i18n.PROGRAMS['courses'].en;
-  var courses = leadData.program || '';
-  var courseList = courses.split(/[,+]/).map(function (s) { return s.trim(); }).filter(function (s) { return s; });
-  var isBundle = courseList.length > 1;
-
-  var subject = isBundle ? c.subjectBundle : c.subjectSingle;
-  var bodyHtml = '<p>' + t.greeting + ' ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>' + (isBundle ? c.introBundle : c.introSingle).replace('{{courses}}', escapeHtml(courses)) + '</p>';
-
-  courseList.forEach(function (course) {
-    var config = COURSE_CONFIG[course];
-    if (config) {
-      bodyHtml += '<div style="margin:10px 0;padding:12px;background:#FFFCF9;border-left:3px solid #f75c03;border-radius:4px;">';
-      bodyHtml += '<strong>' + escapeHtml(config.label) + '</strong> \u2014 ' + config.description + '<br>';
-      bodyHtml += '<span style="color:#666;">' + c.sessions + ' \u00b7 ' + c.pricePer + '</span>';
-      bodyHtml += '</div>';
-    }
-  });
-
-  if (courseList.length === 2) {
-    bodyHtml += '<p style="color:#166534;font-weight:bold;">\u2705 ' + c.bundle2Discount + '</p>';
-  } else if (courseList.length >= 3) {
-    bodyHtml += '<p style="color:#166534;font-weight:bold;">\u2705 ' + c.bundle3Discount + '</p>';
-  }
-
-  bodyHtml += i18nBookingCta(lang);
-  bodyHtml += '<p>' + t.replyInvite + '</p>';
-
-  var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + (isBundle ? c.introBundle : c.introSingle).replace(/<[^>]+>/g, '').replace('{{courses}}', courses) + '\n\n';
-  bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
-
-  var result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:courses',
-      lang: lang
-    });
-  return { ...result, subject: subject };
-}
-
 async function sendEmailGeneric(leadData, tokenData = {}) {
   const firstName = leadData.first_name || '';
-  const subject = 'Tak for din henvendelse \u2014 Yoga Bible';
+  const subject = 'Tak for din henvendelse';
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
-  bodyHtml += '<p>Tak fordi du tog kontakt til <strong>Yoga Bible</strong>!</p>';
-  bodyHtml += '<p>Vi har modtaget din foresp\u00f8rgsel og vender tilbage snarest.</p>';
-  bodyHtml += '<p>I mellemtiden:</p>';
-  bodyHtml += '<ul style="margin:10px 0;padding-left:20px;">';
-  bodyHtml += '<li>Book en samtale: <a href="' + CONFIG.MEETING_LINK + '" style="color:#f75c03;">Klik her</a></li>';
-  bodyHtml += '<li>Bes\u00f8g vores hjemmeside: <a href="https://www.yogabible.dk" style="color:#f75c03;">yogabible.dk</a></li>';
-  bodyHtml += '</ul>';
-  bodyHtml += '<p>Du er velkommen til at svare p\u00e5 denne e-mail med sp\u00f8rgsm\u00e5l.</p>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName) + ',</p>';
+  html += '<p>Tak fordi du tog kontakt til Yoga Bible. Vi har modtaget din forespørgsel og vender tilbage snarest.</p>';
+  html += '<p>I mellemtiden er du velkommen til at ' + link(CONFIG.MEETING_LINK, 'booke en samtale her') + ', eller besøge ' + link('https://www.yogabible.dk', 'yogabible.dk') + '. Du kan også bare svare på denne mail med spørgsmål.</p>';
+  html += '<p>Shamir</p>';
 
-  const bodyPlain = 'Hej ' + firstName + ',\n\nTak fordi du tog kontakt til Yoga Bible!\n\nVi vender tilbage snarest.\n\nBook en samtale: ' + CONFIG.MEETING_LINK + '\nBes\u00f8g: https://www.yogabible.dk';
+  const plain = 'Hej ' + firstName + ',\n\nTak fordi du tog kontakt. Vi vender tilbage snarest.\n\nBook en samtale: ' + CONFIG.MEETING_LINK + '\nBesøg: https://www.yogabible.dk\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: leadData.email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: (tokenData || {}).leadId,
-      campaignId: 'welcome:generic',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:generic', lang: 'da'
+  });
   return { ...result, subject };
 }
 
 // =========================================================================
-// Application Confirmation Email
+// Bilingual program email — used for EN/DE leads with a known YTT program
 // =========================================================================
 
-async function sendApplicationConfirmation(email, applicationId, firstName) {
-  const subject = 'Tak for din ansøgning — Yoga Bible';
+const PROGRAM_COPY = {
+  '4-week': {
+    en: { name: '4-Week Intensive Yoga Teacher Training', cohort: 'April 2026', schedPath: '/en/schedule/4-weeks-intensive/', page: 'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs', desc: 'Fully immersive — daily training and theory across 4 weeks. Hatha, Vinyasa, Yin, Hot Yoga and Meditation. Most students who start have practised for 1–2 years; the format meets you where you are.' },
+    de: { name: '4-wöchige Intensiv-Yogalehrerausbildung', cohort: 'April 2026', schedPath: '/en/schedule/4-weeks-intensive/', page: 'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs', desc: 'Voll immersiv — tägliches Training und Theorie über 4 Wochen. Hatha, Vinyasa, Yin, Hot Yoga und Meditation.' }
+  },
+  '4-week-jun': {
+    en: { name: '4-Week Complete Program', cohort: 'June 2026', schedPath: '/en/schedule/4-weeks-june/', page: 'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs', desc: 'Fully immersive — daily training and theory across 4 weeks. Hatha, Vinyasa, Yin, Hot Yoga and Meditation. Starts June 1, graduates June 28.' },
+    de: { name: '4-wöchiges Complete-Programm', cohort: 'Juni 2026', schedPath: '/en/schedule/4-weeks-june/', page: 'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs', desc: 'Voll immersiv — tägliches Training und Theorie über 4 Wochen. Beginnt am 1. Juni, Abschluss am 28. Juni.' }
+  },
+  '4-week-jul': {
+    en: { name: '4-Week Vinyasa Plus', cohort: 'July 2026', schedPath: '/en/schedule/4-weeks-july-plan/', page: 'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs', desc: '70% Vinyasa Flow + 30% Yin Yoga + Hot Yoga. You\'ll be certified to teach both non-heated and heated classes.' },
+    de: { name: '4-Wochen Vinyasa Plus', cohort: 'Juli 2026', schedPath: '/en/schedule/4-weeks-july-plan/', page: 'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs', desc: '70% Vinyasa Flow + 30% Yin Yoga + Hot Yoga. Du wirst zertifiziert, sowohl unbeheizte als auch beheizte Stunden zu unterrichten.' }
+  },
+  '8-week': {
+    en: { name: '8-Week Semi-Intensive Program', cohort: 'May–June 2026', schedPath: '/en/schedule/8-weeks/', page: 'https://www.yogabible.dk/en/200-hours-8-weeks-semi-intensive-programs', desc: 'A balance of intensity and everyday life — focused enough to make real progress, with room for work or family alongside.' },
+    de: { name: '8-wöchiges Semi-Intensiv-Programm', cohort: 'Mai–Juni 2026', schedPath: '/en/schedule/8-weeks/', page: 'https://www.yogabible.dk/en/200-hours-8-weeks-semi-intensive-programs', desc: 'Eine Balance aus Intensität und Alltag — fokussiert genug für echte Fortschritte, mit Raum für Arbeit oder Familie nebenbei.' }
+  },
+  '18-week': {
+    en: { name: '18-Week Flexible Program', cohort: 'Spring 2026', schedPath: '/en/schedule/18-weeks/', page: 'https://www.yogabible.dk/en/200-hours-18-weeks-flexible-programs', desc: 'The most flexible format — choose weekday or weekend track and switch freely. 60 yoga classes included.' },
+    de: { name: '18-wöchiges Flexibles Programm', cohort: 'Frühjahr 2026', schedPath: '/en/schedule/18-weeks/', page: 'https://www.yogabible.dk/en/200-hours-18-weeks-flexible-programs', desc: 'Das flexibelste Format — wähle Wochentag- oder Wochenend-Track und wechsle frei. 60 Yogaklassen inklusive.' }
+  },
+  '18-week-aug': {
+    en: { name: '18-Week Flexible Program', cohort: 'August–December 2026', schedPath: '/en/schedule/18-weeks-august/', page: 'https://www.yogabible.dk/en/200-hours-18-weeks-flexible-programs', desc: 'Autumn cohort — start August 10, graduate December 13. Choose weekday or weekend track and switch freely. 60 yoga classes included.' },
+    de: { name: '18-wöchiges Flexibles Programm', cohort: 'August–Dezember 2026', schedPath: '/en/schedule/18-weeks-august/', page: 'https://www.yogabible.dk/en/200-hours-18-weeks-flexible-programs', desc: 'Herbstkurs — Start am 10. August, Abschluss am 13. Dezember. Wähle Wochentag- oder Wochenend-Track und wechsle frei.' }
+  },
+  '300h': {
+    en: { name: '300-Hour Advanced Yoga Teacher Training', cohort: 'May–December 2026', schedPath: '/en/schedule/300-hour/', page: 'https://www.yogabible.dk/en/300-hour-advanced-yoga-teacher-training', desc: '24 weeks of advanced training in Copenhagen. RYT-500 certification through Yoga Alliance.' },
+    de: { name: '300-Stunden Advanced Yogalehrerausbildung', cohort: 'Mai–Dezember 2026', schedPath: '/en/schedule/300-hour/', page: 'https://www.yogabible.dk/en/300-hour-advanced-yoga-teacher-training', desc: '24 Wochen fortgeschrittenes Training in Kopenhagen. RYT-500 Zertifizierung durch Yoga Alliance.' }
+  },
+  'specialty': {
+    en: { name: 'Specialty Teacher Training', cohort: '2026', schedPath: '', page: 'https://www.yogabible.dk/en/specialty-teacher-trainings', desc: 'Specialised modules for teachers who want to deepen their expertise in specific areas.' },
+    de: { name: 'Spezialisierungs-Lehrerausbildung', cohort: '2026', schedPath: '', page: 'https://www.yogabible.dk/en/specialty-teacher-trainings', desc: 'Spezialisierte Module für Lehrer, die ihr Fachwissen in bestimmten Bereichen vertiefen möchten.' }
+  }
+};
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName || '') + ',</p>';
-  bodyHtml += '<p>Tak for din ansøgning til <strong>Yoga Bible</strong>!</p>';
-  bodyHtml += '<p>Dit ansøgnings-ID er: <strong>' + escapeHtml(applicationId) + '</strong></p>';
-  bodyHtml += '<p>Vi kigger din ansøgning igennem og vender tilbage med næste skridt.</p>';
-  bodyHtml += '<p>Har du spørgsmål i mellemtiden? Svar bare på denne e-mail eller ring til os på <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a>.</p>';
+async function sendProgramEmail(leadData, programKey, lang, tokenData) {
+  const firstName = leadData.first_name || '';
+  const isEn = lang === 'en';
+  const copy = (PROGRAM_COPY[programKey] || PROGRAM_COPY['4-week'])[isEn ? 'en' : 'de'];
+  const country = (leadData.country || 'OTHER').toUpperCase();
+  const localizedPrice = getLocalizedPrepPrice(country);
+  const fullPrice = isEn ? '23,750 DKK' : '23.750 DKK';
+  const remaining = isEn ? '20,000 DKK' : '20.000 DKK';
 
-  const bodyPlain = 'Hej ' + (firstName || '') + ',\n\nTak for din ansøgning til Yoga Bible!\n\nDit ansøgnings-ID er: ' + applicationId + '\n\nVi kigger din ansøgning igennem og vender tilbage.\n\nHar du spørgsmål? Svar på denne e-mail eller ring +45 53 88 12 09.';
+  const sUrl = copy.schedPath ? tokenize('https://www.yogabible.dk' + copy.schedPath, tokenData) : '';
+  const subject = isEn
+    ? 'Dates for the ' + copy.name + ' (' + copy.cohort + ')'
+    : 'Termine für die ' + copy.name + ' (' + copy.cohort + ')';
+
+  let html = '';
+  html += '<p>' + (isEn ? 'Hi ' : 'Hej ') + escapeHtml(firstName) + ',</p>';
+
+  if (isEn) {
+    html += '<p>Thanks for your interest in our ' + copy.name + ' (' + copy.cohort + ').' + (sUrl ? ' Here are all the training days and times: ' + link(sUrl, 'View the schedule') + '.' : '') + ' You can add the dates directly to your calendar.</p>';
+    html += '<p>' + copy.desc + '</p>';
+    html += '<p>200 hours, Yoga Alliance certified (RYT-200). Anatomy, philosophy, sequencing and teaching methodology. All levels welcome. We\'ve been training yoga teachers since 2014.</p>';
+    html += '<p>The Preparation Phase (' + localizedPrice + ') reserves your place — the amount is deducted from the full price of ' + fullPrice + ', so the remaining ' + remaining + ' can be paid in flexible instalments. ' + link(copy.page, 'Start the Preparation Phase here') + '.</p>';
+    html += '<p>If you\'d like to talk about it, ' + link(CONFIG.MEETING_LINK, 'book a free info session here') + ' — or just reply to this email.</p>';
+  } else {
+    html += '<p>Vielen Dank für dein Interesse an unserer ' + copy.name + ' (' + copy.cohort + ').' + (sUrl ? ' Hier sind alle Trainingstage und -zeiten: ' + link(sUrl, 'Stundenplan ansehen') + '.' : '') + ' Du kannst die Termine direkt in deinen Kalender übernehmen.</p>';
+    html += '<p>' + copy.desc + '</p>';
+    html += '<p>200 Stunden, Yoga Alliance zertifiziert (RYT-200). Anatomie, Philosophie, Sequencing und Unterrichtsmethodik. Alle Levels willkommen. Wir bilden seit 2014 Yogalehrer aus.</p>';
+    html += '<p>Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz — der Betrag wird vom Gesamtpreis von ' + fullPrice + ' abgezogen, sodass der Rest von ' + remaining + ' in flexiblen Raten bezahlt werden kann. ' + link(copy.page, 'Vorbereitungsphase hier starten') + '.</p>';
+    html += '<p>Wenn du darüber sprechen möchtest, ' + link(CONFIG.MEETING_LINK, 'buche hier ein kostenloses Online-Gespräch') + ' — oder antworte einfach auf diese E-Mail.</p>';
+  }
+  html += '<p>Shamir</p>';
+
+  let plain = (isEn ? 'Hi ' : 'Hej ') + firstName + ',\n\n';
+  plain += (isEn ? 'Thanks for your interest in our ' : 'Vielen Dank für dein Interesse an unserer ') + copy.name + ' (' + copy.cohort + ').\n\n';
+  if (sUrl) plain += (isEn ? 'Schedule and dates: ' : 'Stundenplan und Termine: ') + sUrl + '\n\n';
+  plain += copy.desc + '\n\n';
+  plain += (isEn ? 'Preparation Phase: ' : 'Vorbereitungsphase: ') + localizedPrice + '\nStart: ' + copy.page + '\n\n';
+  plain += (isEn ? 'Book a call: ' : 'Gespräch buchen: ') + CONFIG.MEETING_LINK + '\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: null,
-      campaignId: 'welcome:application',
-      lang: 'da'
-    });
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:' + programKey, lang: lang
+  });
+  return { ...result, subject };
+}
 
+// =========================================================================
+// Multi-format (EN/DE)
+// =========================================================================
+async function sendMultiFormatEmail(leadData, lang, tokenData) {
+  const firstName = leadData.first_name || '';
+  const isEn = lang === 'en';
+  const formats = (leadData.all_formats || '').split(',').map(s => s.trim()).filter(Boolean);
+  const country = (leadData.country || 'OTHER').toUpperCase();
+  const localizedPrice = getLocalizedPrepPrice(country);
+
+  const subject = isEn ? 'Your YTT schedules' : 'Deine YTT-Stundenpläne';
+
+  let html = '';
+  html += '<p>' + (isEn ? 'Hi ' : 'Hej ') + escapeHtml(firstName) + ',</p>';
+  html += '<p>' + (isEn ? 'Thanks for your interest in our 200-Hour Yoga Teacher Training. You\'re comparing a few formats — good thinking. Below are the schedules and dates for each.'
+                       : 'Vielen Dank für dein Interesse an unserer 200-Stunden Yogalehrerausbildung. Du vergleichst mehrere Formate — gute Überlegung. Hier sind die Stundenpläne und Termine für jedes.') + '</p>';
+  html += '<p>' + (isEn ? 'A quick question: is it because you have work, study, or other commitments that affect which format fits best? Just reply and I\'ll help you find the right match.'
+                       : 'Eine kurze Frage: Liegt es daran, dass du Arbeit, Studium oder andere Verpflichtungen hast, die beeinflussen, welches Format am besten passt? Antworte einfach, und ich helfe dir, das richtige Match zu finden.') + '</p>';
+
+  formats.forEach(f => {
+    var copy = PROGRAM_COPY[f === '18w' ? '18-week' : f === '18w-aug' ? '18-week-aug' : f === '18w-mar' ? '18-week' : f === '8w' ? '8-week' : f === '4w' ? '4-week' : f === '4w-jun' ? '4-week-jun' : f === '4w-jul' ? '4-week-jul' : f];
+    if (!copy) return;
+    var c = copy[isEn ? 'en' : 'de'];
+    var sUrl = c.schedPath ? tokenize('https://www.yogabible.dk' + c.schedPath, tokenData) : '';
+    html += '<p><strong>' + escapeHtml(c.name) + '</strong> (' + escapeHtml(c.cohort) + '): ' + c.desc + (sUrl ? ' ' + link(sUrl, isEn ? 'View schedule' : 'Stundenplan ansehen') : '') + ' · ' + link(c.page, isEn ? 'read more' : 'mehr erfahren') + '.</p>';
+  });
+
+  html += '<p>' + (isEn ? 'All formats give you the same 200-Hour Yoga Alliance certification with the same curriculum.'
+                       : 'Alle Formate führen zur gleichen 200-Stunden Yoga Alliance Zertifizierung mit demselben Curriculum.') + '</p>';
+  html += '<p>' + (isEn ? 'The Preparation Phase (' + localizedPrice + ') reserves your place — same price for any format. Pay the rest in flexible instalments. '
+                       : 'Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz — gleicher Preis für jedes Format. Den Rest in flexiblen Raten zahlen. ')
+            + link('https://www.yogabible.dk/en/200-hours-yoga-teacher-trainings', isEn ? 'Start the Preparation Phase here' : 'Vorbereitungsphase hier starten') + '.</p>';
+  html += '<p>' + (isEn ? 'If you\'d like to talk it through, ' : 'Wenn du darüber sprechen möchtest, ')
+            + link(CONFIG.MEETING_LINK, isEn ? 'book a free info session here' : 'buche hier ein kostenloses Online-Gespräch') + '.</p>';
+  html += '<p>Shamir</p>';
+
+  let plain = (isEn ? 'Hi ' : 'Hej ') + firstName + ',\n\n';
+  plain += (isEn ? 'Thanks for your interest. You\'re comparing several formats. Below are the details:\n\n' : 'Vielen Dank für dein Interesse. Du vergleichst mehrere Formate:\n\n');
+  formats.forEach(f => {
+    var copy = PROGRAM_COPY[f === '18w' ? '18-week' : f === '18w-aug' ? '18-week-aug' : f === '8w' ? '8-week' : f === '4w' ? '4-week' : f === '4w-jun' ? '4-week-jun' : f === '4w-jul' ? '4-week-jul' : f];
+    if (!copy) return;
+    var c = copy[isEn ? 'en' : 'de'];
+    plain += c.name + ' (' + c.cohort + '): ' + c.desc + '\n' + (isEn ? 'Read more: ' : 'Mehr: ') + c.page + '\n\n';
+  });
+  plain += (isEn ? 'Preparation Phase: ' : 'Vorbereitungsphase: ') + localizedPrice + '\n\n';
+  plain += (isEn ? 'Book a call: ' : 'Gespräch buchen: ') + CONFIG.MEETING_LINK + '\n\nShamir';
+
+  const result = await sendSingleViaResend({
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:multi-format', lang: lang
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
+// Undecided (EN/DE)
+// =========================================================================
+async function sendUndecidedEmail(leadData, lang, tokenData) {
+  const firstName = leadData.first_name || '';
+  const isEn = lang === 'en';
+  const country = (leadData.country || 'OTHER').toUpperCase();
+  const localizedPrice = getLocalizedPrepPrice(country);
+
+  const subject = isEn ? 'Find your perfect YTT format' : 'Finde dein perfektes YTT-Format';
+
+  const formatKeys = ['4-week-jun', '8-week', '4-week-jul', '18-week-aug'];
+
+  let html = '';
+  html += '<p>' + (isEn ? 'Hi ' : 'Hej ') + escapeHtml(firstName) + ',</p>';
+  html += '<p>' + (isEn ? 'Thanks for your interest in our 200-Hour Yoga Teacher Training. It\'s normal not to know which format suits you best — it depends on your everyday life, your goals and how you learn. Here\'s an overview.'
+                       : 'Vielen Dank für dein Interesse an unserer 200-Stunden Yogalehrerausbildung. Es ist normal, nicht zu wissen, welches Format am besten passt — es hängt von deinem Alltag, deinen Zielen und deinem Lernstil ab. Hier ist eine Übersicht.') + '</p>';
+  html += '<p>' + (isEn ? 'All formats give you the same 200-hour Yoga Alliance certification with the same curriculum: Hatha, Vinyasa, Yin, Hot Yoga, Meditation, anatomy, philosophy and teaching methodology.'
+                       : 'Alle Formate führen zur gleichen 200-Stunden Yoga Alliance Zertifizierung mit demselben Curriculum: Hatha, Vinyasa, Yin, Hot Yoga, Meditation, Anatomie, Philosophie und Unterrichtsmethodik.') + '</p>';
+
+  formatKeys.forEach(k => {
+    var copy = (PROGRAM_COPY[k] || {})[isEn ? 'en' : 'de'];
+    if (!copy) return;
+    var sUrl = copy.schedPath ? tokenize('https://www.yogabible.dk' + copy.schedPath, tokenData) : '';
+    html += '<p><strong>' + escapeHtml(copy.name) + '</strong> (' + escapeHtml(copy.cohort) + '): ' + copy.desc + (sUrl ? ' ' + link(sUrl, isEn ? 'See schedule' : 'Stundenplan ansehen') : '') + ' · ' + link(copy.page, isEn ? 'read more' : 'mehr erfahren') + '.</p>';
+  });
+
+  html += '<p>' + (isEn ? 'The Preparation Phase (' + localizedPrice + ') reserves your place — same price for any format. '
+                       : 'Die Vorbereitungsphase (' + localizedPrice + ') reserviert deinen Platz — gleicher Preis für jedes Format. ')
+            + link('https://www.yogabible.dk/en/200-hours-yoga-teacher-trainings', isEn ? 'Start the Preparation Phase here' : 'Vorbereitungsphase hier starten') + '.</p>';
+  html += '<p>' + (isEn ? 'The best thing you can do now is ' : 'Das Beste, was du jetzt tun kannst, ist ')
+            + link(CONFIG.MEETING_LINK, isEn ? 'book a free info session' : 'ein kostenloses Online-Gespräch zu buchen')
+            + (isEn ? ' so I can help you personally find the right format. Or just reply to this email.'
+                    : ', damit ich dir persönlich helfen kann, das richtige Format zu finden. Oder antworte einfach auf diese E-Mail.') + '</p>';
+  html += '<p>Shamir</p>';
+
+  let plain = (isEn ? 'Hi ' : 'Hej ') + firstName + ',\n\n';
+  plain += (isEn ? 'Thanks for your interest. Here\'s an overview of all formats:\n\n' : 'Vielen Dank für dein Interesse. Hier ist eine Übersicht aller Formate:\n\n');
+  formatKeys.forEach(k => {
+    var copy = (PROGRAM_COPY[k] || {})[isEn ? 'en' : 'de'];
+    if (!copy) return;
+    plain += copy.name + ' (' + copy.cohort + '): ' + copy.desc + '\n' + (isEn ? 'Read more: ' : 'Mehr: ') + copy.page + '\n\n';
+  });
+  plain += (isEn ? 'Preparation Phase: ' : 'Vorbereitungsphase: ') + localizedPrice + '\n\n';
+  plain += (isEn ? 'Book an info session: ' : 'Infogespräch buchen: ') + CONFIG.MEETING_LINK + '\n\nShamir';
+
+  const result = await sendSingleViaResend({
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:undecided', lang: lang
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
+// Generic / Contact (EN/DE)
+// =========================================================================
+async function sendEmailGenericBilingual(leadData, lang, tokenData = {}) {
+  const firstName = leadData.first_name || '';
+  const isEn = lang === 'en';
+  const subject = isEn ? 'Thanks for getting in touch' : 'Vielen Dank für deine Nachricht';
+
+  let html = '';
+  html += '<p>' + (isEn ? 'Hi ' : 'Hej ') + escapeHtml(firstName) + ',</p>';
+  html += '<p>' + (isEn ? 'Thanks for getting in touch with Yoga Bible. We\'ve received your message and will be back to you soon.'
+                       : 'Vielen Dank für deine Nachricht an Yoga Bible. Wir haben sie erhalten und melden uns bald bei dir.') + '</p>';
+  html += '<p>' + (isEn ? 'In the meantime, feel free to ' : 'In der Zwischenzeit kannst du gerne ')
+            + link(CONFIG.MEETING_LINK, isEn ? 'book a call here' : 'hier ein Gespräch buchen')
+            + ' ' + (isEn ? 'or visit ' : 'oder ') + link(isEn ? 'https://www.yogabible.dk/en/' : 'https://www.yogabible.dk/en/', 'yogabible.dk') + (isEn ? '. You can also just reply to this email with questions.' : ' besuchen. Du kannst auch einfach auf diese E-Mail antworten.') + '</p>';
+  html += '<p>Shamir</p>';
+
+  const plain = (isEn ? 'Hi ' : 'Hej ') + firstName + ',\n\n' +
+    (isEn ? 'Thanks for getting in touch. We\'ll be back to you soon.\n\nBook a call: ' : 'Vielen Dank. Wir melden uns bald.\n\nGespräch buchen: ') + CONFIG.MEETING_LINK + '\n\nShamir';
+
+  const result = await sendSingleViaResend({
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:generic', lang: lang
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
+// Mentorship (EN/DE)
+// =========================================================================
+async function sendMentorshipEmail(leadData, lang, tokenData = {}) {
+  const firstName = leadData.first_name || '';
+  const isEn = lang === 'en';
+  const service = leadData.service || leadData.program || 'Mentorship';
+  const subject = isEn ? 'Your mentorship request' : 'Deine Mentorship-Anfrage';
+
+  let html = '';
+  html += '<p>' + (isEn ? 'Hi ' : 'Hej ') + escapeHtml(firstName) + ',</p>';
+  html += '<p>' + (isEn ? 'Thanks for your interest in our ' : 'Vielen Dank für dein Interesse an unserem ') + escapeHtml(service) + (isEn ? ' program. I\'d love to hear more about your goals.' : '-Programm. Ich würde gerne mehr über deine Ziele erfahren.') + '</p>';
+  html += '<p>' + (isEn ? 'Let\'s ' : 'Lass uns ') + link(CONFIG.MEETING_LINK, isEn ? 'book a short call here' : 'hier ein kurzes Gespräch buchen') + (isEn ? ' — or just reply to this email directly.' : ' — oder antworte einfach direkt auf diese E-Mail.') + '</p>';
+  html += '<p>Shamir</p>';
+
+  const plain = (isEn ? 'Hi ' : 'Hej ') + firstName + ',\n\n' +
+    (isEn ? 'Thanks for your interest in our ' : 'Vielen Dank für dein Interesse an unserem ') + service + (isEn ? ' program.\n\nBook a free call: ' : '-Programm.\n\nKostenloses Gespräch buchen: ') + CONFIG.MEETING_LINK + '\n\nShamir';
+
+  const result = await sendSingleViaResend({
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:mentorship', lang: lang
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
+// Courses (EN/DE)
+// =========================================================================
+async function sendCoursesEmail(leadData, lang, tokenData = {}) {
+  const firstName = leadData.first_name || '';
+  const isEn = lang === 'en';
+  const courses = leadData.program || '';
+  const courseList = courses.split(/[,+]/).map(s => s.trim()).filter(Boolean);
+  const isBundle = courseList.length > 1;
+
+  const subject = isEn ? (isBundle ? 'Your course bundle details' : 'Your course') : (isBundle ? 'Deine Kurspaket-Details' : 'Dein Kurs');
+
+  let html = '';
+  html += '<p>' + (isEn ? 'Hi ' : 'Hej ') + escapeHtml(firstName) + ',</p>';
+  if (isBundle) {
+    html += '<p>' + (isEn ? 'Thanks for your interest in our course bundle. You chose: ' : 'Vielen Dank für dein Interesse an unserem Kurspaket. Du hast gewählt: ') + escapeHtml(courseList.join(', ')) + '.';
+    if (courseList.length === 2) html += ' ' + (isEn ? 'Bundle price: 4,140 DKK — you save 10%.' : 'Paketpreis: 4.140 DKK — du sparst 10%.');
+    else if (courseList.length >= 3) html += ' ' + (isEn ? 'All-In Bundle: 5,865 DKK — you save 15% and get a free 1-month yoga pass.' : 'All-In Paket: 5.865 DKK — du sparst 15% und bekommst einen kostenlosen 1-Monats-Yogapass.');
+    html += '</p>';
+  } else {
+    html += '<p>' + (isEn ? 'Thanks for your interest in our ' : 'Vielen Dank für dein Interesse an unserem ') + escapeHtml(courses) + (isEn ? ' course. Price: 2,300 DKK.' : '-Kurs. Preis: 2.300 DKK.') + '</p>';
+  }
+  html += '<p>' + (isEn ? 'If you have questions, ' : 'Wenn du Fragen hast, ') + link(CONFIG.MEETING_LINK, isEn ? 'book a call here' : 'buche hier ein Gespräch') + ' — ' + (isEn ? 'or just reply to this email.' : 'oder antworte einfach auf diese E-Mail.') + '</p>';
+  html += '<p>Shamir</p>';
+
+  const plain = (isEn ? 'Hi ' : 'Hej ') + firstName + ',\n\n' + (isBundle ? (isEn ? 'You chose: ' : 'Du hast gewählt: ') + courseList.join(', ') : (isEn ? 'Course: ' : 'Kurs: ') + courses) + '\n\n' + (isEn ? 'Book a call: ' : 'Gespräch buchen: ') + CONFIG.MEETING_LINK + '\n\nShamir';
+
+  const result = await sendSingleViaResend({
+    to: leadData.email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: (tokenData || {}).leadId, campaignId: 'welcome:courses', lang: lang
+  });
+  return { ...result, subject };
+}
+
+// =========================================================================
+// Application Confirmation (Danish)
+// =========================================================================
+async function sendApplicationConfirmation(email, applicationId, firstName) {
+  const subject = 'Tak for din ansøgning';
+
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName || '') + ',</p>';
+  html += '<p>Tak for din ansøgning til Yoga Bible. Dit ansøgnings-ID er ' + escapeHtml(applicationId) + '. Vi kigger din ansøgning igennem og vender tilbage med næste skridt.</p>';
+  html += '<p>Har du spørgsmål i mellemtiden? Svar bare på denne mail eller ring til ' + link('tel:+4553881209', '+45 53 88 12 09') + '.</p>';
+  html += '<p>Shamir</p>';
+
+  const plain = 'Hej ' + (firstName || '') + ',\n\nTak for din ansøgning til Yoga Bible. Ansøgnings-ID: ' + applicationId + '. Vi vender tilbage.\n\nSpørgsmål? Svar på denne mail eller ring +45 53 88 12 09.\n\nShamir';
+
+  const result = await sendSingleViaResend({
+    to: email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: null, campaignId: 'welcome:application', lang: 'da'
+  });
   await logWelcomeEmail(email, subject, null);
   return { ...result, subject };
 }
 
 // =========================================================================
-// Careers Auto-Reply Email
+// Careers Auto-Reply (Danish)
 // =========================================================================
-
 async function sendCareersConfirmation(email, firstName, category, role) {
   const subject = 'Tak for din ansøgning — Yoga Bible Careers';
 
-  let bodyHtml = '<p>Hej ' + escapeHtml(firstName || '') + ',</p>';
-  bodyHtml += '<p>Tak for din interesse i at blive en del af <strong>Yoga Bible</strong>-teamet!</p>';
-  bodyHtml += '<p>Vi har modtaget din ansøgning' + (category ? ' inden for <strong>' + escapeHtml(category) + '</strong>' : '') + (role ? ' som <strong>' + escapeHtml(role) + '</strong>' : '') + '.</p>';
-  bodyHtml += '<p>Vi gennemgår alle ansøgninger løbende og vender tilbage, hvis der er et match.</p>';
-  bodyHtml += '<p>Har du spørgsmål? Svar bare på denne e-mail.</p>';
+  let html = '';
+  html += '<p>Hej ' + escapeHtml(firstName || '') + ',</p>';
+  html += '<p>Tak for din interesse i at blive en del af Yoga Bible-teamet. Vi har modtaget din ansøgning' + (category ? ' inden for ' + escapeHtml(category) : '') + (role ? ' som ' + escapeHtml(role) : '') + '. Vi gennemgår alle ansøgninger løbende og vender tilbage, hvis der er et match.</p>';
+  html += '<p>Har du spørgsmål? Svar bare på denne mail.</p>';
+  html += '<p>Shamir</p>';
 
-  const bodyPlain = 'Hej ' + (firstName || '') + ',\n\nTak for din interesse i at blive en del af Yoga Bible-teamet!\n\nVi har modtaget din ansøgning' + (category ? ' inden for ' + category : '') + (role ? ' som ' + role : '') + '.\n\nVi gennemgår alle ansøgninger løbende og vender tilbage, hvis der er et match.\n\nHar du spørgsmål? Svar bare på denne e-mail.';
+  const plain = 'Hej ' + (firstName || '') + ',\n\nTak for din interesse i Yoga Bible-teamet. Vi har modtaget din ansøgning' + (category ? ' inden for ' + category : '') + (role ? ' som ' + role : '') + '. Vi vender tilbage hvis der er et match.\n\nShamir';
 
   const result = await sendSingleViaResend({
-      to: email,
-      subject,
-      bodyHtml: bodyHtml,
-      bodyPlain: bodyPlain,
-      leadId: null,
-      campaignId: 'welcome:careers',
-      lang: 'da'
-    });
-
+    to: email, subject, bodyHtml: html, bodyPlain: plain,
+    leadId: null, campaignId: 'welcome:careers', lang: 'da'
+  });
   await logWelcomeEmail(email, subject, null);
   return { ...result, subject };
 }
