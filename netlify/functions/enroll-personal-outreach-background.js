@@ -117,6 +117,11 @@ async function findPersonalOutreach(db) {
 
 // ── Segment fetchers ────────────────────────────────────────────────────────
 
+// Segment fetchers use single-field Firestore queries only — composite
+// indexes were missing on prod and the Personal Outreach project doesn't
+// own the leads collection's index config. For B/C we filter recent leads
+// in-memory.
+
 async function fetchSegmentA(db) {
   const snap = await db.collection(LEADS_COL)
     .where('status', '==', 'Interested In Next Round')
@@ -124,17 +129,31 @@ async function fetchSegmentA(db) {
   return snap.docs;
 }
 
-async function fetchSegmentB(db, now) {
-  // Ytt leads, created within ORPHAN_LOOKBACK_DAYS, never received a welcome.
-  // We post-filter for missing welcome_email_sent_at + status sanity to keep
-  // the Firestore query simple (no composite index required).
-  const cutoff = new Date(now.getTime() - ORPHAN_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
+async function fetchSegmentD(db) {
   const snap = await db.collection(LEADS_COL)
-    .where('lead_type', '==', 'ytt')
-    .where('created_at', '>=', cutoff)
+    .where('status', '==', 'Follow-up')
     .get();
   return snap.docs.filter((doc) => {
     const d = doc.data();
+    return (d.lead_type || '') === 'ytt' || !!d.ytt_program_type;
+  });
+}
+
+// One created_at query feeds both segment B (orphans) and segment C
+// (recent New/Strongly Interested) — both look back at recently created
+// leads. Returns the raw snapshot docs; the caller filters per segment.
+async function fetchRecentLeads(db, now) {
+  const cutoff = new Date(now.getTime() - ORPHAN_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
+  const snap = await db.collection(LEADS_COL)
+    .where('created_at', '>=', cutoff)
+    .get();
+  return snap.docs;
+}
+
+function filterSegmentB(recentDocs, now) {
+  return recentDocs.filter((doc) => {
+    const d = doc.data();
+    if ((d.lead_type || '') !== 'ytt') return false;
     if (d.welcome_email_sent_at) return false;
     const status = (d.status || '').trim();
     if (EXIT_STATUSES.has(status)) return false;
@@ -143,27 +162,16 @@ async function fetchSegmentB(db, now) {
   });
 }
 
-async function fetchSegmentC(db, now) {
-  const cutoff = new Date(now.getTime() - RECENT_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
-  const snap = await db.collection(LEADS_COL)
-    .where('status', 'in', ['New', 'Strongly Interested'])
-    .where('created_at', '>=', cutoff)
-    .get();
-  // Limit to ytt leads (some 'New' leads may not be YTT — courses, mentorship etc.)
-  return snap.docs.filter((doc) => {
+function filterSegmentC(recentDocs, now) {
+  const cutoffMs = now.getTime() - RECENT_LOOKBACK_DAYS * 24 * 60 * 60 * 1000;
+  return recentDocs.filter((doc) => {
     const d = doc.data();
-    return (d.lead_type || '') === 'ytt' || !!d.ytt_program_type;
-  });
-}
-
-async function fetchSegmentD(db) {
-  const snap = await db.collection(LEADS_COL)
-    .where('status', '==', 'Follow-up')
-    .get();
-  // Same ytt filter as C — Follow-up may include non-YTT inquiries
-  return snap.docs.filter((doc) => {
-    const d = doc.data();
-    return (d.lead_type || '') === 'ytt' || !!d.ytt_program_type;
+    const status = (d.status || '').trim();
+    if (status !== 'New' && status !== 'Strongly Interested') return false;
+    if ((d.lead_type || '') !== 'ytt' && !d.ytt_program_type) return false;
+    const created = toDate(d.created_at);
+    if (created && created.getTime() < cutoffMs) return false;
+    return true;
   });
 }
 
@@ -247,13 +255,15 @@ async function runBackfill(runId, isApply) {
       { id: 'D', label: 'Follow-up status' }
     ];
     await setStatus({ phase: 'fetch_segments', updated_at: new Date() });
-    const fetched = await Promise.all([
+    const [aDocs, dDocs, recentDocs] = await Promise.all([
       fetchSegmentA(db),
-      fetchSegmentB(db, now),
-      fetchSegmentC(db, now),
-      fetchSegmentD(db)
+      fetchSegmentD(db),
+      fetchRecentLeads(db, now)
     ]);
-    await setStatus({ phase: 'segments_fetched', raw_counts: { A: fetched[0].length, B: fetched[1].length, C: fetched[2].length, D: fetched[3].length }, updated_at: new Date() });
+    const bDocs = filterSegmentB(recentDocs, now);
+    const cDocs = filterSegmentC(recentDocs, now);
+    const fetched = [aDocs, bDocs, cDocs, dDocs];
+    await setStatus({ phase: 'segments_fetched', raw_counts: { A: aDocs.length, B: bDocs.length, C: cDocs.length, D: dDocs.length, recent_pool: recentDocs.length }, updated_at: new Date() });
 
     const report = {};
     let totalEligible = 0, totalEnrolled = 0;
