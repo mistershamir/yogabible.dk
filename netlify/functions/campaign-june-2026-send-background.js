@@ -87,7 +87,7 @@ exports.handler = async (event) => {
 
     try {
       var withVars = substituteVars(template.bodyHtml, {
-        '{{first_name}}': r.lead.first_name || (lang === 'da' ? 'der' : 'there')
+        first_name: r.lead.first_name || (lang === 'da' ? 'der' : 'there')
       });
       var withTokens = injectScheduleTokens(withVars, r.id, r.lead.email);
       var trackedHtml = prepareTrackedEmail(withTokens, r.id, SOURCE_TAG);

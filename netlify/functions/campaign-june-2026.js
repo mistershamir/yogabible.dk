@@ -79,7 +79,7 @@ exports.handler = async (event) => {
   function processSample(sample, template) {
     if (!sample) return null;
     var withVars = substituteVars(template.bodyHtml, {
-      '{{first_name}}': sample.first_name || 'there'
+      first_name: sample.first_name || 'there'
     });
     var withTokens = injectScheduleTokens(withVars, sample.id, sample.email);
     var tracked = prepareTrackedEmail(withTokens, sample.id, SOURCE_TAG);
