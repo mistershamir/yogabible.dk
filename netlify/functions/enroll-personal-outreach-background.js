@@ -409,17 +409,21 @@ exports.handler = async (event) => {
 
   const runId = (params.run || (mode + '-' + Date.now() + '-' + crypto.randomBytes(3).toString('hex')));
 
-  // Fire-and-forget. Netlify keeps the background lambda alive after the
-  // handler returns until runBackfill finishes (or the 15-min cap hits).
-  runBackfill(runId, isApply).catch((err) => {
-    console.error('[enroll-bg] unhandled runBackfill error:', err && err.stack);
-  });
+  // Netlify background functions: the lambda lives only as long as the
+  // handler keeps running, capped at 15 min. Await the work — Netlify
+  // returns 202 to the caller while the handler runs (the body is
+  // discarded by Netlify either way, so we still write progress to
+  // backfill_runs/{runId} for the status reader to surface).
+  try {
+    await runBackfill(runId, isApply);
+  } catch (err) {
+    console.error('[enroll-bg] handler error:', err && err.stack);
+  }
 
   return jsonResponse(202, {
     accepted: true,
     run_id: runId,
     mode: isApply ? 'apply' : 'preview',
-    poll: '/.netlify/functions/enroll-personal-outreach-status?run=' + encodeURIComponent(runId),
-    note: 'Background job started. Poll the status endpoint until status === "completed" (or "error").'
+    poll: '/.netlify/functions/enroll-personal-outreach-status?run=' + encodeURIComponent(runId)
   });
 };
