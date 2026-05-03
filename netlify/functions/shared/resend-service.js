@@ -81,7 +81,7 @@ function resendPost(path, body) {
 
 // ─── Build a single Resend message payload ───────────────────────────────────
 
-function buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc, lang }) {
+function buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc, lang, attachments }) {
   var senderEmail = fromEmail || process.env.GMAIL_USER || CONFIG.EMAIL_FROM;
   var senderName = fromEmail && fromEmail.includes('hotyogacph') ? 'Hot Yoga CPH' : CONFIG.FROM_NAME;
   const from = fromEmail
@@ -114,6 +114,15 @@ function buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bc
   // Attach campaign ID as tag so Resend webhooks can link events back
   if (campaignId) {
     message.tags = [{ name: 'campaign_id', value: campaignId }];
+  }
+
+  // Attachments: Resend REST API expects base64-encoded `content` strings
+  if (attachments && attachments.length > 0) {
+    message.attachments = attachments.map(function (a) {
+      var content = Buffer.isBuffer(a.content) ? a.content.toString('base64')
+        : (typeof a.content === 'string' ? a.content : Buffer.from(a.content).toString('base64'));
+      return { filename: a.filename, content: content };
+    });
   }
 
   return message;
@@ -175,7 +184,7 @@ function wrapText(bodyPlain, recipientEmail, lang) {
 
 // ─── Send a single email via Resend ──────────────────────────────────────────
 
-async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, campaignId, fromEmail, bcc, lang }) {
+async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, campaignId, fromEmail, bcc, lang, attachments }) {
   const html = wrapHtml(bodyHtml, to, campaignId, lang);
   const text = wrapText(bodyPlain || '', to, lang);
 
@@ -200,7 +209,7 @@ async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, c
   }
 
   try {
-    const message = buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc, lang });
+    const message = buildResendMessage({ to, subject, html, text, fromEmail, campaignId, bcc, lang, attachments });
     const result = await resendPost('/emails', message);
 
     // Update log to 'sent' with real Resend message ID

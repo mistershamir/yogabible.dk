@@ -19,20 +19,11 @@ const {
   buildUnsubscribeUrl
 } = require('./utils');
 const {
-  sendRawEmail,
-  getSignatureHtml,
-  getSignaturePlain,
-  getEnglishNoteHtml,
-  getEnglishNotePlain,
-  getGermanPsLineHtml,
-  getGermanPsLinePlain,
-  getUnsubscribeFooterHtml,
-  getUnsubscribeFooterPlain,
   getAccommodationSectionHtml,
   getPricingSectionHtml
 } = require('./email-service');
+const { sendSingleViaResend } = require('./resend-service');
 const { getDb } = require('./firestore');
-const { prepareTrackedEmail } = require('./email-tracking');
 
 // Form ID → language map (same as facebook-leads-webhook.js)
 const FORM_LANG_MAP = {
@@ -49,16 +40,6 @@ const FORM_LANG_MAP = {
 // =========================================================================
 // Shared HTML helpers
 // =========================================================================
-
-function wrapHtml(body, trackingLeadId, trackingSource) {
-  var html = '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;line-height:1.65;font-size:16px;">' +
-    body + '</div>';
-  // Inject email open/click tracking if leadId provided
-  if (trackingLeadId) {
-    html = prepareTrackedEmail(html, trackingLeadId, trackingSource || 'welcome');
-  }
-  return html;
-}
 
 function bookingCta() {
   return '<p style="margin-top:20px;">Har du lyst til at h\u00f8re mere eller stille sp\u00f8rgsm\u00e5l? Book et gratis og uforpligtende infom\u00f8de:</p>' +
@@ -476,7 +457,6 @@ async function sendEmail4wYTT(leadData, tokenData = {}) {
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 4-ugers programmet</a>';
   bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   // Plain text
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
@@ -488,14 +468,16 @@ async function sendEmail4wYTT(leadData, tokenData = {}) {
   bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
   bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
   bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
-  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:4-week',
+      lang: 'da'
+    });
   return { ...result, subject };
 }
 
@@ -540,7 +522,6 @@ async function sendEmail4wJuneYTT(leadData, tokenData = {}) {
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">Læs mere om 4-ugers programmet</a>';
   bodyHtml += ' · <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   // Plain text
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
@@ -552,14 +533,16 @@ async function sendEmail4wJuneYTT(leadData, tokenData = {}) {
   bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
   bodyPlain += '\nLæs mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
   bodyPlain += 'Book infomøde: ' + CONFIG.MEETING_LINK + '\n';
-  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:4-week-jun',
+      lang: 'da'
+    });
   return { ...result, subject };
 }
 
@@ -612,7 +595,6 @@ async function sendEmail4wJulyYTT(leadData, tokenData = {}) {
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-4-weeks-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 4-ugers programmet</a>';
   bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   // Plain text
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
@@ -627,14 +609,16 @@ async function sendEmail4wJulyYTT(leadData, tokenData = {}) {
   bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-4-weeks-intensive-programs');
   bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs\n';
   bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
-  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:4-week-jul',
+      lang: 'da'
+    });
   return { ...result, subject };
 }
 
@@ -759,37 +743,6 @@ function julyPrepPhaseBlockHtml(accommodation, localizedPrice) {
 }
 
 /**
- * Bilingual signature for July emails — "Healthy regards" for all languages.
- */
-function julySignatureHtml() {
-  var orange = '#f75c03';
-  return '<div style="margin-top:18px;padding-top:14px;border-top:1px solid #EBE7E3;font-size:15px;line-height:1.55;color:#1a1a1a;">' +
-    '<div style="margin:0 0 2px;">Healthy regards,</div>' +
-    '<div style="margin:0 0 2px;"><strong>Shamir</strong> — Course Director</div>' +
-    '<div style="margin:0 0 2px;">Yoga Bible</div>' +
-    '<div style="margin:0 0 2px;"><a href="https://www.yogabible.dk" style="color:' + orange + ';text-decoration:none;">www.yogabible.dk</a></div>' +
-    '<div style="margin:0 0 2px;"><a href="' + CONFIG.STUDIO_MAPS_URL + '" target="_blank" style="color:' + orange + ';text-decoration:none;">Torvegade 66, 1400 København K, Danmark</a></div>' +
-    '<div style="margin:0;"><a href="tel:+4553881209" style="color:' + orange + ';text-decoration:none;">+45 53 88 12 09</a></div>' +
-    '</div>';
-}
-
-/**
- * Bilingual unsubscribe footer for July emails.
- */
-function julyUnsubscribeHtml(email, lang) {
-  var url = buildUnsubscribeUrl(email, lang);
-  var text;
-  if (lang === 'de') {
-    text = 'Keine weiteren E-Mails erhalten? <a href="' + url + '" style="color:#999;text-decoration:none;">Hier abmelden</a>';
-  } else if (lang === 'da') {
-    text = 'Ønsker du ikke at modtage flere e-mails? <a href="' + url + '" style="color:#999;text-decoration:none;">Afmeld her</a>';
-  } else {
-    text = 'Don\'t want to receive more emails? <a href="' + url + '" style="color:#999;text-decoration:none;">Unsubscribe here</a>';
-  }
-  return '<div style="margin-top:24px;padding-top:12px;border-top:1px solid #EBE7E3;text-align:center;font-size:11px;color:#999;">' + text + '</div>';
-}
-
-/**
  * July Vinyasa Plus — English conditional email template.
  * Used for lang = en, no, sv, fi, nl (all non-DE, non-DA leads).
  * Conditional blocks based on Q1 (yoga experience), Q2 (accommodation),
@@ -880,11 +833,6 @@ async function sendJulyVinyasaPlusEnEmail(leadData, tokenData) {
   html += '<p style="margin-top:20px;">Want to learn more or ask questions? Book a free online consultation:</p>';
   html += '<p style="margin:16px 0;"><a href="https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Book a Free Online Consultation →</a></p>';
 
-  // Block 13: Signature
-  html += julySignatureHtml();
-
-  // Block 14: Unsubscribe
-  html += julyUnsubscribeHtml(leadData.email, lang);
 
   // ---- Plain text ----
   var plain = 'Hi ' + firstName + ',\n\n';
@@ -916,15 +864,16 @@ async function sendJulyVinyasaPlusEnEmail(leadData, tokenData) {
   plain += 'Secure your spot: The Preparation Phase (' + localizedPrice + ') reserves your place in the July cohort.\n';
   plain += 'Start Preparation Phase: https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211\n\n';
   plain += 'Book a Free Online Consultation: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
-  plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
-  plain += '\n---\nUnsubscribe: ' + buildUnsubscribeUrl(leadData.email, 'en');
 
-  var result = await sendRawEmail({
-    to: leadData.email,
-    subject: subject,
-    html: wrapHtml(html),
-    text: plain
-  });
+  var result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: html,
+      bodyPlain: plain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:4-week-jul',
+      lang: lang
+    });
   return { ...result, subject: subject };
 }
 
@@ -1065,11 +1014,6 @@ async function sendJulyVinyasaPlusDeEmail(leadData, tokenData) {
   html += '<p style="margin-top:20px;">Möchtest du mehr erfahren oder Fragen stellen? Buche ein kostenloses Online-Gespräch:</p>';
   html += '<p style="margin:16px 0;"><a href="https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Kostenloses Online-Gespräch buchen →</a></p>';
 
-  // Block 13: Signature
-  html += julySignatureHtml();
-
-  // Block 14: Unsubscribe
-  html += julyUnsubscribeHtml(leadData.email, 'de');
 
   // ---- Plain text ----
   var plain = 'Hej ' + firstName + ',\n\n';
@@ -1088,15 +1032,16 @@ async function sendJulyVinyasaPlusDeEmail(leadData, tokenData) {
   plain += 'Sichere deinen Platz: Vorbereitungsphase (' + localizedPrice + ')\n';
   plain += 'Vorbereitungsphase starten: https://www.yogabible.dk/en/schedule/4-weeks-july-plan/?product=100211\n\n';
   plain += 'Kostenloses Online-Gespräch buchen: https://yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
-  plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
-  plain += '\n---\nAbmelden: ' + buildUnsubscribeUrl(leadData.email, 'de');
 
-  var result = await sendRawEmail({
-    to: leadData.email,
-    subject: subject,
-    html: wrapHtml(html),
-    text: plain
-  });
+  var result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: html,
+      bodyPlain: plain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:4-week-jul',
+      lang: 'de'
+    });
   return { ...result, subject: subject };
 }
 
@@ -1220,11 +1165,6 @@ async function sendJulyVinyasaPlusDaEmail(leadData, tokenData) {
   html += '<p style="margin-top:20px;">Vil du vide mere eller stille spørgsmål? Book en gratis online samtale:</p>';
   html += '<p style="margin:16px 0;"><a href="https://yogabible.dk/200-hours-4-weeks-intensive-programs/?booking=consultation" style="display:inline-block;background:#f75c03;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:50px;font-weight:600;font-size:16px;">Book en gratis online samtale →</a></p>';
 
-  // Block 13: Signature
-  html += julySignatureHtml();
-
-  // Block 14: Unsubscribe
-  html += julyUnsubscribeHtml(leadData.email, 'da');
 
   // ---- Plain text ----
   var plain = 'Hej ' + firstName + ',\n\n';
@@ -1242,15 +1182,16 @@ async function sendJulyVinyasaPlusDaEmail(leadData, tokenData) {
   plain += 'Sikr din plads: Forberedelsesfasen (3.750 kr.)\n';
   plain += 'Start Forberedelsesfasen: https://www.yogabible.dk/200-hours-4-weeks-intensive-programs?product=100211\n\n';
   plain += 'Book en gratis online samtale: https://yogabible.dk/200-hours-4-weeks-intensive-programs/?booking=consultation\n\n';
-  plain += 'Healthy regards,\nShamir — Course Director\nYoga Bible\nwww.yogabible.dk\nTorvegade 66, 1400 København K, Danmark\n+45 53 88 12 09\n';
-  plain += '\n---\nAfmeld: ' + buildUnsubscribeUrl(leadData.email, 'da');
 
-  var result = await sendRawEmail({
-    to: leadData.email,
-    subject: subject,
-    html: wrapHtml(html),
-    text: plain
-  });
+  var result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: html,
+      bodyPlain: plain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:4-week-jul',
+      lang: 'da'
+    });
   return { ...result, subject: subject };
 }
 
@@ -1287,7 +1228,6 @@ async function sendEmail8wYTT(leadData, tokenData = {}) {
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs" style="color:#f75c03;">L\u00e6s mere om 8-ugers programmet</a>';
   bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
   bodyPlain += 'Tak fordi du viste interesse for vores 8-ugers semi-intensive 200-timers yogal\u00e6reruddannelse.\n\n';
@@ -1298,14 +1238,16 @@ async function sendEmail8wYTT(leadData, tokenData = {}) {
   bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs');
   bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs\n';
   bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
-  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain,
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:8-week',
+      lang: 'da'
+    });
   return { ...result, subject };
 }
 
@@ -1359,7 +1301,6 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 18-ugers programmet</a>';
   bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
   bodyPlain += 'Tak fordi du viste interesse for vores 18-ugers fleksible yogal\u00e6reruddannelse.\n\n';
@@ -1380,14 +1321,16 @@ async function sendEmail18wYTT(leadData, tokenData = {}) {
   bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
   bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
   bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
-  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain,
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:18-week',
+      lang: 'da'
+    });
   return { ...result, subject };
 }
 
@@ -1433,7 +1376,6 @@ async function sendEmail18wAugYTT(leadData, tokenData = {}) {
   bodyHtml += '<p style="margin-top:20px;"><a href="https://www.yogabible.dk/200-hours-18-weeks-flexible-programs" style="color:#f75c03;">L\u00e6s mere om 18-ugers programmet</a>';
   bodyHtml += ' \u00b7 <a href="https://www.yogabible.dk/om-200hrs-yogalaereruddannelser" style="color:#f75c03;">Om vores 200-timers uddannelse</a></p>';
   bodyHtml += bookingCta() + questionPrompt();
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
   bodyPlain += 'Tak fordi du viste interesse for vores 18-ugers fleksible yogal\u00e6reruddannelse \u2014 efter\u00e5rsholdet august\u2013december 2026.\n\n';
@@ -1452,14 +1394,16 @@ async function sendEmail18wAugYTT(leadData, tokenData = {}) {
   bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/200-hours-18-weeks-flexible-programs');
   bodyPlain += '\nL\u00e6s mere: https://www.yogabible.dk/200-hours-18-weeks-flexible-programs\n';
   bodyPlain += 'Book infom\u00f8de: ' + CONFIG.MEETING_LINK + '\n';
-  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain,
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:18-week-aug',
+      lang: 'da'
+    });
   return { ...result, subject };
 }
 
@@ -1613,7 +1557,6 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
   bodyHtml += '<p style="margin-top:20px;">Har du lyst til at se studiet eller f\u00e5 hj\u00e6lp til at v\u00e6lge det rigtige format?</p>';
   bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book infom\u00f8de eller samtale</a></p>';
   bodyHtml += '<p>Gl\u00e6der mig til at h\u00f8re fra dig!</p>';
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   // ---- Plain text ----
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
@@ -1641,14 +1584,16 @@ async function sendEmailMultiYTT(leadData, tokenData = {}) {
   bodyPlain += 'Start her: https://www.yogabible.dk/om-200hrs-yogalaereruddannelser\n\n';
   bodyPlain += 'Book infom\u00f8de eller samtale: ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += 'Gl\u00e6der mig til at h\u00f8re fra dig!';
-  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:multi-format',
+      lang: 'da'
+    });
   return { ...result, subject };
 }
 
@@ -1751,7 +1696,6 @@ async function sendEmailUndecidedYTT(leadData, tokenData = {}) {
   bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>';
   bodyHtml += '<p>Du er også velkommen til bare at svare på denne e-mail med dine spørgsmål.</p>';
   bodyHtml += '<p>Glæder mig til at høre fra dig!</p>';
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   // ---- Plain text ----
   let bodyPlain = 'Hej ' + firstName + ',\n\n';
@@ -1774,14 +1718,16 @@ async function sendEmailUndecidedYTT(leadData, tokenData = {}) {
   bodyPlain += getPreparationPhasePlain('https://www.yogabible.dk/om-200hrs-yogalaereruddannelser');
   bodyPlain += '\nBook et gratis infomøde: ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += 'Du kan også svare på denne e-mail med dine spørgsmål.\n\nGlæder mig til at høre fra dig!';
-  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:undecided',
+      lang: 'da'
+    });
   return { ...result, subject };
 }
 
@@ -1809,19 +1755,21 @@ async function sendEmail300hYTT(leadData, tokenData = {}) {
 
   bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book en uforpligtende samtale</a></p>';
   bodyHtml += '<p>Du er ogs\u00e5 velkommen til at svare p\u00e5 denne e-mail med dine sp\u00f8rgsm\u00e5l.</p>';
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   let bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores 300-timers avancerede yogal\u00e6reruddannelse (24 uger, maj\u2013december 2026)!\n\n';
   bodyPlain += hasSchedule ? 'Jeg har vedh\u00e6ftet det fulde skema.\n\n' : 'Det detaljerede skema er snart klar \u2014 jeg sender det til dig.\n\n';
-  bodyPlain += 'Book en samtale: ' + CONFIG.MEETING_LINK + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  bodyPlain += 'Book en samtale: ' + CONFIG.MEETING_LINK;
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain,
-    attachments: attachment ? [attachment] : []
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:300h',
+      lang: 'da',
+      attachments: attachment ? [attachment] : []
+    });
   return { ...result, subject };
 }
 
@@ -1853,14 +1801,12 @@ async function sendWaitlist300hEmail(leadData, tokenData = {}) {
     bodyHtml += '</ul>';
     bodyHtml += '<p>In the meantime, feel free to reply to this email if you have any questions — I\'m happy to chat.</p>';
     bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book a free info session</a></p>';
-    bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
     bodyPlain = 'Hi ' + firstName + ',\n\n';
     bodyPlain += 'Thank you for your interest in our 300-Hour Advanced Yoga Teacher Training — we\'re thrilled to have you on the waitlist.\n\n';
     bodyPlain += 'We are currently designing the most comprehensive 300-hour program in Scandinavia. As soon as the program opens for applications, you will be among the first to know.\n\n';
     bodyPlain += 'In the meantime, feel free to reply to this email if you have any questions.\n\n';
     bodyPlain += 'Book a free info session: ' + CONFIG.MEETING_LINK;
-    bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
   } else {
     bodyHtml = '<p>Hej ' + escapeHtml(firstName) + ',</p>';
     bodyHtml += '<p>Tak for din interesse i vores <strong>300-timers avancerede yogalæreruddannelse</strong> — vi er glade for at have dig på ventelisten.</p>';
@@ -1874,22 +1820,23 @@ async function sendWaitlist300hEmail(leadData, tokenData = {}) {
     bodyHtml += '</ul>';
     bodyHtml += '<p>I mellemtiden er du meget velkommen til at svare på denne e-mail, hvis du har spørgsmål — jeg svarer gerne.</p>';
     bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book et gratis infomøde</a></p>';
-    bodyHtml += getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
     bodyPlain = 'Hej ' + firstName + ',\n\n';
     bodyPlain += 'Tak for din interesse i vores 300-timers avancerede yogalæreruddannelse — vi er glade for at have dig på ventelisten.\n\n';
     bodyPlain += 'Vi er i gang med at designe det mest ambitiøse 300-timers program i Skandinavien. Så snart uddannelsen åbner for ansøgning, vil du være blandt de første til at høre det.\n\n';
     bodyPlain += 'I mellemtiden er du meget velkommen til at svare på denne e-mail.\n\n';
     bodyPlain += 'Book et gratis infomøde: ' + CONFIG.MEETING_LINK;
-    bodyPlain += getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
   }
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:waitlist-300h',
+      lang: (leadData.lang || 'da')
+    });
   return { ...result, subject };
 }
 
@@ -1910,16 +1857,18 @@ async function sendEmailSpecialtyYTT(leadData, tokenData = {}) {
   bodyHtml += '<p>Vi er ved at finalisere 2026-skemaet. Vil du vide mere?</p>';
   bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book en uforpligtende samtale</a></p>';
   bodyHtml += '<p>Svar ogs\u00e5 gerne p\u00e5 denne e-mail med dine sp\u00f8rgsm\u00e5l.</p>';
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
-  const bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores ' + program + '!\n\nBook en samtale: ' + CONFIG.MEETING_LINK + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  const bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores ' + program + '!\n\nBook en samtale: ' + CONFIG.MEETING_LINK;
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:specialty',
+      lang: 'da'
+    });
   return { ...result, subject };
 }
 
@@ -1980,7 +1929,6 @@ async function sendEmailCourses(leadData, tokenData = {}) {
   }
 
   bodyHtml += '<p>Svar gerne p\u00e5 denne e-mail hvis du har sp\u00f8rgsm\u00e5l!</p>';
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
   let bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores kurser!\n\n';
   if (isBundle) {
@@ -1995,15 +1943,17 @@ async function sendEmailCourses(leadData, tokenData = {}) {
   else if (preferredMonth) bodyPlain += 'Kursusskemaet for ' + preferredMonth + ' er snart klar.\n\n';
   if (needsHousing) bodyPlain += getAccommodationSectionPlain(cityCountry);
   bodyPlain += 'Book en samtale: ' + CONFIG.MEETING_LINK;
-  bodyPlain += getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain,
-    attachments: attachment ? [attachment] : []
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:courses',
+      lang: 'da',
+      attachments: attachment ? [attachment] : []
+    });
   return { ...result, subject };
 }
 
@@ -2025,16 +1975,18 @@ async function sendEmailMentorship(leadData, tokenData = {}) {
   bodyHtml += '<p>Jeg vil gerne h\u00f8re mere om dine m\u00e5l. Lad os booke en kort samtale:</p>';
   bodyHtml += '<p><a href="' + CONFIG.MEETING_LINK + '" style="display:inline-block;background:#f75c03;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Book en gratis samtale</a></p>';
   bodyHtml += '<p>Du er ogs\u00e5 velkommen til at svare direkte p\u00e5 denne e-mail.</p>';
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
-  const bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores ' + service + '-program!\n\nBook en gratis samtale: ' + CONFIG.MEETING_LINK + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  const bodyPlain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores ' + service + '-program!\n\nBook en gratis samtale: ' + CONFIG.MEETING_LINK;
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:mentorship',
+      lang: 'da'
+    });
   return { ...result, subject };
 }
 
@@ -2180,9 +2132,6 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   bodyHtml += '<p style="margin-top:20px;"><a href="' + programPageUrl + '" style="color:#f75c03;">' + t.readMore + '</a>';
   bodyHtml += ' \u00b7 <a href="' + about200hUrl + '" style="color:#f75c03;">' + t.compareFormats + '</a></p>';
   bodyHtml += i18nBookingCta(lang) + i18nQuestionPrompt(lang);
-  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
-  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // ---- Plain text ----
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2196,16 +2145,16 @@ async function sendProgramEmail(leadData, programKey, lang, tokenData) {
   bodyPlain += t.remainLabel + ': ' + (lang === 'da' ? '20.000 kr.' : '20,000 DKK') + ' (' + (p.rateNote || '') + ')\n\n';
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += t.lookingForward;
-  if (lang === 'da') bodyPlain += getEnglishNotePlain();
-  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
-  var result = await sendRawEmail({
-    to: leadData.email,
-    subject: subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  var result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:' + programKey,
+      lang: lang
+    });
   return { ...result, subject: subject };
 }
 
@@ -2279,9 +2228,6 @@ async function sendMultiFormatEmail(leadData, lang, tokenData) {
   bodyHtml += '<p style="margin-top:20px;">' + m.seeStudio + '</p>';
   bodyHtml += i18nBookingCta(lang);
   bodyHtml += '<p>' + t.lookingForward + '</p>';
-  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
-  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // ---- Plain text ----
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2300,16 +2246,16 @@ async function sendMultiFormatEmail(leadData, lang, tokenData) {
   bodyPlain += i18nHighlightsPlain(lang);
   bodyPlain += '\n' + t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
   bodyPlain += t.lookingForward;
-  if (lang === 'da') bodyPlain += getEnglishNotePlain();
-  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
-  var result = await sendRawEmail({
-    to: leadData.email,
-    subject: subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  var result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:multi-format',
+      lang: lang
+    });
   return { ...result, subject: subject };
 }
 
@@ -2368,9 +2314,6 @@ async function sendUndecidedEmail(leadData, lang, tokenData) {
   bodyHtml += '<p style="margin-top:24px;">' + u.meetingCta + '</p>';
   bodyHtml += i18nBookingCta(lang);
   bodyHtml += '<p>' + u.replyOk + '</p>';
-  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
-  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   // Plain text
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n';
@@ -2381,11 +2324,16 @@ async function sendUndecidedEmail(leadData, lang, tokenData) {
     bodyPlain += u.goodFor + ' ' + f.goodFor + '\n\n';
   });
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK + '\n';
-  if (lang === 'da') bodyPlain += getEnglishNotePlain();
-  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
-  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
+  var result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:undecided',
+      lang: lang
+    });
   return { ...result, subject: subject };
 }
 
@@ -2407,17 +2355,19 @@ async function sendEmailGenericBilingual(leadData, lang, tokenData = {}) {
   bodyHtml += '<li>' + g.visitLink + ': <a href="' + g.visitUrl + '" style="color:#f75c03;">yogabible.dk</a></li>';
   bodyHtml += '</ul>';
   bodyHtml += '<p>' + t.replyInvite + '</p>';
-  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
-  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + g.intro.replace(/<[^>]+>/g, '') + '\n\n' +
     g.body + '\n\n' + g.bookLink + ': ' + CONFIG.MEETING_LINK + '\n' + g.visitLink + ': ' + g.visitUrl;
-  if (lang === 'da') bodyPlain += getEnglishNotePlain();
-  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
-  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
+  var result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:generic',
+      lang: lang
+    });
   return { ...result, subject: subject };
 }
 
@@ -2436,17 +2386,19 @@ async function sendMentorshipEmail(leadData, lang, tokenData = {}) {
   bodyHtml += '<p>' + p.description + '</p>';
   bodyHtml += i18nBookingCta(lang);
   bodyHtml += '<p>' + t.replyInvite + '</p>';
-  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
-  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + p.intro.replace(/<[^>]+>/g, '').replace('{{service}}', service) + '\n\n' +
     p.description + '\n\n' + t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
-  if (lang === 'da') bodyPlain += getEnglishNotePlain();
-  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
-  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
+  var result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:mentorship',
+      lang: lang
+    });
   return { ...result, subject: subject };
 }
 
@@ -2483,17 +2435,19 @@ async function sendCoursesEmail(leadData, lang, tokenData = {}) {
 
   bodyHtml += i18nBookingCta(lang);
   bodyHtml += '<p>' + t.replyInvite + '</p>';
-  if (lang === 'da') bodyHtml += getEnglishNoteHtml();
-  else if (lang === 'de') bodyHtml += getGermanPsLineHtml();
-  bodyHtml += getSignatureHtml(lang) + getUnsubscribeFooterHtml(leadData.email, lang);
 
   var bodyPlain = t.greeting + ' ' + firstName + ',\n\n' + (isBundle ? c.introBundle : c.introSingle).replace(/<[^>]+>/g, '').replace('{{courses}}', courses) + '\n\n';
   bodyPlain += t.bookingCta.replace(/<[^>]+>/g, '') + ' ' + CONFIG.MEETING_LINK;
-  if (lang === 'da') bodyPlain += getEnglishNotePlain();
-  else if (lang === 'de') bodyPlain += getGermanPsLinePlain();
-  bodyPlain += getSignaturePlain(lang) + getUnsubscribeFooterPlain(leadData.email, lang);
 
-  var result = await sendRawEmail({ to: leadData.email, subject: subject, html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'), text: bodyPlain });
+  var result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:courses',
+      lang: lang
+    });
   return { ...result, subject: subject };
 }
 
@@ -2510,16 +2464,18 @@ async function sendEmailGeneric(leadData, tokenData = {}) {
   bodyHtml += '<li>Bes\u00f8g vores hjemmeside: <a href="https://www.yogabible.dk" style="color:#f75c03;">yogabible.dk</a></li>';
   bodyHtml += '</ul>';
   bodyHtml += '<p>Du er velkommen til at svare p\u00e5 denne e-mail med sp\u00f8rgsm\u00e5l.</p>';
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(leadData.email);
 
-  const bodyPlain = 'Hej ' + firstName + ',\n\nTak fordi du tog kontakt til Yoga Bible!\n\nVi vender tilbage snarest.\n\nBook en samtale: ' + CONFIG.MEETING_LINK + '\nBes\u00f8g: https://www.yogabible.dk' + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(leadData.email);
+  const bodyPlain = 'Hej ' + firstName + ',\n\nTak fordi du tog kontakt til Yoga Bible!\n\nVi vender tilbage snarest.\n\nBook en samtale: ' + CONFIG.MEETING_LINK + '\nBes\u00f8g: https://www.yogabible.dk';
 
-  const result = await sendRawEmail({
-    to: leadData.email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  const result = await sendSingleViaResend({
+      to: leadData.email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: (tokenData || {}).leadId,
+      campaignId: 'welcome:generic',
+      lang: 'da'
+    });
   return { ...result, subject };
 }
 
@@ -2535,18 +2491,20 @@ async function sendApplicationConfirmation(email, applicationId, firstName) {
   bodyHtml += '<p>Dit ansøgnings-ID er: <strong>' + escapeHtml(applicationId) + '</strong></p>';
   bodyHtml += '<p>Vi kigger din ansøgning igennem og vender tilbage med næste skridt.</p>';
   bodyHtml += '<p>Har du spørgsmål i mellemtiden? Svar bare på denne e-mail eller ring til os på <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a>.</p>';
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(email);
 
-  const bodyPlain = 'Hej ' + (firstName || '') + ',\n\nTak for din ansøgning til Yoga Bible!\n\nDit ansøgnings-ID er: ' + applicationId + '\n\nVi kigger din ansøgning igennem og vender tilbage.\n\nHar du spørgsmål? Svar på denne e-mail eller ring +45 53 88 12 09.' + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(email);
+  const bodyPlain = 'Hej ' + (firstName || '') + ',\n\nTak for din ansøgning til Yoga Bible!\n\nDit ansøgnings-ID er: ' + applicationId + '\n\nVi kigger din ansøgning igennem og vender tilbage.\n\nHar du spørgsmål? Svar på denne e-mail eller ring +45 53 88 12 09.';
 
-  const result = await sendRawEmail({
-    to: email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  const result = await sendSingleViaResend({
+      to: email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: null,
+      campaignId: 'welcome:application',
+      lang: 'da'
+    });
 
-  await logWelcomeEmail(email, subject, (tokenData || {}).leadId);
+  await logWelcomeEmail(email, subject, null);
   return { ...result, subject };
 }
 
@@ -2562,18 +2520,20 @@ async function sendCareersConfirmation(email, firstName, category, role) {
   bodyHtml += '<p>Vi har modtaget din ansøgning' + (category ? ' inden for <strong>' + escapeHtml(category) + '</strong>' : '') + (role ? ' som <strong>' + escapeHtml(role) + '</strong>' : '') + '.</p>';
   bodyHtml += '<p>Vi gennemgår alle ansøgninger løbende og vender tilbage, hvis der er et match.</p>';
   bodyHtml += '<p>Har du spørgsmål? Svar bare på denne e-mail.</p>';
-  bodyHtml += getEnglishNoteHtml() + getSignatureHtml() + getUnsubscribeFooterHtml(email);
 
-  const bodyPlain = 'Hej ' + (firstName || '') + ',\n\nTak for din interesse i at blive en del af Yoga Bible-teamet!\n\nVi har modtaget din ansøgning' + (category ? ' inden for ' + category : '') + (role ? ' som ' + role : '') + '.\n\nVi gennemgår alle ansøgninger løbende og vender tilbage, hvis der er et match.\n\nHar du spørgsmål? Svar bare på denne e-mail.' + getEnglishNotePlain() + getSignaturePlain() + getUnsubscribeFooterPlain(email);
+  const bodyPlain = 'Hej ' + (firstName || '') + ',\n\nTak for din interesse i at blive en del af Yoga Bible-teamet!\n\nVi har modtaget din ansøgning' + (category ? ' inden for ' + category : '') + (role ? ' som ' + role : '') + '.\n\nVi gennemgår alle ansøgninger løbende og vender tilbage, hvis der er et match.\n\nHar du spørgsmål? Svar bare på denne e-mail.';
 
-  const result = await sendRawEmail({
-    to: email,
-    subject,
-    html: wrapHtml(bodyHtml, (tokenData || {}).leadId, 'welcome'),
-    text: bodyPlain
-  });
+  const result = await sendSingleViaResend({
+      to: email,
+      subject,
+      bodyHtml: bodyHtml,
+      bodyPlain: bodyPlain,
+      leadId: null,
+      campaignId: 'welcome:careers',
+      lang: 'da'
+    });
 
-  await logWelcomeEmail(email, subject, (tokenData || {}).leadId);
+  await logWelcomeEmail(email, subject, null);
   return { ...result, subject };
 }
 
