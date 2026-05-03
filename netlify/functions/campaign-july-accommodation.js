@@ -20,9 +20,9 @@ const { jsonResponse, optionsResponse } = require('./shared/utils');
 const { substituteVars } = require('./shared/email-service');
 const { prepareTrackedEmail } = require('./shared/email-tracking');
 const {
-  CAMPAIGN_ID, SOURCE_TAG, DA, EN, EXCLUDE_STATUSES,
-  ACCOMMODATION_FIELDS, ACCOMMODATION_EXCLUDE_VALUES,
-  injectScheduleTokens, isEligible, detectLang, programMatchesJulyFourWeek, accommodationExcluded
+  CAMPAIGN_ID, SOURCE_TAG, FILTER_VERSION, DA, EN, EXCLUDE_STATUSES,
+  ACCOMMODATION_FIELDS, ACCOMMODATION_EXCLUDE_VALUES, TEST_EMAILS,
+  injectScheduleTokens, isEligible, detectLang, programMatchesJulyFourWeek, accommodationExcluded, isTestEmail
 } = require('./shared/campaign-july-accommodation-shared');
 
 exports.handler = async (event) => {
@@ -143,6 +143,7 @@ async function runPreview() {
     unsubscribed: 0,
     bounced: 0,
     no_email: 0,
+    test_email: 0,
     accommodation_excluded: 0
   };
 
@@ -153,6 +154,7 @@ async function runPreview() {
     var d = doc.data();
     if (!programMatchesJulyFourWeek(d)) { skipped.not_july_program++; return; }
     if (!d.email) { skipped.no_email++; return; }
+    if (isTestEmail(d.email)) { skipped.test_email++; return; }
     if (d.unsubscribed) { skipped.unsubscribed++; return; }
     if (d.email_bounced) { skipped.bounced++; return; }
     var status = (d.status || '').trim();
@@ -194,6 +196,8 @@ async function runPreview() {
     ok: true,
     mode: 'preview',
     campaign_id: CAMPAIGN_ID,
+    _filter_version: FILTER_VERSION,
+    test_emails_blocked: Array.from(TEST_EMAILS),
     counts: {
       total_eligible: daLeads.length + enLeads.length,
       da: daLeads.length,

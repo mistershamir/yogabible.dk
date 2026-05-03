@@ -14,10 +14,26 @@ const SOURCE_TAG = 'campaign:july-2026-accommodation';
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
+// Bumped whenever the filter / template logic changes. Echoed in preview
+// response so we can verify we're hitting the latest deploy.
+const FILTER_VERSION = 'v2-2026-05-03-accom+test-emails';
+
 const EXCLUDE_STATUSES = new Set([
   'Not too keen', 'Lost', 'Converted', 'Existing Applicant',
   'Unsubscribed', 'Closed', 'Archived'
 ]);
+
+// Internal/test inboxes — never include in any campaign send.
+const TEST_EMAILS = new Set([
+  'info@vibroyoga.dk',
+  'info@yogabible.dk',
+  'shamir@hotyogacph.dk'
+]);
+
+function isTestEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  return TEST_EMAILS.has(email.trim().toLowerCase());
+}
 
 // Field name confirmed via debug: 'accommodation'. Kept as a list for
 // the debug endpoint's introspection only.
@@ -95,6 +111,7 @@ function isEligible(lead) {
   if (lead.type !== 'ytt') return false;
   if (!programMatchesJulyFourWeek(lead)) return false;
   if (!lead.email) return false;
+  if (isTestEmail(lead.email)) return false;
   if (lead.unsubscribed) return false;
   if (lead.email_bounced) return false;
   var status = (lead.status || '').trim();
@@ -114,16 +131,19 @@ function detectLang(lead) {
 module.exports = {
   CAMPAIGN_ID,
   SOURCE_TAG,
+  FILTER_VERSION,
   DA,
   EN,
   EXCLUDE_STATUSES,
   ACCOMMODATION_FIELDS,
   ACCOMMODATION_EXCLUDE_VALUES,
   LIVES_LOCAL_VALUES,
+  TEST_EMAILS,
   generateScheduleToken,
   injectScheduleTokens,
   accommodationExcluded,
   programMatchesJulyFourWeek,
   isEligible,
+  isTestEmail,
   detectLang
 };
