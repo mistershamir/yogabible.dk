@@ -125,6 +125,15 @@ async function runDebug() {
   var sampleByLeadType = {};
   var sampleByType = {};
 
+  // Empty-lang breakdown (only for type==='ytt' leads — that's our actual audience)
+  var emptyLang = {
+    total: 0,
+    source: {},
+    country: {},
+    ytt_program_type: {},
+    samples: []
+  };
+
   function bump(map, key) {
     var k = (key === undefined || key === null || key === '') ? '(empty)' : String(key);
     map[k] = (map[k] || 0) + 1;
@@ -170,6 +179,26 @@ async function runDebug() {
         source: d.source
       };
     }
+
+    // Empty-lang breakdown — restricted to type==='ytt' (the audience for this campaign)
+    var langVal = (d.lang || '').toString().trim();
+    if (d.type === 'ytt' && langVal === '') {
+      emptyLang.total++;
+      bump(emptyLang.source, d.source);
+      bump(emptyLang.country, d.country);
+      bump(emptyLang.ytt_program_type, d.ytt_program_type);
+      if (emptyLang.samples.length < 5) {
+        emptyLang.samples.push({
+          id: doc.id,
+          first_name: d.first_name || '',
+          last_name: d.last_name || '',
+          email: d.email || '',
+          source: d.source || '',
+          country: d.country || '',
+          created_at: d.created_at || d.createdAt || null
+        });
+      }
+    }
   });
 
   // Sort each map by count desc for readability
@@ -192,6 +221,13 @@ async function runDebug() {
     distinct_lang: sortMap(langCounts),
     sample_per_lead_type: sampleByLeadType,
     sample_per_type: sampleByType,
+    empty_lang_ytt: {
+      total: emptyLang.total,
+      source: sortMap(emptyLang.source),
+      country: sortMap(emptyLang.country),
+      ytt_program_type: sortMap(emptyLang.ytt_program_type),
+      samples: emptyLang.samples
+    },
     current_exclude_statuses: [
       'Not too keen', 'Lost', 'Converted', 'Existing Applicant',
       'Unsubscribed', 'Closed', 'Archived'
