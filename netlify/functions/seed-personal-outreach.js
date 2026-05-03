@@ -74,7 +74,7 @@ const SEQUENCE_DOC = {
     // ---- Step 1: Schedule + basic info ------------------------------------
     {
       channel: 'email',
-      delay_minutes: 150, // 2.5 hours (overridden to 0 by processor when cohort is urgent)
+      delay_minutes: 60, // 1 hour after enrollment — lands ~50 min after the 10-min welcome ice breaker
       content_type: 'dynamic',
       condition: null,
       email_subject: 'Dit skema er klar',

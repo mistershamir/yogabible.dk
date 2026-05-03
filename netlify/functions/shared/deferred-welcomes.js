@@ -18,7 +18,7 @@
 const { getDb } = require('./firestore');
 
 const COL = 'deferred_welcomes';
-const DELAY_MS = 30 * 60 * 1000;          // 30 minutes
+const DELAY_MS = 10 * 60 * 1000;          // 10 minutes (welcome ice breaker)
 const MAX_ATTEMPTS = 5;
 const PROCESS_BATCH = 25;                  // safety cap per cron tick
 
