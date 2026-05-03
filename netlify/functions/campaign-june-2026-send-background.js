@@ -69,7 +69,7 @@ exports.handler = async (event) => {
     console.warn('[campaign-june-2026] email_log scan failed (proceeding):', e.message);
   }
 
-  var snap = await db.collection('leads').where('lead_type', '==', 'ytt').get();
+  var snap = await db.collection('leads').where('type', '==', 'ytt').get();
   var recipients = [];
   snap.forEach(function (doc) {
     var d = doc.data();

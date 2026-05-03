@@ -61,7 +61,7 @@ function injectScheduleTokens(html, leadId, email) {
 
 function isEligible(lead) {
   if (!lead) return false;
-  if (lead.lead_type !== 'ytt') return false;
+  if (lead.type !== 'ytt') return false;
   if (!lead.email) return false;
   if (lead.unsubscribed) return false;
   if (lead.email_bounced) return false;
@@ -70,8 +70,14 @@ function isEligible(lead) {
   return true;
 }
 
+// Empty/missing lang → Danish (older Meta DK leads from before lang detection
+// was added — confirmed 243/252 are Danish). Explicit 'da' or 'dk' → Danish.
+// Everything else (en/de/no/sv/fi/nl…) → English.
 function detectLang(lead) {
-  return lead && lead.lang === 'da' ? 'da' : 'en';
+  if (!lead) return 'da';
+  var l = (lead.lang || '').toString().trim().toLowerCase();
+  if (l === '' || l === 'da' || l === 'dk') return 'da';
+  return 'en';
 }
 
 module.exports = {

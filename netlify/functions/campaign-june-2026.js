@@ -45,7 +45,7 @@ exports.handler = async (event) => {
   }
 
   var db = getDb();
-  var snap = await db.collection('leads').where('lead_type', '==', 'ytt').get();
+  var snap = await db.collection('leads').where('type', '==', 'ytt').get();
 
   var daLeads = [];
   var enLeads = [];
