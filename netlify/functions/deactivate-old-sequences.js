@@ -14,9 +14,14 @@
  *          deactivated_reason: 'replaced_by_personal_outreach' }
  *
  * NOT TOUCHED:
- *   - Quick Follow-up (Ue0CYOsPJlnj5SF9PtA0)
  *   - Broadcast Nurture  (Ma2caW2hiQqtkPFesK27)
  *   - Personal Outreach (any sequence with a different name — match by id only)
+ *
+ * Quick Follow-up was added to the target list after the migration: it
+ * was originally believed to be admin-notif/SMS-to-Shamir but it is in
+ * fact a customer-facing email at +2.5h with names in the subject and
+ * body wording that assumes the old welcome included the schedule.
+ * Personal Outreach Step 1 now plays its role.
  *
  * GET  /.netlify/functions/deactivate-old-sequences?mode=preview
  * POST /.netlify/functions/deactivate-old-sequences?mode=apply
@@ -48,7 +53,8 @@ const TARGETS = [
   { id: 'Yoq6RCVqTYlF10OPmkSw', label: 'July Vinyasa Plus DK' },
   { id: '4cpebQzFrhK3OFNVXFt0', label: 'July Vinyasa Plus International' },
   { id: 'UbKlkxQiAHff6B7zgVzQ', label: 'Educational/Lifestyle Nurture' },
-  { id: 'ZwvSVLsqRZcIv8C0IG0y', label: 'April 4W Intensive (already inactive — verify only)' }
+  { id: 'ZwvSVLsqRZcIv8C0IG0y', label: 'April 4W Intensive (already inactive — verify only)' },
+  { id: 'Ue0CYOsPJlnj5SF9PtA0', label: 'YTT Quick Follow-up — duplicates Personal Outreach Step 1' }
 ];
 
 const EXIT_REASON = 'sequence_replaced_by_personal_outreach';
