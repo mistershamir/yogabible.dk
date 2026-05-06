@@ -47,6 +47,15 @@ const FORM_LANG_MAP = {
 const SEQUENCES_COL = 'sequences';
 const ENROLLMENTS_COL = 'sequence_enrollments';
 const ALLOWED_FIELDS = ['name', 'description', 'active', 'trigger', 'exit_conditions', 'steps', 'enrollment_closes'];
+
+// Internal/test inboxes that should never receive sequence sends. Matched
+// case-insensitively against lead.email; enrollments for these leads are
+// exited on the next processor tick.
+const TEST_EMAIL_BLOCKLIST = new Set([
+  'info@vibroyoga.dk',
+  'info@yogabible.dk',
+  'shamir@hotyogacph.dk'
+]);
 const GATEWAYAPI_ENDPOINT = 'https://gatewayapi.eu/rest/mtsms';
 
 // ── Handler ─────────────────────────────────────────────────────────────────
@@ -547,6 +556,18 @@ async function handleProcess() {
         }
 
         var lead = leadDoc.data();
+
+        // Test inboxes — exit immediately so internal/QA leads never receive sends.
+        var leadEmailLower = (lead.email || '').trim().toLowerCase();
+        if (leadEmailLower && TEST_EMAIL_BLOCKLIST.has(leadEmailLower)) {
+          await db.collection(ENROLLMENTS_COL).doc(enrollId).update({
+            status: 'exited',
+            exit_reason: 'test_email_blocklist',
+            updated_at: now
+          });
+          console.log('[sequences] Skipping test inbox ' + leadEmailLower);
+          continue;
+        }
 
         // Skip bounced emails — exit enrollment to stop wasting sends
         if (lead.email_bounced) {
