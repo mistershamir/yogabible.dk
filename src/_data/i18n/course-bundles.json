@@ -2,12 +2,12 @@
   "da": {
     "hero_tagline": "KØBENHAVN · CHRISTIANSHAVN",
     "hero_title": "Course<br>Bundles",
-    "hero_subtitle": "Byg din egen pakke — vælg 1, 2 eller 3 kurser. Næste runde: April 2026.",
+    "hero_subtitle": "Byg din pakke — vælg 1, 2 eller 3 kurser. Vender tilbage efter sommeren.",
     "hero_cta_build": "Byg Din Pakke ›",
     "hero_btn_schedule": "Få skema",
     "hero_trust1": "4 uger · 8 workshops",
     "hero_trust2": "Op til 15% rabat",
-    "hero_trust3": "April 2026",
+    "hero_trust3": "Vender tilbage efter sommeren",
 
     "builder_section_eyebrow": "BYG DIN PAKKE",
     "builder_section_lead": "Bundles er for dig der vil have <strong>maksimal progression</strong> — uden at stresse kroppen. Vælg <strong>1, 2 eller 3</strong> kurser. Ved 2 kurser: <strong>10% rabat</strong>. Ved All-in: <strong>15% rabat</strong> + <strong>gratis 1-måneds pass</strong> (værdi 1.399 kr.).",
@@ -234,17 +234,31 @@
     "cta_title": "Din krop kan mere, end du tror",
     "cta_text": "Vælg dine kurser, byg din pakke og kom i gang. Du behøver ikke være klar — du bliver klar af at starte.",
     "cta_button": "Byg Din Pakke",
-    "cta_brochure": "Få skema"
+    "cta_brochure": "Få skema",
+
+    "waitlist_eyebrow": "VENTELISTE",
+    "waitlist_title": "Bundles vender tilbage efter sommeren",
+    "waitlist_lead": "Tilmeld dig ventelisten og få besked når næste runde åbner.",
+    "waitlist_first_name": "Fornavn",
+    "waitlist_last_name": "Efternavn",
+    "waitlist_email": "E-mail",
+    "waitlist_phone": "Telefon",
+    "waitlist_submit": "Tilmeld ventelisten",
+    "waitlist_success_title": "Du er på ventelisten!",
+    "waitlist_success_text": "Vi giver dig besked når tilmelding åbner igen.",
+    "waitlist_error": "Udfyld venligst alle felter.",
+    "waitlist_privacy": "Vi deler ikke dine oplysninger.",
+    "waitlist_action": "lead_waitlist_course_bundle"
   },
   "en": {
     "hero_tagline": "COPENHAGEN · CHRISTIANSHAVN",
     "hero_title": "Course<br>Bundles",
-    "hero_subtitle": "Build your own package — choose 1, 2 or 3 courses. Next round: April 2026.",
+    "hero_subtitle": "Build your package — choose 1, 2 or 3 courses. Returning after summer.",
     "hero_cta_build": "Build Your Package ›",
     "hero_btn_schedule": "Get schedule",
     "hero_trust1": "4 weeks · 8 workshops",
     "hero_trust2": "Up to 15% off",
-    "hero_trust3": "April 2026",
+    "hero_trust3": "Returning after summer",
 
     "builder_section_eyebrow": "BUILD YOUR PACKAGE",
     "builder_section_lead": "Bundles are for those who want <strong>maximum progression</strong> — without stressing the body. Choose <strong>1, 2 or 3</strong> courses. With 2 courses: <strong>10% off</strong>. With All-in: <strong>15% off</strong> + <strong>free 1-month pass</strong> (value 1,399 DKK).",
@@ -471,6 +485,20 @@
     "cta_title": "Your body can do more than you think",
     "cta_text": "Choose your courses, build your package and get started. You don't need to be ready — you become ready by starting.",
     "cta_button": "Build Your Package",
-    "cta_brochure": "Get schedule"
+    "cta_brochure": "Get schedule",
+
+    "waitlist_eyebrow": "WAITLIST",
+    "waitlist_title": "Bundles return after summer",
+    "waitlist_lead": "Join the waitlist and we'll let you know when the next round opens.",
+    "waitlist_first_name": "First name",
+    "waitlist_last_name": "Last name",
+    "waitlist_email": "Email",
+    "waitlist_phone": "Phone",
+    "waitlist_submit": "Join Waitlist",
+    "waitlist_success_title": "You're on the waitlist!",
+    "waitlist_success_text": "We'll let you know when registration opens again.",
+    "waitlist_error": "Please fill in all fields.",
+    "waitlist_privacy": "We don't share your details.",
+    "waitlist_action": "lead_waitlist_course_bundle"
   }
 }

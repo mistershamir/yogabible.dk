@@ -61,7 +61,7 @@
           <div class="cb-block">
             <p class="cb-block__title">{{ t.builder_month_label }}</p>
             <div class="cb-chips" role="tablist" aria-label="{{ t.builder_month_label }}">
-              <button class="cb-chip is-active" type="button" data-month="April 2026">April 2026</button>
+              <button class="cb-chip is-active" type="button" disabled>{{ t.hero_trust3 }}</button>
             </div>
           </div>
           {# Courses #}
@@ -108,7 +108,7 @@
         {# CTAs #}
         <div class="cb-card__cta">
           <button class="cb-btn cb-btn--outline" type="button" data-ybc-open="brochure" data-ybc-course="Inversions, Splits, Backbends" data-ybc-source="Course Bundles – landing page">{{ t.builder_cta_brochure }}</button>
-          <button id="cb-cta-main" class="cb-btn cb-btn--primary" type="button" aria-disabled="true" tabindex="-1">{{ t.builder_cta_default }}</button>
+          <a class="cb-btn cb-btn--primary" href="#cb-waitlist">{{ t.waitlist_submit }}</a>
           <p class="cb-card__foot">{{ t.builder_foot }}</p>
         </div>
       </div>
@@ -199,7 +199,7 @@
         <p class="cb-course-card__tags">{{ t["course_" + c.key + "_tags"] }}</p>
         <div class="cb-course-card__ctas">
           <a class="cb-course-card__link" href="{{ lp }}/{{ c.slug }}">{{ t.course_link }} &rarr;</a>
-          <button class="cb-btn cb-btn--primary cb-btn--sm" type="button" onclick="if(window.openCheckoutFlow)window.openCheckoutFlow('{{ c.prodId }}')">{{ t.course_cta_single }}</button>
+          <a class="cb-btn cb-btn--primary cb-btn--sm" href="#cb-waitlist">{{ t.waitlist_submit }}</a>
         </div>
       </article>
       {% endfor %}
@@ -359,7 +359,7 @@
           </div>
         </div>
         <div class="cb-price-card__ctas">
-          <button class="cb-btn cb-btn--primary" type="button" onclick="if(window.openCheckoutFlow)window.openCheckoutFlow('127')">{{ t.pricing3_cta_allin }}</button>
+          <a class="cb-btn cb-btn--primary" href="#cb-waitlist">{{ t.waitlist_submit }}</a>
           <button class="cb-btn cb-btn--outline" type="button" data-ybc-open="brochure" data-ybc-source="Course Bundles – pricing section" data-ybc-course="Inversions,Splits,Backbends">{{ t.pricing_cta_brochure }}</button>
         </div>
       </article>
@@ -642,8 +642,111 @@
     <h2 class="cb-final-cta__title">{{ t.cta_title }}</h2>
     <p class="cb-final-cta__text">{{ t.cta_text }}</p>
     <div class="cb-final-cta__buttons">
-      <a href="#coursebuilder" class="cb-btn cb-btn--primary" style="padding:18px 40px;font-size:16px">{{ t.cta_button }}</a>
+      <a href="#cb-waitlist" class="cb-btn cb-btn--primary" style="padding:18px 40px;font-size:16px">{{ t.waitlist_submit }}</a>
       <button class="cb-btn cb-btn--outline-light" style="padding:18px 40px;font-size:16px" type="button" data-ybc-open="brochure" data-ybc-course="Inversions, Splits, Backbends" data-ybc-source="Course Bundles – final CTA">{{ t.cta_brochure }}</button>
     </div>
   </div>
 </section>
+
+{# =========================================================
+   WAITLIST FORM
+========================================================= #}
+<section class="p300-waitlist" id="cb-waitlist">
+  <div class="p300-waitlist__inner">
+    <header class="p300-waitlist__head">
+      <p class="p300-waitlist__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">{{ t.waitlist_eyebrow }}</p>
+      <h2 class="p300-waitlist__title">{{ t.waitlist_title }}</h2>
+      <p class="p300-waitlist__lead">{{ t.waitlist_lead }}</p>
+    </header>
+    <div class="p300-waitlist__form-wrap" data-wl-form-wrap>
+      <form class="p300-waitlist__form" data-wl-form novalidate>
+        <input type="text" name="ybc_hp" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;overflow:hidden;" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="p300-waitlist__grid">
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_first_name }}</span>
+            <input type="text" name="firstName" inputmode="text" autocomplete="given-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_last_name }}</span>
+            <input type="text" name="lastName" inputmode="text" autocomplete="family-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_email }}</span>
+            <input type="email" name="email" inputmode="email" autocomplete="email" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_phone }}</span>
+            <input type="tel" name="phone" inputmode="tel" autocomplete="tel" required>
+          </label>
+        </div>
+        <p class="p300-waitlist__error" data-wl-error hidden>{{ t.waitlist_error }}</p>
+        <button class="yb-btn yb-btn--primary yb-btn--large p300-waitlist__submit" data-wl-submit type="submit">{{ t.waitlist_submit }}</button>
+        <p class="p300-waitlist__fine">{{ t.waitlist_privacy }}</p>
+      </form>
+    </div>
+    <div class="p300-waitlist__success" data-wl-success hidden>
+      <div class="p300-waitlist__success-icon">&#10003;</div>
+      <h3 class="p300-waitlist__success-title">{{ t.waitlist_success_title }}</h3>
+      <p class="p300-waitlist__success-text">{{ t.waitlist_success_text }}</p>
+    </div>
+  </div>
+</section>
+<script>
+(function () {
+  'use strict';
+  var form = document.querySelector('[data-wl-form]');
+  if (!form) return;
+  var isDa = window.location.pathname.indexOf('/en/') !== 0;
+  var btn = form.querySelector('[data-wl-submit]');
+  var errEl = form.querySelector('[data-wl-error]');
+  var wrap = form.closest('[data-wl-form-wrap]');
+  var successEl = document.querySelector('[data-wl-success]');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var hp = form.querySelector('[name="ybc_hp"]');
+    if (hp && hp.value) return;
+    var fn = form.querySelector('[name="firstName"]').value.trim();
+    var ln = form.querySelector('[name="lastName"]').value.trim();
+    var em = form.querySelector('[name="email"]').value.trim();
+    var ph = form.querySelector('[name="phone"]').value.trim();
+    if (!fn || !ln || !em || !ph) { errEl.hidden = false; return; }
+    errEl.hidden = true;
+    btn.disabled = true;
+    btn.textContent = isDa ? 'Sender...' : 'Sending...';
+    var p = new URLSearchParams();
+    p.append('lang', isDa ? 'da' : 'en');
+    p.append('action', '{{ t.waitlist_action }}');
+    p.append('firstName', fn);
+    p.append('lastName', ln);
+    p.append('email', em);
+    p.append('phone', ph);
+    p.append('source', 'Waitlist-CourseBundles');
+    p.append('type', 'course');
+    if (typeof window.ybAttribution === 'function') {
+      var attr = window.ybAttribution();
+      if (attr.channel) p.append('channel', attr.channel);
+      if (attr.utm_source) p.append('utm_source', attr.utm_source);
+      if (attr.utm_medium) p.append('utm_medium', attr.utm_medium);
+      if (attr.utm_campaign) p.append('utm_campaign', attr.utm_campaign);
+      if (attr.gclid) p.append('gclid', attr.gclid);
+      if (attr.fbclid) p.append('fbclid', attr.fbclid);
+      if (attr.referrer) p.append('referrer', attr.referrer);
+      if (attr.landing_page) p.append('landing_page', attr.landing_page);
+    }
+    fetch('/.netlify/functions/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: p.toString()
+    })
+    .then(function () {
+      if (wrap) wrap.hidden = true;
+      if (successEl) successEl.hidden = false;
+    })
+    .catch(function () {
+      errEl.hidden = false;
+      btn.disabled = false;
+      btn.textContent = isDa ? 'Tilmeld ventelisten' : 'Join Waitlist';
+    });
+  });
+})();
+</script>

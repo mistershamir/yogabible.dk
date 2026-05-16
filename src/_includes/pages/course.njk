@@ -44,9 +44,16 @@
     <p class="yb-hero__tagline">{{ t.hero_tagline }}</p>
     <h1 class="yb-hero__title">{{ t.hero_title | safe }}</h1>
     <p class="yb-hero__subtitle">{{ t.hero_lead }}</p>
+    {% if t.waitlist_mode and t.hero_waitlist_sub %}
+    <p class="yb-hero__waitlist-sub" style="margin-top:0.5rem;opacity:0.8;font-size:0.95em">{{ t.hero_waitlist_sub }}</p>
+    {% endif %}
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
+      {% if t.waitlist_mode %}
+      <a href="#ybc-{{ courseId }}-waitlist" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_primary }}</a>
+      {% else %}
       <a href="#ybc-{{ courseId }}-months" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_primary }}</a>
+      {% endif %}
       <button type="button" data-ybc-open="brochure" data-ybc-course="{{ courseId | capitalize }}" data-ybc-source="{{ courseId | capitalize }} – hero" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_btn_schedule }}</button>
       <a class="yb-btn yb-btn--outline-white yb-btn--large" href="{% if lang == 'en' %}/en/courses/{{ courseId }}?booking=info-session{% else %}/kurser/{{ courseId }}?booking=info-session{% endif %}" data-open-booking="info-session">{{ tc.cta_info_session }}</a>
     </div>
@@ -105,15 +112,21 @@
         </div>
       </div>
 
-      {# Month chip (April only) #}
+      {# Month chip (hidden in waitlist mode) #}
+      {% if not t.waitlist_mode %}
       <div class="ybc-months" id="ybc-{{ courseId }}-months" role="tablist" aria-label="{{ t.s1_months_aria }}">
         <button class="ybc-chip is-active" data-month="{{ t.s1_month_label }}" data-prodid="{{ t.s1_prodId }}">{{ t.s1_month_label }}</button>
       </div>
+      {% endif %}
 
       {# CTAs #}
       <div class="ybc-ctas">
         <button class="ybc-cta ybc-cta--outline" type="button" data-ybc-open="brochure" data-ybc-course="{{ courseId | capitalize }}" data-ybc-source="{{ courseId | capitalize }} – details">{{ tc.cta_schedule }}</button>
+        {% if t.waitlist_mode %}
+        <a class="ybc-cta" href="#ybc-{{ courseId }}-waitlist">{{ t.s1_cta_signup }}</a>
+        {% else %}
         <a class="ybc-cta" href="javascript:void(0)" onclick="if(window.openCheckoutFlow)window.openCheckoutFlow('{{ t.s1_prodId }}')">{{ t.s1_cta_signup }}</a>
+        {% endif %}
       </div>
     </div>
 
@@ -158,7 +171,7 @@
         {# CTAs #}
         <div class="ybc-journey__ctas">
           <button class="ybc-cta ybc-cta--outline" type="button" data-ybc-open="brochure" data-ybc-course="{{ courseId | capitalize }}" data-ybc-source="{{ courseId | capitalize }} – journey">{{ tc.cta_schedule }}</button>
-          <a class="ybc-cta" href="#ybc-{{ courseId }}-months">{{ t.s2_cta_signup }}</a>
+          <a class="ybc-cta" href="#ybc-{{ courseId }}-{% if t.waitlist_mode %}waitlist{% else %}months{% endif %}">{{ t.s2_cta_signup }}</a>
         </div>
 
         {# FAQ (desktop: here; mobile: moved below video via JS) #}
@@ -264,7 +277,7 @@
           <a class="ybc-teacher__team-link" href="{{ lp }}/meet-the-teachers">{{ tc.teacher_team_cta }} &rarr;</a>
 
           <div class="ybc-teacher__ctas" role="group" aria-label="{{ t.s4_cta_group_aria }}">
-            <a class="ybc-teacher__cta ybc-teacher__cta--primary" href="#ybc-{{ courseId }}-months" aria-label="{{ t.s4_cta_signup_aria }}">
+            <a class="ybc-teacher__cta ybc-teacher__cta--primary" href="#ybc-{{ courseId }}-{% if t.waitlist_mode %}waitlist{% else %}months{% endif %}" aria-label="{{ t.s4_cta_signup_aria }}">
               <span class="dot" aria-hidden="true"></span>
               {{ t.s4_cta_signup }}
             </a>
@@ -339,6 +352,110 @@
     </div>
   </div>
 </section>
+
+
+{# ═══════ WAITLIST FORM (waitlist_mode only) ═══════ #}
+{% if t.waitlist_mode %}
+<section class="p300-waitlist" id="ybc-{{ courseId }}-waitlist">
+  <div class="p300-waitlist__inner">
+    <header class="p300-waitlist__head">
+      <p class="p300-waitlist__eyebrow ds-eyebrow ds-eyebrow--brand ds-eyebrow--line">{{ t.waitlist_eyebrow }}</p>
+      <h2 class="p300-waitlist__title">{{ t.waitlist_title }}</h2>
+      <p class="p300-waitlist__lead">{{ t.waitlist_lead }}</p>
+    </header>
+    <div class="p300-waitlist__form-wrap" data-wl-form-wrap>
+      <form class="p300-waitlist__form" data-wl-form novalidate>
+        <input type="text" name="ybc_hp" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;overflow:hidden;" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="p300-waitlist__grid">
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_first_name }}</span>
+            <input type="text" name="firstName" inputmode="text" autocomplete="given-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_last_name }}</span>
+            <input type="text" name="lastName" inputmode="text" autocomplete="family-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_email }}</span>
+            <input type="email" name="email" inputmode="email" autocomplete="email" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_phone }}</span>
+            <input type="tel" name="phone" inputmode="tel" autocomplete="tel" required>
+          </label>
+        </div>
+        <p class="p300-waitlist__error" data-wl-error hidden>{{ t.waitlist_error | safe }}</p>
+        <button class="yb-btn yb-btn--primary yb-btn--large p300-waitlist__submit" data-wl-submit type="submit">{{ t.waitlist_submit }}</button>
+        <p class="p300-waitlist__fine">{{ t.waitlist_privacy }}</p>
+      </form>
+    </div>
+    <div class="p300-waitlist__success" data-wl-success hidden>
+      <div class="p300-waitlist__success-icon">&#10003;</div>
+      <h3 class="p300-waitlist__success-title">{{ t.waitlist_success_title }}</h3>
+      <p class="p300-waitlist__success-text">{{ t.waitlist_success_text }}</p>
+    </div>
+  </div>
+</section>
+<script>
+(function () {
+  'use strict';
+  var form = document.querySelector('[data-wl-form]');
+  if (!form) return;
+  var isDa = window.location.pathname.indexOf('/en/') !== 0;
+  var btn = form.querySelector('[data-wl-submit]');
+  var errEl = form.querySelector('[data-wl-error]');
+  var wrap = form.closest('[data-wl-form-wrap]');
+  var successEl = document.querySelector('[data-wl-success]');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var hp = form.querySelector('[name="ybc_hp"]');
+    if (hp && hp.value) return;
+    var fn = form.querySelector('[name="firstName"]').value.trim();
+    var ln = form.querySelector('[name="lastName"]').value.trim();
+    var em = form.querySelector('[name="email"]').value.trim();
+    var ph = form.querySelector('[name="phone"]').value.trim();
+    if (!fn || !ln || !em || !ph) { errEl.hidden = false; return; }
+    errEl.hidden = true;
+    btn.disabled = true;
+    btn.textContent = isDa ? 'Sender...' : 'Sending...';
+    var p = new URLSearchParams();
+    p.append('lang', isDa ? 'da' : 'en');
+    p.append('action', '{{ t.waitlist_action }}');
+    p.append('firstName', fn);
+    p.append('lastName', ln);
+    p.append('email', em);
+    p.append('phone', ph);
+    p.append('source', 'Waitlist-{{ courseId | capitalize }}');
+    p.append('type', 'course');
+    if (typeof window.ybAttribution === 'function') {
+      var attr = window.ybAttribution();
+      if (attr.channel) p.append('channel', attr.channel);
+      if (attr.utm_source) p.append('utm_source', attr.utm_source);
+      if (attr.utm_medium) p.append('utm_medium', attr.utm_medium);
+      if (attr.utm_campaign) p.append('utm_campaign', attr.utm_campaign);
+      if (attr.gclid) p.append('gclid', attr.gclid);
+      if (attr.fbclid) p.append('fbclid', attr.fbclid);
+      if (attr.referrer) p.append('referrer', attr.referrer);
+      if (attr.landing_page) p.append('landing_page', attr.landing_page);
+    }
+    fetch('/.netlify/functions/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: p.toString()
+    })
+    .then(function () {
+      if (wrap) wrap.hidden = true;
+      if (successEl) successEl.hidden = false;
+    })
+    .catch(function () {
+      errEl.hidden = false;
+      btn.disabled = false;
+      btn.textContent = isDa ? 'Tilmeld ventelisten' : 'Join Waitlist';
+    });
+  });
+})();
+</script>
+{% endif %}
 
 
 {# ═══════ S7: CROSS-SELL — Other courses, training, private, blog ═══════ #}
