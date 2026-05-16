@@ -4,7 +4,7 @@
 
 <!-- FLOATING CART BAR -->
 <div class="yb-float-bar" id="p8w-float-bar">
-  <button class="yb-float-bar__btn" id="p8w-float-btn" data-checkout-product="100209">
+  <button class="yb-float-bar__btn" id="p8w-float-btn">
     {{ t.float_cta }} <span class="yb-float-bar__price">— {{ t.float_price }}</span>
   </button>
 </div>
@@ -58,7 +58,7 @@
     <p class="p8w-hero__styles">{{ t.hero_styles }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="?product=100209" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100209">{{ t.hero_cta_prep }}</a>
+      <a href="#p8w-waitlist" class="yb-btn yb-btn--primary yb-btn--large">{{ t.hero_cta_prep }}</a>
       <button onclick="openYBScheduleModal('8w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
     <p class="yb-hero__read-more">
@@ -549,7 +549,7 @@
     <!-- CTA -->
     <div class="yb-tracks__cta">
       <p class="yb-tracks__cta-hint">{{ t.cohort_cta_hint }}</p>
-      <button onclick="openYBScheduleModal('8w')" class="yb-btn yb-btn--cta">{{ t.cohort_cta_text }}</button>
+      <a href="#p8w-waitlist" class="yb-btn yb-btn--cta">{{ t.cohort_cta_text }}</a>
     </div>
   </div>
 </section>
@@ -682,11 +682,11 @@
           <p class="p18-invest-note" style="margin-top:14px;font-style:italic;">{{ t.invest_ya_note }}</p>
         </div>
 
-        <button onclick="openYBScheduleModal('8w')" class="btn btn--primary btn--large" style="width:100%;margin-top:1.5rem">{{ t.invest_cta_text }}</button>
+        <a href="#p8w-waitlist" class="btn btn--primary btn--large" style="display:block;width:100%;margin-top:1.5rem;text-align:center">{{ t.invest_cta_text }}</a>
       </div>
 
-      <!-- Right: Early deposit benefits -->
-      <div class="p4w-early-card">
+      <!-- Right: Waitlist signup -->
+      <div class="p4w-early-card" id="p8w-waitlist">
         <h3 class="p4w-early-card__title">{{ t.early_title }}</h3>
         <p class="p4w-early-card__subtitle">{{ t.early_subtitle }}</p>
 
@@ -699,12 +699,36 @@
           {% endfor %}
         </ul>
 
-        <div class="p4w-early-card__cta">
-          <a href="?product=100209" class="yb-btn yb-btn--cta" data-checkout-product="100209">{{ t.early_cta_text }}</a>
-          <div class="p4w-early-card__pricing">
-            <span class="p4w-early-card__deposit">{{ t.early_deposit_label }}</span>
-            <span class="p4w-early-card__remainder">{{ t.early_remainder_label }}</span>
-          </div>
+        <div class="p300-waitlist__form-wrap" data-wl-form-wrap>
+          <form class="p300-waitlist__form" data-wl-form novalidate style="margin-top:1rem">
+            <input type="text" name="p8w_hp" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;overflow:hidden;" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <div class="p300-waitlist__grid">
+              <label class="p300-waitlist__field">
+                <span>{{ t.waitlist_first_name }}</span>
+                <input type="text" name="firstName" required autocomplete="given-name">
+              </label>
+              <label class="p300-waitlist__field">
+                <span>{{ t.waitlist_last_name }}</span>
+                <input type="text" name="lastName" required autocomplete="family-name">
+              </label>
+              <label class="p300-waitlist__field">
+                <span>{{ t.waitlist_email }}</span>
+                <input type="email" name="email" required autocomplete="email">
+              </label>
+              <label class="p300-waitlist__field">
+                <span>{{ t.waitlist_phone }}</span>
+                <input type="tel" name="phone" required autocomplete="tel">
+              </label>
+            </div>
+            <p class="p300-waitlist__error" data-wl-error hidden>{{ t.waitlist_error | safe }}</p>
+            <button class="yb-btn yb-btn--primary yb-btn--large p300-waitlist__submit" data-wl-submit type="submit" style="width:100%;margin-top:1rem">{{ t.waitlist_submit }}</button>
+            <p class="p300-waitlist__fine">{{ t.waitlist_privacy | safe }}</p>
+          </form>
+        </div>
+        <div class="p300-waitlist__success" data-wl-success hidden style="text-align:center;padding:1.5rem 0">
+          <div class="p300-waitlist__success-icon">&#10003;</div>
+          <h3 class="p300-waitlist__success-title">{{ t.waitlist_success_title }}</h3>
+          <p class="p300-waitlist__success-text">{{ t.waitlist_success_text }}</p>
         </div>
       </div>
 
@@ -739,8 +763,7 @@
     <h2 class="p18-final-cta__title">{{ t.final_title }}</h2>
     <p class="p18-final-cta__text">{{ t.final_text }}</p>
     <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
-      <button onclick="openYBScheduleModal('8w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
-      <a href="?product=100209" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100209">{{ t.final_prep_cta }}</a>
+      <a href="#p8w-waitlist" class="btn btn--large btn--primary">{{ t.final_cta }}</a>
     </div>
   </div>
 </section>
@@ -1227,6 +1250,82 @@
 })();
 </script>
 
+<!-- Waitlist form submission -->
+<script>
+(function () {
+  'use strict';
+  var forms = document.querySelectorAll('[data-wl-form]');
+  if (!forms.length) return;
+  var isDa = window.location.pathname.indexOf('/en/') !== 0;
+  var submitted = false;
+
+  function showAllSuccess() {
+    document.querySelectorAll('[data-wl-form-wrap]').forEach(function (w) { w.hidden = true; });
+    document.querySelectorAll('[data-wl-success]').forEach(function (s) { s.hidden = false; });
+  }
+
+  forms.forEach(function (form) {
+    var btn = form.querySelector('[data-wl-submit]');
+    var errEl = form.querySelector('[data-wl-error]');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (submitted) { showAllSuccess(); return; }
+
+      var hp = form.querySelector('[name="p8w_hp"]');
+      if (hp && hp.value) return;
+
+      var fn = form.querySelector('[name="firstName"]').value.trim();
+      var ln = form.querySelector('[name="lastName"]').value.trim();
+      var em = form.querySelector('[name="email"]').value.trim();
+      var ph = form.querySelector('[name="phone"]').value.trim();
+
+      if (!fn || !ln || !em || !ph) { errEl.hidden = false; return; }
+      errEl.hidden = true;
+      btn.disabled = true;
+      btn.textContent = isDa ? 'Sender...' : 'Sending...';
+
+      var p = new URLSearchParams();
+      p.append('lang', isDa ? 'da' : 'en');
+      p.append('action', 'lead_waitlist_8w_oct');
+      p.append('firstName', fn);
+      p.append('lastName', ln);
+      p.append('email', em);
+      p.append('phone', ph);
+      p.append('source', 'Waitlist-8w-Oct');
+      p.append('allFormats', '8w');
+
+      if (typeof window.ybAttribution === 'function') {
+        var attr = window.ybAttribution();
+        if (attr.channel) p.append('channel', attr.channel);
+        if (attr.utm_source) p.append('utm_source', attr.utm_source);
+        if (attr.utm_medium) p.append('utm_medium', attr.utm_medium);
+        if (attr.utm_campaign) p.append('utm_campaign', attr.utm_campaign);
+        if (attr.gclid) p.append('gclid', attr.gclid);
+        if (attr.fbclid) p.append('fbclid', attr.fbclid);
+        if (attr.referrer) p.append('referrer', attr.referrer);
+        if (attr.landing_page) p.append('landing_page', attr.landing_page);
+      }
+
+      fetch('/.netlify/functions/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: p.toString()
+      })
+      .then(function () {
+        submitted = true;
+        showAllSuccess();
+      })
+      .catch(function () {
+        errEl.hidden = false;
+        btn.disabled = false;
+        btn.textContent = isDa ? 'Tilmeld ventelisten' : 'Join Waitlist';
+      });
+    });
+  });
+})();
+</script>
+
 <!-- Floating bar logic -->
 <script>
 (function(){
@@ -1246,9 +1345,8 @@
   checkScroll();
 
   btn.addEventListener('click', function() {
-    var prodId = btn.getAttribute('data-checkout-product');
-    if (window.openCheckoutFlow) window.openCheckoutFlow(prodId);
-    else if (window.startCheckoutFunnel) window.startCheckoutFunnel(prodId);
+    var target = document.getElementById('p8w-waitlist');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 })();
 </script>

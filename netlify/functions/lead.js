@@ -491,6 +491,24 @@ function processLead(payload, action) {
         source: 'Website'
       };
 
+    case 'lead_waitlist_8w_oct':
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: '8w',
+        program: payload.program || '200-Hour 8-Week Semi-Intensive Yoga Teacher Training',
+        course_id: '',
+        cohort_label: 'waitlist-oct-2026',
+        preferred_month: 'October',
+        accommodation: 'No',
+        city_country: '',
+        housing_months: '',
+        service: '',
+        subcategories: 'waitlist',
+        message: '',
+        source: 'Website'
+      };
+
     case 'lead_schedule_50h':
       return {
         ...base,
