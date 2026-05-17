@@ -307,61 +307,105 @@ async function loadCohortRegistry(db) {
 }
 
 async function loadCatia(db) {
-  // Try enrollment lookup by lead_email (the doc id depends on lead_id).
-  const enrollSnap = await db.collection('sequence_enrollments')
-    .where('sequence_id', '==', SEQUENCE_ID)
-    .where('lead_email', '==', CATIA_EMAIL)
-    .limit(1)
-    .get();
+  // Broad search: any lead whose email starts with `catia` or name contains
+  // "Catia". Firestore can't do case-insensitive `contains`, so we fetch by
+  // a few cheap equality/range queries and dedupe.
+  const candidates = new Map();
+  const tryAdd = (doc) => { if (!candidates.has(doc.id)) candidates.set(doc.id, doc); };
 
-  const result = { email: CATIA_EMAIL, enrollment: null, lead: null };
-  if (!enrollSnap.empty) {
-    const eDoc = enrollSnap.docs[0];
-    result.enrollment = { id: eDoc.id, ...eDoc.data() };
-    // Normalise timestamps for readability
-    result.enrollment.next_send_at = toDate(result.enrollment.next_send_at)?.toISOString() || null;
-    result.enrollment.started_at = toDate(result.enrollment.started_at)?.toISOString() || null;
-    result.enrollment.last_email_sent_at = toDate(result.enrollment.last_email_sent_at)?.toISOString() || null;
-    result.enrollment.completed_at = toDate(result.enrollment.completed_at)?.toISOString() || null;
-
-    const leadDoc = await db.collection('leads').doc(result.enrollment.lead_id).get();
-    if (leadDoc.exists) {
-      const d = leadDoc.data();
-      result.lead = {
-        id: leadDoc.id,
-        name: d.name || d.first_name || '',
-        email: d.email || '',
-        ytt_program_type: d.ytt_program_type || d.program_type || '',
-        status: d.status || '',
-        lang: d.lang || d.meta_lang || '',
-        email_bounced: d.email_bounced === true,
-        unsubscribed: d.unsubscribed === true,
-        source: d.source || d.utm_source || '',
-        created_at: toDate(d.created_at)?.toISOString() || null,
-        welcome_email_sent_at: toDate(d.welcome_email_sent_at)?.toISOString() || null
-      };
-    }
-  } else {
-    // No enrollment under Personal Outreach — try to find the lead directly.
-    const leadSnap = await db.collection('leads')
-      .where('email', '==', CATIA_EMAIL)
-      .limit(1)
+  // Range query for emails starting with "catia" (lowercase + capitalised).
+  for (const prefix of ['catia', 'Catia']) {
+    const snap = await db.collection('leads')
+      .where('email', '>=', prefix)
+      .where('email', '<', prefix + '')
+      .limit(5)
       .get();
-    if (!leadSnap.empty) {
-      const ld = leadSnap.docs[0];
-      const d = ld.data();
-      result.lead = {
-        id: ld.id,
-        name: d.name || d.first_name || '',
-        email: d.email,
-        ytt_program_type: d.ytt_program_type || d.program_type || '',
-        status: d.status || '',
-        lang: d.lang || d.meta_lang || '',
-        created_at: toDate(d.created_at)?.toISOString() || null
+    snap.forEach(tryAdd);
+  }
+  // Try name match too.
+  for (const prefix of ['Catia', 'catia']) {
+    const snap = await db.collection('leads')
+      .where('name', '>=', prefix)
+      .where('name', '<', prefix + '')
+      .limit(5)
+      .get();
+    snap.forEach(tryAdd);
+    const fnSnap = await db.collection('leads')
+      .where('first_name', '>=', prefix)
+      .where('first_name', '<', prefix + '')
+      .limit(5)
+      .get();
+    fnSnap.forEach(tryAdd);
+  }
+
+  const matches = [];
+  for (const doc of candidates.values()) {
+    const d = doc.data();
+    const lead = {
+      id: doc.id,
+      name: d.name || d.first_name || '',
+      email: d.email || '',
+      ytt_program_type: d.ytt_program_type || d.program_type || '',
+      status: d.status || '',
+      type: d.type || '',
+      lang: d.lang || d.meta_lang || '',
+      email_bounced: d.email_bounced === true,
+      unsubscribed: d.unsubscribed === true,
+      source: d.source || d.utm_source || '',
+      created_at: toDate(d.created_at)?.toISOString() || null,
+      welcome_email_sent_at: toDate(d.welcome_email_sent_at)?.toISOString() || null
+    };
+
+    // Look for an enrollment under Personal Outreach for this lead.
+    const enrollDoc = await db.collection('sequence_enrollments')
+      .doc(SEQUENCE_ID + '_' + doc.id)
+      .get();
+    let enrollment = null;
+    if (enrollDoc.exists) {
+      const e = enrollDoc.data();
+      enrollment = {
+        id: enrollDoc.id,
+        status: e.status,
+        current_step: e.current_step,
+        exit_reason: e.exit_reason || null,
+        trigger: e.trigger || null,
+        next_send_at: toDate(e.next_send_at)?.toISOString() || null,
+        last_email_sent_at: toDate(e.last_email_sent_at)?.toISOString() || null,
+        started_at: toDate(e.started_at)?.toISOString() || null,
+        completed_at: toDate(e.completed_at)?.toISOString() || null,
+        processing_lock: e.processing_lock || null,
+        step_history_len: Array.isArray(e.step_history) ? e.step_history.length : 0
       };
     }
+    matches.push({ lead, enrollment });
   }
-  return result;
+  return { search: 'catia / Catia by email+name prefix', matches };
+}
+
+function activeBreakdown(docs, now) {
+  const buckets = {
+    by_current_step: {},
+    by_due_bucket: { future: 0, '<1h_past': 0, '1h-24h_past': 0, '>24h_past': 0, no_next_send_at: 0 }
+  };
+  const samples = [];
+  for (const doc of docs) {
+    const d = doc.data();
+    if (d.status !== 'active') continue;
+    const step = d.current_step ?? '(missing)';
+    buckets.by_current_step[step] = (buckets.by_current_step[step] || 0) + 1;
+    const due = toDate(d.next_send_at);
+    if (!due) {
+      buckets.by_due_bucket.no_next_send_at++;
+    } else {
+      const ageMs = now - due.getTime();
+      if (ageMs < 0) buckets.by_due_bucket.future++;
+      else if (ageMs < 60 * 60 * 1000) buckets.by_due_bucket['<1h_past']++;
+      else if (ageMs < 24 * 60 * 60 * 1000) buckets.by_due_bucket['1h-24h_past']++;
+      else buckets.by_due_bucket['>24h_past']++;
+    }
+    if (samples.length < 15) samples.push(enrollmentSummary(doc));
+  }
+  return { ...buckets, samples };
 }
 
 async function runDiagnose(db) {
@@ -426,6 +470,7 @@ async function runDiagnose(db) {
       total: allEnrollments.length,
       by_status_exit_reason: census
     },
+    active_breakdown: activeBreakdown(allEnrollments, now),
     stuck_active: {
       count: stuckActive.length,
       threshold: '> 1h past next_send_at, status=active, current_step=1',
