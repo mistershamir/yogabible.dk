@@ -100,8 +100,16 @@ async function resolveCohort(programType) {
 
 /**
  * Resolve the best cohort across all of a lead's interest types.
- * Falls back to ['4-week'] when ytt_program_type is empty so generic YTT
- * inquiries still match an open cohort.
+ *
+ * Resolution order:
+ *   1. Exact match on the lead's program_type(s) via resolveCohort
+ *   2. If none match, fall back to the nearest open cohort of ANY type
+ *      (better to send a real schedule for a different format than to
+ *      silently kill the enrollment)
+ *   3. Only return null when the entire registry has zero open cohorts
+ *
+ * The returned object carries `fallback: true` (+ `fallback_reason`) when
+ * step 2 is used, so downstream code / diagnostics can see it happened.
  */
 async function resolveCohortForLead(lead) {
   const raw = (lead && (lead.ytt_program_type || lead.program_type || '')) || '';
@@ -113,17 +121,51 @@ async function resolveCohortForLead(lead) {
     const r = await resolveCohort(t);
     if (r) results.push(r);
   }
-  if (results.length === 0) return null;
 
-  results.sort((a, b) => {
-    const sa = _start(a.cohort);
-    const sb = _start(b.cohort);
+  if (results.length > 0) {
+    results.sort((a, b) => {
+      const sa = _start(a.cohort);
+      const sb = _start(b.cohort);
+      if (!sa) return 1;
+      if (!sb) return -1;
+      return sa - sb;
+    });
+    return results[0];
+  }
+
+  // Fallback: no program-type match. Promote the nearest open cohort of any
+  // type rather than dropping the lead. Sending a schedule for a different
+  // format is strictly better than not contacting the lead at all.
+  const today = _today();
+  const cohorts = await _loadActiveCohorts();
+  const openAny = cohorts.filter((c) => {
+    const closes = _enroll(c);
+    return closes && closes > today;
+  });
+  if (openAny.length === 0) return null;
+
+  openAny.sort((a, b) => {
+    const sa = _start(a);
+    const sb = _start(b);
     if (!sa) return 1;
     if (!sb) return -1;
     return sa - sb;
   });
+  const chosen = openAny[0];
+  const startDate = _start(chosen);
+  const daysUntilStart = startDate
+    ? Math.ceil((startDate - today) / (24 * 60 * 60 * 1000))
+    : null;
+  const isUrgent = daysUntilStart != null && daysUntilStart < 3;
 
-  return results[0];
+  return {
+    cohort: chosen,
+    isUrgent,
+    daysUntilStart,
+    fallback: true,
+    fallback_reason: 'no_program_match',
+    requested_types: types
+  };
 }
 
 /**

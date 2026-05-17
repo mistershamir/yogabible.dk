@@ -201,6 +201,251 @@ function parseBody(event) {
   }
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// Diagnose mode — read-only deep dive into why Step 1 isn't sending.
+// ────────────────────────────────────────────────────────────────────────────
+
+const STUCK_GRACE_MS = 60 * 60 * 1000; // 1h past due is "stuck"
+const CATIA_EMAIL = 'catia_hauberg@gmail.com';
+
+async function loadAllEnrollments(db) {
+  const snap = await db.collection('sequence_enrollments')
+    .where('sequence_id', '==', SEQUENCE_ID)
+    .get();
+  return snap.docs;
+}
+
+function censusByStatusExitReason(docs) {
+  const census = {};
+  for (const doc of docs) {
+    const d = doc.data();
+    const status = d.status || '(missing)';
+    const exit = d.exit_reason || '(none)';
+    const key = status + ' / ' + exit;
+    census[key] = (census[key] || 0) + 1;
+  }
+  return census;
+}
+
+function findStuckActive(docs, now) {
+  const cutoff = now - STUCK_GRACE_MS;
+  return docs.filter((doc) => {
+    const d = doc.data();
+    if (d.status !== 'active') return false;
+    if (d.current_step !== 1) return false;
+    const due = toDate(d.next_send_at);
+    if (!due) return false;
+    return due.getTime() < cutoff;
+  });
+}
+
+function enrollmentSummary(doc) {
+  const d = doc.data();
+  return {
+    enroll_id: doc.id,
+    lead_id: d.lead_id,
+    lead_email: d.lead_email,
+    lead_name: d.lead_name,
+    status: d.status,
+    current_step: d.current_step,
+    next_send_at: toDate(d.next_send_at)?.toISOString() || null,
+    last_email_sent_at: toDate(d.last_email_sent_at)?.toISOString() || null,
+    started_at: toDate(d.started_at)?.toISOString() || null,
+    completed_at: toDate(d.completed_at)?.toISOString() || null,
+    exit_reason: d.exit_reason || null,
+    trigger: d.trigger || null,
+    processing_lock: d.processing_lock || null,
+    step_history_len: Array.isArray(d.step_history) ? d.step_history.length : 0
+  };
+}
+
+function findNoCohortKilled(docs) {
+  return docs.filter((doc) => {
+    const d = doc.data();
+    return d.exit_reason === 'no_active_cohort';
+  });
+}
+
+async function loadLeadBriefs(db, leadIds) {
+  const briefs = {};
+  const unique = Array.from(new Set(leadIds.filter(Boolean)));
+  if (unique.length === 0) return briefs;
+  // db.getAll batches doc-by-id reads efficiently; chunk to stay well below
+  // any internal limits.
+  const CHUNK = 100;
+  for (let i = 0; i < unique.length; i += CHUNK) {
+    const refs = unique.slice(i, i + CHUNK).map((id) => db.collection('leads').doc(id));
+    const snaps = await db.getAll(...refs);
+    snaps.forEach((doc) => {
+      if (!doc.exists) return;
+      const d = doc.data();
+      briefs[doc.id] = {
+        name: d.name || d.first_name || '',
+        ytt_program_type: d.ytt_program_type || d.program_type || '',
+        status: d.status || '',
+        lang: d.lang || d.meta_lang || '',
+        email_bounced: d.email_bounced === true
+      };
+    });
+  }
+  return briefs;
+}
+
+async function loadCohortRegistry(db) {
+  const snap = await db.collection('cohort_registry').get();
+  return snap.docs.map((doc) => {
+    const d = doc.data();
+    return {
+      _docId: doc.id,
+      program_type: d.program_type || '',
+      also_matches: d.also_matches || [],
+      active: d.active === true,
+      enrollment_closes: d.enrollment_closes || null,
+      start_date: d.start_date || null
+    };
+  });
+}
+
+async function loadCatia(db) {
+  // Try enrollment lookup by lead_email (the doc id depends on lead_id).
+  const enrollSnap = await db.collection('sequence_enrollments')
+    .where('sequence_id', '==', SEQUENCE_ID)
+    .where('lead_email', '==', CATIA_EMAIL)
+    .limit(1)
+    .get();
+
+  const result = { email: CATIA_EMAIL, enrollment: null, lead: null };
+  if (!enrollSnap.empty) {
+    const eDoc = enrollSnap.docs[0];
+    result.enrollment = { id: eDoc.id, ...eDoc.data() };
+    // Normalise timestamps for readability
+    result.enrollment.next_send_at = toDate(result.enrollment.next_send_at)?.toISOString() || null;
+    result.enrollment.started_at = toDate(result.enrollment.started_at)?.toISOString() || null;
+    result.enrollment.last_email_sent_at = toDate(result.enrollment.last_email_sent_at)?.toISOString() || null;
+    result.enrollment.completed_at = toDate(result.enrollment.completed_at)?.toISOString() || null;
+
+    const leadDoc = await db.collection('leads').doc(result.enrollment.lead_id).get();
+    if (leadDoc.exists) {
+      const d = leadDoc.data();
+      result.lead = {
+        id: leadDoc.id,
+        name: d.name || d.first_name || '',
+        email: d.email || '',
+        ytt_program_type: d.ytt_program_type || d.program_type || '',
+        status: d.status || '',
+        lang: d.lang || d.meta_lang || '',
+        email_bounced: d.email_bounced === true,
+        unsubscribed: d.unsubscribed === true,
+        source: d.source || d.utm_source || '',
+        created_at: toDate(d.created_at)?.toISOString() || null,
+        welcome_email_sent_at: toDate(d.welcome_email_sent_at)?.toISOString() || null
+      };
+    }
+  } else {
+    // No enrollment under Personal Outreach — try to find the lead directly.
+    const leadSnap = await db.collection('leads')
+      .where('email', '==', CATIA_EMAIL)
+      .limit(1)
+      .get();
+    if (!leadSnap.empty) {
+      const ld = leadSnap.docs[0];
+      const d = ld.data();
+      result.lead = {
+        id: ld.id,
+        name: d.name || d.first_name || '',
+        email: d.email,
+        ytt_program_type: d.ytt_program_type || d.program_type || '',
+        status: d.status || '',
+        lang: d.lang || d.meta_lang || '',
+        created_at: toDate(d.created_at)?.toISOString() || null
+      };
+    }
+  }
+  return result;
+}
+
+async function runDiagnose(db) {
+  const now = Date.now();
+
+  const [allEnrollments, cohorts] = await Promise.all([
+    loadAllEnrollments(db),
+    loadCohortRegistry(db)
+  ]);
+
+  const census = censusByStatusExitReason(allEnrollments);
+
+  const stuckActive = findStuckActive(allEnrollments, now);
+  const stuckSamples = stuckActive
+    .sort((a, b) => {
+      const ad = toDate(a.data().next_send_at)?.getTime() || 0;
+      const bd = toDate(b.data().next_send_at)?.getTime() || 0;
+      return ad - bd; // oldest-due first
+    })
+    .slice(0, 25)
+    .map(enrollmentSummary);
+
+  // Hydrate stuck samples with their lead's ytt_program_type / status.
+  const stuckLeadIds = stuckSamples.map((s) => s.lead_id).filter(Boolean);
+  const stuckLeadBriefs = await loadLeadBriefs(db, stuckLeadIds);
+  stuckSamples.forEach((s) => { s.lead = stuckLeadBriefs[s.lead_id] || null; });
+
+  const killed = findNoCohortKilled(allEnrollments);
+  const killedLeadIds = killed.map((d) => d.data().lead_id).filter(Boolean);
+  const killedBriefs = await loadLeadBriefs(db, killedLeadIds);
+  const killedByProgram = {};
+  const killedSamples = killed.slice(0, 50).map((doc) => {
+    const e = enrollmentSummary(doc);
+    e.lead = killedBriefs[e.lead_id] || null;
+    const pt = e.lead?.ytt_program_type || '(empty)';
+    killedByProgram[pt] = (killedByProgram[pt] || 0) + 1;
+    return e;
+  });
+  // Tally across all killed (not just samples).
+  const killedByProgramFull = {};
+  for (const doc of killed) {
+    const lid = doc.data().lead_id;
+    const pt = killedBriefs[lid]?.ytt_program_type || '(empty/unknown)';
+    killedByProgramFull[pt] = (killedByProgramFull[pt] || 0) + 1;
+  }
+
+  const catia = await loadCatia(db);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const cohortStatus = cohorts.map((c) => {
+    const closes = c.enrollment_closes ? new Date(c.enrollment_closes) : null;
+    const open = c.active && closes && closes > today;
+    return { ...c, _closes_resolved: closes?.toISOString() || null, _open_today: open };
+  });
+
+  return {
+    sequence_id: SEQUENCE_ID,
+    sequence_name: SEQUENCE_NAME,
+    now: new Date(now).toISOString(),
+    enrollment_census: {
+      total: allEnrollments.length,
+      by_status_exit_reason: census
+    },
+    stuck_active: {
+      count: stuckActive.length,
+      threshold: '> 1h past next_send_at, status=active, current_step=1',
+      samples: stuckSamples
+    },
+    no_active_cohort_kills: {
+      count: killed.length,
+      by_program_type: killedByProgramFull,
+      samples: killedSamples
+    },
+    cohort_registry: {
+      total: cohortStatus.length,
+      open_today_count: cohortStatus.filter((c) => c._open_today).length,
+      cohorts: cohortStatus
+    },
+    catia
+  };
+}
+
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
 
@@ -213,6 +458,7 @@ exports.handler = async (event) => {
   const params = event.queryStringParameters || {};
   const mode = (params.mode || 'preview').toLowerCase();
   const isEnroll = mode === 'enroll';
+  const isDiagnose = mode === 'diagnose';
 
   if (isEnroll && event.httpMethod !== 'POST') {
     return jsonResponse(405, { error: 'mode=enroll requires POST' });
@@ -227,6 +473,11 @@ exports.handler = async (event) => {
 
   try {
     const db = getDb();
+
+    if (isDiagnose) {
+      const report = await runDiagnose(db);
+      return jsonResponse(200, { mode: 'diagnose', ...report });
+    }
 
     const sequence = await loadSequence(db);
     if (!sequence) {
