@@ -127,20 +127,19 @@ exports.handler = async (event) => {
       console.error('[lead] Notification error (non-blocking):', err.message);
     });
 
-    // Auto-enroll in matching sequences (non-blocking)
-    triggerNewLeadSequences(docRef.id, leadData).catch(err => {
-      console.error('[lead] Sequence enrollment error (non-blocking):', err.message);
-    });
-
-    // Auto-add to lead-synced email lists (non-blocking)
-    autoAddLeadToLists(db, docRef.id, leadData).catch(err => {
-      console.error('[lead] Auto-add to email list error (non-blocking):', err.message);
-    });
-
-    // Social media: create milestone post every 10 new leads (non-blocking)
-    checkLeadBatchMilestone(db, leadData).catch(err => {
-      console.error('[lead] Social milestone error (non-blocking):', err.message);
-    });
+    // Must await — Netlify Functions terminate after response is sent.
+    // Run in parallel with per-call .catch() so one failure doesn't abort the others.
+    await Promise.all([
+      triggerNewLeadSequences(docRef.id, leadData).catch(err => {
+        console.error('[lead] Sequence enrollment error:', err.message);
+      }),
+      autoAddLeadToLists(db, docRef.id, leadData).catch(err => {
+        console.error('[lead] Auto-add to email list error:', err.message);
+      }),
+      checkLeadBatchMilestone(db, leadData).catch(err => {
+        console.error('[lead] Social milestone error:', err.message);
+      }),
+    ]);
 
     const response = jsonResponse(200, { ok: true, message: 'Request received successfully' });
     return wrapCallback(callback, response);
