@@ -111,8 +111,13 @@ async function resolveScheduleForLead(lead, leadId) {
   const scheduleUrl = buildScheduleUrl(resolved.cohort, lang, leadId, token);
   if (!scheduleUrl) return null;
 
-  // Single-line program label per agreed plan (option a): use lead.program as-is.
-  const programName = (lead.program || lead.cohort_label || resolved.cohort.name || '').trim();
+  // Build program label from the cohort doc — guarantees it reflects the
+  // actual cohort being promoted (important when the fallback path is used),
+  // and avoids raw program slugs that sometimes appear on lead.program.
+  const cohort = resolved.cohort;
+  const name = lang === 'da' ? (cohort.name_da || cohort.name_en) : (cohort.name_en || cohort.name_da);
+  const label = lang === 'da' ? (cohort.cohort_label_da || cohort.cohort_label_en) : (cohort.cohort_label_en || cohort.cohort_label_da);
+  const programName = name && label ? `${name} (${label})` : (name || label || '');
 
   return {
     scheduleUrl,
