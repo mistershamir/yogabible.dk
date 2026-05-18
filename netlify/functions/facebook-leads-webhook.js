@@ -30,6 +30,9 @@ const { scheduleDeferredWelcome } = require('./shared/deferred-welcomes');
 const { sendLeadEvent } = require('./shared/meta-events');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 const { detectLeadCountry } = require('./shared/country-detect');
+const { resolveCohortForLead, buildScheduleUrl } = require('./shared/cohort-resolver');
+const { sendSingleViaResend } = require('./shared/resend-service');
+const { prepareTrackedEmail } = require('./shared/email-tracking');
 
 const GRAPH_API_VERSION = 'v25.0';
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
@@ -195,14 +198,7 @@ async function processLeadgenChange(value) {
   const leadDocId = email.toLowerCase().trim().replace(/[\/\.#\[\]]/g, '_');
   const leadDocRef = db.collection('leads').doc(leadDocId);
 
-  // Quick pre-check (non-atomic but avoids transaction overhead for most cases)
-  const existingCheck = await leadDocRef.get();
-  if (existingCheck.exists) {
-    console.log(`[fb-leads] Duplicate email ${email} — lead doc ${leadDocId} exists. Skipping.`);
-    return;
-  }
-
-  // Resolve program type: FORM_ID_MAP first, then answer mapping, then keyword fallback
+  // Resolve program type before pre-check so it's available in the returning-lead path
   let resolvedType;
   const formMapType = FORM_ID_MAP[form_id];
   if (formMapType === 'from-answer') {
@@ -211,6 +207,17 @@ async function processLeadgenChange(value) {
     console.log(`[fb-leads] Program answer "${programAnswer}" → type "${resolvedType}"`);
   } else {
     resolvedType = detectYTTType(program, ad_name || formName || '', form_id);
+  }
+
+  // Quick pre-check (non-atomic but avoids transaction overhead for most cases)
+  const existingCheck = await leadDocRef.get();
+  if (existingCheck.exists) {
+    console.log(`[fb-leads] Returning lead ${email} — updating doc and sending schedule`);
+    const fbSource = metaPlatform === 'instagram' ? 'Instagram Ad' : 'Facebook Ad';
+    await handleReturningFbLead(db, leadDocRef, leadDocId, { email, firstName, lang: metaLang, programType: resolvedType, source: fbSource }).catch(err => {
+      console.error('[fb-leads] Returning lead handler failed:', err.message);
+    });
+    return;
   }
 
   // Resolve accommodation from housing question (international forms or Danish forms)
@@ -297,7 +304,10 @@ async function processLeadgenChange(value) {
     isNewLead = true;
   } catch (txnErr) {
     if (txnErr.message === 'LEAD_EXISTS') {
-      console.log(`[fb-leads] Duplicate email ${email} — lead doc ${leadDocId} exists (caught by transaction). Skipping.`);
+      console.log(`[fb-leads] Returning lead ${email} — concurrent submission caught by transaction`);
+      await handleReturningFbLead(db, leadDocRef, leadDocId, { email, firstName: lead.first_name, lang: lead.lang, programType: lead.ytt_program_type, source: lead.source }).catch(err => {
+        console.error('[fb-leads] Returning lead handler (txn) failed:', err.message);
+      });
       return;
     }
     throw txnErr;
@@ -652,4 +662,86 @@ function corsHeaders() {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
   };
+}
+
+// ── Returning lead helpers ────────────────────────────────────────────────────
+
+function sendTelegramMessage(text) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_OWNER_CHAT_ID;
+  if (!token || !chatId) return Promise.resolve();
+  const body = JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' });
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: 'api.telegram.org',
+      path: `/bot${token}/sendMessage`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+    }, (res) => { res.resume(); resolve(); });
+    req.on('error', () => resolve());
+    req.write(body);
+    req.end();
+  });
+}
+
+function generateScheduleToken(leadDocId, email) {
+  return crypto
+    .createHmac('sha256', TOKEN_SECRET)
+    .update(leadDocId + ':' + email.toLowerCase().trim())
+    .digest('hex');
+}
+
+/**
+ * Handle a Meta form resubmission from an existing lead:
+ *  1. Update the lead doc with new program type / last_form_submission / last_source
+ *  2. Resolve cohort and send the schedule email immediately via Resend
+ *  3. Notify Shamir via Telegram
+ */
+async function handleReturningFbLead(db, leadDocRef, leadDocId, { email, firstName, lang, programType, source }) {
+  const now = new Date();
+  const updateData = { updated_at: now, last_form_submission: now };
+  if (programType) updateData.ytt_program_type = programType;
+  if (source) updateData.last_source = source;
+  await leadDocRef.update(updateData);
+
+  const existingSnap = await leadDocRef.get();
+  const existing = existingSnap.exists ? existingSnap.data() : {};
+  const resolvedFirstName = firstName || existing.first_name || '';
+  const rawLang = lang || existing.lang || existing.meta_lang || '';
+  const resolvedLang = rawLang || 'da';
+  const resolvedType = programType || existing.ytt_program_type || '';
+
+  const cohortResult = await resolveCohortForLead({ ytt_program_type: resolvedType }).catch(() => null);
+  if (cohortResult && cohortResult.cohort) {
+    const cohort = cohortResult.cohort;
+    const scheduleToken = generateScheduleToken(leadDocId, email);
+    const scheduleUrl = buildScheduleUrl(cohort, resolvedLang, leadDocId, scheduleToken);
+    const cohortName = cohort.name || cohort.program_name || resolvedType || '';
+    const cohortLabel = cohort.label || cohort.cohort_label || '';
+
+    const isDa = !rawLang || rawLang === 'da' || rawLang === 'dk';
+    const subject = isDa ? 'Dit skema' : 'Your schedule';
+    const bodyHtml = isDa
+      ? `<p>Hej ${resolvedFirstName},</p>` +
+        `<p>Her er skemaet for ${cohortName} (${cohortLabel}) som du bad om:</p>` +
+        `<p><a href="${scheduleUrl}" style="color:#f75c03;">Se skemaet her</a></p>` +
+        `<p>Ring mig gerne på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> hvis du har spørgsmål.</p>` +
+        `<p>Shamir</p>`
+      : `<p>Hi ${resolvedFirstName},</p>` +
+        `<p>Here's the schedule for ${cohortName} (${cohortLabel}) that you requested:</p>` +
+        `<p><a href="${scheduleUrl}" style="color:#f75c03;">See the schedule here</a></p>` +
+        `<p>Feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> if you have any questions.</p>` +
+        `<p>Shamir</p>`;
+
+    const trackedHtml = prepareTrackedEmail(bodyHtml, leadDocId, 'resend:schedule-request');
+    await sendSingleViaResend({ to: email, subject, bodyHtml: trackedHtml, leadId: leadDocId, lang: resolvedLang });
+    console.log(`[fb-leads] Schedule email sent to returning lead ${email} (cohort: ${cohortName})`);
+  } else {
+    console.warn(`[fb-leads] No open cohort found for returning lead ${email} (type: ${resolvedType})`);
+  }
+
+  const tgMsg = `🔄 Returning lead: ${resolvedFirstName} (${email}) resubmitted for ${resolvedType || 'unknown'}`;
+  await sendTelegramMessage(tgMsg).catch(err => {
+    console.error('[fb-leads] Telegram notification failed:', err.message);
+  });
 }

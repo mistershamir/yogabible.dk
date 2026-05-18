@@ -7,6 +7,7 @@
  */
 
 const crypto = require('crypto');
+const https = require('https');
 const { getDb } = require('./shared/firestore');
 const { CONFIG, getDisplayProgram } = require('./shared/config');
 const {
@@ -19,6 +20,9 @@ const { scheduleDeferredWelcome } = require('./shared/deferred-welcomes');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 const { detectLeadCountry } = require('./shared/country-detect');
 const { createMilestonePost } = require('./shared/social-sync');
+const { resolveCohortForLead, buildScheduleUrl } = require('./shared/cohort-resolver');
+const { sendSingleViaResend } = require('./shared/resend-service');
+const { prepareTrackedEmail } = require('./shared/email-tracking');
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_SECRET || 'yb-appt-secret';
 
@@ -99,7 +103,10 @@ exports.handler = async (event) => {
       isNewLead = true;
     } catch (txnErr) {
       if (txnErr.message === 'LEAD_EXISTS') {
-        console.log(`[lead] Duplicate email ${leadData.email} — lead doc ${leadDocId} exists. Returning success.`);
+        console.log(`[lead] Returning lead ${leadData.email} — updating doc and sending schedule`);
+        await handleReturningLead(db, leadDocRef, leadDocId, leadData).catch(err => {
+          console.error('[lead] Returning lead handler failed:', err.message);
+        });
         return wrapCallback(callback, jsonResponse(200, { ok: true, message: 'Request received successfully' }));
       }
       throw txnErr;
@@ -887,4 +894,80 @@ async function stitchAnonymousVisits(db, leadId, visitorId) {
   await anonRef.delete();
 
   console.log(`[lead] Stitched anonymous visits for ${visitorId} → lead ${leadId} (heat: ${leadHeat}, sessions: ${totalSessions}, pages: ${totalPageviews})`);
+}
+
+// ── Returning lead helpers ────────────────────────────────────────────────────
+
+function sendTelegramMessage(text) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_OWNER_CHAT_ID;
+  if (!token || !chatId) return Promise.resolve();
+  const body = JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' });
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: 'api.telegram.org',
+      path: `/bot${token}/sendMessage`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+    }, (res) => { res.resume(); resolve(); });
+    req.on('error', () => resolve());
+    req.write(body);
+    req.end();
+  });
+}
+
+/**
+ * Handle a form resubmission from an existing lead:
+ *  1. Update the lead doc with new program type / last_form_submission / last_source
+ *  2. Resolve cohort and send the schedule email immediately via Resend
+ *  3. Notify Shamir via Telegram
+ */
+async function handleReturningLead(db, leadDocRef, leadDocId, leadData) {
+  const now = new Date();
+  const updateData = { updated_at: now, last_form_submission: now };
+  if (leadData.ytt_program_type) updateData.ytt_program_type = leadData.ytt_program_type;
+  if (leadData.source) updateData.last_source = leadData.source;
+  await leadDocRef.update(updateData);
+
+  const existingSnap = await leadDocRef.get();
+  const existing = existingSnap.exists ? existingSnap.data() : {};
+  const firstName = leadData.first_name || existing.first_name || '';
+  const rawLang = leadData.lang || existing.lang || existing.meta_lang || '';
+  const lang = rawLang || 'da';
+  const email = leadData.email;
+  const programType = leadData.ytt_program_type || existing.ytt_program_type || '';
+
+  const cohortResult = await resolveCohortForLead({ ytt_program_type: programType }).catch(() => null);
+  if (cohortResult && cohortResult.cohort) {
+    const cohort = cohortResult.cohort;
+    const scheduleToken = generateScheduleToken(leadDocId, email);
+    const scheduleUrl = buildScheduleUrl(cohort, lang, leadDocId, scheduleToken);
+    const cohortName = cohort.name || cohort.program_name || programType || '';
+    const cohortLabel = cohort.label || cohort.cohort_label || '';
+
+    const isDa = !rawLang || rawLang === 'da' || rawLang === 'dk';
+    const subject = isDa ? 'Dit skema' : 'Your schedule';
+    const bodyHtml = isDa
+      ? `<p>Hej ${firstName},</p>` +
+        `<p>Her er skemaet for ${cohortName} (${cohortLabel}) som du bad om:</p>` +
+        `<p><a href="${scheduleUrl}" style="color:#f75c03;">Se skemaet her</a></p>` +
+        `<p>Ring mig gerne på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> hvis du har spørgsmål.</p>` +
+        `<p>Shamir</p>`
+      : `<p>Hi ${firstName},</p>` +
+        `<p>Here's the schedule for ${cohortName} (${cohortLabel}) that you requested:</p>` +
+        `<p><a href="${scheduleUrl}" style="color:#f75c03;">See the schedule here</a></p>` +
+        `<p>Feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> if you have any questions.</p>` +
+        `<p>Shamir</p>`;
+
+    const trackedHtml = prepareTrackedEmail(bodyHtml, leadDocId, 'resend:schedule-request');
+    await sendSingleViaResend({ to: email, subject, bodyHtml: trackedHtml, leadId: leadDocId, lang });
+    console.log(`[lead] Schedule email sent to returning lead ${email} (cohort: ${cohortName})`);
+  } else {
+    console.warn(`[lead] No open cohort found for returning lead ${email} (type: ${programType})`);
+  }
+
+  const tgMsg = `🔄 Returning lead: ${firstName} (${email}) resubmitted for ${programType || 'unknown'}`;
+  await sendTelegramMessage(tgMsg).catch(err => {
+    console.error('[lead] Telegram notification failed:', err.message);
+  });
 }
