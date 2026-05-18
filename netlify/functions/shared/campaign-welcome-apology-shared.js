@@ -94,6 +94,12 @@ function skipReasonFor(lead) {
   if (TEST_EMAIL_BLOCKLIST.has((lead.email || '').toLowerCase().trim())) {
     return 'test_email_blocklist';
   }
+  // Apology copy ("the training you were interested in" + a YTT schedule URL)
+  // only fits YTT leads. Non-YTT leads (course / waitlist / bundle) need a
+  // different reach-out.
+  if (lead.type !== 'ytt' && !lead.ytt_program_type) {
+    return 'non_ytt';
+  }
   return null;
 }
 
