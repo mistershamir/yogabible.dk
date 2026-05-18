@@ -51,19 +51,16 @@
                 </span>
               </label>
               <label class="yb-modal-u__format">
-                <input type="checkbox" name="format" value="8w">
+                <input type="checkbox" name="format" value="8w-oct">
                 <span class="yb-modal-u__checkbox"></span>
                 <span class="yb-modal-u__format-text">
-                  <strong>8 ugers semi-intensivt program</strong>
-                  <small>Maj – Juni 2026</small>
-                </span>
-              </label>
-              <label class="yb-modal-u__format">
-                <input type="checkbox" name="format" value="4w-apr" disabled>
-                <span class="yb-modal-u__checkbox"></span>
-                <span class="yb-modal-u__format-text">
-                  <strong>4 uger — Complete Program (April — Udsolgt)</strong>
-                  <small>April 2026 · Hatha, Vinyasa, Yin, Hot Yoga, Meditation</small>
+                  {% if lang == 'en' %}
+                  <strong>8 Weeks — Semi-Intensive (Sold Out) · Next cohort: October–November 2026</strong>
+                  <small>Join the waitlist — we'll contact you when enrolment opens</small>
+                  {% else %}
+                  <strong>8 uger — Semi-intensivt (Udsolgt) · Næste hold: Oktober–November 2026</strong>
+                  <small>Tilmeld dig ventelisten — vi kontakter dig når tilmelding åbner</small>
+                  {% endif %}
                 </span>
               </label>
               <label class="yb-modal-u__format">

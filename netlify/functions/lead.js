@@ -427,10 +427,28 @@ function processLead(payload, action) {
         source: 'Website'
       };
 
+    case 'lead_schedule_8w-oct':
+      return {
+        ...base,
+        type: 'ytt',
+        ytt_program_type: '8-week-oct',
+        program: payload.program || '8-Week Semi-Intensive YTT (October–November 2026)',
+        course_id: '',
+        cohort_label: 'waitlist-oct-2026',
+        preferred_month: 'October',
+        accommodation: normalizeYesNo(payload.accommodation || 'No'),
+        city_country: payload.cityCountry || '',
+        housing_months: '',
+        service: '',
+        subcategories: 'waitlist',
+        message: '',
+        source: 'Website'
+      };
+
     case 'lead_schedule_multi': {
       // User selected multiple 200h formats (e.g. 4w,8w,18w)
       const allFmts = (payload.allFormats || '').split(',').filter(f => f);
-      const fmtMap = { '4w': '4-week', '8w': '8-week', '18w': '18-week', '4w-apr': '4-week', '4w-jun': '4-week-jun', '4w-jul': '4-week-jul', '18w-aug': '18-week-aug' };
+      const fmtMap = { '4w': '4-week', '8w': '8-week', '8w-oct': '8-week-oct', '18w': '18-week', '4w-apr': '4-week', '4w-jun': '4-week-jun', '4w-jul': '4-week-jul', '18w-aug': '18-week-aug' };
       const programTypes = allFmts.map(f => fmtMap[f] || f);
       // Human-readable names with cohort dates
       const displayMap = {
@@ -438,6 +456,7 @@ function processLead(payload, action) {
         '4-week-jun': '4 Weeks Intensive (June 2026)',
         '4-week-jul': '4-Week Vinyasa Plus (July 2026)',
         '8-week': '8-Week Semi-Intensive (May–June 2026)',
+        '8-week-oct': '8-Week Semi-Intensive (October–November 2026) — Waitlist',
         '18-week': '18-Week Flexible (March–June 2026)',
         '18-week-aug': '18-Week Flexible (August–December 2026)'
       };
