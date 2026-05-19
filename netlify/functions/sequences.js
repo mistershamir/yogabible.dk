@@ -51,11 +51,9 @@ const ALLOWED_FIELDS = ['name', 'description', 'active', 'trigger', 'exit_condit
 // Internal/test inboxes that should never receive sequence sends. Matched
 // case-insensitively against lead.email; enrollments for these leads are
 // exited on the next processor tick.
-const TEST_EMAIL_BLOCKLIST = new Set([
-  'info@vibroyoga.dk',
-  'info@yogabible.dk',
-  'shamir@hotyogacph.dk'
-]);
+// TEMPORARILY EMPTIED 2026-05-19 to allow test sends to internal inboxes —
+// add the addresses back here when testing is finished.
+const TEST_EMAIL_BLOCKLIST = new Set([]);
 const GATEWAYAPI_ENDPOINT = 'https://gatewayapi.eu/rest/mtsms';
 
 // ── Handler ─────────────────────────────────────────────────────────────────
