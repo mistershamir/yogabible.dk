@@ -716,20 +716,24 @@ async function handleReturningFbLead(db, leadDocRef, leadDocId, { email, firstNa
     const cohort = cohortResult.cohort;
     const scheduleToken = generateScheduleToken(leadDocId, email);
     const scheduleUrl = buildScheduleUrl(cohort, resolvedLang, leadDocId, scheduleToken);
-    const cohortName = cohort.name || cohort.program_name || resolvedType || '';
-    const cohortLabel = cohort.label || cohort.cohort_label || '';
-
     const isDa = !rawLang || rawLang === 'da' || rawLang === 'dk';
-    const subject = isDa ? 'Dit skema' : 'Your schedule';
+    const cohortName = isDa ? cohort.name_da : cohort.name_en;
+    const cohortLabel = isDa ? cohort.cohort_label_da : cohort.cohort_label_en;
+    const method = isDa ? cohort.method_da : cohort.method_en;
+    const startDate = isDa ? cohort.start_date_formatted_da : cohort.start_date_formatted_en;
+
+    const subject = isDa ? 'Dit skema er klar' : 'Your schedule is ready';
     const bodyHtml = isDa
       ? `<p>Hej ${resolvedFirstName},</p>` +
         `<p>Her er skemaet for ${cohortName} (${cohortLabel}) som du bad om:</p>` +
         `<p><a href="${scheduleUrl}" style="color:#f75c03;">Se skemaet her</a></p>` +
+        `<p>Uddannelsen er ${method}, og den starter ${startDate}. Yoga Alliance RYT-200 certificering.</p>` +
         `<p>Ring mig gerne på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> hvis du har spørgsmål.</p>` +
         `<p>Shamir</p>`
       : `<p>Hi ${resolvedFirstName},</p>` +
         `<p>Here's the schedule for ${cohortName} (${cohortLabel}) that you requested:</p>` +
         `<p><a href="${scheduleUrl}" style="color:#f75c03;">See the schedule here</a></p>` +
+        `<p>The training is ${method}, starting ${startDate}. Yoga Alliance RYT-200 certification.</p>` +
         `<p>Feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> if you have any questions.</p>` +
         `<p>Shamir</p>`;
 
