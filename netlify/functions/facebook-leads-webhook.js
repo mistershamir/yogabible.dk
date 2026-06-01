@@ -27,6 +27,7 @@ const { getDb } = require('./shared/firestore');
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
 const { scheduleDeferredWelcome } = require('./shared/deferred-welcomes');
+const { build18WAugWelcomeEmail } = require('./shared/lead-emails');
 const { sendLeadEvent } = require('./shared/meta-events');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 const { detectLeadCountry } = require('./shared/country-detect');
@@ -695,20 +696,27 @@ async function sendImmediateScheduleEmail(lead, leadDocId, scheduleToken) {
   const startDate = isDa ? cohort.start_date_formatted_da : cohort.start_date_formatted_en;
   const scheduleUrl = buildScheduleUrl(cohort, lang, leadDocId, scheduleToken);
 
-  const subject = isDa ? 'Dit skema er klar' : 'Your schedule is ready';
-  const bodyHtml = isDa
-    ? `<p>Hej ${firstName},</p>` +
-      `<p>Tak for din interesse — her er skemaet for ${cohortName} (${cohortLabel}):</p>` +
-      `<p><a href="${scheduleUrl}" style="color:#f75c03;">Se skemaet her</a></p>` +
-      `<p>Uddannelsen er ${method}, og den starter ${startDate}. Yoga Alliance RYT-200 certificering.</p>` +
-      `<p>Hvis du har spørgsmål, så ring mig gerne på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> — det er nemmere end email.</p>` +
-      `<p>Shamir</p>`
-    : `<p>Hi ${firstName},</p>` +
-      `<p>Thanks for your interest — here's the schedule for ${cohortName} (${cohortLabel}):</p>` +
-      `<p><a href="${scheduleUrl}" style="color:#f75c03;">See the schedule here</a></p>` +
-      `<p>The training is ${method}, starting ${startDate}. Yoga Alliance RYT-200 certification.</p>` +
-      `<p>If you have any questions, feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> — easier than email.</p>` +
-      `<p>Shamir</p>`;
+  var subject, bodyHtml;
+  if (lead.ytt_program_type === '18-week-aug') {
+    const rich = build18WAugWelcomeEmail(firstName, scheduleUrl, isDa);
+    subject = rich.subject;
+    bodyHtml = rich.html;
+  } else {
+    subject = isDa ? 'Dit skema er klar' : 'Your schedule is ready';
+    bodyHtml = isDa
+      ? `<p>Hej ${firstName},</p>` +
+        `<p>Tak for din interesse — her er skemaet for ${cohortName} (${cohortLabel}):</p>` +
+        `<p><a href="${scheduleUrl}" style="color:#f75c03;">Se skemaet her</a></p>` +
+        `<p>Uddannelsen er ${method}, og den starter ${startDate}. Yoga Alliance RYT-200 certificering.</p>` +
+        `<p>Hvis du har spørgsmål, så ring mig gerne på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> — det er nemmere end email.</p>` +
+        `<p>Shamir</p>`
+      : `<p>Hi ${firstName},</p>` +
+        `<p>Thanks for your interest — here's the schedule for ${cohortName} (${cohortLabel}):</p>` +
+        `<p><a href="${scheduleUrl}" style="color:#f75c03;">See the schedule here</a></p>` +
+        `<p>The training is ${method}, starting ${startDate}. Yoga Alliance RYT-200 certification.</p>` +
+        `<p>If you have any questions, feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> — easier than email.</p>` +
+        `<p>Shamir</p>`;
+  }
 
   const trackedHtml = prepareTrackedEmail(bodyHtml, leadDocId, 'welcome:schedule');
   await sendSingleViaResend({ to: lead.email, subject, bodyHtml: trackedHtml, leadId: leadDocId, lang });

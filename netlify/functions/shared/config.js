@@ -31,9 +31,9 @@ const AUTO_SMS_CONFIG = {
       'ytt': "Hi {{first_name}}, thanks for your interest in the yoga teacher training. Check your email - I've sent you the schedule. - Shamir, Yoga Bible",
       'ytt_intl': "Hi {{first_name}}, thanks for your interest in the yoga teacher training. Check your email - I've sent you the schedule. - Shamir, Yoga Bible",
       'ytt_multi': "Hi {{first_name}}, thanks for your interest in the yoga teacher training. Check your email - I've sent you the schedule. - Shamir, Yoga Bible",
-      'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 - Warm regards, Yoga Bible",
-      'mentorship': "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/?booking=1 - Warm regards, Yoga Bible",
-      'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 - Warm regards, Yoga Bible"
+      'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We've sent details to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 - Healthy regards, Yoga Bible",
+      'mentorship': "Hi {{first_name}}! Thank you for your interest in our Mentorship program. We've sent details to your email (check inbox + spam). Book a free consultation: https://yogabible.dk/?booking=1 - Healthy regards, Yoga Bible",
+      'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We've sent info to your email (check inbox + spam). Book a consultation: https://yogabible.dk/?booking=1 - Healthy regards, Yoga Bible"
     },
     da: {
       'ytt': "Hej {{first_name}}, tak for din interesse i yogal\u00e6reruddannelsen. Tjek din email - jeg har sendt dig skemaet. - Shamir, Yoga Bible",

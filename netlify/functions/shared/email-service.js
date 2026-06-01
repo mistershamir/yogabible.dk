@@ -69,7 +69,7 @@ function getSignatureHtml(lang) {
   var l = (lang || 'da').toLowerCase().substring(0, 2);
   var isDa = ['da', 'dk'].includes(l);
   var isDe = l === 'de';
-  var greeting = isDa ? 'K\u00e6rlig hilsen,' : isDe ? 'Herzliche Gr\u00fc\u00dfe,' : 'Warm regards,';
+  var greeting = isDa ? 'K\u00e6rlig hilsen,' : isDe ? 'Herzliche Gr\u00fc\u00dfe,' : 'Healthy regards,';
   var title = isDa ? 'Kursusdirekt\u00f8r' : isDe ? 'Kursleiter' : 'Course Director';
   var address = isDa ? 'Torvegade 66, 1400 K\u00f8benhavn K, Danmark' : 'Torvegade 66, 1400 Copenhagen K, Denmark';
   return '<div style="margin-top:18px;padding-top:14px;border-top:1px solid #EBE7E3;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#1a1a1a;">' +
@@ -86,7 +86,7 @@ function getSignaturePlain(lang) {
   var l = (lang || 'da').toLowerCase().substring(0, 2);
   var isDa = ['da', 'dk'].includes(l);
   var isDe = l === 'de';
-  var greeting = isDa ? 'K\u00e6rlig hilsen,' : isDe ? 'Herzliche Gr\u00fc\u00dfe,' : 'Warm regards,';
+  var greeting = isDa ? 'K\u00e6rlig hilsen,' : isDe ? 'Herzliche Gr\u00fc\u00dfe,' : 'Healthy regards,';
   var title = isDa ? 'Kursusdirekt\u00f8r' : isDe ? 'Kursleiter' : 'Course Director';
   var address = isDa ? 'Torvegade 66, 1400 K\u00f8benhavn K, Danmark' : 'Torvegade 66, 1400 Copenhagen K, Denmark';
   return '\n\n' + greeting + '\nShamir - ' + title + '\nYoga Bible\nwww.yogabible.dk\n' + address + '\n+45 53 88 12 09';

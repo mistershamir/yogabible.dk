@@ -322,8 +322,94 @@ async function sendCareersConfirmation(email, firstName, category, role) {
   return { ...result, subject };
 }
 
+// =========================================================================
+// 18-Week Aug–Dec 2026 — Rich welcome email (Step 1 replacement)
+// Used by sendImmediateScheduleEmail in lead.js and facebook-leads-webhook.js.
+// Returns { subject, html } — caller wraps with wrapHtml via sendSingleViaResend.
+// =========================================================================
+
+function build18WAugWelcomeEmail(firstName, scheduleUrl, isDa) {
+  var name = escapeHtml(firstName || '');
+  var prepPhaseUrl = 'https://www.yogabible.dk/?product=100210';
+  var consultUrl = isDa
+    ? 'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs/?booking=consultation'
+    : 'https://www.yogabible.dk/en/200-hours-18-weeks-flexible-programs/?booking=consultation';
+
+  if (isDa) {
+    var subject = (name ? name + ', d' : 'D') + 'it skema til efterårets 18-ugers program er klar';
+    var html =
+      '<p>Hej ' + name + ',</p>' +
+      '<p>Tak for din interesse — her er dit skema til <strong>18-ugers fleksible yogalæreruddannelse, august–december 2026</strong>.</p>' +
+      '<p style="text-align:center;margin:24px 0;"><a href="' + scheduleUrl + '" style="display:inline-block;padding:14px 32px;background:#f75c03;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">Se skemaet →</a></p>' +
+      '<div style="background:#FFF9F0;border-left:3px solid #f75c03;border-radius:6px;padding:16px 20px;margin:0 0 20px;">' +
+        '<strong>Om uddannelsen:</strong>' +
+        '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;">' +
+          '<li>200 timer · Yoga Alliance RYT-200 certificeret</li>' +
+          '<li>Triangle Method — Hatha, Vinyasa, Yin, Hot Yoga &amp; Meditation</li>' +
+          '<li>To spor: hverdagsspor (mandag–fredag) eller weekendspor (lørdag–søndag)</li>' +
+          '<li>Vælg frit mellem sporerne undervejs</li>' +
+          '<li>Start: 10. august 2026 · Graduation: 13. december 2026</li>' +
+          '<li>Max 12 studerende · personlig feedback</li>' +
+          '<li>60 yogaklasser i studiet inkluderet</li>' +
+        '</ul>' +
+      '</div>' +
+      '<div style="background:#F5F3F0;border-radius:8px;padding:16px 20px;margin:0 0 20px;">' +
+        '<strong>💡 Forberedelsesfasen — 3.750 kr.</strong><br>' +
+        '<span style="color:#444;font-size:15px;">De fleste studerende starter forberedelsesfasen nu — og det er der en god grund til:</span>' +
+        '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;color:#444;">' +
+          '<li>Sikrer din plads på august-holdet</li>' +
+          '<li>Adgang til member-området med forberedelsesmaterialer</li>' +
+          '<li>Begynd at deltage i klasser i studiet med det samme</li>' +
+          '<li>Klasserne tæller med i dine træningstimer</li>' +
+        '</ul>' +
+        '<p style="margin:14px 0 0;"><a href="' + prepPhaseUrl + '" style="display:inline-block;padding:12px 24px;background:#0F0F0F;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">Start forberedelsesfasen — 3.750 kr.</a></p>' +
+      '</div>' +
+      '<p>Vil du gerne høre mere? Book et gratis infomøde:</p>' +
+      '<p style="margin:0 0 20px;"><a href="' + consultUrl + '" style="display:inline-block;padding:12px 24px;background:#fff;color:#0F0F0F;text-decoration:none;border-radius:8px;border:1px solid #E8E4E0;font-weight:bold;">Book et gratis infomøde</a></p>' +
+      '<p>Ring gerne direkte på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> — det er nemmere end email.</p>' +
+      '<p>Shamir</p>';
+    return { subject, html };
+  }
+
+  // English (all non-DA languages, including Swedish Skåne leads)
+  var subject = (name ? name + ', y' : 'Y') + 'our schedule for the autumn 18-week program is ready';
+  var html =
+    '<p>Hi ' + name + ',</p>' +
+    '<p>Thanks for your interest — here is your schedule for the <strong>18-Week Flexible Yoga Teacher Training, August–December 2026</strong>.</p>' +
+    '<p style="text-align:center;margin:24px 0;"><a href="' + scheduleUrl + '" style="display:inline-block;padding:14px 32px;background:#f75c03;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">View the schedule →</a></p>' +
+    '<div style="background:#FFF9F0;border-left:3px solid #f75c03;border-radius:6px;padding:16px 20px;margin:0 0 20px;">' +
+      '<strong>About the training:</strong>' +
+      '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;">' +
+        '<li>200 hours · Yoga Alliance RYT-200 certified</li>' +
+        '<li>Triangle Method — Hatha, Vinyasa, Yin, Hot Yoga &amp; Meditation</li>' +
+        '<li>Two tracks: weekday (Monday–Friday) or weekend (Saturday–Sunday)</li>' +
+        '<li>Switch tracks freely throughout</li>' +
+        '<li>Starting 10 August 2026 · Graduation 13 December 2026</li>' +
+        '<li>Max 12 students · personal feedback</li>' +
+        '<li>60 yoga classes at the studio included</li>' +
+      '</ul>' +
+    '</div>' +
+    '<div style="background:#F5F3F0;border-radius:8px;padding:16px 20px;margin:0 0 20px;">' +
+      '<strong>💡 Preparation Phase — 3,750 DKK</strong><br>' +
+      '<span style="color:#444;font-size:15px;">Most students start their Preparation Phase early — and for good reason:</span>' +
+      '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;color:#444;">' +
+        '<li>Secures your spot in the August cohort</li>' +
+        '<li>Access to the member area with preparation materials</li>' +
+        '<li>Start attending classes at the studio right away</li>' +
+        '<li>Your classes count towards your training hours</li>' +
+      '</ul>' +
+      '<p style="margin:14px 0 0;"><a href="' + prepPhaseUrl + '" style="display:inline-block;padding:12px 24px;background:#0F0F0F;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">Start Preparation Phase — 3,750 DKK</a></p>' +
+    '</div>' +
+    '<p>Want to learn more or ask questions? Book a free info session:</p>' +
+    '<p style="margin:0 0 20px;"><a href="' + consultUrl + '" style="display:inline-block;padding:12px 24px;background:#fff;color:#0F0F0F;text-decoration:none;border-radius:8px;border:1px solid #E8E4E0;font-weight:bold;">Book a Free Info Session</a></p>' +
+    '<p>Feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> — easier than email.</p>' +
+    '<p>Shamir</p>';
+  return { subject, html };
+}
+
 module.exports = {
   sendWelcomeEmail,
   sendApplicationConfirmation,
-  sendCareersConfirmation
+  sendCareersConfirmation,
+  build18WAugWelcomeEmail
 };
