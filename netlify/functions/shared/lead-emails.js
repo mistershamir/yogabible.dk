@@ -103,13 +103,11 @@ function buildIceBreakerHtml(firstName, programName, cohortLabel, isEn) {
   if (isEn) {
     return '<p>Hi ' + escapeHtml(firstName) + ',</p>' +
       '<p>Thanks for your interest in the ' + programName + parens + '. I\'ll send you the full schedule and details shortly.</p>' +
-      '<p>In the meantime, feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> if you have any questions.</p>' +
-      '<p>Shamir</p>';
+      '<p>In the meantime, feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> if you have any questions.</p>';
   }
   return '<p>Hej ' + escapeHtml(firstName) + ',</p>' +
     '<p>Tak for din interesse i ' + programName + parens + '. Jeg sender dig skemaet og alle detaljer lidt senere.</p>' +
-    '<p>Ring gerne på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> hvis du har spørgsmål.</p>' +
-    '<p>Shamir</p>';
+    '<p>Ring gerne på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> hvis du har spørgsmål.</p>';
 }
 
 function buildIceBreakerPlain(firstName, programName, cohortLabel, isEn) {
@@ -243,14 +241,12 @@ async function sendWaitlist300hEmail(leadData, tokenData = {}) {
   if (isEn) {
     html = '<p>Hi ' + escapeHtml(firstName) + ',</p>' +
       '<p>Thanks for your interest in the 300-Hour Advanced Yoga Teacher Training. You\'re on the waitlist — I\'ll be in touch as soon as it opens for applications.</p>' +
-      '<p>If you have any questions in the meantime, call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> or just reply to this email.</p>' +
-      '<p>Shamir</p>';
+      '<p>If you have any questions in the meantime, call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> or just reply to this email.</p>';
     plain = 'Hi ' + firstName + ',\n\nThanks for your interest in the 300-Hour Advanced Yoga Teacher Training. You\'re on the waitlist — I\'ll be in touch as soon as it opens for applications.\n\nQuestions in the meantime? Call +45 53 88 12 09 or reply to this email.\n\nShamir';
   } else {
     html = '<p>Hej ' + escapeHtml(firstName) + ',</p>' +
       '<p>Tak for din interesse i vores 300-timers avancerede yogalæreruddannelse. Du er på ventelisten — jeg vender tilbage så snart uddannelsen åbner for ansøgning.</p>' +
-      '<p>Har du spørgsmål i mellemtiden? Ring på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> eller svar bare på denne mail.</p>' +
-      '<p>Shamir</p>';
+      '<p>Har du spørgsmål i mellemtiden? Ring på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> eller svar bare på denne mail.</p>';
     plain = 'Hej ' + firstName + ',\n\nTak for din interesse i vores 300-timers avancerede yogalæreruddannelse. Du er på ventelisten — jeg vender tilbage så snart uddannelsen åbner for ansøgning.\n\nSpørgsmål? Ring 53 88 12 09 eller svar på denne mail.\n\nShamir';
   }
 
@@ -282,8 +278,7 @@ async function sendApplicationConfirmation(email, applicationId, firstName) {
 
   const html = '<p>Hej ' + escapeHtml(firstName || '') + ',</p>' +
     '<p>Tak for din ansøgning til Yoga Bible. Dit ansøgnings-ID er ' + escapeHtml(applicationId) + '. Vi kigger din ansøgning igennem og vender tilbage med næste skridt.</p>' +
-    '<p>Har du spørgsmål i mellemtiden? Svar bare på denne mail eller ring til <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a>.</p>' +
-    '<p>Shamir</p>';
+    '<p>Har du spørgsmål i mellemtiden? Svar bare på denne mail eller ring til <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a>.</p>';
 
   const plain = 'Hej ' + (firstName || '') + ',\n\nTak for din ansøgning til Yoga Bible. Ansøgnings-ID: ' + applicationId + '. Vi vender tilbage.\n\nSpørgsmål? Svar på denne mail eller ring +45 53 88 12 09.\n\nShamir';
 
@@ -306,8 +301,7 @@ async function sendCareersConfirmation(email, firstName, category, role) {
     (category ? ' inden for ' + escapeHtml(category) : '') +
     (role ? ' som ' + escapeHtml(role) : '') +
     '. Vi gennemgår alle ansøgninger løbende og vender tilbage, hvis der er et match.</p>' +
-    '<p>Har du spørgsmål? Svar bare på denne mail.</p>' +
-    '<p>Shamir</p>';
+    '<p>Har du spørgsmål? Svar bare på denne mail.</p>';
 
   const plain = 'Hej ' + (firstName || '') + ',\n\nTak for din interesse i Yoga Bible-teamet. Vi har modtaget din ansøgning' +
     (category ? ' inden for ' + category : '') +
@@ -366,8 +360,7 @@ function build18WAugWelcomeEmail(firstName, scheduleUrl, isDa) {
       '</div>' +
       '<p>Vil du gerne høre mere? Book et gratis infomøde:</p>' +
       '<p style="margin:0 0 20px;"><a href="' + consultUrl + '" style="display:inline-block;padding:12px 24px;background:#fff;color:#0F0F0F;text-decoration:none;border-radius:8px;border:1px solid #E8E4E0;font-weight:bold;">Book et gratis infomøde</a></p>' +
-      '<p>Ring gerne direkte på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> — det er nemmere end email.</p>' +
-      '<p>Shamir</p>';
+      '<p>Ring gerne direkte på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> — det er nemmere end email.</p>';
     return { subject, html };
   }
 
@@ -402,8 +395,7 @@ function build18WAugWelcomeEmail(firstName, scheduleUrl, isDa) {
     '</div>' +
     '<p>Want to learn more or ask questions? Book a free info session:</p>' +
     '<p style="margin:0 0 20px;"><a href="' + consultUrl + '" style="display:inline-block;padding:12px 24px;background:#fff;color:#0F0F0F;text-decoration:none;border-radius:8px;border:1px solid #E8E4E0;font-weight:bold;">Book a Free Info Session</a></p>' +
-    '<p>Feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> — easier than email.</p>' +
-    '<p>Shamir</p>';
+    '<p>Feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> — easier than email.</p>';
   return { subject, html };
 }
 
