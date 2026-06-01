@@ -135,10 +135,14 @@ async function triggerNewLeadSequences(leadId, leadData) {
         }
       }
 
-      // Calculate first step delay
-      const firstStepDelay = sequence.steps?.[0]?.delay_minutes || 0;
+      // Personal Outreach sequence: Step 1 is the schedule email, which is now sent
+      // immediately on lead creation. Start new enrollments at Step 2 (the check-in).
+      const PERSONAL_OUTREACH_ID = '9UUm4uK8ggfWbTLeciAO';
+      const startStep = sequence.id === PERSONAL_OUTREACH_ID ? 2 : 1;
+      const stepIndex = startStep - 1;
+      const stepDelay = sequence.steps?.[stepIndex]?.delay_minutes || 0;
       const now = new Date();
-      const nextSendAt = new Date(now.getTime() + firstStepDelay * 60 * 1000);
+      const nextSendAt = new Date(now.getTime() + stepDelay * 60 * 1000);
 
       // Create enrollment — deterministic ID prevents duplicates from concurrent calls
       var enrollDocId = sequence.id + '_' + leadId;
@@ -148,7 +152,7 @@ async function triggerNewLeadSequences(leadId, leadData) {
         lead_id: leadId,
         lead_email: leadData.email || '',
         lead_name: leadData.name || leadData.first_name || '',
-        current_step: 1,
+        current_step: startStep,
         status: 'active',
         exit_reason: null,
         next_send_at: nextSendAt,

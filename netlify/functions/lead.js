@@ -750,6 +750,50 @@ function calculateFormScore(leadData) {
 }
 
 /**
+ * Send the schedule email immediately to a new YTT lead.
+ * Resolves the open cohort for their program type, builds a tokenized schedule URL,
+ * and sends via Resend with email tracking.
+ */
+async function sendImmediateScheduleEmail(leadData, leadDocId, scheduleToken) {
+  const cohortResult = await resolveCohortForLead({ ytt_program_type: leadData.ytt_program_type }).catch(() => null);
+  if (!cohortResult || !cohortResult.cohort) {
+    console.warn(`[lead] No open cohort for new lead ${leadData.email} (type: ${leadData.ytt_program_type}) — skipping schedule email`);
+    return;
+  }
+
+  const cohort = cohortResult.cohort;
+  const rawLang = leadData.lang || '';
+  const isDa = !rawLang || rawLang === 'da' || rawLang === 'dk';
+  const lang = isDa ? 'da' : rawLang;
+
+  const firstName = leadData.first_name || '';
+  const cohortName = isDa ? cohort.name_da : cohort.name_en;
+  const cohortLabel = isDa ? cohort.cohort_label_da : cohort.cohort_label_en;
+  const method = isDa ? cohort.method_da : cohort.method_en;
+  const startDate = isDa ? cohort.start_date_formatted_da : cohort.start_date_formatted_en;
+  const scheduleUrl = buildScheduleUrl(cohort, lang, leadDocId, scheduleToken);
+
+  const subject = isDa ? 'Dit skema er klar' : 'Your schedule is ready';
+  const bodyHtml = isDa
+    ? `<p>Hej ${firstName},</p>` +
+      `<p>Tak for din interesse — her er skemaet for ${cohortName} (${cohortLabel}):</p>` +
+      `<p><a href="${scheduleUrl}" style="color:#f75c03;">Se skemaet her</a></p>` +
+      `<p>Uddannelsen er ${method}, og den starter ${startDate}. Yoga Alliance RYT-200 certificering.</p>` +
+      `<p>Hvis du har spørgsmål, så ring mig gerne på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> — det er nemmere end email.</p>` +
+      `<p>Shamir</p>`
+    : `<p>Hi ${firstName},</p>` +
+      `<p>Thanks for your interest — here's the schedule for ${cohortName} (${cohortLabel}):</p>` +
+      `<p><a href="${scheduleUrl}" style="color:#f75c03;">See the schedule here</a></p>` +
+      `<p>The training is ${method}, starting ${startDate}. Yoga Alliance RYT-200 certification.</p>` +
+      `<p>If you have any questions, feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> — easier than email.</p>` +
+      `<p>Shamir</p>`;
+
+  const trackedHtml = prepareTrackedEmail(bodyHtml, leadDocId, 'welcome:schedule');
+  await sendSingleViaResend({ to: leadData.email, subject, bodyHtml: trackedHtml, leadId: leadDocId, lang });
+  console.log(`[lead] Schedule email sent to new lead ${leadData.email} (cohort: ${cohortName})`);
+}
+
+/**
  * Fire-and-forget notifications when a new lead comes in
  * - Admin notification email
  * - Welcome SMS to the lead
@@ -782,16 +826,24 @@ async function triggerNotifications(leadData, leadDocId, action) {
     );
   }
 
-  // 2. Welcome email — deferred 30 minutes via deferred_welcomes collection,
-  //    fired by the process-sequences cron pass. Reads as written by a human
-  //    rather than fired by a bot.
+  // 2. Welcome email — YTT leads get the schedule immediately; non-YTT leads use
+  //    the deferred_welcomes system (10-min delay ice breaker).
   if (leadData.email) {
-    const scheduleToken = generateScheduleToken(leadDocId, leadData.email);
-    promises.push(
-      scheduleDeferredWelcome({ lead: leadData, action, leadId: leadDocId, scheduleToken }).catch(err => {
-        console.error('[lead] Deferred welcome scheduling failed:', err.message);
-      })
-    );
+    if (leadData.type === 'ytt') {
+      const scheduleToken = generateScheduleToken(leadDocId, leadData.email);
+      promises.push(
+        sendImmediateScheduleEmail(leadData, leadDocId, scheduleToken).catch(err => {
+          console.error('[lead] Immediate schedule email failed:', err.message);
+        })
+      );
+    } else {
+      const scheduleToken = generateScheduleToken(leadDocId, leadData.email);
+      promises.push(
+        scheduleDeferredWelcome({ lead: leadData, action, leadId: leadDocId, scheduleToken }).catch(err => {
+          console.error('[lead] Deferred welcome scheduling failed:', err.message);
+        })
+      );
+    }
   }
 
   // 3. Welcome SMS

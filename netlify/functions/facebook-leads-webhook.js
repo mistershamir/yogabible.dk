@@ -334,8 +334,8 @@ async function processLeadgenChange(value) {
       ? sendAdminNotification(lead).catch(e => console.error('[fb-leads] Admin email failed:', e.message))
       : Promise.resolve(),
     email
-      ? scheduleDeferredWelcome({ lead, action: emailAction, leadId: docRef.id, scheduleToken })
-          .catch(e => console.error('[fb-leads] Deferred welcome scheduling failed:', e.message))
+      ? sendImmediateScheduleEmail(lead, docRef.id, scheduleToken)
+          .catch(e => console.error('[fb-leads] Immediate schedule email failed:', e.message))
       : Promise.resolve(),
     process.env.GATEWAYAPI_TOKEN && phone
       ? sendWelcomeSMS(lead, docRef.id).catch(e => console.error('[fb-leads] SMS failed:', e.message))
@@ -382,6 +382,9 @@ function fetchFormNameFromGraph(formId) {
 const FORM_ID_MAP = {
   '1974647360148367': '18-week',        // 18 Ugers Fleksibelt YTT — March–June 2026 cohort
   '961808297026346':  'from-answer',    // General YTT form — program determined by Q2 answer
+  // 18-Week Flexible Aug–Dec 2026
+  '1513676516870497': '18-week-aug',    // aug-dec-18w-dk  (Denmark)
+  '854933687681835':  '18-week-aug',    // aug-dec-18w-se  (Sweden/Skåne)
   // July Vinyasa Plus — International instant forms
   '827004866473769':  '4-week-jul',     // july-vinyasa-plus-en  (UK / English)
   '25716246641411656':'4-week-jul',     // july-vinyasa-plus-no  (Norway)
@@ -395,6 +398,8 @@ const FORM_ID_MAP = {
 // Form ID → Language override — bulletproof, doesn't rely on Meta passing hidden fields
 // Meta tracking parameters sometimes don't arrive in field_data, so we map form_id directly.
 const FORM_LANG_MAP = {
+  '1513676516870497': 'da',     // aug-dec-18w-dk
+  '854933687681835':  'sv',     // aug-dec-18w-se (Swedish → EN emails)
   '827004866473769':  'en',     // july-vinyasa-plus-en (UK)
   '25716246641411656':'en',     // july-vinyasa-plus-no
   '4318151781759438': 'en',     // july-vinyasa-plus-se
@@ -662,6 +667,52 @@ function corsHeaders() {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
   };
+}
+
+// ── Immediate schedule email ──────────────────────────────────────────────────
+
+/**
+ * Send the schedule email immediately to a new YTT lead.
+ * Resolves the open cohort for their program type, builds a tokenized schedule URL,
+ * and sends via Resend with email tracking.
+ */
+async function sendImmediateScheduleEmail(lead, leadDocId, scheduleToken) {
+  const cohortResult = await resolveCohortForLead({ ytt_program_type: lead.ytt_program_type }).catch(() => null);
+  if (!cohortResult || !cohortResult.cohort) {
+    console.warn(`[fb-leads] No open cohort for new lead ${lead.email} (type: ${lead.ytt_program_type}) — skipping schedule email`);
+    return;
+  }
+
+  const cohort = cohortResult.cohort;
+  const rawLang = lead.lang || lead.meta_lang || '';
+  const isDa = !rawLang || rawLang === 'da' || rawLang === 'dk';
+  const lang = isDa ? 'da' : rawLang;
+
+  const firstName = lead.first_name || '';
+  const cohortName = isDa ? cohort.name_da : cohort.name_en;
+  const cohortLabel = isDa ? cohort.cohort_label_da : cohort.cohort_label_en;
+  const method = isDa ? cohort.method_da : cohort.method_en;
+  const startDate = isDa ? cohort.start_date_formatted_da : cohort.start_date_formatted_en;
+  const scheduleUrl = buildScheduleUrl(cohort, lang, leadDocId, scheduleToken);
+
+  const subject = isDa ? 'Dit skema er klar' : 'Your schedule is ready';
+  const bodyHtml = isDa
+    ? `<p>Hej ${firstName},</p>` +
+      `<p>Tak for din interesse — her er skemaet for ${cohortName} (${cohortLabel}):</p>` +
+      `<p><a href="${scheduleUrl}" style="color:#f75c03;">Se skemaet her</a></p>` +
+      `<p>Uddannelsen er ${method}, og den starter ${startDate}. Yoga Alliance RYT-200 certificering.</p>` +
+      `<p>Hvis du har spørgsmål, så ring mig gerne på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> — det er nemmere end email.</p>` +
+      `<p>Shamir</p>`
+    : `<p>Hi ${firstName},</p>` +
+      `<p>Thanks for your interest — here's the schedule for ${cohortName} (${cohortLabel}):</p>` +
+      `<p><a href="${scheduleUrl}" style="color:#f75c03;">See the schedule here</a></p>` +
+      `<p>The training is ${method}, starting ${startDate}. Yoga Alliance RYT-200 certification.</p>` +
+      `<p>If you have any questions, feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> — easier than email.</p>` +
+      `<p>Shamir</p>`;
+
+  const trackedHtml = prepareTrackedEmail(bodyHtml, leadDocId, 'welcome:schedule');
+  await sendSingleViaResend({ to: lead.email, subject, bodyHtml: trackedHtml, leadId: leadDocId, lang });
+  console.log(`[fb-leads] Schedule email sent to new lead ${lead.email} (cohort: ${cohortName})`);
 }
 
 // ── Returning lead helpers ────────────────────────────────────────────────────
