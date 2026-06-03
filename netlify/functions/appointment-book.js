@@ -16,6 +16,17 @@ const { jsonResponse, optionsResponse, escapeHtml } = require('./shared/utils');
 const { sendRawEmail, getSignatureHtml, getSignaturePlain } = require('./shared/email-service');
 const { CONFIG } = require('./shared/config');
 const { runSpamChecks } = require('./shared/spam-check');
+const { sendSMS } = require('./shared/sms-service');
+
+const SHAMIR_PHONE = '+4553622923';
+
+function buildOwnerSms(appointment, isRequest) {
+  const prefix = isRequest ? 'Ny anmodning' : 'Ny booking';
+  const type = appointment.type_name_da || appointment.type;
+  const phone = appointment.client_phone || '—';
+  const msg = `${prefix}: ${appointment.client_name} — ${type} d. ${appointment.date} kl. ${appointment.time}. Tlf: ${phone}`;
+  return msg.length <= 160 ? msg : msg.substring(0, 157) + '...';
+}
 
 const COLLECTION = 'appointments';
 const SETTINGS_COLLECTION = 'appointment_settings';
@@ -255,6 +266,11 @@ async function bookAppointment(body) {
     });
   }
 
+  // Instant SMS notification to owner — fire-and-forget
+  sendSMS(SHAMIR_PHONE, buildOwnerSms(appointmentData, isRequest)).catch(err => {
+    console.error('[appointment-book] Owner SMS error (non-blocking):', err.message);
+  });
+
   return jsonResponse(201, { ok: true, id, token, isRequest });
 }
 
@@ -394,6 +410,11 @@ async function photoSessionRequest(body) {
   // Send admin notification with the 3 options
   await sendAdminPhotoRequestNotification(id, appointmentData, token).catch(err => {
     console.error('[appointment-book] Admin photo request email error (non-blocking):', err.message);
+  });
+
+  // Instant SMS notification to owner — fire-and-forget
+  sendSMS(SHAMIR_PHONE, buildOwnerSms(appointmentData, true)).catch(err => {
+    console.error('[appointment-book] Owner SMS error (non-blocking):', err.message);
   });
 
   return jsonResponse(201, { ok: true, id, token, isRequest: true });

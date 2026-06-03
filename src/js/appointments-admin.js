@@ -1319,40 +1319,64 @@
   function init() {
     T = window._ybAdminT || {};
 
-    // Gated on firebaseReady — no polling, no race with lazy SDK load.
-    var ready = window.firebaseReady || Promise.resolve();
-    ready.then(function () {
+    function bootstrap() {
       if (typeof firebase === 'undefined' || !firebase.auth) return;
+
+      // Set user immediately if already available (sync after firebaseReady resolves)
+      var currentUser = firebase.auth().currentUser;
+      if (currentUser) window._ybFirebaseUser = currentUser;
+
+      // onAuthStateChanged used only for race guard — needs confirmed auth before API call
       firebase.auth().onAuthStateChanged(function (user) {
         if (user) {
           window._ybFirebaseUser = user;
-          // Load on tab click OR initial URL activation
-          document.querySelectorAll('[data-yb-admin-tab="appointments"]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-              if (!apptLoaded) loadAppointments();
-            });
-          });
-          document.addEventListener('yb:admin-tab', function (e) {
-            if (e.detail && e.detail.tab === 'appointments' && !apptLoaded) loadAppointments();
-          });
-          // CRM tabs on profile page (marketing/admin)
-          document.querySelectorAll('[data-yb-tab="crm-appointments"]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-              if (!apptLoaded) loadAppointments();
-            });
-          });
-          initEventListeners();
-          initContactSearch();
-          initBookingLinksCopy();
+          // Race guard: tab may have been activated before listeners were registered
+          var activeAdminBtn = document.querySelector('[data-yb-admin-tab].is-active');
+          if (activeAdminBtn && activeAdminBtn.getAttribute('data-yb-admin-tab') === 'appointments' && !apptLoaded) {
+            loadAppointments();
+          }
+          var activeCrmBtn = document.querySelector('[data-yb-tab].is-active');
+          if (activeCrmBtn && activeCrmBtn.getAttribute('data-yb-tab') === 'crm-appointments' && !apptLoaded) {
+            loadAppointments();
+          }
         }
       });
-    });
+
+      // Tab listeners registered outside onAuthStateChanged so first-click always works
+      document.querySelectorAll('[data-yb-admin-tab="appointments"]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (!apptLoaded) loadAppointments();
+        });
+      });
+      document.addEventListener('yb:admin-tab', function (e) {
+        if (e.detail && e.detail.tab === 'appointments' && !apptLoaded) loadAppointments();
+      });
+      document.querySelectorAll('[data-yb-tab="crm-appointments"]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (!apptLoaded) loadAppointments();
+        });
+      });
+
+      initEventListeners();
+      initContactSearch();
+      initBookingLinksCopy();
+    }
+
+    // Bootstrap with setInterval fallback — mirrors lead-admin.js pattern
+    if (window.firebaseReady) {
+      window.firebaseReady.then(bootstrap);
+    } else {
+      var checkInterval = setInterval(function () {
+        if (window.firebaseReady) {
+          clearInterval(checkInterval);
+          window.firebaseReady.then(bootstrap);
+        } else if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+          clearInterval(checkInterval);
+          bootstrap();
+        }
+      }, 100);
+    }
   }
 
-  // Start
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  init();
 })();
