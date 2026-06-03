@@ -1,3 +1,4 @@
+{% set _modal_en = lang == 'en' %}
 <!-- Schedule Modal (shared across all 200-hour program pages) -->
 <section class="yb-modals-unified">
   <div class="yb-modal-u" id="yb-schedule-modal" aria-hidden="true">
@@ -42,7 +43,6 @@
           <div class="yb-modal-u__section">
             <span class="yb-modal-u__label">Vælg format *</span>
             <div class="yb-modal-u__formats">
-              {% set _modal_en = true if (lang == 'en' or '/en/' in (page.url or '')) else false %}
               <label class="yb-modal-u__format">
                 <input type="checkbox" name="format" value="18w-aug">
                 <span class="yb-modal-u__checkbox"></span>
@@ -61,11 +61,11 @@
                 <span class="yb-modal-u__checkbox"></span>
                 <span class="yb-modal-u__format-text">
                   {% if _modal_en %}
-                  <strong>8 Weeks — Semi-Intensive Program</strong>
-                  <small>October–November 2026 · Mix of weekday and weekend workshops</small>
+                  <strong>8 Weeks — Complete Semi-Intensive Program</strong>
+                  <small>October–November 2026 · Weekday &amp; weekend workshops</small>
                   {% else %}
-                  <strong>8 uger — Semi-Intensivt Program</strong>
-                  <small>Oktober–November 2026 · Mix af hverdags- og weekendworkshops</small>
+                  <strong>8 uger — Complete Semi-Intensive Program</strong>
+                  <small>Oktober–November 2026 · Hverdags- &amp; weekendworkshops</small>
                   {% endif %}
                 </span>
               </label>
