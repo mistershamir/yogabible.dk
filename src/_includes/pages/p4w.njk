@@ -7,36 +7,8 @@
      ═══════════════════════════════════════ -->
 <div class="yb-float-bar" id="p4w-float-bar">
   <button class="yb-float-bar__btn" id="p4w-float-btn">
-    {{ t.float_cta }} <span class="yb-float-bar__price">— {{ t.float_price }}</span>
+    {{ t.float_cta }}
   </button>
-</div>
-
-<div class="yb-float-picker" id="p4w-picker">
-  <div class="yb-float-picker__sheet">
-    <p class="yb-float-picker__title">{{ t.float_pick_title }}</p>
-    <button class="yb-float-picker__option" disabled style="opacity:.5;pointer-events:none;">
-      <div>
-        {{ t.float_pick_april }}
-        <div class="yb-float-picker__option-period">{{ t.float_pick_april_period }}</div>
-      </div>
-      <span class="yb-float-picker__option-arrow">→</span>
-    </button>
-    <button class="yb-float-picker__option" data-checkout-product="100213">
-      <div>
-        {{ t.float_pick_june }}
-        <div class="yb-float-picker__option-period">{{ t.float_pick_june_period }}</div>
-      </div>
-      <span class="yb-float-picker__option-arrow">→</span>
-    </button>
-    <button class="yb-float-picker__option" data-checkout-product="100211">
-      <div>
-        {{ t.float_pick_july }}
-        <div class="yb-float-picker__option-period">{{ t.float_pick_july_period }}</div>
-      </div>
-      <span class="yb-float-picker__option-arrow">→</span>
-    </button>
-    <button class="yb-float-picker__close" id="p4w-picker-close">{{ t.float_pick_close }}</button>
-  </div>
 </div>
 
 <!-- FAQPage Schema (AEO — featured snippets for AI search) -->
@@ -86,9 +58,8 @@
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <button onclick="openYBScheduleModal('4w')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
-      <a href="?product=100213" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100213">{{ t.juni_cta }}</a>
-      <a href="?product=100211" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100211">{{ t.juli_cta }}</a>
+      <a href="#p4w-waitlist" class="yb-btn yb-btn--primary yb-btn--large">{{ t.float_cta }}</a>
+      <button onclick="openYBScheduleModal('8w-oct')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
     <p class="yb-hero__read-more">
       <a href="{{ lp }}/om-200hrs-yogalaereruddannelser" class="yb-hero__read-more-link">{{ t.hero_cta_more }}</a>
@@ -551,36 +522,6 @@
         </div>
       </article>
 
-      <article class="yb-track-card">
-        <div class="yb-track-card__icon">{{ t.juni_icon }}</div>
-        <div class="yb-track-card__content">
-          <span class="yb-track-card__badge">{{ t.juni_badge }}</span>
-          <h3 class="yb-track-card__title">{{ t.juni_title }}</h3>
-          <p class="yb-track-card__time">{{ t.juni_time }}</p>
-          <p class="yb-track-card__text">{{ t.juni_desc }}</p>
-          <p class="yb-track-card__styles">{{ t.juni_styles }}</p>
-          <div class="yb-track-card__ctas">
-            <a href="?product=100213" class="yb-btn yb-btn--cta yb-btn--small" data-checkout-product="100213">{{ t.juni_cta }}</a>
-            <button onclick="openYBScheduleModal('4w-jun')" class="yb-btn yb-btn--outline yb-btn--small">{{ t.juni_schedule_cta }}</button>
-          </div>
-        </div>
-      </article>
-
-      <article class="yb-track-card">
-        <div class="yb-track-card__icon">{{ t.juli_icon }}</div>
-        <div class="yb-track-card__content">
-          <span class="yb-track-card__badge">{{ t.juli_badge }}</span>
-          <h3 class="yb-track-card__title">{{ t.juli_title }}</h3>
-          <p class="yb-track-card__time">{{ t.juli_time }}</p>
-          <p class="yb-track-card__text">{{ t.juli_desc }}</p>
-          <p class="yb-track-card__styles">{{ t.juli_styles }}</p>
-          <div class="yb-track-card__ctas">
-            <a href="?product=100211" class="yb-btn yb-btn--cta yb-btn--small" data-checkout-product="100211">{{ t.juli_cta }}</a>
-            <button onclick="openYBScheduleModal('4w-jul')" class="yb-btn yb-btn--outline yb-btn--small">{{ t.juli_schedule_cta }}</button>
-          </div>
-        </div>
-      </article>
-
       <article class="yb-track-card yb-track-card--highlight">
         <div class="yb-track-card__icon">{{ t.week_icon }}</div>
         <div class="yb-track-card__content">
@@ -616,10 +557,121 @@
     <!-- CTA -->
     <div class="yb-tracks__cta">
       <p class="yb-tracks__cta-hint">{{ t.cohort_cta_hint }}</p>
-      <button onclick="openYBScheduleModal('4w')" class="yb-btn yb-btn--cta">{{ t.cohort_cta_text }}</button>
+      <a href="#p4w-waitlist" class="yb-btn yb-btn--cta">{{ t.cohort_cta_text }}</a>
     </div>
   </div>
 </section>
+
+<!-- ═══════════════════════════════════════
+     11c. WAITLIST — Sign up for next cohort
+     ═══════════════════════════════════════ -->
+<section class="p300-waitlist" id="p4w-waitlist">
+  <div class="p300-waitlist__inner">
+    <header class="p300-waitlist__head">
+      <p class="p300-waitlist__eyebrow">{{ t.waitlist_eyebrow }}</p>
+      <h2 class="p300-waitlist__title">{{ t.waitlist_title }}</h2>
+      <p class="p300-waitlist__lead">{{ t.waitlist_lead }}</p>
+    </header>
+
+    <div class="p300-waitlist__form-wrap" data-p4w-wl-wrap>
+      <form class="p300-waitlist__form" data-p4w-wl-form novalidate>
+        <input type="text" name="yb_hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
+        <div class="p300-waitlist__grid">
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_first_name }}</span>
+            <input type="text" name="firstName" inputmode="text" autocomplete="given-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_last_name }}</span>
+            <input type="text" name="lastName" inputmode="text" autocomplete="family-name" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_email }}</span>
+            <input type="email" name="email" inputmode="email" autocomplete="email" required>
+          </label>
+          <label class="p300-waitlist__field">
+            <span>{{ t.waitlist_phone }}</span>
+            <input type="tel" name="phone" inputmode="tel" autocomplete="tel" required>
+          </label>
+        </div>
+        <p class="p300-waitlist__error" data-p4w-wl-error hidden>{{ t.waitlist_error | safe }}</p>
+        <button class="yb-btn yb-btn--primary yb-btn--large p300-waitlist__submit" data-p4w-wl-submit type="submit">{{ t.waitlist_submit }}</button>
+        <p class="p300-waitlist__fine">{{ t.waitlist_privacy | safe }}</p>
+      </form>
+    </div>
+
+    <div class="p300-waitlist__success" data-p4w-wl-success hidden>
+      <div class="p300-waitlist__success-icon">&#10003;</div>
+      <h3 class="p300-waitlist__success-title">{{ t.waitlist_success_title }}</h3>
+      <p class="p300-waitlist__success-text">{{ t.waitlist_success_text }}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  var form = document.querySelector('[data-p4w-wl-form]');
+  var wrap = document.querySelector('[data-p4w-wl-wrap]');
+  var errorEl = document.querySelector('[data-p4w-wl-error]');
+  var successEl = document.querySelector('[data-p4w-wl-success]');
+  var submitBtn = document.querySelector('[data-p4w-wl-submit]');
+  if (!form) return;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (errorEl) errorEl.hidden = true;
+
+    var fn = form.querySelector('[name="firstName"]').value.trim();
+    var ln = form.querySelector('[name="lastName"]').value.trim();
+    var em = form.querySelector('[name="email"]').value.trim();
+    var ph = form.querySelector('[name="phone"]').value.trim();
+    var hp = form.querySelector('[name="yb_hp"]').value;
+
+    if (hp || !fn || !ln || !em || !ph) {
+      if (errorEl) errorEl.hidden = false;
+      return;
+    }
+
+    var isDa = window.location.pathname.indexOf('/en/') !== 0;
+    submitBtn.disabled = true;
+    submitBtn.textContent = isDa ? 'Sender…' : 'Sending…';
+
+    var p = new URLSearchParams();
+    p.append('action', 'lead_waitlist_4w_intensive');
+    p.append('lang', isDa ? 'da' : 'en');
+    p.append('firstName', fn);
+    p.append('lastName', ln);
+    p.append('email', em);
+    p.append('phone', ph);
+
+    if (typeof window.ybAttribution === 'function') {
+      var attr = window.ybAttribution();
+      if (attr.channel) p.append('channel', attr.channel);
+      if (attr.utm_source) p.append('utm_source', attr.utm_source);
+      if (attr.utm_medium) p.append('utm_medium', attr.utm_medium);
+      if (attr.utm_campaign) p.append('utm_campaign', attr.utm_campaign);
+      if (attr.referrer) p.append('referrer', attr.referrer);
+      if (attr.landing_page) p.append('landing_page', attr.landing_page);
+    }
+
+    var vidMatch = document.cookie.match(/(?:^|; )yb_vid=([^;]*)/);
+    if (vidMatch) p.append('visitor_id', decodeURIComponent(vidMatch[1]));
+
+    fetch('/.netlify/functions/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: p.toString()
+    }).then(function() {
+      if (wrap) wrap.hidden = true;
+      if (successEl) successEl.hidden = false;
+    }).catch(function() {
+      submitBtn.disabled = false;
+      submitBtn.textContent = isDa ? 'Tilmeld venteliste' : 'Join waitlist';
+      if (errorEl) errorEl.hidden = false;
+    });
+  });
+})();
+</script>
 
 <!-- ═══════════════════════════════════════
      11b. JOURNEY TIMELINE — Week by week
@@ -745,7 +797,7 @@
           <p class="p18-invest-note" style="margin-top:14px;font-style:italic;">{{ t.invest_ya_note }}</p>
         </div>
 
-        <button onclick="openYBScheduleModal('4w')" class="btn btn--primary btn--large" style="width:100%;margin-top:1.5rem">{{ t.invest_cta_text }}</button>
+        <a href="#p4w-waitlist" class="btn btn--primary btn--large" style="width:100%;margin-top:1.5rem">{{ t.invest_cta_text }}</a>
       </div>
 
       <!-- Right: Early deposit benefits -->
@@ -763,12 +815,7 @@
         </ul>
 
         <div class="p4w-early-card__cta">
-          <a href="?product=100213" class="yb-btn yb-btn--cta" data-checkout-product="100213">{{ t.juni_cta }}</a>
-          <a href="?product=100211" class="yb-btn yb-btn--cta" data-checkout-product="100211" style="margin-top:.5rem">{{ t.juli_cta }}</a>
-          <div class="p4w-early-card__pricing">
-            <span class="p4w-early-card__deposit">{{ t.early_deposit_label }}</span>
-            <span class="p4w-early-card__remainder">{{ t.early_remainder_label }}</span>
-          </div>
+          <a href="#p4w-waitlist" class="yb-btn yb-btn--cta">{{ t.float_cta }}</a>
         </div>
       </div>
 
@@ -803,9 +850,8 @@
     <h2 class="p18-final-cta__title">{{ t.final_title }}</h2>
     <p class="p18-final-cta__text">{{ t.final_text }}</p>
     <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
-      <button onclick="openYBScheduleModal('4w')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
-      <a href="?product=100213" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100213">{{ t.juni_cta }}</a>
-      <a href="?product=100211" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100211">{{ t.juli_cta }}</a>
+      <a href="#p4w-waitlist" class="yb-btn yb-btn--primary yb-btn--large">{{ t.final_cta }}</a>
+      <button onclick="openYBScheduleModal('8w-oct')" class="btn btn--large btn--outline">{{ t.hero_cta_schedule }}</button>
     </div>
   </div>
 </section>
@@ -1293,8 +1339,6 @@
 (function(){
   var bar = document.getElementById('p4w-float-bar');
   var btn = document.getElementById('p4w-float-btn');
-  var picker = document.getElementById('p4w-picker');
-  var closeBtn = document.getElementById('p4w-picker-close');
   if (!bar || !btn) return;
 
   var hero = document.querySelector('.yb-hero');
@@ -1309,25 +1353,8 @@
   checkScroll();
 
   btn.addEventListener('click', function() {
-    picker.classList.add('yb-float-picker--open');
-  });
-
-  closeBtn.addEventListener('click', function() {
-    picker.classList.remove('yb-float-picker--open');
-  });
-
-  picker.addEventListener('click', function(e) {
-    if (e.target === picker) picker.classList.remove('yb-float-picker--open');
-  });
-
-  var opts = picker.querySelectorAll('[data-checkout-product]');
-  opts.forEach(function(o) {
-    o.addEventListener('click', function() {
-      picker.classList.remove('yb-float-picker--open');
-      var prodId = o.getAttribute('data-checkout-product');
-      if (window.openCheckoutFlow) window.openCheckoutFlow(prodId);
-      else if (window.startCheckoutFunnel) window.startCheckoutFunnel(prodId);
-    });
+    var target = document.getElementById('p4w-waitlist');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 })();
 </script>

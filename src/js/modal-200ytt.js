@@ -58,13 +58,10 @@
     toggleBtns.forEach(b => b.classList.toggle('is-active', b.dataset.acc === 'No'));
 
     // Pre-check default format(s)
-    // Support '4w' as a shorthand that selects both 4w-jun and 4w-jul (April is sold out)
-    // Support '18w' as a shorthand that selects both 18w-mar and 18w-aug
+    // Support '18w' as a shorthand that selects 18w-aug
     modal.querySelectorAll('input[name="format"]').forEach(cb => {
-      if (defaultFormat === '4w') {
-        cb.checked = cb.value === '4w-jun' || cb.value === '4w-jul';
-      } else if (defaultFormat === '18w') {
-        cb.checked = cb.value === '18w-mar' || cb.value === '18w-aug';
+      if (defaultFormat === '18w') {
+        cb.checked = cb.value === '18w-aug';
       } else {
         cb.checked = cb.value === defaultFormat;
       }

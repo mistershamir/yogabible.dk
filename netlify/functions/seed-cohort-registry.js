@@ -48,7 +48,7 @@ const COHORTS = [
     full_price_en: '23,750 DKK',
     start_date_formatted_da: '1. juni',
     start_date_formatted_en: 'June 1',
-    active: true,
+    active: false,
     sort_order: 1
   },
   {
@@ -98,8 +98,33 @@ const COHORTS = [
     full_price_en: '23,750 DKK',
     start_date_formatted_da: '2. maj',
     start_date_formatted_en: 'May 2',
-    active: true,
+    active: false,
     sort_order: 3
+  },
+  {
+    id: '8-week-oct-2026',
+    program_type: '8-week-oct',
+    also_matches: ['8-week'],
+    name_da: '8-ugers Semi-Intensivt Program',
+    name_en: '8-Week Semi-Intensive Program',
+    cohort_label_da: 'Oktober–November 2026',
+    cohort_label_en: 'October–November 2026',
+    method_da: 'Triangle Method — Hatha, Vinyasa, Yin, Hot Yoga og Meditation',
+    method_en: 'Triangle Method — Hatha, Vinyasa, Yin, Hot Yoga, and Meditation',
+    start_date: '2026-10-05',
+    end_date: '2026-11-28',
+    enrollment_closes: '2026-10-02',
+    schedule_path_da: '/skema/8-uger-oktober/',
+    schedule_path_en: '/en/schedule/8-weeks-october/',
+    checkout_url: 'https://yogabible.dk/200-hours-8-weeks-semi-intensive-programs/?product=100214',
+    prep_phase_price_da: '3.750 kr.',
+    prep_phase_price_en: '3,750 DKK',
+    full_price_da: '23.750 kr.',
+    full_price_en: '23,750 DKK',
+    start_date_formatted_da: '5. oktober',
+    start_date_formatted_en: 'October 5',
+    active: true,
+    sort_order: 5
   },
   {
     id: '18-week-aug-2026',

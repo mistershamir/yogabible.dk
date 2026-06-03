@@ -535,6 +535,24 @@ function processLead(payload, action) {
         source: 'Website'
       };
 
+    case 'lead_waitlist_4w_intensive':
+      return {
+        ...base,
+        type: 'course',
+        ytt_program_type: 'waitlist-4w',
+        program: payload.program || '200-Hour 4-Week Intensive Yoga Teacher Training',
+        course_id: '',
+        cohort_label: 'waitlist',
+        preferred_month: '',
+        accommodation: 'No',
+        city_country: '',
+        housing_months: '',
+        service: '',
+        subcategories: 'waitlist',
+        message: '',
+        source: payload.source || 'Website waitlist'
+      };
+
     case 'lead_schedule_50h':
       return {
         ...base,
@@ -807,6 +825,37 @@ async function sendImmediateScheduleEmail(leadData, leadDocId, scheduleToken) {
  * - Welcome SMS to the lead
  */
 /**
+ * Send confirmation email to a new 4-week intensive waitlist signup.
+ */
+async function sendWaitlist4wEmail(leadData, leadDocId) {
+  const firstName = leadData.first_name || '';
+  const rawLang = leadData.lang || '';
+  const isDa = !rawLang || rawLang === 'da' || rawLang === 'dk';
+  const lang = isDa ? 'da' : rawLang;
+
+  const subject = isDa ? 'Du er på ventelisten' : "You're on the waitlist";
+  const bodyHtml = isDa
+    ? `<p>Hej ${firstName},</p>` +
+      `<p>Tak for din interesse i vores 4-ugers intensive yogalæreruddannelse. Du er nu på ventelisten, og vi kontakter dig så snart vi har nye datoer.</p>` +
+      `<p>I mellemtiden kan vi anbefale:</p>` +
+      `<p><a href="https://yogabible.dk/200-hours-18-weeks-flexible-programs/" style="color:#f75c03;">18-ugers Fleksible Program (August–December 2026)</a> — vores mest populære format. Hverdags- eller weekendhold.</p>` +
+      `<p><a href="https://yogabible.dk/200-hours-8-weeks-semi-intensive-programs/" style="color:#f75c03;">8-ugers Semi-Intensivt Program (Oktober–November 2026)</a> — weekendformat, ved siden af dit job.</p>` +
+      `<p>Begge har stadig ledige pladser.</p>` +
+      `<p>Ring mig gerne på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> hvis du har spørgsmål.</p>`
+    : `<p>Hi ${firstName},</p>` +
+      `<p>Thanks for your interest in our 4-week intensive yoga teacher training. You're now on the waitlist and we'll contact you as soon as we have new dates.</p>` +
+      `<p>In the meantime, we'd recommend:</p>` +
+      `<p><a href="https://yogabible.dk/en/200-hours-18-weeks-flexible-programs/" style="color:#f75c03;">18-Week Flexible Program (August–December 2026)</a> — our most popular format. Weekday or weekend track.</p>` +
+      `<p><a href="https://yogabible.dk/en/200-hours-8-weeks-semi-intensive-programs/" style="color:#f75c03;">8-Week Semi-Intensive Program (October–November 2026)</a> — weekend format, alongside your job.</p>` +
+      `<p>Both still have spots available.</p>` +
+      `<p>Feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> if you have any questions.</p>`;
+
+  const trackedHtml = prepareTrackedEmail(bodyHtml, leadDocId, 'welcome:waitlist-4w');
+  await sendSingleViaResend({ to: leadData.email, subject, bodyHtml: trackedHtml, leadId: leadDocId, lang });
+  console.log(`[lead] Waitlist 4w confirmation sent to ${leadData.email}`);
+}
+
+/**
  * Detect YTT program type from Meta Lead Form fields
  */
 function detectMetaYTTType(program, formName) {
@@ -834,10 +883,16 @@ async function triggerNotifications(leadData, leadDocId, action) {
     );
   }
 
-  // 2. Welcome email — YTT leads get the schedule immediately; non-YTT leads use
-  //    the deferred_welcomes system (10-min delay ice breaker).
+  // 2. Welcome email — YTT leads get the schedule immediately; waitlist-4w leads get
+  //    a waitlist confirmation; non-YTT leads use the deferred_welcomes system.
   if (leadData.email) {
-    if (leadData.type === 'ytt') {
+    if (leadData.ytt_program_type === 'waitlist-4w') {
+      promises.push(
+        sendWaitlist4wEmail(leadData, leadDocId).catch(err => {
+          console.error('[lead] Waitlist 4w email failed:', err.message);
+        })
+      );
+    } else if (leadData.type === 'ytt') {
       const scheduleToken = generateScheduleToken(leadDocId, leadData.email);
       promises.push(
         sendImmediateScheduleEmail(leadData, leadDocId, scheduleToken).catch(err => {
