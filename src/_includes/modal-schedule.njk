@@ -46,8 +46,13 @@
                 <input type="checkbox" name="format" value="18w-aug">
                 <span class="yb-modal-u__checkbox"></span>
                 <span class="yb-modal-u__format-text">
-                  <strong>18 uger — Efterår (August–December)</strong>
-                  <small>August – December 2026 · Hverdags- & weekendhold</small>
+                  {% if lang == 'en' %}
+                  <strong>18 Weeks — Complete Flexible Program</strong>
+                  <small>August–December 2026 · Weekday & weekend tracks</small>
+                  {% else %}
+                  <strong>18 uger — Complete Flexible Program</strong>
+                  <small>August–December 2026 · Hverdags- & weekendhold</small>
+                  {% endif %}
                 </span>
               </label>
               <label class="yb-modal-u__format">
@@ -56,10 +61,10 @@
                 <span class="yb-modal-u__format-text">
                   {% if lang == 'en' %}
                   <strong>8 Weeks — Semi-Intensive Program · October–November 2026</strong>
-                  <small>Weekend format · alongside your job</small>
+                  <small>Mix of weekday and weekend workshops</small>
                   {% else %}
                   <strong>8 uger — Semi-intensivt program · Oktober–November 2026</strong>
-                  <small>Weekendformat · ved siden af dit job</small>
+                  <small>Mix af hverdags- og weekendworkshops</small>
                   {% endif %}
                 </span>
               </label>
