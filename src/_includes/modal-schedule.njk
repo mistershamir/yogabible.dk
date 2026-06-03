@@ -42,16 +42,17 @@
           <div class="yb-modal-u__section">
             <span class="yb-modal-u__label">Vælg format *</span>
             <div class="yb-modal-u__formats">
+              {% set _modal_en = true if (lang == 'en' or '/en/' in (page.url or '')) else false %}
               <label class="yb-modal-u__format">
                 <input type="checkbox" name="format" value="18w-aug">
                 <span class="yb-modal-u__checkbox"></span>
                 <span class="yb-modal-u__format-text">
-                  {% if lang == 'en' %}
+                  {% if _modal_en %}
                   <strong>18 Weeks — Complete Flexible Program</strong>
-                  <small>August–December 2026 · Weekday & weekend tracks</small>
+                  <small>August–December 2026 · Weekday &amp; weekend tracks</small>
                   {% else %}
                   <strong>18 uger — Complete Flexible Program</strong>
-                  <small>August–December 2026 · Hverdags- & weekendhold</small>
+                  <small>August–December 2026 · Hverdags- &amp; weekendhold</small>
                   {% endif %}
                 </span>
               </label>
@@ -59,12 +60,12 @@
                 <input type="checkbox" name="format" value="8w-oct">
                 <span class="yb-modal-u__checkbox"></span>
                 <span class="yb-modal-u__format-text">
-                  {% if lang == 'en' %}
-                  <strong>8 Weeks — Semi-Intensive Program · October–November 2026</strong>
-                  <small>Mix of weekday and weekend workshops</small>
+                  {% if _modal_en %}
+                  <strong>8 Weeks — Semi-Intensive Program</strong>
+                  <small>October–November 2026 · Mix of weekday and weekend workshops</small>
                   {% else %}
-                  <strong>8 uger — Semi-intensivt program · Oktober–November 2026</strong>
-                  <small>Mix af hverdags- og weekendworkshops</small>
+                  <strong>8 uger — Semi-Intensivt Program</strong>
+                  <small>Oktober–November 2026 · Mix af hverdags- og weekendworkshops</small>
                   {% endif %}
                 </span>
               </label>
