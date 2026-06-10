@@ -935,7 +935,10 @@ async function handleProcess() {
               source: 'sequence',
               sequence_id: seqId,
               lang: isDanish ? 'da' : leadLang,
-              created_at: serverTimestamp()
+              created_at: serverTimestamp(),
+              sent_by_uid: 'system',
+              sent_by_email: 'automated',
+              sent_by_role: 'system'
             };
             if (cohortContext) {
               emailLogEntry.cohort_id = cohortContext.cohort.id || cohortContext.cohort._docId;
@@ -1024,7 +1027,10 @@ async function handleProcess() {
               status: smsResult.success ? 'sent' : 'failed',
               source: 'sequence',
               sequence_id: seqId,
-              created_at: serverTimestamp()
+              created_at: serverTimestamp(),
+              sent_by_uid: 'system',
+              sent_by_email: 'automated',
+              sent_by_role: 'system'
             });
             } // end else (not already sent SMS)
           }

@@ -189,6 +189,9 @@ async function sendWelcomeSMS(leadData, leadDocId) {
       sent_at: new Date(),
       status: 'pending',
       source: 'welcome',
+      sent_by_uid: 'system',
+      sent_by_email: 'automated',
+      sent_by_role: 'system',
       created_at: new Date()
     });
     pendingSmsLogId = pendingRef.id;
@@ -226,7 +229,7 @@ async function sendWelcomeSMS(leadData, leadDocId) {
 /**
  * Send SMS to a lead by doc ID (admin action)
  */
-async function sendSMSToLead(leadDocId, message) {
+async function sendSMSToLead(leadDocId, message, sentBy) {
   const db = getDb();
   const doc = await db.collection('leads').doc(leadDocId).get();
 
@@ -247,6 +250,25 @@ async function sendSMSToLead(leadDocId, message) {
     .replace(/\{\{program\}\}/gi, lead.program || '');
 
   const result = await sendSMS(phone, personalizedMessage);
+  const sender = sentBy || { uid: 'system', email: 'automated', role: 'system' };
+
+  // Write to sms_log for activity tracking
+  try {
+    await db.collection('sms_log').add({
+      lead_id: leadDocId,
+      to: phone,
+      message: personalizedMessage.substring(0, 160),
+      sent_at: new Date(),
+      status: result.success ? 'sent' : 'failed',
+      source: 'manual',
+      sent_by_uid: sender.uid || 'system',
+      sent_by_email: sender.email || 'automated',
+      sent_by_role: sender.role || 'system',
+      created_at: new Date()
+    });
+  } catch (logErr) {
+    console.warn('[sms] sms_log write failed (proceeding):', logErr.message);
+  }
 
   if (result.success) {
     await updateLeadSMSStatus(leadDocId, 'sent');
@@ -261,7 +283,7 @@ async function sendSMSToLead(leadDocId, message) {
 /**
  * Send SMS to an application by doc ID (admin action)
  */
-async function sendSMSToApplication(appDocId, message) {
+async function sendSMSToApplication(appDocId, message, sentBy) {
   const db = getDb();
   const doc = await db.collection('applications').doc(appDocId).get();
 
@@ -282,6 +304,25 @@ async function sendSMSToApplication(appDocId, message) {
     .replace(/\{\{program\}\}/gi, app.course_name || app.program_type || '');
 
   const result = await sendSMS(phone, personalizedMessage);
+  const sender = sentBy || { uid: 'system', email: 'automated', role: 'system' };
+
+  // Write to sms_log for activity tracking
+  try {
+    await db.collection('sms_log').add({
+      application_id: appDocId,
+      to: phone,
+      message: personalizedMessage.substring(0, 160),
+      sent_at: new Date(),
+      status: result.success ? 'sent' : 'failed',
+      source: 'manual',
+      sent_by_uid: sender.uid || 'system',
+      sent_by_email: sender.email || 'automated',
+      sent_by_role: sender.role || 'system',
+      created_at: new Date()
+    });
+  } catch (logErr) {
+    console.warn('[sms] sms_log write failed (proceeding):', logErr.message);
+  }
 
   if (result.success) {
     // Log to sms_messages subcollection for conversation UI

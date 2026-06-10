@@ -2084,7 +2084,9 @@
 .yb-lead__activity-icon { font-size: 1.1rem; flex-shrink: 0; }
 .yb-lead__activity-body { flex: 1; }
 .yb-lead__activity-detail { font-size: 0.8rem; color: #6F6A66; margin-top: 2px; }
-.yb-lead__activity-time { font-size: 0.72rem; color: #6F6A66; margin-top: 2px; }
+.yb-lead__activity-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 2px; }
+.yb-lead__activity-time { font-size: 0.72rem; color: #6F6A66; }
+.yb-lead__activity-sender { font-size: 0.72rem; color: #6F6A66; padding-left: 0.4rem; border-left: 1px solid #E8E4E0; }
 
 /* ── Modals (SMS / Email composers) ── */
 .yb-lead__modal {

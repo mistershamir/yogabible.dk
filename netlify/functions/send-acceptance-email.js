@@ -237,7 +237,10 @@ exports.handler = async (event) => {
       application_id: payload.applicationId,
       sent_at: new Date(),
       status: 'sent',
-      new_account_created: isNewAccount
+      new_account_created: isNewAccount,
+      sent_by_uid: authResult.uid,
+      sent_by_email: authResult.email,
+      sent_by_role: authResult.role
     });
 
     // Update application (link Firebase UID + mark email sent)

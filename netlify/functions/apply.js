@@ -347,7 +347,10 @@ async function sendAutoAcceptanceEmail({ email, firstName, programName, isNewAcc
     application_id: applicationId,
     sent_at: new Date(),
     status: 'sent',
-    new_account_created: isNewAccount
+    new_account_created: isNewAccount,
+    sent_by_uid: 'system',
+    sent_by_email: 'automated',
+    sent_by_role: 'system'
   });
 
   console.log(`[apply] Acceptance email sent to ${email} (new account: ${isNewAccount})`);

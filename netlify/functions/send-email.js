@@ -25,6 +25,8 @@ exports.handler = async (event) => {
   const authResult = await requireAuth(event, ['admin', 'marketing']);
   if (authResult.error) return authResult.error;
 
+  const sentBy = { uid: authResult.uid, email: authResult.email, role: authResult.role };
+
   try {
     const payload = JSON.parse(event.body || '{}');
     const provider = payload.provider || 'gmail'; // default: gmail for backwards-compat
@@ -96,12 +98,13 @@ exports.handler = async (event) => {
         bodyPlain: payload.bodyPlain || '',
         leadId: isApp ? null : docId,
         campaignId,
-        fromEmail
+        fromEmail,
+        sentBy
       });
     } else if (payload.templateId) {
-      result = await sendTemplateEmail({ to: record.email, templateId: payload.templateId, vars, leadId: isApp ? null : docId });
+      result = await sendTemplateEmail({ to: record.email, templateId: payload.templateId, vars, leadId: isApp ? null : docId, sentBy });
     } else if (payload.subject && payload.bodyHtml) {
-      result = await sendCustomEmail({ to: record.email, subject: payload.subject, bodyHtml: payload.bodyHtml, bodyPlain: payload.bodyPlain || '', leadId: isApp ? null : docId, campaignId, fromEmail });
+      result = await sendCustomEmail({ to: record.email, subject: payload.subject, bodyHtml: payload.bodyHtml, bodyPlain: payload.bodyPlain || '', leadId: isApp ? null : docId, campaignId, fromEmail, sentBy });
     } else {
       return jsonResponse(400, { ok: false, error: 'Provide templateId or (subject + bodyHtml)' });
     }

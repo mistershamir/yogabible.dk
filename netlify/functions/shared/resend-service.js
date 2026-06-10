@@ -186,9 +186,12 @@ function wrapText(bodyPlain, recipientEmail, lang) {
 
 // ─── Send a single email via Resend ──────────────────────────────────────────
 
-async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, campaignId, fromEmail, bcc, lang, attachments }) {
+async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, campaignId, fromEmail, bcc, lang, attachments, sentBy }) {
   const html = wrapHtml(bodyHtml, to, campaignId, lang);
   const text = wrapText(bodyPlain || '', to, lang);
+
+  // Normalize sentBy — default to system/automated for any non-manual send
+  const sender = sentBy || { uid: 'system', email: 'automated', role: 'system' };
 
   // Log BEFORE send with 'pending' status — prevents dedup gaps if function crashes after send
   var pendingLogId = null;
@@ -203,7 +206,10 @@ async function sendSingleViaResend({ to, subject, bodyHtml, bodyPlain, leadId, c
       sent_at: new Date(),
       provider: 'resend',
       status: 'pending',
-      campaign_id: campaignId || null
+      campaign_id: campaignId || null,
+      sent_by_uid: sender.uid || 'system',
+      sent_by_email: sender.email || 'automated',
+      sent_by_role: sender.role || 'system'
     });
     pendingLogId = pendingRef.id;
   } catch (logErr) {

@@ -204,7 +204,7 @@ async function sendRawEmail({ to, subject, html, text, attachments, replyTo, fro
 /**
  * Send a template-based email from Firestore email_templates collection
  */
-async function sendTemplateEmail({ to, templateId, vars, leadId, lang }) {
+async function sendTemplateEmail({ to, templateId, vars, leadId, lang, sentBy }) {
   const db = getDb();
   const doc = await db.collection('email_templates').doc(templateId).get();
 
@@ -237,7 +237,7 @@ async function sendTemplateEmail({ to, templateId, vars, leadId, lang }) {
   const result = await sendRawEmail({ to, subject, html: wrappedHtml, text: wrappedPlain });
 
   // Log to email_log collection
-  await logEmail({ to, subject, templateId, leadId, messageId: result.messageId });
+  await logEmail({ to, subject, templateId, leadId, messageId: result.messageId, sentBy });
 
   return result;
 }
@@ -245,7 +245,7 @@ async function sendTemplateEmail({ to, templateId, vars, leadId, lang }) {
 /**
  * Send a custom email (admin-composed, not from template)
  */
-async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, includeSignature = true, includeUnsubscribe = true, campaignId, fromEmail, lang }) {
+async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, includeSignature = true, includeUnsubscribe = true, campaignId, fromEmail, lang, sentBy }) {
   // Language-aware note: English note only on DA emails, German PS on DE emails
   var tl = (lang || 'da').toLowerCase().substring(0, 2);
   var isDa = ['da', 'dk'].includes(tl);
@@ -278,7 +278,7 @@ async function sendCustomEmail({ to, subject, bodyHtml, bodyPlain, leadId, inclu
   if (includeUnsubscribe) text += getUnsubscribeFooterPlain(to, lang);
 
   const result = await sendRawEmail({ to, subject, html, text, fromEmail });
-  await logEmail({ to, subject, templateId: null, leadId, messageId: result.messageId, campaignId });
+  await logEmail({ to, subject, templateId: null, leadId, messageId: result.messageId, campaignId, sentBy });
   return result;
 }
 
@@ -337,9 +337,10 @@ async function sendAdminNotification(leadData) {
 // Email Log
 // =========================================================================
 
-async function logEmail({ to, subject, templateId, leadId, messageId, campaignId }) {
+async function logEmail({ to, subject, templateId, leadId, messageId, campaignId, sentBy }) {
   try {
     const db = getDb();
+    const sender = sentBy || { uid: 'system', email: 'automated', role: 'system' };
     const entry = {
       to,
       subject,
@@ -347,7 +348,10 @@ async function logEmail({ to, subject, templateId, leadId, messageId, campaignId
       lead_id: leadId || null,
       message_id: messageId || null,
       sent_at: new Date(),
-      status: 'sent'
+      status: 'sent',
+      sent_by_uid: sender.uid || 'system',
+      sent_by_email: sender.email || 'automated',
+      sent_by_role: sender.role || 'system'
     };
     if (campaignId) entry.campaign_id = campaignId;
     await db.collection('email_log').add(entry);

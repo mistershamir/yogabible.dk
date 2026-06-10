@@ -215,7 +215,10 @@ async function logWelcomeEmail(to, subject, leadId) {
       template_id: 'auto_welcome',
       lead_id: leadId || null,
       sent_at: new Date(),
-      status: 'sent'
+      status: 'sent',
+      sent_by_uid: 'system',
+      sent_by_email: 'automated',
+      sent_by_role: 'system'
     });
   } catch (err) {
     console.error('[lead-emails] Failed to log welcome email:', err.message);

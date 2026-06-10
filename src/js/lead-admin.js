@@ -3222,24 +3222,33 @@
     Promise.all([emailPromise, smsPromise]).then(function (results) {
       var activities = [];
 
+      var da = isAdminDa();
       results[0].forEach(function (doc) {
         var d = doc.data();
+        var sentByLabel = !d.sent_by_email ? (da ? 'Ukendt' : 'Unknown')
+          : d.sent_by_email === 'automated' ? (da ? 'Automatisk' : 'Automated')
+          : d.sent_by_email;
         activities.push({
           type: 'email',
           icon: '\u2709\ufe0f',
           title: d.subject || 'Email',
           detail: d.template_id ? 'Template: ' + d.template_id : 'Custom',
+          sentBy: sentByLabel,
           time: d.sent_at
         });
       });
 
       results[1].forEach(function (doc) {
         var d = doc.data();
+        var sentByLabel = !d.sent_by_email ? (da ? 'Ukendt' : 'Unknown')
+          : d.sent_by_email === 'automated' ? (da ? 'Automatisk' : 'Automated')
+          : d.sent_by_email;
         activities.push({
           type: 'sms',
           icon: '\ud83d\udcf1',
           title: 'SMS',
           detail: (d.message || '').substring(0, 80),
+          sentBy: sentByLabel,
           time: d.sent_at
         });
       });
@@ -3256,13 +3265,17 @@
         return;
       }
 
+      var sentByLabel = isAdminDa() ? 'Sendt af' : 'Sent by';
       el.innerHTML = activities.map(function (a) {
         return '<div class="yb-lead__activity-item yb-lead__activity-item--' + a.type + '">' +
           '<span class="yb-lead__activity-icon">' + a.icon + '</span>' +
           '<div class="yb-lead__activity-body">' +
             '<strong>' + esc(a.title) + '</strong>' +
             (a.detail ? '<div class="yb-lead__activity-detail">' + esc(a.detail) + '</div>' : '') +
-            '<div class="yb-lead__activity-time">' + fmtDateTime(a.time) + '</div>' +
+            '<div class="yb-lead__activity-meta">' +
+              '<span class="yb-lead__activity-time">' + fmtDateTime(a.time) + '</span>' +
+              (a.sentBy ? '<span class="yb-lead__activity-sender">' + sentByLabel + ': ' + esc(a.sentBy) + '</span>' : '') +
+            '</div>' +
           '</div>' +
         '</div>';
       }).join('');

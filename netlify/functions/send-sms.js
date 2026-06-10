@@ -20,6 +20,8 @@ exports.handler = async (event) => {
   const authResult = await requireAuth(event, ['admin', 'marketing']);
   if (authResult.error) return authResult.error;
 
+  const sentBy = { uid: authResult.uid, email: authResult.email, role: authResult.role };
+
   try {
     const payload = JSON.parse(event.body || '{}');
 
@@ -39,17 +41,17 @@ exports.handler = async (event) => {
 
     // Bulk send (leads)
     if (payload.leadIds && Array.isArray(payload.leadIds)) {
-      return await handleBulkSMS(payload, 'lead');
+      return await handleBulkSMS(payload, 'lead', sentBy);
     }
 
     // Bulk send (applications)
     if (payload.applicationIds && Array.isArray(payload.applicationIds)) {
-      return await handleBulkSMS(payload, 'application');
+      return await handleBulkSMS(payload, 'application', sentBy);
     }
 
     // Single send (application)
     if (payload.applicationId) {
-      const result = await sendSMSToApplication(payload.applicationId, payload.message);
+      const result = await sendSMSToApplication(payload.applicationId, payload.message, sentBy);
       if (result.success) {
         return jsonResponse(200, { ok: true, ...result });
       } else {
@@ -62,7 +64,7 @@ exports.handler = async (event) => {
       return jsonResponse(400, { ok: false, error: 'leadId, leadIds, applicationId, or applicationIds is required' });
     }
 
-    const result = await sendSMSToLead(payload.leadId, payload.message);
+    const result = await sendSMSToLead(payload.leadId, payload.message, sentBy);
 
     if (result.success) {
       return jsonResponse(200, { ok: true, ...result });
@@ -75,7 +77,7 @@ exports.handler = async (event) => {
   }
 };
 
-async function handleBulkSMS(payload, source) {
+async function handleBulkSMS(payload, source, sentBy) {
   const results = { sent: 0, failed: 0, skipped: 0, errors: [] };
   const ids = source === 'application' ? payload.applicationIds : payload.leadIds;
   const sendFn = source === 'application' ? sendSMSToApplication : sendSMSToLead;
@@ -107,7 +109,7 @@ async function handleBulkSMS(payload, source) {
         }
       }
 
-      const result = await sendFn(id, payload.message);
+      const result = await sendFn(id, payload.message, sentBy);
 
       if (result.success) {
         results.sent++;

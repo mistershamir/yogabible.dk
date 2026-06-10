@@ -102,6 +102,7 @@ exports.handler = async (event) => {
   const trackedHtml = prepareTrackedEmail(bodyHtml, leadId, sourceTag);
 
   // Send via Resend
+  const sentBy = { uid: authResult.uid, email: authResult.email, role: authResult.role };
   try {
     await sendSingleViaResend({
       to: lead.email,
@@ -109,7 +110,8 @@ exports.handler = async (event) => {
       bodyHtml: trackedHtml,
       leadId,
       campaignId: sourceTag,
-      lang
+      lang,
+      sentBy
     });
   } catch (err) {
     console.error('[send-schedule] Resend error:', err.message);
