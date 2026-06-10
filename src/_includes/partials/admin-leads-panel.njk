@@ -8,6 +8,7 @@
         <button class="yb-lead__view-btn" data-view="kanban" type="button">&#128202; {{ t.leads_view_board }}</button>
       </div>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" id="yb-lead-archive-toggle" data-action="toggle-show-archived">&#128230; {{ t.leads_show_archived }}</button>
+      <button type="button" class="yb-btn yb-btn--outline yb-btn--sm yb-admin__icon-btn--danger" id="yb-lead-auto-archive-intl" data-action="auto-archive-intl-july" title="{{ t.leads_auto_archive_intl_july }}">&#127757; {{ t.leads_auto_archive_intl_july }}</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="leads-export-csv">&#128229; {{ t.leads_export }}</button>
       <button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="leads-refresh">&#8635; {{ t.leads_refresh }}</button>
     </div>
@@ -75,6 +76,10 @@
   <div class="yb-lead__chip-filter-area">
     <div id="yb-lead-status-chips" class="yb-lead__filter-chips-row"></div>
     <div id="yb-lead-type-chips" class="yb-lead__filter-chips-row"></div>
+    <div class="yb-lead__filter-chips-row">
+      <button type="button" id="yb-lead-filter-dk" class="yb-lead__campaign-chip" data-action="toggle-filter-dk">&#127465;&#127472; Kun Danmark</button>
+      <button type="button" id="yb-lead-filter-cph" class="yb-lead__campaign-chip" data-action="toggle-filter-cph">&#128205; Kun K&#248;benhavn</button>
+    </div>
   </div>
 
   {# Sub-type filter row — shown when a single type with sub-options is selected #}

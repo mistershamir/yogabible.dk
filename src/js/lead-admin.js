@@ -85,6 +85,8 @@
   var filterSubType = '';      // client-side sub-filter value
   var filterSubTypeField = ''; // which lead field to match filterSubType against
   var filterCohort = '';       // cohort-level filter within a program sub-type
+  var filterDK = false;        // show only Denmark + Skåne border-city leads
+  var filterCPH = false;       // show only Copenhagen-area leads (or unknown location)
 
   // Catalog-driven filter data (loaded from /.netlify/functions/catalog)
   var catalogData = null;      // raw catalog array
@@ -611,6 +613,13 @@
   /* ══════════════════════════════════════════
      RENDER LEAD TABLE
      ══════════════════════════════════════════ */
+
+  // Normalizes short-form program type aliases so filters work across all DB variants.
+  // "8w" alone (e.g. stored as "8w" or "8w,4-week") is treated as equivalent to "8-week".
+  function normProgType(s) {
+    return s.replace(/\b8w\b/gi, '8-week');
+  }
+
   function getFilteredLeads(skipCohort) {
     var filtered = leads;
 
@@ -641,14 +650,15 @@
     if (filterTemperature) filtered = filtered.filter(function (l) { return l.temperature === filterTemperature; });
 
     // Sub-type filter — matches on a specific field (ytt_program_type for YTT, or program text for others)
+    // normProgType() ensures short-form variants (e.g. "8w", "8w,4-week") match the canonical "8-week" filter
     if (filterSubType) {
-      var st = filterSubType.toLowerCase();
+      var st = normProgType(filterSubType.toLowerCase());
       filtered = filtered.filter(function (l) {
         if (filterSubTypeField) {
-          return (String(l[filterSubTypeField] || '').toLowerCase()).indexOf(st) !== -1;
+          return normProgType(String(l[filterSubTypeField] || '').toLowerCase()).indexOf(st) !== -1;
         }
         // fallback: check program text
-        var prog = (l.program || '').toLowerCase();
+        var prog = normProgType((l.program || '').toLowerCase());
         return prog.indexOf(st) !== -1;
       });
     }
@@ -656,6 +666,39 @@
     // Cohort filter — further narrows within a program sub-type
     if (!skipCohort && filterCohort) {
       filtered = filtered.filter(function (l) { return matchesCohort(l, filterCohort); });
+    }
+
+    // Denmark-only filter: country is DK / empty, OR lead city is in Skåne border cities
+    if (filterDK) {
+      var SKANE_CITIES = [
+        'malmö', 'malmo', 'lund', 'helsingborg', 'hässleholm', 'hasselholm',
+        'landskrona', 'trelleborg', 'ystad', 'kristianstad', 'ängelholm', 'angelholm',
+        'höganäs', 'hoganas', 'staffanstorp', 'lomma', 'burlöv', 'burlov',
+        'vellinge', 'kävlinge', 'kavlinge', 'eslöv', 'eslov'
+      ];
+      filtered = filtered.filter(function (l) {
+        var c = (l.country || '').toUpperCase().trim();
+        if (!c || c === 'DK' || c === 'DENMARK' || c === 'DANMARK') return true;
+        var city = (l.city || l.city_country || '').toLowerCase();
+        return SKANE_CITIES.some(function (sc) { return city.indexOf(sc) !== -1; });
+      });
+    }
+
+    // Copenhagen-only filter: city contains CPH-area keywords, or no location data (include unknowns)
+    if (filterCPH) {
+      var CPH_KEYWORDS = [
+        'copenhagen', 'københavn', 'kobenhavn', 'frederiksberg',
+        'amager', 'christianshavn', 'vesterbro', 'nørrebro', 'norrebro',
+        'østerbro', 'osterbro', 'valby', 'vanløse', 'vanlose',
+        'brønshøj', 'bronshoj', 'hellerup', 'gentofte', 'charlottenlund',
+        'lyngby', 'glostrup', 'hvidovre', 'rødovre', 'rodovrev',
+        'tårnby', 'tarnby', 'dragør', 'dragor'
+      ];
+      filtered = filtered.filter(function (l) {
+        var city = (l.city || l.city_country || '').toLowerCase();
+        if (!city) return true; // no location data — keep (don't exclude unknowns)
+        return CPH_KEYWORDS.some(function (kw) { return city.indexOf(kw) !== -1; });
+      });
     }
 
     if (searchTerm) {
@@ -882,7 +925,8 @@
   }
 
   function matchesCohort(lead, cohortId) {
-    var ptype = (lead.ytt_program_type || '').toLowerCase();
+    // Normalize so "8w", "8w,4-week" etc. are treated as "8-week"
+    var ptype = normProgType((lead.ytt_program_type || '').toLowerCase());
 
     // Legacy hardcoded cohort matching (always works, even without catalog)
     switch (cohortId) {
@@ -2667,18 +2711,106 @@
     }
 
     // New format — array of { text, timestamp, author, type }
-    el.innerHTML = notes.slice().reverse().map(function (n) {
-      var typeIcon = { call: '\ud83d\udcde', email: '\u2709\ufe0f', sms: '\ud83d\udcf1', note: '\ud83d\udcdd', system: '\u2699\ufe0f' };
-      var icon = typeIcon[n.type || 'note'] || '\ud83d\udcdd';
-      return '<div class="yb-lead__note-item yb-lead__note-item--' + (n.type || 'note') + '">' +
-        '<div class="yb-lead__note-header">' +
-          '<span class="yb-lead__note-icon">' + icon + '</span>' +
-          '<span class="yb-lead__note-author">' + esc(n.author || '') + '</span>' +
-          '<span class="yb-lead__note-time">' + fmtDateTime(n.timestamp) + '</span>' +
-        '</div>' +
-        '<div class="yb-lead__note-text">' + esc(n.text || '') + '</div>' +
+    // Rendered newest-first; origIdx maps back to the notes array index for edit/delete
+    el.innerHTML = notes.slice().reverse().map(function (n, i) {
+      var origIdx = notes.length - 1 - i;
+      var typeIcon = { call: '📞', email: '✉️', sms: '📱', note: '📝', system: '⚙️' };
+      var icon = typeIcon[n.type || 'note'] || '📝';
+      var editedBadge = n.edited_at ? ' <span class="yb-lead__note-edited" title="' + fmtDateTime(n.edited_at) + '">(edited)</span>' : '';
+      var actionBtns = (n.type === 'system')
+        ? ''
+        : '<div class="yb-lead__note-actions">'+
+            '<button type="button" class="yb-lead__note-action-btn" data-action="note-edit" data-note-idx="' + origIdx + '" title="Edit">✏️</button>'+
+            '<button type="button" class="yb-lead__note-action-btn yb-lead__note-action-btn--delete" data-action="note-delete" data-note-idx="' + origIdx + '" title="Delete">🗑</button>'+
+          '</div>';
+      return '<div class="yb-lead__note-item yb-lead__note-item--' + (n.type || 'note') + '" data-note-idx="' + origIdx + '">'+
+        '<div class="yb-lead__note-header">'+
+          '<span class="yb-lead__note-icon">'+icon+'</span>'+
+          '<span class="yb-lead__note-author">'+esc(n.author || '')+'</span>'+
+          '<span class="yb-lead__note-time">'+fmtDateTime(n.timestamp)+editedBadge+'</span>'+
+          actionBtns+
+        '</div>'+
+        '<div class="yb-lead__note-text" id="yb-note-text-'+origIdx+'">'+esc(n.text || '')+'</div>'+
+        '<div class="yb-lead__note-edit-form" id="yb-note-edit-'+origIdx+'" hidden>'+
+          '<textarea class="yb-lead__note-edit-input" rows="3">'+esc(n.text || '')+'</textarea>'+
+          '<div class="yb-lead__note-edit-actions">'+
+            '<button type="button" class="yb-btn yb-btn--primary yb-btn--sm" data-action="note-save" data-note-idx="'+origIdx+'">Gem / Save</button>'+
+            '<button type="button" class="yb-btn yb-btn--outline yb-btn--sm" data-action="note-cancel" data-note-idx="'+origIdx+'">Annuller / Cancel</button>'+
+          '</div>'+
+        '</div>'+
       '</div>';
     }).join('');
+  }
+
+  function deleteNote(idx) {
+    if (!currentLeadId || !currentLead) return;
+    if (!confirm('Slet denne note? / Delete this note?')) return;
+    var notesArray = Array.isArray(currentLead.notes) ? currentLead.notes.slice() : [];
+    notesArray.splice(idx, 1);
+    db.collection('leads').doc(currentLeadId).update({
+      notes: notesArray,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      currentLead.notes = notesArray;
+      var leadIdx = leads.findIndex(function (l) { return l.id === currentLeadId; });
+      if (leadIdx !== -1) leads[leadIdx].notes = notesArray;
+      renderLeadNotes();
+      toast(t('leads_note_deleted') || 'Note slettet');
+    }).catch(function (err) {
+      console.error('[lead-admin] Delete note error:', err);
+      toast(t('error_save'), true);
+    });
+  }
+
+  function startNoteEdit(idx) {
+    var textEl = document.getElementById('yb-note-text-' + idx);
+    var formEl = document.getElementById('yb-note-edit-' + idx);
+    if (!textEl || !formEl) return;
+    textEl.hidden = true;
+    formEl.hidden = false;
+    var ta = formEl.querySelector('textarea');
+    if (ta) { ta.focus(); ta.select(); }
+  }
+
+  function cancelNoteEdit(idx) {
+    var textEl = document.getElementById('yb-note-text-' + idx);
+    var formEl = document.getElementById('yb-note-edit-' + idx);
+    if (!textEl || !formEl) return;
+    formEl.hidden = true;
+    textEl.hidden = false;
+    if (Array.isArray(currentLead && currentLead.notes) && currentLead.notes[idx]) {
+      var ta = formEl.querySelector('textarea');
+      if (ta) ta.value = currentLead.notes[idx].text || '';
+    }
+  }
+
+  function saveNoteEdit(idx) {
+    if (!currentLeadId || !currentLead) return;
+    var formEl = document.getElementById('yb-note-edit-' + idx);
+    if (!formEl) return;
+    var ta = formEl.querySelector('textarea');
+    var newText = ta ? ta.value.trim() : '';
+    if (!newText) { toast('Note kan ikke være tom / Note cannot be empty', true); return; }
+    var notesArray = Array.isArray(currentLead.notes) ? currentLead.notes.slice() : [];
+    if (!notesArray[idx]) return;
+    notesArray[idx] = Object.assign({}, notesArray[idx], {
+      text: newText,
+      edited_at: new Date().toISOString(),
+      edited_by: (firebase.auth().currentUser || {}).email || 'admin'
+    });
+    db.collection('leads').doc(currentLeadId).update({
+      notes: notesArray,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function () {
+      currentLead.notes = notesArray;
+      var leadIdx = leads.findIndex(function (l) { return l.id === currentLeadId; });
+      if (leadIdx !== -1) leads[leadIdx].notes = notesArray;
+      renderLeadNotes();
+      toast(t('leads_note_saved') || 'Note gemt');
+    }).catch(function (err) {
+      console.error('[lead-admin] Edit note error:', err);
+      toast(t('error_save'), true);
+    });
   }
 
   function addNote(type) {
@@ -2842,6 +2974,20 @@
     loadLeads();
   }
 
+  function toggleFilterDK() {
+    filterDK = !filterDK;
+    var btn = $('yb-lead-filter-dk');
+    if (btn) btn.classList.toggle('is-active', filterDK);
+    renderLeadView();
+  }
+
+  function toggleFilterCPH() {
+    filterCPH = !filterCPH;
+    var btn = $('yb-lead-filter-cph');
+    if (btn) btn.classList.toggle('is-active', filterCPH);
+    renderLeadView();
+  }
+
   /* ══════════════════════════════════════════
      ACTIVITY LOG (Email + SMS)
      ══════════════════════════════════════════ */
@@ -2926,7 +3072,12 @@
     course: { label: '\ud83d\udcda Kursus velkomst', msg: "Hej {{first_name}}! Tak for din interesse i vores {{program}} kursus. Vi har sendt detaljer til din email. Book en samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
     mentorship: { label: '\ud83e\uddd8 Mentorship', msg: "Hej {{first_name}}! Tak for din interesse i vores mentorship-program. Book en gratis samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
     reminder: { label: '\u23f0 P\u00e5mindelse', msg: "Hej {{first_name}}! Husk at vi har reserveret en plads til dig. Holdene fylder op \u2014 sikr din plads: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
-    general: { label: '\ud83d\udcac Generel', msg: "Hej {{first_name}}! Tak fordi du kontaktede Yoga Bible. Vi har sendt info til din email. Book en samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" }
+    general: { label: '\ud83d\udcac Generel', msg: "Hej {{first_name}}! Tak fordi du kontaktede Yoga Bible. Vi har sendt info til din email. Book en samtale: https://yogabible.dk/?booking=1 \u2014 Yoga Bible" },
+    didnt_pick_up: {
+      label: '\ud83d\udcf5 Ikke svaret / Didn\'t pick up',
+      msg_da: "Hej {{first_name}}, jeg fors\u00f8gte lige at ringe til dig fra Yoga Bible ang\u00e5ende yogal\u00e6reruddannelsen du har vist interesse for. Du er velkommen til at ringe tilbage p\u00e5 dette nummer eller booke et m\u00f8de her: https://yogabible.dk/?booking=1 - Yoga Bible",
+      msg_en: "Hi {{first_name}}, I just tried to call you from Yoga Bible regarding the yoga teacher training you showed interest in. Feel free to call back on this number or book a meeting here: https://yogabible.dk/en/?b1 - Yoga Bible"
+    }
   };
 
   function applySMSTemplate(key) {
@@ -2934,7 +3085,14 @@
     if (!tpl) return;
     var ta = $('yb-sms-message');
     if (!ta) return;
-    var msg = tpl.msg;
+    // Bilingual templates use msg_da / msg_en; single-language templates use msg
+    var msg;
+    if (tpl.msg_da || tpl.msg_en) {
+      var lang = (currentLead && (currentLead.lang || currentLead.meta_lang || currentLead.language)) || 'da';
+      msg = (lang === 'da' || !lang) ? (tpl.msg_da || tpl.msg_en) : (tpl.msg_en || tpl.msg_da);
+    } else {
+      msg = tpl.msg || '';
+    }
     if (currentLead) {
       msg = msg.replace(/\{\{first_name\}\}/gi, currentLead.first_name || '');
       msg = msg.replace(/\{\{program\}\}/gi, currentLead.program || 'yoga program');
@@ -3366,6 +3524,66 @@
       // No pre-selection: open wizard fresh, admin picks recipients inside
       if (typeof window.openEmailCampaign === 'function') { window.openEmailCampaign([]); }
     }
+  }
+
+  function autoArchiveInternationalJulyLeads() {
+    if (currentUserRole !== 'admin') { toast('Only admins can archive leads.', true); return; }
+
+    // Statuses that indicate an engaged or high-value lead — keep these active
+    var KEEP_STATUSES = ['Converted', 'Strongly Interested', 'Follow-up', 'Meeting Booked', 'Engaged'];
+    // Swedish/Skåne city names to preserve (these are effectively DK-market leads)
+    var NORDIC_CITIES = ['malmö', 'malmo', 'lund', 'helsingborg', 'landskrona', 'skåne', 'skane', 'kristianstad'];
+
+    var toArchive = leads.filter(function (l) {
+      if (l.archived) return false;
+      var programType = (l.ytt_program_type || '').toLowerCase();
+      if (programType.indexOf('4-week-jul') === -1) return false;
+      var country = (l.country || '').toUpperCase().trim();
+      if (country === 'DK' || country === 'SE') return false;
+      var city = (l.city || '').toLowerCase();
+      if (NORDIC_CITIES.some(function (c) { return city.indexOf(c) !== -1; })) return false;
+      if (KEEP_STATUSES.indexOf(l.status) !== -1) return false;
+      return true;
+    });
+
+    if (!toArchive.length) {
+      toast(t('leads_auto_archive_intl_july_none'), false);
+      return;
+    }
+
+    var confirmMsg = t('leads_auto_archive_intl_july_confirm').replace('{n}', toArchive.length);
+    if (!confirm(confirmMsg)) return;
+
+    var user = firebase.auth().currentUser;
+    // Firestore batch limit is 500 — split if needed
+    var BATCH_SIZE = 400;
+    var batches = [];
+    for (var i = 0; i < toArchive.length; i += BATCH_SIZE) {
+      batches.push(toArchive.slice(i, i + BATCH_SIZE));
+    }
+
+    Promise.all(batches.map(function (chunk) {
+      var batch = db.batch();
+      chunk.forEach(function (lead) {
+        batch.update(db.collection('leads').doc(lead.id), {
+          archived: true,
+          archived_at: firebase.firestore.FieldValue.serverTimestamp(),
+          archived_by: user ? user.email : 'unknown',
+          previous_status: lead.status || '',
+          status: 'Archived'
+        });
+      });
+      return batch.commit();
+    })).then(function () {
+      logAuditAction('auto_archive_intl_july', { lead_count: toArchive.length });
+      toast(toArchive.length + ' ' + t('leads_auto_archive_intl_july_done'));
+      selectedIds.clear();
+      selectAll = false;
+      updateBulkBar();
+      loadLeads();
+    }).catch(function (err) {
+      toast(t('error_save') + ': ' + err.message, true);
+    });
   }
 
   function bulkArchive() {
@@ -5331,6 +5549,7 @@
         case 'bulk-email': bulkEmail(); break;
         case 'bulk-deselect': selectedIds.clear(); selectAll = false; renderLeadView(); updateBulkBar(); break;
         case 'bulk-archive': bulkArchive(); break;
+        case 'auto-archive-intl-july': autoArchiveInternationalJulyLeads(); break;
         case 'sms-send': sendSMSFromComposer(); break;
         case 'sms-cancel': $('yb-lead-sms-modal').hidden = true; break;
         case 'email-send': sendEmailFromComposer(); break;
@@ -5339,6 +5558,16 @@
 
         // SMS conversation reply
         case 'sms-reply-send': sendSMSReply(); break;
+
+        // Note edit/delete actions
+        case 'note-delete': deleteNote(parseInt(btn.getAttribute('data-note-idx'), 10)); break;
+        case 'note-edit': startNoteEdit(parseInt(btn.getAttribute('data-note-idx'), 10)); break;
+        case 'note-save': saveNoteEdit(parseInt(btn.getAttribute('data-note-idx'), 10)); break;
+        case 'note-cancel': cancelNoteEdit(parseInt(btn.getAttribute('data-note-idx'), 10)); break;
+
+        // Geography filters
+        case 'toggle-filter-dk': toggleFilterDK(); break;
+        case 'toggle-filter-cph': toggleFilterCPH(); break;
 
         // Application actions
         case 'view-app': e.preventDefault(); showApplicationDetail(id); break;
@@ -5566,10 +5795,14 @@
         filterSubType = '';
         filterSubTypeField = '';
         filterCohort = '';
+        filterDK = false;
+        filterCPH = false;
         var sel; // reset compact selects
         sel = $('yb-lead-source-filter'); if (sel) sel.value = '';
         sel = $('yb-lead-priority-filter'); if (sel) sel.value = '';
         sel = $('yb-lead-temperature-filter'); if (sel) sel.value = '';
+        var dkBtn = $('yb-lead-filter-dk'); if (dkBtn) dkBtn.classList.remove('is-active');
+        var cphBtn = $('yb-lead-filter-cph'); if (cphBtn) cphBtn.classList.remove('is-active');
         renderLeadFilterChips();
         var subtypeRow2 = $('yb-lead-subtype-row');
         if (subtypeRow2) subtypeRow2.hidden = true;
@@ -6054,6 +6287,18 @@
         }
       });
     });
+
+    // Race guard: course-admin dispatches yb:admin-tab during its own init, which
+    // runs in the same firebaseReady.then() queue — our listener may not be registered
+    // yet when that event fires. Check the already-active tab right now.
+    var activeAdminBtn = document.querySelector('[data-yb-admin-tab].is-active');
+    if (activeAdminBtn) handleTabSwitch(activeAdminBtn.getAttribute('data-yb-admin-tab'));
+    var activeCrmBtn = document.querySelector('[data-yb-tab].is-active');
+    if (activeCrmBtn) {
+      var activeCrmTab = activeCrmBtn.getAttribute('data-yb-tab');
+      if (activeCrmTab === 'crm-leads' && !leadsLoaded) { loadLeads(); leadsLoaded = true; }
+      if (activeCrmTab === 'crm-applications' && !appLoaded) { loadApplications(); appLoaded = true; }
+    }
   }
 
   // Expose data bridge for campaign-wizard.js

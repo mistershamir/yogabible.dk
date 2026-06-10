@@ -2054,7 +2054,16 @@
 .yb-lead__note-icon { font-size: 0.9rem; }
 .yb-lead__note-author { font-size: 0.75rem; font-weight: 700; color: #6F6A66; }
 .yb-lead__note-time { font-size: 0.72rem; color: #6F6A66; margin-left: auto; }
+.yb-lead__note-edited { font-style: italic; opacity: 0.75; margin-left: 0.25rem; cursor: help; }
 .yb-lead__note-text { font-size: 0.85rem; color: #161616; white-space: pre-wrap; }
+.yb-lead__note-actions { display: flex; gap: 0.2rem; margin-left: 0.5rem; opacity: 0; transition: opacity 0.15s; }
+.yb-lead__note-item:hover .yb-lead__note-actions { opacity: 1; }
+.yb-lead__note-action-btn { background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 2px 4px; border-radius: 4px; line-height: 1; }
+.yb-lead__note-action-btn:hover { background: #F5F3F0; }
+.yb-lead__note-action-btn--delete:hover { background: #fee2e2; }
+.yb-lead__note-edit-form { margin-top: 0.5rem; }
+.yb-lead__note-edit-input { width: 100%; padding: 0.4rem 0.6rem; border: 1.5px solid #f75c03; border-radius: 8px; font-size: 0.85rem; font-family: inherit; resize: vertical; }
+.yb-lead__note-edit-actions { display: flex; gap: 0.5rem; margin-top: 0.4rem; }
 
 .yb-lead__empty-text { color: #6F6A66; font-size: 0.85rem; font-style: italic; }
 
