@@ -225,6 +225,11 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           {{ t.tab_leads }}
         </button>
+        {# Appointments — marketing & admin only, or module_access: appointments #}
+        <button class="yb-ma-tabs__btn" type="button" data-yb-ma-tab="appointments" data-yb-role="marketing,admin" data-yb-tab-module="appointments" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          {{ t.tab_appointments }}
+        </button>
       </div>
     </div>
   </nav>
@@ -965,6 +970,11 @@
   {# ── TAB: Leads (iframe — marketing & admin only) ── #}
   <div class="yb-ma-tp" id="yb-ma-tp-leads" data-yb-ma-panel="leads" hidden data-yb-role="marketing,admin" style="display:none">
     <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/leads/" title="{{ t.tab_leads }}"></iframe>
+  </div>
+
+  {# ── TAB: Appointments (iframe — marketing & admin only, or module_access: appointments) ── #}
+  <div class="yb-ma-tp" id="yb-ma-tp-appointments" data-yb-ma-panel="appointments" hidden data-yb-role="marketing,admin" data-yb-tab-module="appointments" style="display:none">
+    <iframe class="yb-ma-iframe" data-src="{{ lp }}/embed/appointments/" title="{{ t.tab_appointments }}"></iframe>
   </div>
 
 </div>

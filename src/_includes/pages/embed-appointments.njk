@@ -1,0 +1,56 @@
+{# ══════════════════════════════════════════════════════════════
+   EMBED APPOINTMENTS — Standalone appointments manager for iframing
+   into the Member Area. Uses the same partial as /admin/.
+   ══════════════════════════════════════════════════════════════ #}
+{% set t = i18n["course-admin"][lang or "da"] %}
+
+<script>
+  window._ybAdminLang = '{{ lang or "da" }}';
+  window._ybAdminT = {{ i18n["course-admin"][lang or "da"] | dump | safe }};
+</script>
+
+<section class="yb-admin" id="yb-admin" style="padding:1rem 0 3rem">
+  <div class="container">
+
+    {# Auth gate — show login prompt if not signed in #}
+    <div id="yb-admin-gate" style="text-align:center;padding:3rem 0">
+      <h2>{{ t.not_logged_in_title }}</h2>
+      <p style="color:var(--yb-muted,#6F6A66)">{{ t.not_logged_in_text }}</p>
+      <button class="yb-btn yb-btn--primary" onclick="if(window.openAuthModal)window.openAuthModal()">{{ t.login_btn }}</button>
+    </div>
+
+    {# Admin panel — shown when logged in #}
+    <div id="yb-admin-panel" style="display:none">
+      {% include "partials/admin-appointments-panel.njk" %}
+    </div>
+
+  </div>
+
+  {# Toast notifications #}
+  <div class="yb-admin__toast" id="yb-admin-toast" hidden></div>
+</section>
+
+{# Auth gate logic #}
+<script>
+(function() {
+  var checkInterval = setInterval(function() {
+    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+      clearInterval(checkInterval);
+      firebase.auth().onAuthStateChanged(function(user) {
+        var gate = document.getElementById('yb-admin-gate');
+        var panel = document.getElementById('yb-admin-panel');
+        if (user) {
+          if (gate) gate.style.display = 'none';
+          if (panel) panel.style.display = '';
+        } else {
+          if (gate) gate.style.display = '';
+          if (panel) panel.style.display = 'none';
+        }
+      });
+    }
+  }, 100);
+})();
+</script>
+
+{# Appointments admin JS #}
+<script src="/js/appointments-admin.js"></script>
