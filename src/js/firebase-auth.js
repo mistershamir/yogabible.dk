@@ -98,6 +98,8 @@
         permissions = window.YBRoles.computePermissions(role, roleDetails);
       }
 
+      var moduleAccess = Array.isArray(d.module_access) ? d.module_access : [];
+
       window._ybUser = {
         uid: user.uid,
         email: user.email,
@@ -105,6 +107,7 @@
         role: role,
         roleDetails: roleDetails,
         permissions: permissions,
+        moduleAccess: moduleAccess,
         membershipTier: d.membershipTier || 'free',
         suspended: isSuspended
       };
@@ -113,6 +116,7 @@
       if (window.YBRoles) {
         window.YBRoles.applyPermissions(permissions);
         window.YBRoles.applyRole(role);
+        window.YBRoles.applyModuleAccess(role, moduleAccess);
       }
 
       // Notify other scripts

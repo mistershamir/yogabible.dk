@@ -2015,6 +2015,7 @@
     // Map legacy 'user' role to 'member'
     if (currentRole === 'user') currentRole = 'member';
     var currentDetails = userData.roleDetails || {};
+    var currentModules = Array.isArray(userData.module_access) ? userData.module_access : [];
 
     var html = '<div class="yb-admin__section-divider" style="margin:1.5rem 0"></div>';
     html += '<h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem">' + t('role_title') + '</h3>';
@@ -2147,6 +2148,27 @@
     html += '</div>';
     html += '</div>';
     html += '</div>';
+
+    // Module access checkboxes (additive — grants extra tab access beyond role defaults)
+    if (R.MODULE_DEFS) {
+      html += '<div class="yb-admin__field" style="margin-top:1rem">';
+      html += '<label style="font-weight:600;font-size:0.85rem">' + (lang === 'da' ? 'Moduladgang (additiv)' : 'Module Access (additive)') + '</label>';
+      html += '<p style="font-size:0.75rem;color:#6F6A66;margin:0.15rem 0 0.5rem">'+
+        (lang === 'da' ? 'Giver adgang til ekstra tabs — fjerner ikke eksisterende adgang.' : 'Grants extra tab access — never removes existing access.') +
+        '</p>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem 1.25rem;margin-top:0.25rem">';
+      Object.keys(R.MODULE_DEFS).forEach(function(k) {
+        var mod = R.MODULE_DEFS[k];
+        var checked = currentModules.indexOf(k) !== -1 ? ' checked' : '';
+        var label = mod['label_' + lang] || mod.label_da;
+        html += '<label style="font-size:0.85rem;display:flex;align-items:center;gap:0.35rem;cursor:pointer">';
+        html += '<input type="checkbox" class="yb-admin-module-access" value="' + k + '"' + checked + '>';
+        html += esc(label);
+        html += '</label>';
+      });
+      html += '</div>';
+      html += '</div>';
+    }
 
     html += '<div class="yb-admin__form-actions" style="margin-top:1rem">';
     html += '<button type="submit" class="yb-btn yb-btn--primary">' + t('role_save') + '</button>';
@@ -2434,9 +2456,16 @@
       var actorEmail = currentAuthUser ? currentAuthUser.email : 'unknown';
       var serverTs = firebase.firestore.FieldValue.serverTimestamp();
 
+      // Collect module_access from checkboxes
+      var newModuleAccess = [];
+      document.querySelectorAll('.yb-admin-module-access:checked').forEach(function(cb) {
+        newModuleAccess.push(cb.value);
+      });
+
       db.collection('users').doc(uid).update({
         role: newRole,
         roleDetails: roleDetails,
+        module_access: newModuleAccess,
         updatedAt: serverTs
       }).then(function () {
         // Unified audit log (role_audit) — matches netlify functions

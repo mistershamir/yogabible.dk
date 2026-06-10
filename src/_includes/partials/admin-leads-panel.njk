@@ -93,6 +93,12 @@
     <div id="yb-lead-cohort-chips" class="yb-lead__cohort-chips"></div>
   </div>
 
+  {# Loading indicator — shown during initial Firestore fetch #}
+  <div id="yb-lead-loading" class="yb-lead__loading" hidden>
+    <div class="yb-lead__loading-spinner"></div>
+    <span>{{ t.leads_loading or "Indlæser leads…" }}</span>
+  </div>
+
   {# Result count #}
   <div class="yb-lead__result-bar">
     <span id="yb-lead-count" class="yb-lead__count-text"></span>

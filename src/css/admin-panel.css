@@ -1446,6 +1446,11 @@
 #yb-live-admin-search-form { position: relative; }
 #yb-live-admin-search-form .yb-lead__search-input { padding-right: 32px; }
 
+/* ── Loading state ── */
+.yb-lead__loading { display: flex; align-items: center; gap: 0.65rem; padding: 1.25rem 0; color: #6F6A66; font-size: 0.875rem; }
+.yb-lead__loading-spinner { width: 18px; height: 18px; border: 2px solid #E8E4E0; border-top-color: #f75c03; border-radius: 50%; animation: yb-spin 0.7s linear infinite; flex-shrink: 0; }
+.yb-lead__table-container--loading { opacity: 0.4; pointer-events: none; }
+
 /* ── Result count ── */
 .yb-lead__result-bar { margin-bottom: 0.5rem; }
 .yb-lead__count-text { font-size: 0.8rem; color: #6F6A66; }

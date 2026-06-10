@@ -476,6 +476,13 @@
   /* ══════════════════════════════════════════
      LOAD LEADS
      ══════════════════════════════════════════ */
+  function setLeadsLoading(on) {
+    var el = $('yb-lead-loading');
+    if (el) el.hidden = !on;
+    var container = $('yb-lead-table-container');
+    if (container) container.classList.toggle('yb-lead__table-container--loading', on);
+  }
+
   function loadLeads(append) {
     if (!append) {
       leads = [];
@@ -484,6 +491,8 @@
       selectAll = false;
       expandedLeadIds.clear();
     }
+
+    setLeadsLoading(true);
 
     var query = db.collection('leads').orderBy(sortField, sortDir);
 
@@ -501,6 +510,7 @@
 
       lastDoc = null; // No pagination needed — all loaded at once
 
+      setLeadsLoading(false);
       renderLeadView();
       renderLeadStats();
       updateBulkBar();
@@ -510,6 +520,7 @@
       if (loadMore) loadMore.hidden = true;
 
     }).catch(function (err) {
+      setLeadsLoading(false);
       console.error('[lead-admin] Load error:', err);
       toast(t('error_load'), true);
     });
@@ -538,7 +549,14 @@
   }
 
   function fallbackLoadCount() {
-    // Fallback: fetch all docs and count (works with any SDK version)
+    // Use in-memory leads array if already loaded — avoids a second Firestore scan
+    if (leads.length > 0) {
+      totalLeadCount = leads.length;
+      renderLeadStats();
+      updateCountDisplay();
+      return;
+    }
+    // Cold path: no leads in memory yet, do a lightweight full scan
     db.collection('leads').get().then(function (snap) {
       var count = 0;
       snap.forEach(function (doc) {
@@ -3725,6 +3743,25 @@
   /* ══════════════════════════════════════════
      SORT
      ══════════════════════════════════════════ */
+  function sortLeadsInMemory() {
+    leads.sort(function (a, b) {
+      var av = a[sortField];
+      var bv = b[sortField];
+      // Firestore Timestamp → numeric ms
+      if (av && typeof av === 'object' && typeof av.toMillis === 'function') av = av.toMillis();
+      if (bv && typeof bv === 'object' && typeof bv.toMillis === 'function') bv = bv.toMillis();
+      // Nulls last regardless of direction
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (typeof av === 'string') av = av.toLowerCase();
+      if (typeof bv === 'string') bv = bv.toLowerCase();
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
   function toggleSort(field) {
     if (sortField === field) {
       sortDir = sortDir === 'asc' ? 'desc' : 'asc';
@@ -3741,7 +3778,9 @@
       }
     });
 
-    loadLeads();
+    // Sort in-memory — no Firestore re-read needed
+    sortLeadsInMemory();
+    renderLeadView();
   }
 
   /* ══════════════════════════════════════════
@@ -5800,7 +5839,7 @@
           if (filterId === 'yb-lead-source-filter') filterSource = el.value;
           if (filterId === 'yb-lead-priority-filter') filterPriority = el.value;
           if (filterId === 'yb-lead-temperature-filter') filterTemperature = el.value;
-          loadLeads();
+          renderLeadView(); // client-side filter — no Firestore re-read
         });
       }
     });
@@ -5815,7 +5854,7 @@
         var idx = filterStatuses.indexOf(val);
         if (idx !== -1) filterStatuses.splice(idx, 1); else filterStatuses.push(val);
         renderLeadFilterChips();
-        loadLeads();
+        renderLeadView(); // client-side filter — no Firestore re-read
       });
     }
 
@@ -5835,7 +5874,7 @@
         renderSubTypeFilter(filterTypes.length === 1 ? filterTypes[0] : '');
         var cohortRow3 = $('yb-lead-cohort-row');
         if (cohortRow3) cohortRow3.hidden = true;
-        loadLeads();
+        renderLeadView(); // client-side filter — no Firestore re-read
       });
     }
 
@@ -5861,7 +5900,7 @@
         if (subtypeRow2) subtypeRow2.hidden = true;
         var cohortRow2 = $('yb-lead-cohort-row');
         if (cohortRow2) cohortRow2.hidden = true;
-        loadLeads();
+        renderLeadView(); // client-side filter — no Firestore re-read
       });
     }
 
@@ -6062,7 +6101,7 @@
         var st = card.getAttribute('data-filter-status');
         filterStatuses = st ? [st] : [];
         renderLeadFilterChips();
-        loadLeads();
+        renderLeadView(); // client-side filter — no Firestore re-read
       }
     });
 

@@ -10,6 +10,15 @@
 (function() {
   'use strict';
 
+  // ── Module definitions — additive access grants ──
+  var MODULE_DEFS = {
+    appointments: { label_da: 'Aftaler',     label_en: 'Appointments' },
+    leads:        { label_da: 'Leads',       label_en: 'Leads' },
+    campaigns:    { label_da: 'Kampagner',   label_en: 'Campaigns' },
+    billing:      { label_da: 'Fakturering', label_en: 'Billing' },
+    knowledge:    { label_da: 'Vidensbase',  label_en: 'Knowledge' }
+  };
+
   // ── Role definitions ──
   var ROLES = {
     member:    { key: 'member',    icon: '👤', color: '#6F6A66' },
@@ -249,6 +258,25 @@
     });
   }
 
+  /**
+   * Apply additive module access to the DOM.
+   * Elements with data-yb-tab-module="key" are shown if the user has that module
+   * (or is admin/marketing who always get everything).
+   * Never hides — only reveals.
+   * @param {string} role
+   * @param {string[]} moduleAccess
+   */
+  function applyModuleAccess(role, moduleAccess) {
+    moduleAccess = moduleAccess || [];
+    var allAccess = (role === 'admin' || role === 'marketing');
+    document.querySelectorAll('[data-yb-tab-module]').forEach(function(el) {
+      var mod = el.getAttribute('data-yb-tab-module');
+      if (allAccess || moduleAccess.indexOf(mod) !== -1) {
+        el.style.display = ''; // reveal — never hide
+      }
+    });
+  }
+
   // ── Expose globally ──
   window.YBRoles = {
     ROLES: ROLES,
@@ -258,11 +286,13 @@
     STUDENT_COURSES: STUDENT_COURSES,
     TEACHER_TYPES: TEACHER_TYPES,
     ROLE_PERMISSIONS: ROLE_PERMISSIONS,
+    MODULE_DEFS: MODULE_DEFS,
     computePermissions: computePermissions,
     getRoleLabel: getRoleLabel,
     getRoleDetail: getRoleDetail,
     applyPermissions: applyPermissions,
-    applyRole: applyRole
+    applyRole: applyRole,
+    applyModuleAccess: applyModuleAccess
   };
 
   console.log('✅ Roles & Permissions module loaded');

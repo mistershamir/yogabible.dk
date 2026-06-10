@@ -66,7 +66,7 @@
           {# CRM tabs — visible only for marketing and admin roles #}
           <button class="yb-profile__tab yb-profile__tab--crm" type="button" data-yb-tab="crm-leads" data-yb-role="marketing,admin" style="display:none">{{ t.tab_crm_leads }}</button>
           <button class="yb-profile__tab yb-profile__tab--crm" type="button" data-yb-tab="crm-applications" data-yb-role="marketing,admin" style="display:none">{{ t.tab_crm_applications }}</button>
-          <button class="yb-profile__tab yb-profile__tab--crm" type="button" data-yb-tab="crm-appointments" data-yb-role="marketing,admin" style="display:none">{{ t.tab_crm_appointments }}</button>
+          <button class="yb-profile__tab yb-profile__tab--crm" type="button" data-yb-tab="crm-appointments" data-yb-role="marketing,admin" data-yb-tab-module="appointments" style="display:none">{{ t.tab_crm_appointments }}</button>
         </div>
 
         {# ═══════ TAB: Profile ═══════ #}
@@ -722,7 +722,7 @@
         </div>
 
         {# ═══════ TAB: CRM Appointments ═══════ #}
-        <div class="yb-profile__tab-panel" data-yb-panel="crm-appointments" data-yb-role="marketing,admin" style="display:none">
+        <div class="yb-profile__tab-panel" data-yb-panel="crm-appointments" data-yb-role="marketing,admin" data-yb-tab-module="appointments" style="display:none">
           <div class="yb-profile__content-area yb-profile__crm-panel">
             {% include "partials/admin-appointments-panel.njk" %}
           </div>
