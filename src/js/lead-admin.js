@@ -86,7 +86,9 @@
   var filterSubTypeField = ''; // which lead field to match filterSubType against
   var filterCohort = '';       // cohort-level filter within a program sub-type
   var filterDK = false;        // show only Denmark + Skåne border-city leads
-  var filterCPH = false;       // show only Copenhagen-area leads (or unknown location)
+  var filterGCPH = false;      // show only Greater Copenhagen / North Zealand leads (or unknown location)
+  var filterCPH = false;       // show only inner Copenhagen-area leads (or unknown location)
+  // All three geo filters are mutually exclusive — activating one clears the others
 
   // Catalog-driven filter data (loaded from /.netlify/functions/catalog)
   var catalogData = null;      // raw catalog array
@@ -681,6 +683,38 @@
         if (!c || c === 'DK' || c === 'DENMARK' || c === 'DANMARK') return true;
         var city = (l.city || l.city_country || '').toLowerCase();
         return SKANE_CITIES.some(function (sc) { return city.indexOf(sc) !== -1; });
+      });
+    }
+
+    // Greater Copenhagen filter: CPH inner area + all commuter-zone municipalities + North Zealand
+    if (filterGCPH) {
+      var GCPH_KEYWORDS = [
+        // Inner Copenhagen (same as filterCPH)
+        'copenhagen', 'københavn', 'kobenhavn', 'frederiksberg',
+        'amager', 'christianshavn', 'vesterbro', 'nørrebro', 'norrebro',
+        'østerbro', 'osterbro', 'valby', 'vanløse', 'vanlose',
+        'brønshøj', 'bronshoj', 'hellerup', 'gentofte', 'charlottenlund',
+        'lyngby', 'glostrup', 'hvidovre', 'rødovre', 'rodovrev',
+        'tårnby', 'tarnby', 'dragør', 'dragor', 'kastrup',
+        // North (North Zealand)
+        'helsingør', 'helsingor', 'elsinore', 'fredensborg', 'hørsholm', 'horsholm',
+        'rudersdal', 'birkerød', 'birkerod', 'holte', 'allerød', 'allerod',
+        'hillerød', 'hillerod', 'frederiksborg', 'kokkedal', 'nivå', 'niva',
+        'humlebæk', 'humlebaek', 'gilleleje', 'hornbæk', 'hornbaek',
+        'espergærde', 'espergaerde',
+        // Northwest
+        'farum', 'furesø', 'fureso', 'egedal', 'stenløse', 'stenlose',
+        'ølstykke', 'olstykke', 'frederikssund',
+        // West
+        'ballerup', 'herlev', 'albertslund', 'taastrup', 'høje-taastrup',
+        'ishøj', 'ishoj', 'brøndby', 'brondby', 'vallensbæk', 'vallensbaek',
+        'greve', 'solrød', 'solrod', 'køge', 'koge', 'roskilde', 'lejre',
+        'ringsted', 'slagelse'
+      ];
+      filtered = filtered.filter(function (l) {
+        var city = (l.city || l.city_country || '').toLowerCase();
+        if (!city) return true; // no location data — keep (don't exclude unknowns)
+        return GCPH_KEYWORDS.some(function (kw) { return city.indexOf(kw) !== -1; });
       });
     }
 
@@ -2974,15 +3008,36 @@
     loadLeads();
   }
 
+  function clearGeoFilters() {
+    filterDK = false; filterGCPH = false; filterCPH = false;
+    var b;
+    b = $('yb-lead-filter-dk');   if (b) b.classList.remove('is-active');
+    b = $('yb-lead-filter-gcph'); if (b) b.classList.remove('is-active');
+    b = $('yb-lead-filter-cph');  if (b) b.classList.remove('is-active');
+  }
+
   function toggleFilterDK() {
-    filterDK = !filterDK;
+    var wasActive = filterDK;
+    clearGeoFilters();
+    filterDK = !wasActive;
     var btn = $('yb-lead-filter-dk');
     if (btn) btn.classList.toggle('is-active', filterDK);
     renderLeadView();
   }
 
+  function toggleFilterGCPH() {
+    var wasActive = filterGCPH;
+    clearGeoFilters();
+    filterGCPH = !wasActive;
+    var btn = $('yb-lead-filter-gcph');
+    if (btn) btn.classList.toggle('is-active', filterGCPH);
+    renderLeadView();
+  }
+
   function toggleFilterCPH() {
-    filterCPH = !filterCPH;
+    var wasActive = filterCPH;
+    clearGeoFilters();
+    filterCPH = !wasActive;
     var btn = $('yb-lead-filter-cph');
     if (btn) btn.classList.toggle('is-active', filterCPH);
     renderLeadView();
@@ -5565,9 +5620,10 @@
         case 'note-save': saveNoteEdit(parseInt(btn.getAttribute('data-note-idx'), 10)); break;
         case 'note-cancel': cancelNoteEdit(parseInt(btn.getAttribute('data-note-idx'), 10)); break;
 
-        // Geography filters
-        case 'toggle-filter-dk': toggleFilterDK(); break;
-        case 'toggle-filter-cph': toggleFilterCPH(); break;
+        // Geography filters (mutually exclusive)
+        case 'toggle-filter-dk':   toggleFilterDK(); break;
+        case 'toggle-filter-gcph': toggleFilterGCPH(); break;
+        case 'toggle-filter-cph':  toggleFilterCPH(); break;
 
         // Application actions
         case 'view-app': e.preventDefault(); showApplicationDetail(id); break;
@@ -5795,14 +5851,11 @@
         filterSubType = '';
         filterSubTypeField = '';
         filterCohort = '';
-        filterDK = false;
-        filterCPH = false;
+        clearGeoFilters();
         var sel; // reset compact selects
         sel = $('yb-lead-source-filter'); if (sel) sel.value = '';
         sel = $('yb-lead-priority-filter'); if (sel) sel.value = '';
         sel = $('yb-lead-temperature-filter'); if (sel) sel.value = '';
-        var dkBtn = $('yb-lead-filter-dk'); if (dkBtn) dkBtn.classList.remove('is-active');
-        var cphBtn = $('yb-lead-filter-cph'); if (cphBtn) cphBtn.classList.remove('is-active');
         renderLeadFilterChips();
         var subtypeRow2 = $('yb-lead-subtype-row');
         if (subtypeRow2) subtypeRow2.hidden = true;
