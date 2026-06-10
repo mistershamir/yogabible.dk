@@ -3816,6 +3816,89 @@ details[open] .yb-lead__campaign-history-toggle::before { transform: rotate(90de
   padding-top: 0.5rem;
   border-top: 1px solid rgba(232,228,224,0.6);
 }
+/* ── Schedule Picker Popover ───────────────────────────────────── */
+.yb-lead__schedule-picker {
+  position: fixed;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid #E8E4E0;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  min-width: 280px;
+  max-width: 340px;
+  padding: 0;
+  overflow: hidden;
+}
+.yb-lead__schedule-picker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid #E8E4E0;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.yb-lead__schedule-picker__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #6F6A66;
+  line-height: 1;
+  padding: 2px 4px;
+}
+.yb-lead__schedule-picker__close:hover { color: #0F0F0F; }
+.yb-lead__schedule-picker__body { padding: 8px 0; }
+.yb-lead__schedule-picker__empty {
+  padding: 12px 16px;
+  color: #6F6A66;
+  font-size: 0.85rem;
+}
+.yb-lead__schedule-picker__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: background 0.12s;
+}
+.yb-lead__schedule-picker__item:hover { background: #F5F3F0; }
+.yb-lead__schedule-picker__item-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0F0F0F;
+  line-height: 1.3;
+}
+.yb-lead__schedule-picker__item-label {
+  font-size: 0.78rem;
+  color: #6F6A66;
+}
+.yb-lead__schedule-picker__badge {
+  font-size: 0.7rem;
+  background: #FFF9F0;
+  color: #f75c03;
+  border: 1px solid #f75c03;
+  border-radius: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.yb-lead__schedule-picker__warning {
+  margin: 6px 16px 0;
+  padding: 8px 10px;
+  background: #FFF9F0;
+  border: 1px solid #f75c03;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: #d94f02;
+  line-height: 1.4;
+}
+
 /* Inline status row in quick view */
 .yb-lead__exp-status-row {
   gap: 0.75rem;

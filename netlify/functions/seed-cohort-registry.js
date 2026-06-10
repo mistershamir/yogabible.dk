@@ -49,6 +49,7 @@ const COHORTS = [
     start_date_formatted_da: '1. juni',
     start_date_formatted_en: 'June 1',
     active: false,
+    schedule_ready: false,
     sort_order: 1
   },
   {
@@ -74,6 +75,7 @@ const COHORTS = [
     start_date_formatted_da: '6. juli',
     start_date_formatted_en: 'July 6',
     active: true,
+    schedule_ready: true,
     sort_order: 2
   },
   {
@@ -99,6 +101,7 @@ const COHORTS = [
     start_date_formatted_da: '2. maj',
     start_date_formatted_en: 'May 2',
     active: false,
+    schedule_ready: false,
     sort_order: 3
   },
   {
@@ -124,6 +127,7 @@ const COHORTS = [
     start_date_formatted_da: '5. oktober',
     start_date_formatted_en: 'October 5',
     active: true,
+    schedule_ready: false,
     sort_order: 5
   },
   {
@@ -149,6 +153,7 @@ const COHORTS = [
     start_date_formatted_da: '10. august',
     start_date_formatted_en: 'August 10',
     active: true,
+    schedule_ready: true,
     sort_order: 4
   }
 ];

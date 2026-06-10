@@ -102,6 +102,8 @@
   var selectAll = false;
   var leadViewMode = 'table';
   var expandedLeadIds = new Set();
+  var cohortRegistry = null; // cached cohort_registry docs (active + schedule_ready)
+  var schedulePickerEl = null; // active schedule picker DOM element
 
   // Kanban columns
   // 'Converted' and 'Existing Applicant' are intentionally excluded — those leads are
@@ -1483,6 +1485,7 @@
     }
     if (l.email) {
       html += '<button class="yb-btn" data-action="email-inline" data-id="' + l.id + '">\u2709 ' + t('leads_email') + '</button>';
+      html += '<button class="yb-btn" data-action="send-schedule-inline" data-id="' + l.id + '" title="' + (isAdminDa() ? 'Send skema' : 'Send schedule') + '">\ud83d\udcc5 ' + (isAdminDa() ? 'Skema' : 'Schedule') + '</button>';
     }
     html += '<button class="yb-btn yb-btn--primary" data-action="view-lead" data-id="' + l.id + '">' + t('leads_detail_title') + ' \u2192</button>';
     html += '</div>';
@@ -2474,6 +2477,136 @@
   }
 
   /* ══════════════════════════════════════════
+     SCHEDULE EMAIL SENDER
+     ══════════════════════════════════════════ */
+
+  function loadCohortRegistry(callback) {
+    if (cohortRegistry !== null) { callback(cohortRegistry); return; }
+    db.collection('cohort_registry')
+      .where('active', '==', true)
+      .where('schedule_ready', '==', true)
+      .get()
+      .then(function (snap) {
+        cohortRegistry = [];
+        snap.forEach(function (doc) { cohortRegistry.push(Object.assign({ id: doc.id }, doc.data())); });
+        cohortRegistry.sort(function (a, b) { return (a.sort_order || 99) - (b.sort_order || 99); });
+        callback(cohortRegistry);
+      })
+      .catch(function (err) {
+        console.error('[lead-admin] cohort_registry load error:', err);
+        callback([]);
+      });
+  }
+
+  function closeSchedulePicker() {
+    if (schedulePickerEl && schedulePickerEl.parentNode) {
+      schedulePickerEl.parentNode.removeChild(schedulePickerEl);
+    }
+    schedulePickerEl = null;
+    document.removeEventListener('mousedown', schedulePickerOutsideClick);
+  }
+
+  function schedulePickerOutsideClick(e) {
+    if (schedulePickerEl && !schedulePickerEl.contains(e.target)) closeSchedulePicker();
+  }
+
+  function openSchedulePicker(leadId, anchorEl) {
+    closeSchedulePicker();
+    var lead = leads.find(function (l) { return l.id === leadId; }) || currentLead;
+    var da = isAdminDa();
+
+    loadCohortRegistry(function (cohorts) {
+      var el = document.createElement('div');
+      el.className = 'yb-lead__schedule-picker';
+      schedulePickerEl = el;
+
+      var headerLabel = da ? 'Send skema' : 'Send schedule';
+      var emptyLabel = da ? 'Ingen skemaer klar.' : 'No schedules ready.';
+      var sendLabel = da ? 'Send' : 'Send';
+      var recommendedLabel = da ? 'Anbefalet' : 'Recommended';
+
+      var html = '<div class="yb-lead__schedule-picker__header">' +
+        '<span>📅 ' + headerLabel + '</span>' +
+        '<button class="yb-lead__schedule-picker__close" data-action="schedule-picker-close">✕</button>' +
+      '</div>';
+
+      // 24h duplicate warning
+      var lastSent = lead && lead.last_schedule_sent_at;
+      var lastSentTs = lastSent && (lastSent.toDate ? lastSent.toDate() : new Date(lastSent));
+      var recentSend = lastSentTs && (Date.now() - lastSentTs.getTime() < 24 * 60 * 60 * 1000);
+      if (recentSend) {
+        var sentAgo = Math.round((Date.now() - lastSentTs.getTime()) / (60 * 60 * 1000));
+        var warnMsg = da
+          ? ('⚠️ Skema sendt for ' + sentAgo + 't siden. Send igen?')
+          : ('⚠️ Schedule sent ' + sentAgo + 'h ago. Send again?');
+        html += '<div class="yb-lead__schedule-picker__warning">' + warnMsg + '</div>';
+      }
+
+      html += '<div class="yb-lead__schedule-picker__body">';
+
+      if (cohorts.length === 0) {
+        html += '<div class="yb-lead__schedule-picker__empty">' + emptyLabel + '</div>';
+      } else {
+        var programType = lead && (lead.ytt_program_type || lead.program_type || '');
+        cohorts.forEach(function (c) {
+          var isMatch = programType && (c.program_type === programType || (c.also_matches || []).indexOf(programType) !== -1);
+          var name = da ? (c.name_da || c.name_en) : (c.name_en || c.name_da);
+          var label = da ? (c.cohort_label_da || c.cohort_label_en) : (c.cohort_label_en || c.cohort_label_da);
+          html += '<button class="yb-lead__schedule-picker__item" data-action="schedule-picker-select" data-lead-id="' + leadId + '" data-cohort-id="' + c.id + '">' +
+            '<span>' +
+              '<span class="yb-lead__schedule-picker__item-name">' + esc(name) + '</span><br>' +
+              '<span class="yb-lead__schedule-picker__item-label">' + esc(label) + '</span>' +
+            '</span>' +
+            (isMatch ? '<span class="yb-lead__schedule-picker__badge">' + recommendedLabel + '</span>' : '') +
+          '</button>';
+        });
+      }
+
+      html += '</div>';
+      el.innerHTML = html;
+      document.body.appendChild(el);
+
+      // Position below anchor
+      if (anchorEl) {
+        var rect = anchorEl.getBoundingClientRect();
+        var pickerW = 320;
+        var left = rect.left + window.scrollX;
+        if (left + pickerW > window.innerWidth - 12) left = window.innerWidth - pickerW - 12;
+        el.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+        el.style.left = Math.max(8, left) + 'px';
+      }
+
+      setTimeout(function () {
+        document.addEventListener('mousedown', schedulePickerOutsideClick);
+      }, 10);
+    });
+  }
+
+  function sendScheduleEmail(leadId, cohortId) {
+    var da = isAdminDa();
+    closeSchedulePicker();
+    getAuthToken().then(function (token) {
+      return fetch('/.netlify/functions/send-schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ leadId: leadId, cohortId: cohortId })
+      });
+    }).then(function (res) { return res.json(); }).then(function (data) {
+      if (data.ok) {
+        toast(da ? 'Skema sendt ✓' : 'Schedule sent ✓');
+        // Update cached lead so 24h warning shows correctly next time
+        var cached = leads.find(function (l) { return l.id === leadId; });
+        if (cached) cached.last_schedule_sent_at = { toDate: function () { return new Date(); } };
+        if (currentLead && currentLead.id === leadId) currentLead.last_schedule_sent_at = cached && cached.last_schedule_sent_at;
+      } else {
+        toast((da ? 'Fejl: ' : 'Error: ') + (data.error || 'Unknown error'), true);
+      }
+    }).catch(function (err) {
+      toast((da ? 'Netværksfejl: ' : 'Network error: ') + err.message, true);
+    });
+  }
+
+  /* ══════════════════════════════════════════
      QUICK ACTIONS
      ══════════════════════════════════════════ */
   function renderLeadQuickActions() {
@@ -2490,6 +2623,7 @@
       (email ? '<button class="yb-btn" data-action="lead-email">\u2709\ufe0f ' + t('leads_email') + '</button>' : '') +
       (phone ? '<button class="yb-btn yb-btn--primary" data-action="send-booking-sms" title="Send booking link via SMS">\ud83d\udcc5 Booking SMS</button>' : '') +
       (email ? '<button class="yb-btn yb-btn--primary" data-action="send-booking-email" title="Send booking link via Email">\ud83d\udcc5 Booking Email</button>' : '') +
+      (email ? '<button class="yb-btn yb-btn--primary" data-action="send-schedule" title="' + (isAdminDa() ? 'Send skema til lead' : 'Send schedule to lead') + '">\ud83d\udcc5 ' + (isAdminDa() ? 'Send skema' : 'Send schedule') + '</button>' : '') +
       '<button class="yb-btn" data-action="lead-add-note">\ud83d\udcdd ' + t('leads_add_note') + '</button>';
 
     // Admin actions: archive (soft delete) or restore
@@ -5601,6 +5735,21 @@
             currentLead = leads.find(function (l) { return l.id === id; });
             openEmailComposer();
           }
+          break;
+        case 'send-schedule-inline':
+          if (id) openSchedulePicker(id, e.target);
+          break;
+        case 'send-schedule':
+          if (currentLeadId) openSchedulePicker(currentLeadId, e.target);
+          break;
+        case 'schedule-picker-select': {
+          var pickerLeadId = btn.getAttribute('data-lead-id');
+          var pickerCohortId = btn.getAttribute('data-cohort-id');
+          if (pickerLeadId && pickerCohortId) sendScheduleEmail(pickerLeadId, pickerCohortId);
+          break;
+        }
+        case 'schedule-picker-close':
+          closeSchedulePicker();
           break;
         case 'log-call-inline':
           e.preventDefault();

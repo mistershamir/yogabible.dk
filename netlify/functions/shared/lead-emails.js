@@ -399,9 +399,86 @@ function build18WAugWelcomeEmail(firstName, scheduleUrl, isDa) {
   return { subject, html };
 }
 
+// =========================================================================
+// Generic Schedule Email — works for any cohort_registry doc.
+// Called by send-schedule.js (manual "Send Schedule" from admin panel).
+// Returns { subject, html } — caller MUST call prepareTrackedEmail last.
+// CONTENT RULES: no group size, no refunds, no language-of-instruction.
+// =========================================================================
+
+function buildScheduleEmail(firstName, cohort, scheduleUrl, isDa) {
+  var name = escapeHtml(firstName || '');
+
+  if (isDa) {
+    var subject = (name ? name + ', d' : 'D') + 'it skema er klar — ' + (cohort.cohort_label_da || '');
+    var html =
+      '<p>Hej ' + name + ',</p>' +
+      '<p>Her er dit skema til <strong>' + escapeHtml(cohort.name_da || '') + ' · ' + escapeHtml(cohort.cohort_label_da || '') + '</strong>.</p>' +
+      '<p style="text-align:center;margin:24px 0;">' +
+        '<a href="' + scheduleUrl + '" style="display:inline-block;padding:14px 32px;background:#f75c03;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">Se skemaet →</a>' +
+      '</p>' +
+      '<div style="background:#FFF9F0;border-left:3px solid #f75c03;border-radius:6px;padding:16px 20px;margin:0 0 20px;">' +
+        '<strong>Om uddannelsen:</strong>' +
+        '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;">' +
+          '<li>200 timer · Yoga Alliance RYT-200 certificeret</li>' +
+          '<li>' + escapeHtml(cohort.method_da || '') + '</li>' +
+          '<li>Start: ' + escapeHtml(cohort.start_date_formatted_da || cohort.start_date || '') + ' · Afslutning: ' + escapeHtml(cohort.end_date || '') + '</li>' +
+        '</ul>' +
+      '</div>' +
+      '<div style="background:#F5F3F0;border-radius:8px;padding:16px 20px;margin:0 0 20px;">' +
+        '<strong>💡 Forberedelsesfasen — ' + escapeHtml(cohort.prep_phase_price_da || '3.750 kr.') + '</strong><br>' +
+        '<span style="color:#444;font-size:15px;">Sikrer din plads og giver adgang til forberedelsesmaterialer med det samme.</span>' +
+        '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;color:#444;">' +
+          '<li>Sikrer din plads på holdet</li>' +
+          '<li>Adgang til member-området med forberedelsesmaterialer</li>' +
+          '<li>Begynd at deltage i klasser i studiet med det samme</li>' +
+          '<li>Klasserne tæller med i dine træningstimer</li>' +
+        '</ul>' +
+        '<p style="margin:14px 0 0;">' +
+          '<a href="' + escapeHtml(cohort.checkout_url || 'https://yogabible.dk') + '" style="display:inline-block;padding:12px 24px;background:#0F0F0F;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">Start forberedelsesfasen — ' + escapeHtml(cohort.prep_phase_price_da || '3.750 kr.') + '</a>' +
+        '</p>' +
+      '</div>' +
+      '<p>Ring gerne direkte på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> — det er nemmere end email.</p>';
+    return { subject, html };
+  }
+
+  // English
+  var subject = (name ? name + ', y' : 'Y') + 'our schedule is ready — ' + (cohort.cohort_label_en || '');
+  var html =
+    '<p>Hi ' + name + ',</p>' +
+    '<p>Here is your schedule for the <strong>' + escapeHtml(cohort.name_en || '') + ' · ' + escapeHtml(cohort.cohort_label_en || '') + '</strong>.</p>' +
+    '<p style="text-align:center;margin:24px 0;">' +
+      '<a href="' + scheduleUrl + '" style="display:inline-block;padding:14px 32px;background:#f75c03;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">View the schedule →</a>' +
+    '</p>' +
+    '<div style="background:#FFF9F0;border-left:3px solid #f75c03;border-radius:6px;padding:16px 20px;margin:0 0 20px;">' +
+      '<strong>About the training:</strong>' +
+      '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;">' +
+        '<li>200 hours · Yoga Alliance RYT-200 certified</li>' +
+        '<li>' + escapeHtml(cohort.method_en || '') + '</li>' +
+        '<li>Starting ' + escapeHtml(cohort.start_date_formatted_en || cohort.start_date || '') + ' · Graduation ' + escapeHtml(cohort.end_date || '') + '</li>' +
+      '</ul>' +
+    '</div>' +
+    '<div style="background:#F5F3F0;border-radius:8px;padding:16px 20px;margin:0 0 20px;">' +
+      '<strong>💡 Preparation Phase — ' + escapeHtml(cohort.prep_phase_price_en || '3,750 DKK') + '</strong><br>' +
+      '<span style="color:#444;font-size:15px;">Secures your spot and gives you immediate access to preparation materials.</span>' +
+      '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;color:#444;">' +
+        '<li>Secures your spot in the cohort</li>' +
+        '<li>Access to the member area with preparation materials</li>' +
+        '<li>Start attending classes at the studio right away</li>' +
+        '<li>Your classes count towards your training hours</li>' +
+      '</ul>' +
+      '<p style="margin:14px 0 0;">' +
+        '<a href="' + escapeHtml(cohort.checkout_url || 'https://yogabible.dk') + '" style="display:inline-block;padding:12px 24px;background:#0F0F0F;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">Start Preparation Phase — ' + escapeHtml(cohort.prep_phase_price_en || '3,750 DKK') + '</a>' +
+      '</p>' +
+    '</div>' +
+    '<p>Feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> — easier than email.</p>';
+  return { subject, html };
+}
+
 module.exports = {
   sendWelcomeEmail,
   sendApplicationConfirmation,
   sendCareersConfirmation,
-  build18WAugWelcomeEmail
+  build18WAugWelcomeEmail,
+  buildScheduleEmail
 };
