@@ -149,6 +149,11 @@ async function processLeadgenChange(value) {
   const accommodationAnswer = findFieldByKeyword(fields, ['stay in copenhagen', 'oppholdet', 'vistelse', 'aufenthalt', 'oleskeluu', 'verblijf', 'overnatning']) || '';
   const englishComfortAnswer = findFieldByKeyword(fields, ['english', 'engelsk', 'engelska', 'englisch', 'englanniksi', 'engels']) || '';
 
+  // July Vinyasa Plus DK form: "Hvornår kunne du tænke dig at starte?"
+  // Meta may strip/transform Danish characters in field names, so match loosely
+  const startReadinessAnswer = findFieldByKeyword(fields, ['hvornår', 'hvornaar', 'hvornar', 'tænke dig at starte', 'taenke_dig_at_starte', 'starte']) || '';
+  const startReadiness = normalizeStartReadiness(startReadinessAnswer);
+
   // Parse tracking parameters (set in Meta form settings)
   const metaCampaignName = fields.campaign_name || '';
   const metaAdsetName = fields.adset_name || '';
@@ -184,7 +189,7 @@ async function processLeadgenChange(value) {
   const fieldPlatform = (fields.platform || '').toLowerCase();
   const metaPlatform = graphPlatform || fieldPlatform || '';
 
-  console.log(`[fb-leads] Parsed fields — program="${program}", housing="${housingAnswer}", platform="${metaPlatform}" (graph="${graphPlatform}", field="${fieldPlatform}"), lang="${metaLang}", city="${city}", country="${country}", yogaExp="${yogaExpAnswer}", accommodation="${accommodationAnswer}", englishComfort="${englishComfortAnswer}"`);
+  console.log(`[fb-leads] Parsed fields — program="${program}", housing="${housingAnswer}", platform="${metaPlatform}" (graph="${graphPlatform}", field="${fieldPlatform}"), lang="${metaLang}", city="${city}", country="${country}", yogaExp="${yogaExpAnswer}", accommodation="${accommodationAnswer}", englishComfort="${englishComfortAnswer}", startReadiness="${startReadinessAnswer}" → "${startReadiness}"`);
 
   if (!email) {
     console.warn('[fb-leads] Lead has no email — skipping:', leadgen_id);
@@ -215,7 +220,7 @@ async function processLeadgenChange(value) {
   if (existingCheck.exists) {
     console.log(`[fb-leads] Returning lead ${email} — updating doc and sending schedule`);
     const fbSource = metaPlatform === 'instagram' ? 'Instagram Ad' : 'Facebook Ad';
-    await handleReturningFbLead(db, leadDocRef, leadDocId, { email, firstName, lang: metaLang, programType: resolvedType, source: fbSource }).catch(err => {
+    await handleReturningFbLead(db, leadDocRef, leadDocId, { email, firstName, lang: metaLang, programType: resolvedType, source: fbSource, startReadiness, startReadinessRaw: startReadinessAnswer }).catch(err => {
       console.error('[fb-leads] Returning lead handler failed:', err.message);
     });
     return;
@@ -255,6 +260,8 @@ async function processLeadgenChange(value) {
     accommodation: accommodationValue,
     yoga_experience: yogaExperience,
     english_comfort: englishComfort,
+    start_readiness: startReadiness,
+    start_readiness_raw: startReadinessAnswer,
     city_country: country ? (city ? city + ', ' + country : country) : city,
     country: country || '',
     housing_months: '',
@@ -306,7 +313,7 @@ async function processLeadgenChange(value) {
   } catch (txnErr) {
     if (txnErr.message === 'LEAD_EXISTS') {
       console.log(`[fb-leads] Returning lead ${email} — concurrent submission caught by transaction`);
-      await handleReturningFbLead(db, leadDocRef, leadDocId, { email, firstName: lead.first_name, lang: lead.lang, programType: lead.ytt_program_type, source: lead.source }).catch(err => {
+      await handleReturningFbLead(db, leadDocRef, leadDocId, { email, firstName: lead.first_name, lang: lead.lang, programType: lead.ytt_program_type, source: lead.source, startReadiness: lead.start_readiness, startReadinessRaw: lead.start_readiness_raw }).catch(err => {
         console.error('[fb-leads] Returning lead handler (txn) failed:', err.message);
       });
       return;
@@ -393,7 +400,8 @@ const FORM_ID_MAP = {
   '2450631555377690': '4-week-jul',     // july-vinyasa-plus-de  (Germany/Austria)
   '1668412377638315': '4-week-jul',     // july-vinyasa-plus-fi  (Finland)
   '960877763097239':  '4-week-jul',     // july-vinyasa-plus-nl  (Netherlands)
-  '1344364364192542': '4-week-jul'      // july-vinyasa-plus-dk  (Denmark)
+  '1344364364192542': '4-week-jul',     // july-vinyasa-plus-dk  (Denmark)
+  '1673233640392430': '4-week-jul'      // july-vinyasa-plus-dk  (Denmark, June 2026 form w/ start-readiness question)
 };
 
 // Form ID → Language override — bulletproof, doesn't rely on Meta passing hidden fields
@@ -408,6 +416,7 @@ const FORM_LANG_MAP = {
   '1668412377638315': 'en',     // july-vinyasa-plus-fi
   '960877763097239':  'en',     // july-vinyasa-plus-nl
   '1344364364192542': 'da',     // july-vinyasa-plus-dk
+  '1673233640392430': 'da',     // july-vinyasa-plus-dk (June 2026 form w/ start-readiness question)
   '961808297026346':  'da'      // general dk form (multi-program, asks which course)
 };
 
@@ -503,6 +512,18 @@ function normalizeAccommodationAnswer(val) {
       v.includes('hjælp med overnatning')) {
     return 'accommodation';
   }
+  return '';
+}
+
+// ─── Start Readiness Normalization ──────────────────────────────────────────
+// "Hvornår kunne du tænke dig at starte?" (July Vinyasa Plus DK form)
+//   "Jeg er klar til juli"                → ready_july
+//   "Jeg vil gerne i gang i løbet af året" → later_this_year
+function normalizeStartReadiness(val) {
+  if (!val) return '';
+  const v = String(val).toLowerCase().replace(/_/g, ' ').trim();
+  if (v.includes('klar til juli') || v.includes('klar')) return 'ready_july';
+  if (v.includes('løbet af året') || v.includes('lobet af aret') || v.includes('i gang')) return 'later_this_year';
   return '';
 }
 
@@ -756,11 +777,13 @@ function generateScheduleToken(leadDocId, email) {
  *  2. Resolve cohort and send the schedule email immediately via Resend
  *  3. Notify Shamir via Telegram
  */
-async function handleReturningFbLead(db, leadDocRef, leadDocId, { email, firstName, lang, programType, source }) {
+async function handleReturningFbLead(db, leadDocRef, leadDocId, { email, firstName, lang, programType, source, startReadiness, startReadinessRaw }) {
   const now = new Date();
   const updateData = { updated_at: now, last_form_submission: now };
   if (programType) updateData.ytt_program_type = programType;
   if (source) updateData.last_source = source;
+  if (startReadiness) updateData.start_readiness = startReadiness;
+  if (startReadinessRaw) updateData.start_readiness_raw = startReadinessRaw;
   await leadDocRef.update(updateData);
 
   const existingSnap = await leadDocRef.get();

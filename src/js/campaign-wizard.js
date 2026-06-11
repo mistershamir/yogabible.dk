@@ -226,29 +226,43 @@
   /* ══════════════════════════════════════════
      PROGRAM MATCHING (ported from old system)
      ══════════════════════════════════════════ */
+
+  // All program-interest formats for a lead as lowercase tokens.
+  // Multi-format leads carry comma-separated values in ytt_program_type
+  // ("4-week-jun,4-week-jul"), multi_format, or all_formats — match against
+  // every token, never the raw string with ===.
+  function leadFormatTokens(lead) {
+    return String([lead.ytt_program_type, lead.multi_format, lead.all_formats].filter(Boolean).join(','))
+      .toLowerCase().split(',')
+      .map(function (t) { return t.trim(); })
+      .filter(Boolean);
+  }
+
   function matchesProgramType(lead, programId) {
     var prog = String(lead.program || '').toLowerCase();
     var type = String(lead.type || 'ytt').toLowerCase();
-    var yttSub = String(lead.ytt_program_type || '').toLowerCase();
+    var fmts = leadFormatTokens(lead);
+    var yttSub = fmts.join(',');
     var svc = String(lead.service || '').toLowerCase();
     var course = String(lead.course_name || '').toLowerCase();
 
     if (programId === '200h') {
       // Matches YTT leads where program type is 18w/8w/4w (or unspecified, which defaults to 200h)
-      // Specifically excludes 300h / 50h / 30h which always have their ytt_program_type set
+      // Excludes leads whose ONLY formats are 300h / 50h / 30h — multi-format
+      // leads ("300h,18-week") still count via their 200h format
       var isYtt = type === 'ytt';
       if (!isYtt) return false;
-      if (yttSub === '300h' || yttSub === '50h' || yttSub === '30h') return false;
+      if (fmts.length > 0 && fmts.every(function (f) { return f === '300h' || f === '50h' || f === '30h'; })) return false;
       var hasWeekFormat = /\b(4|8|18).?(uge|week)/i.test(prog);
-      var hasYttSubtype = /^(4|8|18)/i.test(yttSub);
+      var hasYttSubtype = /(^|,)(4|8|18)/i.test(yttSub);
       var has200 = /200/i.test(prog);
       var isUnspecified = yttSub === '' || yttSub === '200h';
       return hasWeekFormat || hasYttSubtype || has200 || isUnspecified;
     }
-    if (programId === '30h') return /\b30.?(h|hour|timer)/i.test(prog) || yttSub === '30h';
-    if (programId === '50h') return /\b50.?(h|hour|timer)/i.test(prog) || yttSub === '50h';
-    if (programId === '100h') return /\b100.?(h|hour|timer)/i.test(prog) || yttSub === '100h';
-    if (programId === '300h') return /\b300.?(h|hour|timer)/i.test(prog) || yttSub === '300h';
+    if (programId === '30h') return /\b30.?(h|hour|timer)/i.test(prog) || fmts.indexOf('30h') !== -1;
+    if (programId === '50h') return /\b50.?(h|hour|timer)/i.test(prog) || fmts.indexOf('50h') !== -1;
+    if (programId === '100h') return /\b100.?(h|hour|timer)/i.test(prog) || fmts.indexOf('100h') !== -1;
+    if (programId === '300h') return /\b300.?(h|hour|timer)/i.test(prog) || fmts.indexOf('300h') !== -1;
     if (programId === 'course') return type === 'course' || type === 'bundle' || /inversions|backbends|splits|bundle/i.test(prog) || /inversions|backbends|splits|bundle/i.test(course);
     if (programId === 'mentorship') return type === 'mentorship' || /mentorship|personlig/i.test(prog) || /personlig|undervisning|business|mentor/i.test(svc);
     return false;
@@ -256,15 +270,22 @@
 
   function matchesSubtype(lead, subtypeId) {
     var prog = String(lead.program || '').toLowerCase();
-    var yttSub = String(lead.ytt_program_type || '').toLowerCase();
+    var fmts = leadFormatTokens(lead);
     var svc = String(lead.service || '').toLowerCase();
     var sub = String(lead.subcategories || '').toLowerCase();
 
-    // 200H subtypes
-    if (subtypeId === '4w') return (/\b4.?(uge|week)/i.test(prog) || yttSub === '4-week' || yttSub === '4w') && yttSub !== '4-week-jul';
-    if (subtypeId === '4w-vp') return yttSub === '4-week-jul' || /vinyasa\s*plus/i.test(prog);
-    if (subtypeId === '8w') return /\b8.?(uge|week)/i.test(prog) || yttSub === '8-week' || yttSub === '8w';
-    if (subtypeId === '18w') return /\b18.?(uge|week)/i.test(prog) || yttSub === '18-week' || yttSub === '18w';
+    // 200H subtypes — token matching so multi-format leads ("4-week-jun,4-week-jul",
+    // "8-week,4-week") are caught; prefix match covers cohort variants (8-week-oct, 18-week-aug)
+    if (subtypeId === '4w') {
+      // Any 4-week-ish format token that isn't the July Vinyasa Plus cohort
+      if (fmts.some(function (f) { return f !== '4-week-jul' && (f === '4w' || f.indexOf('4-week') === 0); })) return true;
+      // Program text fallback — unless the lead's only format is the July cohort
+      var onlyJul = fmts.length > 0 && fmts.every(function (f) { return f === '4-week-jul'; });
+      return /\b4.?(uge|week)/i.test(prog) && !onlyJul;
+    }
+    if (subtypeId === '4w-vp') return fmts.indexOf('4-week-jul') !== -1 || /vinyasa\s*plus/i.test(prog);
+    if (subtypeId === '8w') return /\b8.?(uge|week)/i.test(prog) || fmts.some(function (f) { return f === '8w' || f.indexOf('8-week') === 0; });
+    if (subtypeId === '18w') return /\b18.?(uge|week)/i.test(prog) || fmts.some(function (f) { return f === '18w' || f.indexOf('18-week') === 0; });
     if (subtypeId === 'weekday') return /hverdag|weekday/i.test(prog);
     if (subtypeId === 'weekend') return /weekend/i.test(prog);
 
@@ -2503,10 +2524,10 @@
      SMS TEMPLATE CONTENT
      ══════════════════════════════════════════ */
   var SMS_TEMPLATES = {
-    'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We have just sent detailed information to your email - please check your inbox and spam or promotions folder. Feel free to reply here or call anytime with questions. Warm regards, Yoga Bible",
-    'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We have just sent you all the details by email - please check your inbox and spam or promotions folder. Reply here anytime with questions! Warm regards, Yoga Bible",
-    'mentorship': "Hi {{first_name}}! Thank you for your interest in our Personlig Mentorship program. We have sent you more information by email - check your inbox and spam or promotions folder. Looking forward to connecting! Warm regards, Yoga Bible",
-    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We have sent you information by email - please check your inbox and spam or promotions folder. Feel free to reply here or call us with any questions! Warm regards, Yoga Bible"
+    'ytt': "Hi {{first_name}}! Thank you for your interest in our Yoga Teacher Training. We have just sent detailed information to your email - please check your inbox and spam or promotions folder. Feel free to reply here or call anytime with questions. Healthy regards, Yoga Bible",
+    'course': "Hi {{first_name}}! Thank you for your interest in our {{program}} course. We have just sent you all the details by email - please check your inbox and spam or promotions folder. Reply here anytime with questions! Healthy regards, Yoga Bible",
+    'mentorship': "Hi {{first_name}}! Thank you for your interest in our Personlig Mentorship program. We have sent you more information by email - check your inbox and spam or promotions folder. Looking forward to connecting! Healthy regards, Yoga Bible",
+    'default': "Hi {{first_name}}! Thank you for reaching out to Yoga Bible. We have sent you information by email - please check your inbox and spam or promotions folder. Feel free to reply here or call us with any questions! Healthy regards, Yoga Bible"
   };
 
   /* ══════════════════════════════════════════

@@ -88,6 +88,7 @@
   var filterDK = false;        // show only Denmark + Skåne border-city leads
   var filterGCPH = false;      // show only Greater Copenhagen / North Zealand leads (or unknown location)
   var filterCPH = false;       // show only inner Copenhagen-area leads (or unknown location)
+  var filterReadiness = '';    // start_readiness filter: 'ready_july' | 'later_this_year' | ''
   // All three geo filters are mutually exclusive — activating one clears the others
 
   // Catalog-driven filter data (loaded from /.netlify/functions/catalog)
@@ -601,18 +602,23 @@
 
     var src  = (lead.source || '').toLowerCase();
     var type = (lead.type   || '').toLowerCase();
-    var ytt  = (lead.ytt_program_type || '').toLowerCase();
+    var ytt  = leadProgramString(lead);
     switch (filterValue) {
-      case '200h YTT':
-        // Type must be ytt (or education from apply form), and NOT 300h / 50h / 30h
-        return (type === 'ytt' || type === 'education') &&
-               ytt !== '300h' && ytt !== '50h' && ytt !== '30h';
+      case '200h YTT': {
+        // Type must be ytt (or education from apply form), with at least one
+        // format that isn't 300h / 50h / 30h. Multi-format leads ("300h,18-week")
+        // still count as 200h via their 200h format.
+        if (type !== 'ytt' && type !== 'education') return false;
+        var fmts = ytt.split(',').map(function (f) { return f.trim(); }).filter(Boolean);
+        if (fmts.length === 0) return true; // no format data — assume 200h (default track)
+        return fmts.some(function (f) { return f !== '300h' && f !== '50h' && f !== '30h'; });
+      }
       case '300h YTT':
-        return (type === 'ytt' || type === 'education') && ytt === '300h';
+        return (type === 'ytt' || type === 'education') && ytt.indexOf('300h') !== -1;
       case '50h YTT':
-        return (type === 'ytt' || type === 'education') && ytt === '50h';
+        return (type === 'ytt' || type === 'education') && ytt.indexOf('50h') !== -1;
       case '30h YTT':
-        return (type === 'ytt' || type === 'education') && ytt === '30h';
+        return (type === 'ytt' || type === 'education') && ytt.indexOf('30h') !== -1;
       case 'Courses':
         return type === 'course' || type === 'bundle';
       case 'Mentorship':
@@ -640,6 +646,17 @@
   // "8w" alone (e.g. stored as "8w" or "8w,4-week") is treated as equivalent to "8-week".
   function normProgType(s) {
     return s.replace(/\b8w\b/gi, '8-week');
+  }
+
+  // Combined, normalized program-interest string for a lead.
+  // Multi-format leads can carry comma-separated values in ytt_program_type
+  // ("4-week-jun,4-week-jul"), multi_format, or all_formats — always match
+  // against all three with substring (.indexOf) matching, never ===.
+  function leadProgramString(lead) {
+    return normProgType(
+      [lead.ytt_program_type, lead.multi_format, lead.all_formats]
+        .filter(Boolean).join(',').toLowerCase()
+    );
   }
 
   function getFilteredLeads(skipCohort) {
@@ -676,6 +693,11 @@
     if (filterSubType) {
       var st = normProgType(filterSubType.toLowerCase());
       filtered = filtered.filter(function (l) {
+        if (filterSubTypeField === 'ytt_program_type') {
+          // Program filters match the combined string (ytt_program_type +
+          // multi_format + all_formats) so multi-format leads are included
+          return leadProgramString(l).indexOf(st) !== -1;
+        }
         if (filterSubTypeField) {
           return normProgType(String(l[filterSubTypeField] || '').toLowerCase()).indexOf(st) !== -1;
         }
@@ -683,6 +705,11 @@
         var prog = normProgType((l.program || '').toLowerCase());
         return prog.indexOf(st) !== -1;
       });
+    }
+
+    // Start-readiness filter (July Vinyasa Plus DK form question)
+    if (filterReadiness) {
+      filtered = filtered.filter(function (l) { return l.start_readiness === filterReadiness; });
     }
 
     // Cohort filter — further narrows within a program sub-type
@@ -979,8 +1006,8 @@
   }
 
   function matchesCohort(lead, cohortId) {
-    // Normalize so "8w", "8w,4-week" etc. are treated as "8-week"
-    var ptype = normProgType((lead.ytt_program_type || '').toLowerCase());
+    // Combined program string so multi-format leads ("8w,4-week-jul") match too
+    var ptype = leadProgramString(lead);
 
     // Legacy hardcoded cohort matching (always works, even without catalog)
     switch (cohortId) {
@@ -1908,6 +1935,19 @@
         '<span class="yb-lead__card-value">' + esc(l.ytt_program_type) + '</span>' +
       '</div>';
     }
+    if (l.start_readiness || l.start_readiness_raw) {
+      var srBadge = l.start_readiness === 'ready_july'
+        ? '<span class="yb-lead__badge" style="background:#dcfce7;color:#16a34a">🟢 Klar til juli</span>'
+        : l.start_readiness === 'later_this_year'
+          ? '<span class="yb-lead__badge" style="background:#FEF9C3;color:#A16207">🟡 Senere på året</span>'
+          : '<span class="yb-lead__badge" style="background:#F5F5F5;color:#6F6A66">' + esc(l.start_readiness_raw || l.start_readiness) + '</span>';
+      html += '<div class="yb-lead__card-row">' +
+        '<span class="yb-lead__card-label">Opstart</span>' +
+        '<span class="yb-lead__card-value">' + srBadge +
+        (l.start_readiness_raw && l.start_readiness ? ' <span class="yb-lead__sub-status" title="Svar fra Meta-formular">' + esc(l.start_readiness_raw) + '</span>' : '') +
+        '</span>' +
+      '</div>';
+    }
     if (l.cohort_label) {
       html += '<div class="yb-lead__card-row">' +
         '<span class="yb-lead__card-label">' + t('leads_cohort') + '</span>' +
@@ -2547,9 +2587,14 @@
       if (cohorts.length === 0) {
         html += '<div class="yb-lead__schedule-picker__empty">' + emptyLabel + '</div>';
       } else {
-        var programType = lead && (lead.ytt_program_type || lead.program_type || '');
+        var programType = lead ? (leadProgramString(lead) || String(lead.program_type || '').toLowerCase()) : '';
         cohorts.forEach(function (c) {
-          var isMatch = programType && (c.program_type === programType || (c.also_matches || []).indexOf(programType) !== -1);
+          // Substring match so multi-format leads ("4-week-jun,4-week-jul") still
+          // get the Recommended badge on their matching cohorts
+          var isMatch = programType && (
+            (c.program_type && programType.indexOf(String(c.program_type).toLowerCase()) !== -1) ||
+            (c.also_matches || []).some(function (m) { return programType.indexOf(String(m).toLowerCase()) !== -1; })
+          );
           var name = da ? (c.name_da || c.name_en) : (c.name_en || c.name_da);
           var label = da ? (c.cohort_label_da || c.cohort_label_en) : (c.cohort_label_en || c.cohort_label_da);
           html += '<button class="yb-lead__schedule-picker__item" data-action="schedule-picker-select" data-lead-id="' + leadId + '" data-cohort-id="' + c.id + '">' +
@@ -3192,6 +3237,15 @@
     filterCPH = !wasActive;
     var btn = $('yb-lead-filter-cph');
     if (btn) btn.classList.toggle('is-active', filterCPH);
+    renderLeadView();
+  }
+
+  // Start-readiness chips (mutually exclusive pair, click again to clear)
+  function toggleFilterReadiness(value) {
+    filterReadiness = filterReadiness === value ? '' : value;
+    var b;
+    b = $('yb-lead-filter-ready-july'); if (b) b.classList.toggle('is-active', filterReadiness === 'ready_july');
+    b = $('yb-lead-filter-ready-later'); if (b) b.classList.toggle('is-active', filterReadiness === 'later_this_year');
     renderLeadView();
   }
 
@@ -5826,6 +5880,10 @@
         case 'toggle-filter-gcph': toggleFilterGCPH(); break;
         case 'toggle-filter-cph':  toggleFilterCPH(); break;
 
+        // Start-readiness filters (July Vinyasa Plus DK form)
+        case 'toggle-filter-ready-july':  toggleFilterReadiness('ready_july'); break;
+        case 'toggle-filter-ready-later': toggleFilterReadiness('later_this_year'); break;
+
         // Application actions
         case 'view-app': e.preventDefault(); showApplicationDetail(id); break;
         case 'back-apps': backToAppList(); break;
@@ -6053,6 +6111,10 @@
         filterSubTypeField = '';
         filterCohort = '';
         clearGeoFilters();
+        filterReadiness = '';
+        var rb;
+        rb = $('yb-lead-filter-ready-july');  if (rb) rb.classList.remove('is-active');
+        rb = $('yb-lead-filter-ready-later'); if (rb) rb.classList.remove('is-active');
         var sel; // reset compact selects
         sel = $('yb-lead-source-filter'); if (sel) sel.value = '';
         sel = $('yb-lead-priority-filter'); if (sel) sel.value = '';
