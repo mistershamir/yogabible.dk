@@ -6,8 +6,8 @@
      FLOATING CART BAR + COHORT PICKER
      ═══════════════════════════════════════ -->
 <div class="yb-float-bar" id="p4w-float-bar">
-  <button class="yb-float-bar__btn" id="p4w-float-btn">
-    {{ t.float_cta }}
+  <button class="yb-float-bar__btn" id="p4w-float-btn" data-checkout-product="100211">
+    {{ t.float_cta }} <span class="yb-float-bar__price">— {{ t.float_price }}</span>
   </button>
 </div>
 
@@ -58,8 +58,8 @@
     <p class="yb-hero__subtitle">{{ t.hero_subtitle }}</p>
     <div class="yb-hero__line"></div>
     <div class="yb-hero__ctas">
-      <a href="#p4w-waitlist" class="yb-btn yb-btn--primary yb-btn--large">{{ t.float_cta }}</a>
-      <button onclick="openYBScheduleModal('8w-oct')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
+      <a href="?product=100211" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100211">{{ t.juli_cta }}</a>
+      <button onclick="openYBScheduleModal('4w-jul')" class="yb-btn yb-btn--outline-white yb-btn--large">{{ t.hero_cta_schedule }}</button>
     </div>
     <p class="yb-hero__read-more">
       <a href="{{ lp }}/om-200hrs-yogalaereruddannelser" class="yb-hero__read-more-link">{{ t.hero_cta_more }}</a>
@@ -522,6 +522,21 @@
         </div>
       </article>
 
+      <article class="yb-track-card">
+        <div class="yb-track-card__icon">{{ t.juli_icon }}</div>
+        <div class="yb-track-card__content">
+          <span class="yb-track-card__badge">{{ t.juli_badge }}</span>
+          <h3 class="yb-track-card__title">{{ t.juli_title }}</h3>
+          <p class="yb-track-card__time">{{ t.juli_time }}</p>
+          <p class="yb-track-card__text">{{ t.juli_desc }}</p>
+          <p class="yb-track-card__styles">{{ t.juli_styles }}</p>
+          <div class="yb-track-card__ctas">
+            <a href="?product=100211" class="yb-btn yb-btn--cta yb-btn--small" data-checkout-product="100211">{{ t.juli_cta }}</a>
+            <a href="{{ '/en/schedule/4-weeks-july-plan/' if lang == 'en' else '/skema/4-uger-juli/' }}" class="yb-btn yb-btn--outline yb-btn--small">{{ t.juli_schedule_cta }}</a>
+          </div>
+        </div>
+      </article>
+
       <article class="yb-track-card yb-track-card--highlight">
         <div class="yb-track-card__icon">{{ t.week_icon }}</div>
         <div class="yb-track-card__content">
@@ -557,7 +572,7 @@
     <!-- CTA -->
     <div class="yb-tracks__cta">
       <p class="yb-tracks__cta-hint">{{ t.cohort_cta_hint }}</p>
-      <a href="#p4w-waitlist" class="yb-btn yb-btn--cta">{{ t.cohort_cta_text }}</a>
+      <button onclick="openYBScheduleModal('4w-jul')" class="yb-btn yb-btn--cta">{{ t.cohort_cta_text }}</button>
     </div>
   </div>
 </section>
@@ -797,7 +812,7 @@
           <p class="p18-invest-note" style="margin-top:14px;font-style:italic;">{{ t.invest_ya_note }}</p>
         </div>
 
-        <a href="#p4w-waitlist" class="btn btn--primary btn--large" style="width:100%;margin-top:1.5rem">{{ t.invest_cta_text }}</a>
+        <button onclick="openYBScheduleModal('4w-jul')" class="btn btn--primary btn--large" style="width:100%;margin-top:1.5rem">{{ t.invest_cta_text }}</button>
       </div>
 
       <!-- Right: Early deposit benefits -->
@@ -815,7 +830,11 @@
         </ul>
 
         <div class="p4w-early-card__cta">
-          <a href="#p4w-waitlist" class="yb-btn yb-btn--cta">{{ t.float_cta }}</a>
+          <a href="?product=100211" class="yb-btn yb-btn--cta" data-checkout-product="100211">{{ t.juli_cta }}</a>
+          <div class="p4w-early-card__pricing">
+            <span class="p4w-early-card__deposit">{{ t.early_deposit_label }}</span>
+            <span class="p4w-early-card__remainder">{{ t.early_remainder_label }}</span>
+          </div>
         </div>
       </div>
 
@@ -850,8 +869,8 @@
     <h2 class="p18-final-cta__title">{{ t.final_title }}</h2>
     <p class="p18-final-cta__text">{{ t.final_text }}</p>
     <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
-      <a href="#p4w-waitlist" class="yb-btn yb-btn--primary yb-btn--large">{{ t.final_cta }}</a>
-      <button onclick="openYBScheduleModal('8w-oct')" class="btn btn--large btn--outline">{{ t.hero_cta_schedule }}</button>
+      <button onclick="openYBScheduleModal('4w-jul')" class="btn btn--large btn--primary">{{ t.final_cta }}</button>
+      <a href="?product=100211" class="yb-btn yb-btn--primary yb-btn--large" data-checkout-product="100211">{{ t.juli_cta }}</a>
     </div>
   </div>
 </section>
@@ -1351,10 +1370,5 @@
   }
   window.addEventListener('scroll', checkScroll, { passive: true });
   checkScroll();
-
-  btn.addEventListener('click', function() {
-    var target = document.getElementById('p4w-waitlist');
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
 })();
 </script>
