@@ -405,6 +405,9 @@
         content_name: 'Schedule Request',
         content_category: formats.join(',')
       }, email);
+
+      // Google Ads "Indsendt Formular" conversion (direct gtag, bypasses GTM)
+      gtagConversion(GADS_LABELS.lead, 0, 'DKK', eid);
     });
   }
 
@@ -429,6 +432,9 @@
       sendCAPI('Lead', eid, {
         content_name: 'Course Enquiry'
       });
+
+      // Google Ads "Indsendt Formular" conversion (direct gtag, bypasses GTM)
+      gtagConversion(GADS_LABELS.lead, 0, 'DKK', eid);
     });
   }
 
@@ -457,6 +463,9 @@
         content_name: 'User Registration',
         status: 'submitted'
       }, email);
+
+      // Google Ads "Indsendt Formular" conversion (direct gtag, bypasses GTM)
+      gtagConversion(GADS_LABELS.lead, 0, 'DKK', eid);
     });
   }
 
