@@ -6,12 +6,12 @@
     "location": "Torvegade 66, 1400 København K",
 
     "section_trainings": "YOGALÆRERUDDANNELSER",
-    "training_4w": "200 Timer — 4 Ugers Intensiv",
-    "training_4w_sub": "April & Juli 2026 · Complete Program + Vinyasa Plus",
-    "training_8w": "200 Timer — 8 Ugers Semi-Intensiv",
-    "training_8w_sub": "Balanceret tempo · Weekender + hverdage · Tid til integration",
-    "training_18w": "200 Timer — 18 Ugers Fleksibel",
-    "training_18w_sub": "Fleksibelt forløb · Weekend-baseret · Perfekt ved siden af job",
+    "training_4w_jul": "🔥 4-ugers Vinyasa Plus — Juli 2026 · Få pladser!",
+    "training_4w_jul_sub": "Starter 6. juli · Tilmeldingen lukker snart",
+    "training_8w": "8-ugers Semi-Intensivt — Oktober–November 2026",
+    "training_8w_sub": "200 timer · Balanceret tempo · Tid til integration",
+    "training_18w": "18-ugers Fleksible Program — August–December 2026",
+    "training_18w_sub": "200 timer · Weekend-baseret · Perfekt ved siden af job",
     "training_300": "300 Timer — Avanceret Uddannelse",
     "training_300_sub": "For certificerede yogalærere · Fordybelse · Specialisering",
     "training_compare": "Sammenlign Alle Uddannelser",
@@ -29,7 +29,7 @@
     "mentorship_sub": "1-til-1 vejledning · Skræddersyet program · Personlig udvikling",
 
     "section_booking": "BOOK EN AFTALE",
-    "booking_studio": "Gratis Infomøde",
+    "booking_studio": "Book et gratis infomøde",
     "booking_studio_sub": "Hør om uddannelsen · Mød teamet · Gratis og uforpligtende",
     "booking_consultation": "Online Konsultation",
     "booking_consultation_sub": "Videomøde · Svar på dine spørgsmål · 30 min",
@@ -55,6 +55,8 @@
     "connect_whatsapp": "WhatsApp",
     "connect_email": "Email",
 
+    "website_label": "Besøg yogabible.dk",
+
     "share_button": "Del dette link",
     "share_copied": "Kopieret!",
 
@@ -67,12 +69,12 @@
     "location": "Torvegade 66, 1400 Copenhagen K, Denmark",
 
     "section_trainings": "YOGA TEACHER TRAININGS",
-    "training_4w": "200 Hours — 4-Week Intensive",
-    "training_4w_sub": "April & July 2026 · Complete Program + Vinyasa Plus",
-    "training_8w": "200 Hours — 8-Week Semi-Intensive",
-    "training_8w_sub": "Balanced pace · Weekends + weekdays · Time for integration",
-    "training_18w": "200 Hours — 18-Week Flexible",
-    "training_18w_sub": "Flexible schedule · Weekend-based · Perfect alongside work",
+    "training_4w_jul": "🔥 4-Week Vinyasa Plus — July 2026 · Limited spots!",
+    "training_4w_jul_sub": "Starts July 6 · Registration closes soon",
+    "training_8w": "8-Week Semi-Intensive — October–November 2026",
+    "training_8w_sub": "200 hours · Balanced pace · Time for integration",
+    "training_18w": "18-Week Flexible Program — August–December 2026",
+    "training_18w_sub": "200 hours · Weekend-based · Perfect alongside work",
     "training_300": "300 Hours — Advanced Training",
     "training_300_sub": "For certified yoga teachers · Deep dive · Specialization",
     "training_compare": "Compare All Trainings",
@@ -90,7 +92,7 @@
     "mentorship_sub": "1-on-1 guidance · Tailored program · Personal development",
 
     "section_booking": "BOOK AN APPOINTMENT",
-    "booking_studio": "Free Info Session",
+    "booking_studio": "Book a free consultation",
     "booking_studio_sub": "Learn about the training · Meet the team · Free and no obligation",
     "booking_consultation": "Online Consultation",
     "booking_consultation_sub": "Video call · Get your questions answered · 30 min",
@@ -115,6 +117,8 @@
     "section_connect": "CONTACT",
     "connect_whatsapp": "WhatsApp",
     "connect_email": "Email",
+
+    "website_label": "Visit yogabible.dk",
 
     "share_button": "Share this link",
     "share_copied": "Copied!",

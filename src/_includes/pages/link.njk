@@ -40,16 +40,27 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </a>
 
+    {# ── Urgency: July Vinyasa Plus (top link) ── #}
+    <div class="yb-link__section yb-link__fade">
+      <a href="{{ lp }}/200-hours-4-weeks-intensive-programs" class="yb-link__item yb-link__item--training" data-yb-link="training-4w-jul">
+        <span class="yb-link__item-text">
+          <span class="yb-link__item-title">{{ t.training_4w_jul }}</span>
+          <span class="yb-link__item-sub">{{ t.training_4w_jul_sub }}</span>
+        </span>
+        <svg class="yb-link__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+    </div>
+
     {# ── Teacher Trainings ── #}
     <div class="yb-link__section yb-link__fade">
       <p class="yb-link__section-label">{{ t.section_trainings }}</p>
 
-      <a href="{{ lp }}/200-hours-4-weeks-intensive-programs" class="yb-link__item yb-link__item--training" data-yb-link="training-4w">
+      <a href="{{ lp }}/200-hours-18-weeks-flexible-programs" class="yb-link__item yb-link__item--training" data-yb-link="training-18w">
         <span class="yb-link__item-text">
-          <span class="yb-link__item-title">{{ t.training_4w }}</span>
-          <span class="yb-link__item-sub">{{ t.training_4w_sub }}</span>
+          <span class="yb-link__item-title">{{ t.training_18w }}</span>
+          <span class="yb-link__item-sub">{{ t.training_18w_sub }}</span>
         </span>
-        <svg class="yb-link__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="yb-link__badge">POPULÆR</span>
       </a>
 
       <a href="{{ lp }}/200-hours-8-weeks-semi-intensive-programs" class="yb-link__item yb-link__item--training" data-yb-link="training-8w">
@@ -58,14 +69,6 @@
           <span class="yb-link__item-sub">{{ t.training_8w_sub }}</span>
         </span>
         <svg class="yb-link__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </a>
-
-      <a href="{{ lp }}/200-hours-18-weeks-flexible-programs" class="yb-link__item yb-link__item--training" data-yb-link="training-18w">
-        <span class="yb-link__item-text">
-          <span class="yb-link__item-title">{{ t.training_18w }}</span>
-          <span class="yb-link__item-sub">{{ t.training_18w_sub }}</span>
-        </span>
-        <span class="yb-link__badge">POPULÆR</span>
       </a>
 
       <a href="{{ lp }}/300-hours-advanced-teacher-training" class="yb-link__item yb-link__item--training" data-yb-link="training-300hr">
@@ -203,6 +206,16 @@
           {{ t.connect_email }}
         </a>
       </div>
+    </div>
+
+    {# ── Website ── #}
+    <div class="yb-link__section yb-link__fade">
+      <a href="{{ lp }}/" class="yb-link__item yb-link__item--subtle" data-yb-link="website">
+        <span class="yb-link__item-text">
+          <span class="yb-link__item-title">{{ t.website_label }}</span>
+        </span>
+        <svg class="yb-link__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
     </div>
 
     {# ── Share Button ── #}
