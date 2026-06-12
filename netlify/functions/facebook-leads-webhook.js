@@ -149,9 +149,10 @@ async function processLeadgenChange(value) {
   const accommodationAnswer = findFieldByKeyword(fields, ['stay in copenhagen', 'oppholdet', 'vistelse', 'aufenthalt', 'oleskeluu', 'verblijf', 'overnatning']) || '';
   const englishComfortAnswer = findFieldByKeyword(fields, ['english', 'engelsk', 'engelska', 'englisch', 'englanniksi', 'engels']) || '';
 
-  // July Vinyasa Plus DK form: "Hvornår kunne du tænke dig at starte?"
-  // Meta may strip/transform Danish characters in field names, so match loosely
-  const startReadinessAnswer = findFieldByKeyword(fields, ['hvornår', 'hvornaar', 'hvornar', 'tænke dig at starte', 'taenke_dig_at_starte', 'starte']) || '';
+  // July Vinyasa Plus DK forms: "Hvornår kunne du tænke dig at starte?" (DA) /
+  // "When are you thinking of starting?" (EN)
+  // Meta may strip/transform special characters and underscore field names, so match loosely
+  const startReadinessAnswer = findFieldByKeyword(fields, ['hvornår', 'hvornaar', 'hvornar', 'tænke dig at starte', 'taenke_dig_at_starte', 'starte', 'thinking of starting', 'thinking_of_starting']) || '';
   const startReadiness = normalizeStartReadiness(startReadinessAnswer);
 
   // Parse tracking parameters (set in Meta form settings)
@@ -401,7 +402,8 @@ const FORM_ID_MAP = {
   '1668412377638315': '4-week-jul',     // july-vinyasa-plus-fi  (Finland)
   '960877763097239':  '4-week-jul',     // july-vinyasa-plus-nl  (Netherlands)
   '1344364364192542': '4-week-jul',     // july-vinyasa-plus-dk  (Denmark)
-  '1673233640392430': '4-week-jul'      // july-vinyasa-plus-dk  (Denmark, June 2026 form w/ start-readiness question)
+  '1673233640392430': '4-week-jul',     // july-vinyasa-plus-dk  (Denmark, June 2026 form w/ start-readiness question)
+  '27176938291935048':'4-week-jul'      // july-vinyasa-plus-dk-en (English, June 2026 form w/ start-readiness question)
 };
 
 // Form ID → Language override — bulletproof, doesn't rely on Meta passing hidden fields
@@ -417,6 +419,7 @@ const FORM_LANG_MAP = {
   '960877763097239':  'en',     // july-vinyasa-plus-nl
   '1344364364192542': 'da',     // july-vinyasa-plus-dk
   '1673233640392430': 'da',     // july-vinyasa-plus-dk (June 2026 form w/ start-readiness question)
+  '27176938291935048':'en',     // july-vinyasa-plus-dk-en (English, June 2026 form w/ start-readiness question)
   '961808297026346':  'da'      // general dk form (multi-program, asks which course)
 };
 
@@ -516,14 +519,16 @@ function normalizeAccommodationAnswer(val) {
 }
 
 // ─── Start Readiness Normalization ──────────────────────────────────────────
-// "Hvornår kunne du tænke dig at starte?" (July Vinyasa Plus DK form)
-//   "Jeg er klar til juli"                → ready_july
-//   "Jeg vil gerne i gang i løbet af året" → later_this_year
+// "Hvornår kunne du tænke dig at starte?" (DA) / "When are you thinking of starting?" (EN)
+//   "Jeg er klar til juli" / "I'm ready for July"                              → ready_july
+//   "Jeg vil gerne i gang i løbet af året" / "I'd like to get started later this year" → later_this_year
 function normalizeStartReadiness(val) {
   if (!val) return '';
   const v = String(val).toLowerCase().replace(/_/g, ' ').trim();
-  if (v.includes('klar til juli') || v.includes('klar')) return 'ready_july';
-  if (v.includes('løbet af året') || v.includes('lobet af aret') || v.includes('i gang')) return 'later_this_year';
+  if (v.includes('klar til juli') || v.includes('klar') ||
+      v.includes('ready for july') || v.includes('ready')) return 'ready_july';
+  if (v.includes('løbet af året') || v.includes('lobet af aret') || v.includes('i gang') ||
+      v.includes('later this year') || v.includes('get started later')) return 'later_this_year';
   return '';
 }
 
