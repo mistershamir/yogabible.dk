@@ -17,7 +17,7 @@ const {
 const { sendAdminNotification } = require('./shared/email-service');
 const { sendWelcomeSMS } = require('./shared/sms-service');
 const { scheduleDeferredWelcome } = require('./shared/deferred-welcomes');
-const { build18WAugWelcomeEmail } = require('./shared/lead-emails');
+const { build18WAugWelcomeEmail, build4WJulWelcomeEmail } = require('./shared/lead-emails');
 const { triggerNewLeadSequences } = require('./shared/sequence-trigger');
 const { detectLeadCountry } = require('./shared/country-detect');
 const { createMilestonePost } = require('./shared/social-sync');
@@ -793,7 +793,11 @@ async function sendImmediateScheduleEmail(leadData, leadDocId, scheduleToken) {
   const scheduleUrl = buildScheduleUrl(cohort, lang, leadDocId, scheduleToken);
 
   var subject, bodyHtml;
-  if (leadData.ytt_program_type === '18-week-aug') {
+  if (String(leadData.ytt_program_type || '').indexOf('4-week-jul') !== -1) {
+    const rich = build4WJulWelcomeEmail(firstName, scheduleUrl, isDa);
+    subject = rich.subject;
+    bodyHtml = rich.html;
+  } else if (leadData.ytt_program_type === '18-week-aug') {
     const rich = build18WAugWelcomeEmail(firstName, scheduleUrl, isDa);
     subject = rich.subject;
     bodyHtml = rich.html;

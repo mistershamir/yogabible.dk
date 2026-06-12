@@ -346,7 +346,7 @@ function build18WAugWelcomeEmail(firstName, scheduleUrl, isDa) {
           '<li>To spor: hverdagsspor (mandag–fredag) eller weekendspor (lørdag–søndag)</li>' +
           '<li>Vælg frit mellem sporerne undervejs</li>' +
           '<li>Start: 10. august 2026 · Graduation: 13. december 2026</li>' +
-          '<li>Max 12 studerende · personlig feedback</li>' +
+          '<li>Små hold · personlig feedback</li>' +
           '<li>60 yogaklasser i studiet inkluderet</li>' +
         '</ul>' +
       '</div>' +
@@ -381,7 +381,7 @@ function build18WAugWelcomeEmail(firstName, scheduleUrl, isDa) {
         '<li>Two tracks: weekday (Monday–Friday) or weekend (Saturday–Sunday)</li>' +
         '<li>Switch tracks freely throughout</li>' +
         '<li>Starting 10 August 2026 · Graduation 13 December 2026</li>' +
-        '<li>Max 12 students · personal feedback</li>' +
+        '<li>Small groups · personal feedback</li>' +
         '<li>60 yoga classes at the studio included</li>' +
       '</ul>' +
     '</div>' +
@@ -398,6 +398,87 @@ function build18WAugWelcomeEmail(firstName, scheduleUrl, isDa) {
     '</div>' +
     '<p>Want to learn more or ask questions? Book a free info session:</p>' +
     '<p style="margin:0 0 20px;"><a href="' + consultUrl + '" style="display:inline-block;padding:12px 24px;background:#fff;color:#0F0F0F;text-decoration:none;border-radius:8px;border:1px solid #E8E4E0;font-weight:bold;">Book a Free Info Session</a></p>' +
+    '<p>Feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> — easier than email.</p>';
+  return { subject, html };
+}
+
+// =========================================================================
+// July 4-Week Vinyasa Plus 2026 — Rich welcome email with urgency messaging.
+// Used by sendImmediateScheduleEmail in lead.js and facebook-leads-webhook.js.
+// Returns { subject, html } — caller wraps with wrapHtml via sendSingleViaResend.
+// CONTENT RULES: no group size, no refunds, no language-of-instruction,
+// "Forberedelsesfasen"/"Preparation Phase" — never "deposit".
+// =========================================================================
+
+function build4WJulWelcomeEmail(firstName, scheduleUrl, isDa) {
+  var name = escapeHtml(firstName || '');
+  var prepPhaseUrl = 'https://www.yogabible.dk/?product=100211';
+  var consultUrl = isDa
+    ? 'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs/?booking=consultation'
+    : 'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs/?booking=consultation';
+
+  if (isDa) {
+    var subject = (name ? name + ', d' : 'D') + 'it skema til juli-holdet er klar';
+    var html =
+      '<p>Hej ' + name + ',</p>' +
+      '<p>Tak for din interesse — her er dit skema til <strong>Vinyasa Plus, 4-ugers yogalæreruddannelse i juli 2026</strong>.</p>' +
+      '<div style="background:#f75c03;color:#fff;border-radius:8px;padding:14px 20px;margin:0 0 20px;font-weight:bold;">' +
+        '⏳ Få pladser tilbage — tilmeldingen lukker snart. Juli-holdet starter den 6. juli.' +
+      '</div>' +
+      '<p style="text-align:center;margin:24px 0;"><a href="' + scheduleUrl + '" style="display:inline-block;padding:14px 32px;background:#f75c03;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">Se skemaet →</a></p>' +
+      '<div style="background:#FFF9F0;border-left:3px solid #f75c03;border-radius:6px;padding:16px 20px;margin:0 0 20px;">' +
+        '<strong>Vinyasa Plus — 70% Vinyasa Flow + 30% Yin &amp; Hot Yoga</strong>' +
+        '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;">' +
+          '<li>200 timer · Yoga Alliance RYT-200</li>' +
+          '<li>Vinyasa Flow, Yin Yoga, Hot Yoga &amp; Meditation</li>' +
+          '<li>Anatomi, filosofi, sekvensering &amp; undervisningsmetodik</li>' +
+          '<li>Certificeret til at undervise både opvarmede og ikke-opvarmede klasser</li>' +
+          '<li>Starter 6. juli 2026</li>' +
+        '</ul>' +
+      '</div>' +
+      '<div style="background:#F5F3F0;border-left:3px solid #16a34a;border-radius:6px;padding:16px 20px;margin:0 0 20px;">' +
+        '<strong>💡 Forberedelsesfasen (3.750 kr.) sikrer din plads</strong>' +
+        '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;color:#444;">' +
+          '<li>Adgang til medlemsområdet med forberedelsesmateriale</li>' +
+          '<li>Start med at praktisere i studiet med det samme</li>' +
+        '</ul>' +
+        '<p style="margin:14px 0 0;"><a href="' + prepPhaseUrl + '" style="display:inline-block;padding:12px 24px;background:#0F0F0F;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">Start forberedelsesfasen — 3.750 kr.</a></p>' +
+      '</div>' +
+      '<p>Har du spørgsmål inden du beslutter dig?</p>' +
+      '<p style="margin:0 0 20px;"><a href="' + consultUrl + '" style="display:inline-block;padding:12px 24px;background:#fff;color:#0F0F0F;text-decoration:none;border-radius:8px;border:1px solid #E8E4E0;font-weight:bold;">Book en gratis konsultation</a></p>' +
+      '<p>Ring gerne direkte på <a href="tel:+4553881209" style="color:#f75c03;">53 88 12 09</a> — det er nemmere end email.</p>';
+    return { subject, html };
+  }
+
+  // English (all non-DA languages)
+  var subject = (name ? name + ', y' : 'Y') + 'our July schedule is ready';
+  var html =
+    '<p>Hi ' + name + ',</p>' +
+    '<p>Thanks for your interest — here is your schedule for the <strong>Vinyasa Plus 4-Week Yoga Teacher Training, July 2026</strong>.</p>' +
+    '<div style="background:#f75c03;color:#fff;border-radius:8px;padding:14px 20px;margin:0 0 20px;font-weight:bold;">' +
+      '⏳ Limited spots remaining — registration closes soon. The July cohort starts July 6.' +
+    '</div>' +
+    '<p style="text-align:center;margin:24px 0;"><a href="' + scheduleUrl + '" style="display:inline-block;padding:14px 32px;background:#f75c03;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">View the schedule →</a></p>' +
+    '<div style="background:#FFF9F0;border-left:3px solid #f75c03;border-radius:6px;padding:16px 20px;margin:0 0 20px;">' +
+      '<strong>Vinyasa Plus — 70% Vinyasa Flow + 30% Yin &amp; Hot Yoga</strong>' +
+      '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;">' +
+        '<li>200 hours · Yoga Alliance RYT-200</li>' +
+        '<li>Vinyasa Flow, Yin Yoga, Hot Yoga &amp; Meditation</li>' +
+        '<li>Anatomy, philosophy, sequencing &amp; teaching methodology</li>' +
+        '<li>Certified to teach both heated and non-heated classes</li>' +
+        '<li>Starts 6 July 2026</li>' +
+      '</ul>' +
+    '</div>' +
+    '<div style="background:#F5F3F0;border-left:3px solid #16a34a;border-radius:6px;padding:16px 20px;margin:0 0 20px;">' +
+      '<strong>💡 The Preparation Phase (3,750 DKK) secures your spot</strong>' +
+      '<ul style="margin:10px 0 0;padding-left:20px;line-height:1.8;color:#444;">' +
+        '<li>Access to the member area with preparation materials</li>' +
+        '<li>Start practicing at the studio right away</li>' +
+      '</ul>' +
+      '<p style="margin:14px 0 0;"><a href="' + prepPhaseUrl + '" style="display:inline-block;padding:12px 24px;background:#0F0F0F;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">Start Preparation Phase — 3,750 DKK</a></p>' +
+    '</div>' +
+    '<p>Questions before you decide?</p>' +
+    '<p style="margin:0 0 20px;"><a href="' + consultUrl + '" style="display:inline-block;padding:12px 24px;background:#fff;color:#0F0F0F;text-decoration:none;border-radius:8px;border:1px solid #E8E4E0;font-weight:bold;">Book a Free Consultation</a></p>' +
     '<p>Feel free to call me at <a href="tel:+4553881209" style="color:#f75c03;">+45 53 88 12 09</a> — easier than email.</p>';
   return { subject, html };
 }
@@ -483,5 +564,6 @@ module.exports = {
   sendApplicationConfirmation,
   sendCareersConfirmation,
   build18WAugWelcomeEmail,
+  build4WJulWelcomeEmail,
   buildScheduleEmail
 };
