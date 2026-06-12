@@ -11,6 +11,13 @@
 
 const { getDb } = require('./firestore');
 
+// Personal Outreach sequence: Step 1 is the schedule email, which is sent
+// immediately on lead creation, so new enrollments start at Step 2.
+// July Vinyasa Plus leads skip it entirely — they get the fast
+// "July Vinyasa Plus — Urgency 2026" sequence instead (Broadcast Nurture
+// still applies to them via its own trigger conditions).
+const PERSONAL_OUTREACH_ID = '9UUm4uK8ggfWbTLeciAO';
+
 // =========================================================================
 // Condition Matching
 // =========================================================================
@@ -98,6 +105,14 @@ async function triggerNewLeadSequences(leadId, leadData) {
         continue;
       }
 
+      // July Vinyasa Plus leads get the targeted 7-day July Urgency sequence
+      // instead of the generic 20-day Personal Outreach
+      const leadPrograms = String(leadData.ytt_program_type || leadData.program || '');
+      if (sequence.id === PERSONAL_OUTREACH_ID && leadPrograms.includes('4-week-jul')) {
+        console.log(`[sequence-trigger] Skipping Personal Outreach for July lead ${leadId} — July Urgency sequence covers it`);
+        continue;
+      }
+
       // Check enrollment_closes — skip if enrollment window has passed
       if (sequence.enrollment_closes) {
         const closesDate = new Date(sequence.enrollment_closes);
@@ -137,7 +152,6 @@ async function triggerNewLeadSequences(leadId, leadData) {
 
       // Personal Outreach sequence: Step 1 is the schedule email, which is now sent
       // immediately on lead creation. Start new enrollments at Step 2 (the check-in).
-      const PERSONAL_OUTREACH_ID = '9UUm4uK8ggfWbTLeciAO';
       const startStep = sequence.id === PERSONAL_OUTREACH_ID ? 2 : 1;
       const stepIndex = startStep - 1;
       const stepDelay = sequence.steps?.[stepIndex]?.delay_minutes || 0;
