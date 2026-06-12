@@ -107,6 +107,7 @@ Plus: **Quick Follow-up** (2.5h after signup) and **Educational/Lifestyle Nurtur
 | 18W Flexible Aug–Dec | `ab2dSOrmaQnneUyRojCf` |
 | July Vinyasa Plus (DK) | `Yoq6RCVqTYlF10OPmkSw` |
 | July Vinyasa Plus (Intl) | `{PENDING_ID}` |
+| July Vinyasa Plus — Urgency 2026 | `{PENDING_ID}` — seed via `seed-july-urgency.js` (replaces Personal Outreach for `4-week-jul` leads) |
 
 ### System Behavior
 
