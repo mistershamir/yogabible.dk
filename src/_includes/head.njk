@@ -82,9 +82,9 @@
   "url": "{{ site.url }}",
   "logo": {
     "@type": "ImageObject",
-    "url": "{{ site.url }}/assets/images/og/og-1200x630.png",
-    "width": 1200,
-    "height": 630
+    "url": "{{ site.url }}/assets/images/brand/logo-orange-on-transparent.png",
+    "width": 835,
+    "height": 200
   },
   "image": "{{ site.url }}/assets/images/og/og-1200x630.png",
   "description": "{% if lang == 'en' %}Professional yoga teacher training in Copenhagen since 2014. Yoga Alliance certified (RYS-200 & RYS-300). 200-hour and 300-hour programs, hot yoga classes, specialty courses, and private training.{% else %}Professionel yogalæreruddannelse i København siden 2014. Yoga Alliance certificeret (RYS-200 & RYS-300). 200-timers og 300-timers uddannelser, hot yoga klasser, specialkurser og privatundervisning.{% endif %}",
@@ -98,8 +98,8 @@
   },
   "geo": {
     "@type": "GeoCoordinates",
-    "latitude": 55.6722,
-    "longitude": 12.5923
+    "latitude": 55.6736,
+    "longitude": 12.5938
   },
   "telephone": "{{ site.phone }}",
   "email": "{{ site.email }}",
@@ -124,6 +124,7 @@
     "{{ site.instagram }}",
     "{{ site.soundcloud }}",
     "https://www.facebook.com/yogabibledk",
+    "https://www.linkedin.com/company/109163211/",
     "https://www.google.com/maps/place/Yoga+Bible",
     "https://www.tripadvisor.com/Attraction_Review-g189541-d10596318-Reviews-Hot_Yoga_Copenhagen-Copenhagen_Zealand.html"
   ],
@@ -244,6 +245,8 @@
     "@id": "{{ site.url }}/#organization"
   },
   "educationalCredentialAwarded": "RYT-200 Yoga Alliance Certification",
+  "courseCode": "RYT-200",
+  "timeRequired": "PT200H",
   "inLanguage": ["da", "en"],
   "offers": {
     "@type": "Offer",
@@ -330,6 +333,8 @@
     }
   },
   "educationalCredentialAwarded": "{% if '/300-hours' in page.url %}RYT-500 Yoga Alliance Certification{% else %}RYT-200 Yoga Alliance Certification{% endif %}",
+  "courseCode": "{% if '/300-hours' in page.url %}RYT-500{% else %}RYT-200{% endif %}",
+  "timeRequired": "{% if '/300-hours' in page.url %}PT300H{% else %}PT200H{% endif %}",
   "educationalLevel": "{% if '/300-hours' in page.url %}Advanced{% else %}Beginner to Intermediate{% endif %}",
   "coursePrerequisites": "{% if '/300-hours' in page.url %}RYT-200 certification required{% else %}No prior yoga teaching experience required{% endif %}",
   "inLanguage": ["da", "en"],
@@ -346,37 +351,10 @@
   },
   "teaches": ["Hatha Yoga", "Vinyasa Flow", "Yin Yoga", "Hot Yoga", "Meditation", "Pranayama", "Yoga Anatomy", "Yoga Philosophy", "Teaching Methodology", "Sequencing"],
   "hasCourseInstance": [
-    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
+    {% if '-4-weeks-' in page.url %}
     {
       "@type": "CourseInstance",
-      "name": "4-Week Intensive — June 2026",
-      "courseMode": "onsite",
-      "courseWorkload": "PT160H",
-      "startDate": "2026-06-01",
-      "endDate": "2026-06-28",
-      "location": {
-        "@type": "Place",
-        "name": "Yoga Bible Studio",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "Torvegade 66",
-          "addressLocality": "Copenhagen",
-          "postalCode": "1400",
-          "addressCountry": "DK"
-        }
-      },
-      "offers": {
-        "@type": "Offer",
-        "price": "23750",
-        "priceCurrency": "DKK",
-        "availability": "https://schema.org/InStock",
-        "validFrom": "2025-01-01",
-        "url": "{{ site.url }}/apply/"
-      }
-    },
-    {
-      "@type": "CourseInstance",
-      "name": "4-Week Intensive — July 2026",
+      "name": "4-Week Vinyasa Plus Intensive — July 2026",
       "courseMode": "onsite",
       "courseWorkload": "PT160H",
       "startDate": "2026-07-06",
@@ -402,15 +380,15 @@
       }
     }
     {% endif %}
-    {% if '/8-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
-    {% if '/4-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %},{% endif %}
+    {% if '-8-weeks-' in page.url %}
+    {% if '-4-weeks-' in page.url %},{% endif %}
     {
       "@type": "CourseInstance",
-      "name": "8-Week Semi-Intensive — May 2026",
+      "name": "8-Week Semi-Intensive — October 2026",
       "courseMode": "onsite",
       "courseWorkload": "PT160H",
-      "startDate": "2026-05-04",
-      "endDate": "2026-06-26",
+      "startDate": "2026-10-05",
+      "endDate": "2026-11-28",
       "location": {
         "@type": "Place",
         "name": "Yoga Bible Studio",
@@ -432,35 +410,8 @@
       }
     }
     {% endif %}
-    {% if '/18-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %}
-    {% if '/4-weeks' in page.url or '/8-weeks' in page.url or page.url == '/om-200hrs-yogalreruddannelser/' or page.url == '/en/om-200hrs-yogalreruddannelser/' %},{% endif %}
-    {
-      "@type": "CourseInstance",
-      "name": "18-Week Flexible — March 2026",
-      "courseMode": "onsite",
-      "courseWorkload": "PT160H",
-      "startDate": "2026-03-02",
-      "endDate": "2026-06-29",
-      "location": {
-        "@type": "Place",
-        "name": "Yoga Bible Studio",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "Torvegade 66",
-          "addressLocality": "Copenhagen",
-          "postalCode": "1400",
-          "addressCountry": "DK"
-        }
-      },
-      "offers": {
-        "@type": "Offer",
-        "price": "23750",
-        "priceCurrency": "DKK",
-        "availability": "https://schema.org/InStock",
-        "validFrom": "2025-01-01",
-        "url": "{{ site.url }}/apply/"
-      }
-    },
+    {% if '-18-weeks-' in page.url %}
+    {% if '-4-weeks-' in page.url or '-8-weeks-' in page.url %},{% endif %}
     {
       "@type": "CourseInstance",
       "name": "18-Week Flexible — August 2026",
@@ -523,6 +474,8 @@
     "@id": "{{ site.url }}/#organization"
   },
   "educationalCredentialAwarded": "RYT-500 Yoga Alliance Certification",
+  "courseCode": "RYT-500",
+  "timeRequired": "PT300H",
   "educationalLevel": "Advanced",
   "coursePrerequisites": "RYT-200 certification required",
   "inLanguage": ["da", "en"],
