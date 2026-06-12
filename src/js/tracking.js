@@ -388,6 +388,11 @@
         formats.push(cb.value);
       });
 
+      // Mirror modal-200ytt.js validation — skip tracking on submits it rejects
+      var firstName = (document.getElementById('ybuFirstName') || {}).value || '';
+      var phone = (document.getElementById('ybuPhone') || {}).value || '';
+      if (!formats.length || !firstName.trim() || !email.trim() || !phone.trim()) return;
+
       DL.push({
         event: 'form_submit_schedule',
         event_id: eid,
@@ -406,8 +411,49 @@
         content_category: formats.join(',')
       }, email);
 
-      // Google Ads "Indsendt Formular" conversion (direct gtag, bypasses GTM)
+      // Google Ads conversions (direct gtag, bypasses GTM)
       gtagConversion(GADS_LABELS.lead, 0, 'DKK', eid);
+      gtagConversion(GADS_LABELS.get_schedule, 0, 'DKK', eid);
+    });
+  }
+
+  // ============================================
+  // 300H SCHEDULE MODAL FORM SUBMIT (modal-schedule-300)
+  // ============================================
+
+  var ybu300Form = document.getElementById('ybu300Form');
+  if (ybu300Form) {
+    ybu300Form.addEventListener('submit', function () {
+      // Mirror modal-300ytt.js validation — skip tracking on submits it rejects
+      var hp = ybu300Form.querySelector('[name="ybu_hp"]');
+      if (hp && hp.value) return;
+      var email = (document.getElementById('ybu300Email') || {}).value || '';
+      var firstName = (document.getElementById('ybu300FirstName') || {}).value || '';
+      var phone = (document.getElementById('ybu300Phone') || {}).value || '';
+      if (!firstName.trim() || !email.trim() || !phone.trim()) return;
+
+      var eid = eventId();
+
+      DL.push({
+        event: 'form_submit_schedule',
+        event_id: eid,
+        form_name: 'schedule_request_300h',
+        selected_formats: '300h'
+      });
+
+      pixelTrack('Lead', {
+        content_name: 'Schedule Request 300h',
+        content_category: '300h'
+      }, eid);
+
+      sendCAPI('Lead', eid, {
+        content_name: 'Schedule Request 300h',
+        content_category: '300h'
+      }, email);
+
+      // Google Ads conversions (direct gtag, bypasses GTM)
+      gtagConversion(GADS_LABELS.lead, 0, 'DKK', eid);
+      gtagConversion(GADS_LABELS.get_schedule, 0, 'DKK', eid);
     });
   }
 
@@ -697,17 +743,6 @@
     // Google server-side enhanced conversion
     sendGoogleCAPI('purchase', eid, value, currency, email);
   });
-
-  // ============================================
-  // SCHEDULE FORM: Google Ads Lead conversion
-  // Also fires when ybuForm submits (already fires Meta Lead above)
-  // ============================================
-
-  if (ybuForm) {
-    ybuForm.addEventListener('submit', function () {
-      gtagConversion(GADS_LABELS.get_schedule, 0, 'DKK', eventId());
-    });
-  }
 
   console.log('✅ Tracking initialized (Meta CAPI + Google Ads)');
 })();
