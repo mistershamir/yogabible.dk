@@ -2611,13 +2611,21 @@
       el.innerHTML = html;
       document.body.appendChild(el);
 
-      // Position below anchor
+      // Position below anchor. The picker is `position: fixed`, so coordinates
+      // are viewport-relative — do NOT add window.scrollX/scrollY (that would
+      // push it off-screen whenever the page is scrolled).
       if (anchorEl) {
         var rect = anchorEl.getBoundingClientRect();
         var pickerW = 320;
-        var left = rect.left + window.scrollX;
+        var pickerH = 300; // approx; used to flip above the anchor when no room below
+        var left = rect.left;
         if (left + pickerW > window.innerWidth - 12) left = window.innerWidth - pickerW - 12;
-        el.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+        var top = rect.bottom + 6;
+        // Flip above the button if it would overflow the bottom of the viewport
+        if (top + pickerH > window.innerHeight - 12 && rect.top > pickerH) {
+          top = rect.top - pickerH - 6;
+        }
+        el.style.top = Math.max(8, top) + 'px';
         el.style.left = Math.max(8, left) + 'px';
       }
 
@@ -5804,10 +5812,10 @@
           }
           break;
         case 'send-schedule-inline':
-          if (id) openSchedulePicker(id, e.target);
+          if (id) openSchedulePicker(id, btn);
           break;
         case 'send-schedule':
-          if (currentLeadId) openSchedulePicker(currentLeadId, e.target);
+          if (currentLeadId) openSchedulePicker(currentLeadId, btn);
           break;
         case 'schedule-picker-select': {
           var pickerLeadId = btn.getAttribute('data-lead-id');
