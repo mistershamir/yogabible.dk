@@ -183,8 +183,8 @@
 
   // ── Tab Navigation ──
 
-  var VALID_TABS = ['hub', 'courses', 'live', 'events', 'schedule', 'glossary', 'journal', 'materials', 'profile', 'leads'];
-  var IFRAME_TABS = ['schedule', 'profile', 'leads'];
+  var VALID_TABS = ['hub', 'courses', 'live', 'events', 'schedule', 'glossary', 'journal', 'materials', 'profile', 'leads', 'appointments'];
+  var IFRAME_TABS = ['schedule', 'profile', 'leads', 'appointments'];
   var loadedIframes = {};
   var resizeTimers = {};
 
