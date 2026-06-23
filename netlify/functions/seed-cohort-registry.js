@@ -115,7 +115,7 @@ const COHORTS = [
     method_da: 'Triangle Method — Hatha, Vinyasa, Yin, Hot Yoga og Meditation',
     method_en: 'Triangle Method — Hatha, Vinyasa, Yin, Hot Yoga, and Meditation',
     start_date: '2026-10-05',
-    end_date: '2026-11-28',
+    end_date: '2026-11-29',
     enrollment_closes: '2026-10-02',
     schedule_path_da: '/skema/8-uger-oktober/',
     schedule_path_en: '/en/schedule/8-weeks-october/',
@@ -127,7 +127,7 @@ const COHORTS = [
     start_date_formatted_da: '5. oktober',
     start_date_formatted_en: 'October 5',
     active: true,
-    schedule_ready: false,
+    schedule_ready: true,
     sort_order: 5
   },
   {

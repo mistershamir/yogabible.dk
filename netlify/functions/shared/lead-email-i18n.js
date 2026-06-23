@@ -168,6 +168,7 @@ const SCHEDULE_PATHS = {
     '4-week-jun':  '/skema/4-uger-juni/',
     '4-week-jul':  '/skema/4-uger-juli/',
     '8-week':      '/skema/8-uger/',
+    '8-week-oct':  '/skema/8-uger-oktober/',
     '18-week':     '/skema/18-uger/',
     '18-week-aug': '/skema/18-uger-august/'
   },
@@ -176,6 +177,7 @@ const SCHEDULE_PATHS = {
     '4-week-jun':  '/en/schedule/4-weeks-june/',
     '4-week-jul':  '/en/schedule/4-weeks-july-plan/',
     '8-week':      '/en/schedule/8-weeks/',
+    '8-week-oct':  '/en/schedule/8-weeks-october/',
     '18-week':     '/en/schedule/18-weeks/',
     '18-week-aug': '/en/schedule/18-weeks-august/'
   }
@@ -188,6 +190,7 @@ const PROGRAM_PAGES = {
     '4-week-jun':'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
     '4-week-jul':'https://www.yogabible.dk/200-hours-4-weeks-intensive-programs',
     '8-week':    'https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs',
+    '8-week-oct':'https://www.yogabible.dk/200-hours-8-weeks-semi-intensive-programs',
     '18-week':   'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',
     '18-week-aug':'https://www.yogabible.dk/200-hours-18-weeks-flexible-programs',
     'about200h': 'https://www.yogabible.dk/om-200hrs-yogalaereruddannelser'
@@ -197,6 +200,7 @@ const PROGRAM_PAGES = {
     '4-week-jun':'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs',
     '4-week-jul':'https://www.yogabible.dk/en/200-hours-4-weeks-intensive-programs',
     '8-week':    'https://www.yogabible.dk/en/200-hours-8-weeks-semi-intensive-programs',
+    '8-week-oct':'https://www.yogabible.dk/en/200-hours-8-weeks-semi-intensive-programs',
     '18-week':   'https://www.yogabible.dk/en/200-hours-18-weeks-flexible-programs',
     '18-week-aug':'https://www.yogabible.dk/en/200-hours-18-weeks-flexible-programs',
     'about200h': 'https://www.yogabible.dk/en/om-200hrs-yogalaereruddannelser'
